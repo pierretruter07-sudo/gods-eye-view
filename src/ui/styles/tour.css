@@ -2,9 +2,9 @@
 .tour-dock {
   position: fixed;
   left: 50%;
-  bottom: 28px;
+  bottom: calc(2vh + 108px);
   transform: translateX(-50%);
-  z-index: 40;
+  z-index: 150;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -78,9 +78,9 @@
 .tour-caption {
   position: fixed;
   left: 50%;
-  bottom: 84px;
+  bottom: calc(2vh + 164px);
   transform: translateX(-50%);
-  z-index: 40;
+  z-index: 150;
   max-width: min(760px, calc(100vw - 32px));
   padding: 10px 18px;
   border-radius: 10px;
@@ -101,7 +101,7 @@
   position: fixed;
   top: 96px;
   right: 72px;
-  z-index: 40;
+  z-index: 150;
   width: 300px;
   max-width: calc(100vw - 32px);
   padding: 14px 16px;
