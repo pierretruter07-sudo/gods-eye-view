@@ -3,6 +3,7 @@ import { setScopeMaskEnabled } from '../scopeMask.js';
 import { installTour } from '../tour/index.js';
 import { createExerciseMode } from '../exercise/mode.js';
 import { installIntel } from '../intel/index.js';
+import { installIdleSpin } from './idleSpin.js';
 
 /** Layers offered in the Layers panel, in display order. */
 export const SHELL_LAYERS = Object.freeze([
@@ -181,8 +182,13 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const tour = installTour({
     viewer,
     dataManager,
+    // The Director's current subject opens in the intel view, as if clicked.
+    onFocus(focus) {
+      if (mode === 'live') intel.showFocus(focus);
+    },
     onState(state) {
       const live = state === 'running';
+      document.body.classList.toggle('gev-touring', live);
       directorBtn.classList.toggle('gev-btn--live', live);
       directorBtn.innerHTML = live
         ? `${ICONS.stop}<span>Stop</span>`
@@ -226,6 +232,14 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   }
   intel.onTriage((on) => triageBtn.setAttribute('aria-pressed', String(on)));
   intel.onWatch(refreshBadge);
+  intel.onOpen(() => setPanel(false));
+
+  // Slow idle rotation of the zoomed-out globe.
+  const stopSpin = installIdleSpin({
+    viewer,
+    isBlocked: () =>
+      mode !== 'live' || tour.controller.isRunning() || intel.isOpen() || !!viewer.trackedEntity,
+  });
   triageBtn.addEventListener('click', () => {
     setPanel(false);
     intel.setTriage(!intel.isTriageOpen());
@@ -303,6 +317,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   return () => {
     searchAbort?.abort();
     clearInterval(badgeTimer);
+    stopSpin();
     startupTimers.forEach(clearTimeout);
     intel.destroy();
     exercise.exit();
@@ -313,6 +328,6 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     banner.remove();
     exCaption.remove();
     demo?.remove();
-    document.body.classList.remove('gev-clean', 'gev-exercise');
+    document.body.classList.remove('gev-clean', 'gev-exercise', 'gev-touring', 'gev-intel-open');
   };
 }

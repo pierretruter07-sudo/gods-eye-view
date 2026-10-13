@@ -902,8 +902,6 @@ body.gev-exercise .gev-demo {
 .gev-act[aria-pressed='true'] { background: rgba(100, 210, 255, 0.28); }
 .gev-act--close { width: 38px; padding: 0; justify-content: center; }
 
-/* The Director caption sits where the actions go — hide it while open. */
-body.gev-intel-open .gev-caption { opacity: 0; }
 
 /* ── Triage queue ───────────────────────────────────────── */
 .gev-triage {
@@ -989,4 +987,55 @@ body.gev-intel-open .gev-caption { opacity: 0; }
   .gev-iv__left { grid-column: 1; }
   .gev-iv__right { grid-column: 2; }
   .gev-iv__card { overflow-y: auto; }
+}
+
+
+/* ══ Density pass: smaller chrome, fixed zones so nothing overlaps ═══════
+   Zones (desktop): top bar 14–60px · side columns from 76px · bottom-right
+   Director alert · bottom-centre caption / intel actions. */
+.gev-bar { top: 14px; padding: 5px 5px 5px 14px; gap: 8px; }
+.gev-bar__brand { font-size: 14px; }
+.gev-bar__brand svg { width: 19px; height: 19px; }
+.gev-bar__search { height: 34px; width: 220px; padding: 0 12px; }
+.gev-bar__search input { font-size: 13px; }
+.gev-btn { height: 36px; padding: 0 14px; gap: 7px; font-size: 13px; }
+.gev-seg button { height: 32px; padding: 0 12px; font-size: 13px; }
+.gev-badge { min-width: 16px; height: 16px; line-height: 16px; font-size: 10px; }
+
+.gev-layers { top: 76px; left: 16px; width: 250px; padding: 10px 6px 6px; border-radius: 18px; }
+.gev-layer { padding: 7px 10px; font-size: 13px; gap: 10px; }
+.gev-exbanner { top: 70px; }
+.gev-pkg { top: 76px; right: 16px; }
+
+.gev-caption { bottom: 18px; max-width: min(560px, calc(100vw - 32px)); padding: 9px 16px; font-size: 13.5px; border-radius: 14px; }
+.gev-alert { right: 16px; bottom: 16px; width: 270px; padding: 11px 14px 12px; border-radius: 18px; }
+.gev-alert__title { font-size: 15px; margin-bottom: 8px; }
+.gev-alert__facts { font-size: 12px; }
+.gev-alert__badge { font-size: 10px; }
+
+/* Intel view: narrower columns, smaller type. */
+.gev-iv {
+  inset: 76px 16px 16px;
+  grid-template-columns: minmax(260px, 290px) 1fr minmax(260px, 300px);
+  gap: 12px;
+  font-size: clamp(11.5px, 1.32vh, 13px);
+}
+.gev-iv__card { padding: 12px 14px; border-radius: 18px; }
+.gev-iv__title { font-size: 1.5em; }
+.gev-graph { max-height: 12vh; }
+.gev-act { height: 32px; padding: 0 12px; gap: 6px; }
+.gev-act--close { width: 32px; }
+.gev-iv__brief { padding: 8px 14px; max-width: min(620px, 100%); }
+.gev-triage { top: 76px; left: 16px; width: 290px; font-size: 12px; border-radius: 18px; }
+
+/* Director running: the intel view is read-only and leaves the bottom band
+   (caption centre, alert card right) clear. */
+body.gev-touring .gev-iv { bottom: 190px; }
+body.gev-touring .gev-iv__bottom { display: none; }
+body.gev-touring .gev-iv__card { max-height: 100%; }
+@media (max-height: 820px) {
+  body.gev-touring .gev-iv__pol,
+  body.gev-touring .gev-iv section:has(.gev-iv__pol),
+  body.gev-touring .gev-iv section:has(.gev-iv__near) { display: none; }
+  .gev-iv { inset: 72px 14px 12px; }
 }

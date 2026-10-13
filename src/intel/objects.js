@@ -34,6 +34,7 @@ export function toIntelObject(layerId, record) {
     kind,
     layerId,
     military: layerId === 'military' || record.military === true,
+    simulated: record.simulated === true,
     key: `${kind}:${key ?? record.id}`,
     lat,
     lon,

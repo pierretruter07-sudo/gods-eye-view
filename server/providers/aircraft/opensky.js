@@ -236,6 +236,58 @@ export function adsbLolFallbackAnchor(req) {
   return { latitude, longitude };
 }
 
+/**
+ * Free, ADSBexchange-v2-compatible regional sources, tried in order. A 429
+ * (or other failure) puts that one source on cooldown so the next view asks
+ * a different one instead of hammering the limited one. All return `ac`.
+ */
+const REGIONAL_SOURCES = Object.freeze([
+  { id: 'adsb.lol', url: (lat, lon, nm) => `https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${nm}` },
+  { id: 'airplanes.live', url: (lat, lon, nm) => `https://api.airplanes.live/v2/point/${lat}/${lon}/${nm}` },
+  { id: 'adsb.fi', url: (lat, lon, nm) => `https://opendata.adsb.fi/api/v3/lat/${lat}/lon/${lon}/dist/${nm}` },
+]);
+const _regionalCooldownUntil = new Map();
+const REGIONAL_COOLDOWN_MS = 60_000;
+const REGIONAL_ERROR_COOLDOWN_MS = 20_000;
+
+async function fetchRegionalPayload(lat, lon, signal) {
+  let lastError = null;
+  for (const source of REGIONAL_SOURCES) {
+    if (Date.now() < (_regionalCooldownUntil.get(source.id) || 0)) continue;
+    try {
+      const upstream = await fetch(source.url(lat, lon, ADSBLOL_POINT_RADIUS_NM), {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'gods-eye-view-regional-fallback/1.0',
+        },
+        signal,
+      });
+      if (!upstream.ok) {
+        const retryS = Number(upstream.headers.get('retry-after'));
+        _regionalCooldownUntil.set(
+          source.id,
+          Date.now() +
+            (upstream.status === 429
+              ? Math.max(REGIONAL_COOLDOWN_MS, Number.isFinite(retryS) ? retryS * 1000 : 0)
+              : REGIONAL_ERROR_COOLDOWN_MS),
+        );
+        throw new Error(`${source.id} upstream HTTP ${upstream.status}`);
+      }
+      const payload = await readResponseJsonCapped(upstream, ADSBLOL_POINT_MAX_RESPONSE_BYTES);
+      if (payload && !Array.isArray(payload.ac) && Array.isArray(payload.aircraft))
+        payload.ac = payload.aircraft;
+      return payload;
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      lastError = error;
+      if (!_regionalCooldownUntil.has(source.id) || Date.now() >= _regionalCooldownUntil.get(source.id))
+        _regionalCooldownUntil.set(source.id, Date.now() + REGIONAL_ERROR_COOLDOWN_MS);
+      console.warn('[Regional Flights Fallback]', error?.message || error);
+    }
+  }
+  throw lastError || new Error('all regional flight sources cooling down');
+}
+
 async function fetchAdsbLolPointFallback(req) {
   const anchor = adsbLolFallbackAnchor(req);
   if (!anchor) return null;
@@ -255,20 +307,10 @@ async function fetchAdsbLolPointFallback(req) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       try {
-        const upstream = await fetch(
-          `https://api.adsb.lol/v2/lat/${roundedLat}/lon/${roundedLon}/dist/${ADSBLOL_POINT_RADIUS_NM}`,
-          {
-            headers: {
-              Accept: 'application/json',
-              'User-Agent': 'gods-eye-view-adsblol-regional-fallback/1.0',
-            },
-            signal: controller.signal,
-          },
-        );
-        if (!upstream.ok) throw new Error(`upstream HTTP ${upstream.status}`);
-        const payload = await readResponseJsonCapped(
-          upstream,
-          ADSBLOL_POINT_MAX_RESPONSE_BYTES,
+        const payload = await fetchRegionalPayload(
+          roundedLat,
+          roundedLon,
+          controller.signal,
         );
         const normalized = normalizeAdsbLolPointResponse(payload);
         const record = {

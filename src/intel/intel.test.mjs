@@ -70,3 +70,19 @@ test('brief states feed facts and labels the simulated part', () => {
   assert.match(text, /2 other contacts within 150/);
   assert.match(text, /Simulated assessment:/);
 });
+
+test('a staged demo event is never presented as feed data', () => {
+  const demo = toIntelObject('flights', { icao24: 'd1', lat: 0, lon: 0, operator: 'X', simulated: true });
+  const d = buildDossier(demo);
+  assert.equal(d.demo, true);
+  assert.equal(d.source, 'Staged demo event');
+  assert.ok(d.links.every((l) => l.source === 'sim'));
+});
+
+import { shouldSpin } from '../shell/idleSpinPolicy.js';
+test('idle spin only when idle, zoomed out and unblocked', () => {
+  assert.equal(shouldSpin({ idleS: 10, heightM: 18e6, blocked: false }), true);
+  assert.equal(shouldSpin({ idleS: 1, heightM: 18e6, blocked: false }), false);
+  assert.equal(shouldSpin({ idleS: 10, heightM: 50_000, blocked: false }), false);
+  assert.equal(shouldSpin({ idleS: 10, heightM: 18e6, blocked: true }), false);
+});

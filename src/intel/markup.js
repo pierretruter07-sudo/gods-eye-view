@@ -64,7 +64,7 @@ export function leftCard(d, nearby) {
     <div class="gev-iv__kind">${esc(KIND_LABEL[d.kind] || d.kind)} <span class="gev-iv__src">${esc(d.source)}</span></div>
     <h2 class="gev-iv__title">${esc(d.title)}</h2>
     <p class="gev-iv__sub">${esc(d.subtitle || '')}</p>
-    <section><h3>Observed ${chip('feed')}</h3><dl>${rows(d.feed) || '<dd>No feed fields</dd>'}</dl></section>
+    <section><h3>Observed ${chip(d.demo ? 'sim' : 'feed')}</h3><dl>${rows(d.feed) || '<dd>No feed fields</dd>'}</dl></section>
     <section><h3>Nearby contacts ${chip('feed')}<span class="gev-iv__meta">${nearby.total} within ${nearby.radiusKm} km</span></h3>
       ${near ? `<ol class="gev-iv__near">${near}</ol>` : '<p class="gev-iv__empty">No other contacts in the enabled layers.</p>'}</section>`;
 }

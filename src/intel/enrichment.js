@@ -56,8 +56,19 @@ function patternOfLife(rand, kind) {
 }
 
 export function buildDossier(object) {
+  const rand = rng(seedFrom(object.id || object.callsign || object.name || object.kind));
+  const d = buildFor(object, rand);
+  // A staged demo event is not feed data: say so on the dossier itself.
+  if (object.simulated) {
+    d.demo = true;
+    d.source = 'Staged demo event';
+    for (const l of d.links) l.source = 'sim';
+  }
+  return d;
+}
+
+function buildFor(object, rand) {
   const kind = object.kind;
-  const rand = rng(seedFrom(object.id || object.callsign || object.name || kind));
   if (kind === 'aircraft') return aircraftDossier(object, rand);
   if (kind === 'vessel') return vesselDossier(object, rand);
   if (kind === 'satellite') return satelliteDossier(object, rand);

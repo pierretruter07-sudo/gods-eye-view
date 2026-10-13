@@ -33,7 +33,7 @@ function sleep(ms, signal) {
  * The Director: an automatic, narrated tour that visits live events first
  * and fixed stops otherwise. Any manual camera input hands control back.
  */
-export function createTourController({ viewer, dataManager, ui, narrator = createNarrator() }) {
+export function createTourController({ viewer, dataManager, ui, narrator = createNarrator(), onFocus = null }) {
   const planner = createPlanner();
   const staged = { flights: [], quakes: [] };
   let run = null; // { controller: AbortController }
@@ -218,6 +218,24 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
     }
   }
 
+  /** What the stop is looking at, as {layerId, record} for the intel view. */
+  function focusOf(next) {
+    if (next.kind === 'event' && next.event?.kind === 'aircraft') {
+      const f = next.event.facts || {};
+      return { layerId: 'flights', record: { ...f, lat: next.event.lat, lon: next.event.lon, simulated: next.event.simulated } };
+    }
+    if (next.kind === 'event' && next.event?.kind === 'earthquake') {
+      const f = next.event.facts || {};
+      return {
+        layerId: 'earthquakes',
+        record: { ...f, id: next.event.key, lat: next.event.lat, lon: next.event.lon, simulated: next.event.simulated },
+      };
+    }
+    if (next.kind === 'vessel') return { layerId: 'ais-live-vessels', record: next.vessel };
+    if (next.kind === 'satellite') return { layerId: 'satellites', record: next.satellite };
+    return null;
+  }
+
   async function loop(signal) {
     for (;;) {
       const next = planner.next(liveData());
@@ -231,8 +249,10 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       } else {
         ui.showStop(next);
       }
+      onFocus?.(null);
       await flyTo(next.view, signal);
       startOrbit(next.view);
+      onFocus?.(focusOf(next));
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);
         airport.update(profile, records('flights'));
@@ -286,6 +306,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
     stopOrbit();
     clearMarker();
     airport?.clear();
+    onFocus?.(null);
     ui.setState('paused');
   }
 

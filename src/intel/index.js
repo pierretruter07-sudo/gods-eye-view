@@ -115,19 +115,32 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     right.innerHTML = rightCard(d);
     actions.innerHTML = actionBar(selected, state);
   }
-  function open(o) {
+  let briefing = false;
+  function stopBrief() {
+    // Only cancel speech we started — never cut off the Director's narration.
+    if (briefing) narrator.stop();
+    briefing = false;
+  }
+  function open(o, { quiet = false } = {}) {
     stopFollow();
     selected = o;
     nearby = nearbyObjects(collect(), o);
     state = { watched: watchlist.has(o.key), aoi: areas.some((a) => a.key === o.key) };
     brief.hidden = true;
-    narrator.stop();
+    stopBrief();
     render();
     setTriage(false);
     view.hidden = false;
     document.body.classList.add('gev-intel-open');
-    placeMarker(o);
+    onOpen?.();
     clearInterval(followTimer);
+    // From the Director: its own pulse marks the target and the camera is
+    // already orbiting it, so no reticle and no follow polling.
+    if (quiet) {
+      marker.show = false;
+      return;
+    }
+    placeMarker(o);
     if (o.kind !== 'earthquake') {
       followTimer = setInterval(() => {
         if (!selected) return;
@@ -141,7 +154,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   }
   function close() {
     stopFollow();
-    narrator.stop();
+    stopBrief();
     selected = null;
     clearInterval(followTimer);
     view.hidden = true;
@@ -238,7 +251,10 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       const text = composeBrief(buildDossier(o), nearby);
       brief.textContent = text;
       brief.hidden = false;
-      narrator.speak(text);
+      briefing = true;
+      narrator.speak(text).then(() => {
+        briefing = false;
+      });
     }
     if (act === 'copy') {
       try {
@@ -346,9 +362,26 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const flaggedCount = () =>
     buildTriage(collect(), { limit: 999 }).filter((i) => i.severity !== 'watch').length + watchlist.size;
 
+  /**
+   * Show the dossier for what the Director is looking at ({layerId, record}),
+   * or close it (null). Prefers the layer's live record for the same object.
+   */
+  function showFocus(focus) {
+    if (!focus) return close();
+    const o = toIntelObject(focus.layerId, focus.record);
+    if (!o) return close();
+    const live = collect().find((x) => x.key === o.key);
+    open(live ? { ...live, simulated: o.simulated } : o, { quiet: true });
+  }
+  let onOpen = null;
+
   return {
     open,
     close,
+    showFocus,
+    onOpen(fn) {
+      onOpen = fn;
+    },
     isOpen: () => !!selected,
     setTriage,
     isTriageOpen: () => !triage.hidden,
