@@ -53,14 +53,32 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const leaders = document.createElementNS(svgNS, 'svg');
   leaders.setAttribute('class', 'gev-hud__leaders');
   leaders.setAttribute('aria-hidden', 'true');
-  const leaderEls = cards.map(() => {
-    const g = document.createElementNS(svgNS, 'g');
-    const line = document.createElementNS(svgNS, 'line');
-    const dot = document.createElementNS(svgNS, 'circle');
-    dot.setAttribute('r', '3');
-    g.append(line, dot);
+  leaders.setAttribute('shape-rendering', 'geometricPrecision');
+  const defs = document.createElementNS(svgNS, 'defs');
+  leaders.append(defs);
+  // Per leader: a soft halo, the line itself (fading in from the asset), a
+  // light-blue data pulse travelling asset → card, and an end dot that
+  // brightens as each pulse arrives. Pulses are staggered per card.
+  const mk = (tag, attrs) => {
+    const n = document.createElementNS(svgNS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    return n;
+  };
+  const leaderEls = cards.map((_, i) => {
+    const gradId = `gev-lead-grad-${i}`;
+    const grad = mk('linearGradient', { id: gradId, gradientUnits: 'userSpaceOnUse' });
+    const stopA = mk('stop', { offset: '0', 'stop-opacity': '0.1' });
+    const stopB = mk('stop', { offset: '1', 'stop-opacity': '0.6' });
+    grad.append(stopA, stopB);
+    defs.append(grad);
+    const g = mk('g', { style: `--gev-delay:${(i * 0.65).toFixed(2)}s` });
+    const halo = mk('path', { class: 'gev-lead__halo' });
+    const line = mk('path', { class: 'gev-lead__line', stroke: `url(#${gradId})` });
+    const pulse = mk('path', { class: 'gev-lead__pulse', pathLength: '100' });
+    const dot = mk('circle', { class: 'gev-lead__dot', r: '2.25' });
+    g.append(halo, line, pulse, dot);
     leaders.append(g);
-    return { g, line, dot };
+    return { g, grad, stopA, stopB, halo, line, pulse, dot };
   });
   const toast = el('div', 'gev-hud__toast gev-glass');
   toast.setAttribute('role', 'status');
@@ -168,7 +186,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   function updateLeaders() {
     if (view.hidden || !selected) return;
     const at = assetScreen();
-    leaderEls.forEach(({ g, line, dot }, i) => {
+    leaderEls.forEach(({ g, grad, stopA, stopB, halo, line, pulse, dot }, i) => {
       const node = cards[i];
       if (!at || node.hidden) {
         g.style.display = 'none';
@@ -176,16 +194,29 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       }
       const r = node.getBoundingClientRect();
       const slot = SLOTS[i];
-      const x = slot.endsWith('l') ? r.right : r.left;
-      const y = slot.startsWith('t') ? r.bottom - 18 : r.top + 18;
+      const x = (slot.endsWith('l') ? r.right : r.left).toFixed(1);
+      const y = (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1);
+      const ax = at.x.toFixed(1);
+      const ay = at.y.toFixed(1);
+      const d = `M${ax} ${ay}L${x} ${y}`;
+      const source = node.dataset.source || 'feed';
+      if (g.dataset.source !== source) {
+        g.dataset.source = source;
+        g.setAttribute('class', `gev-lead gev-lead--${source}`);
+        const color = source === 'feed' ? '#64d2ff' : '#ffbe55';
+        stopA.setAttribute('stop-color', color);
+        stopB.setAttribute('stop-color', color);
+      }
       g.style.display = '';
-      g.setAttribute('class', `gev-hud__leader gev-hud__leader--${node.dataset.source || 'feed'}`);
-      line.setAttribute('x1', at.x.toFixed(1));
-      line.setAttribute('y1', at.y.toFixed(1));
-      line.setAttribute('x2', x.toFixed(1));
-      line.setAttribute('y2', y.toFixed(1));
-      dot.setAttribute('cx', x.toFixed(1));
-      dot.setAttribute('cy', y.toFixed(1));
+      grad.setAttribute('x1', ax);
+      grad.setAttribute('y1', ay);
+      grad.setAttribute('x2', x);
+      grad.setAttribute('y2', y);
+      halo.setAttribute('d', d);
+      line.setAttribute('d', d);
+      pulse.setAttribute('d', d);
+      dot.setAttribute('cx', x);
+      dot.setAttribute('cy', y);
     });
   }
   const removeLeaderHook = scene.postRender.addEventListener(updateLeaders);
