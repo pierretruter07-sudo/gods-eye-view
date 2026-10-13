@@ -4,16 +4,9 @@ import {
   holdContinuousRender,
   releaseContinuousRender,
 } from '../renderGovernor.js';
-import {
-  EVENT_CAMERA,
-  EVENT_RULES,
-  TOUR_LAYERS,
-  TOUR_STOPS,
-  TOUR_TIMING,
-} from './config.js';
-import { countNearby, rankEvents } from './events.js';
-import { eventLine, stopLine } from './lines.js';
+import { TOUR_LAYERS, TOUR_TIMING } from './config.js';
 import { createNarrator } from './narrator.js';
+import { createPlanner } from './planner.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
 
 const RENDER_HOLD = 'tour-orbit';
@@ -38,9 +31,8 @@ function sleep(ms, signal) {
  * and fixed stops otherwise. Any manual camera input hands control back.
  */
 export function createTourController({ viewer, dataManager, ui, narrator = createNarrator() }) {
-  const seen = new Set();
+  const planner = createPlanner();
   const staged = { flights: [], quakes: [] };
-  let stopIndex = 0;
   let run = null; // { controller: AbortController }
   let removeOrbit = null;
   let marker = null;
@@ -99,7 +91,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
   }
 
   /** Fly so the target sits in view at the given range and pitch. */
-  function flyTo({ lat, lon, rangeM, pitchDeg }, signal) {
+  function flyTo({ lat, lon, heightM = 0, rangeM, pitchDeg }, signal) {
     return new Promise((resolve, reject) => {
       const onAbort = () => {
         viewer.camera.cancelFlight();
@@ -107,7 +99,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       };
       signal.addEventListener('abort', onAbort, { once: true });
       viewer.camera.flyToBoundingSphere(
-        new Cesium.BoundingSphere(Cesium.Cartesian3.fromDegrees(lon, lat), 0),
+        new Cesium.BoundingSphere(Cesium.Cartesian3.fromDegrees(lon, lat, heightM), 0),
         {
           offset: new Cesium.HeadingPitchRange(
             viewer.camera.heading,
@@ -129,9 +121,9 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
     });
   }
 
-  function startOrbit({ lat, lon, rangeM, pitchDeg }) {
+  function startOrbit({ lat, lon, heightM = 0, rangeM, pitchDeg }) {
     stopOrbit();
-    const target = Cesium.Cartesian3.fromDegrees(lon, lat);
+    const target = Cesium.Cartesian3.fromDegrees(lon, lat, heightM);
     const rate = Cesium.Math.toRadians(TOUR_TIMING.orbitDegPerS);
     const pitch = Cesium.Math.toRadians(pitchDeg);
     let heading = viewer.camera.heading;
@@ -148,49 +140,47 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
     });
   }
 
-  function nextStop() {
-    const flights = [...records('flights'), ...staged.flights];
-    const quakes = [...records('earthquakes'), ...staged.quakes];
-    const [event] = rankEvents({ flights, quakes, now: Date.now(), seen });
-    if (event) {
-      seen.add(event.key);
-      return { event, view: { lat: event.lat, lon: event.lon, ...EVENT_CAMERA[event.kind] } };
-    }
-    const stop = TOUR_STOPS[stopIndex % TOUR_STOPS.length];
-    stopIndex += 1;
-    const airborne =
-      stop.id === 'globe'
-        ? flights.filter((f) => !f.onGround).length
-        : countNearby(flights, stop.lat, stop.lon, EVENT_RULES.nearbyRadiusKm);
+  function liveData() {
     return {
-      stop,
-      view: stop,
-      line: stopLine(stop, airborne, EVENT_RULES.nearbyRadiusKm),
+      flights: [...records('flights'), ...staged.flights],
+      quakes: [...records('earthquakes'), ...staged.quakes],
+      vessels: records('ais-live-vessels'),
+      satellites: records('satellites'),
     };
+  }
+
+  /** Wait out a stop, cutting it short if a brand-new incident appears. */
+  async function dwell(seconds, signal) {
+    const until = Date.now() + seconds * 1000;
+    while (Date.now() < until) {
+      const step = Math.min(TOUR_TIMING.interruptCheckS * 1000, until - Date.now());
+      await sleep(step, signal);
+      const incidents = {
+        flights: [...records('flights'), ...staged.flights],
+        quakes: [...records('earthquakes'), ...staged.quakes],
+      };
+      if (planner.hasFresh(incidents)) return;
+    }
   }
 
   async function loop(signal) {
     for (;;) {
-      const next = nextStop();
+      const next = planner.next(liveData());
       stopOrbit();
       clearMarker();
       if (next.event) {
         ui.showEvent(next.event);
         showMarker(next.event);
       } else {
-        ui.showStop(next.stop);
+        ui.showStop(next);
       }
       await flyTo(next.view, signal);
       startOrbit(next.view);
-      const line = next.event ? eventLine(next.event) : next.line;
-      ui.setCaption(line);
+      ui.setCaption(next.line);
       const started = Date.now();
-      await narrator.speak(line, { signal });
-      const remaining = Math.max(
-        TOUR_TIMING.orbitS * 1000 - (Date.now() - started),
-        TOUR_TIMING.minHoldS * 1000,
-      );
-      await sleep(remaining, signal);
+      await narrator.speak(next.line, { signal });
+      const spokenS = (Date.now() - started) / 1000;
+      await dwell(Math.max(next.dwellS - spokenS, 1), signal);
     }
   }
 
@@ -238,11 +228,8 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
     const now = Date.now();
     if (kind === 'earthquake') staged.quakes.push(simulatedQuake(now));
     else staged.flights.push(simulatedAircraft(now));
-    if (run) {
-      // Jump straight to the new event.
-      exit('simulate');
-    }
-    start();
+    // A running tour picks it up at its next check; an idle one starts.
+    if (!run) start();
   }
 
   // Any manual camera input ends the tour.

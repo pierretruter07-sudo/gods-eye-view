@@ -3,19 +3,26 @@
  * Distances in metres, angles in degrees, times in seconds.
  */
 export const TOUR_TIMING = Object.freeze({
-  flyInS: 5,
-  /** How long the camera circles each stop before moving on. */
-  orbitS: 20,
-  /** Orbit speed. 3°/s is half the app's default 6°/s. */
+  flyInS: 4,
+  /** Time spent at a new or recent incident (max). */
+  eventDwellS: 15,
+  /** Time spent at any other stop. */
+  stopDwellS: 12,
+  /** Orbit speed while dwelling. */
   orbitDegPerS: 3,
-  /** Pause after the voice finishes before leaving a stop early is allowed. */
-  minHoldS: 8,
+  /** How often to check for a brand-new incident while dwelling. */
+  interruptCheckS: 2,
+  /** An incident already shown may be revisited after this long. */
+  revisitAfterMin: 6,
 });
 
-/** How close the camera sits for each kind of event. */
-export const EVENT_CAMERA = Object.freeze({
+/** Camera framing per stop kind. */
+export const STOP_CAMERA = Object.freeze({
   aircraft: Object.freeze({ rangeM: 70_000, pitchDeg: -35 }),
   earthquake: Object.freeze({ rangeM: 350_000, pitchDeg: -50 }),
+  airport: Object.freeze({ rangeM: 14_000, pitchDeg: -30 }),
+  vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -35 }),
+  satellite: Object.freeze({ rangeM: 2_500_000, pitchDeg: -35 }),
 });
 
 export const EVENT_RULES = Object.freeze({
@@ -26,62 +33,48 @@ export const EVENT_RULES = Object.freeze({
     7600: Object.freeze({ rank: 2, label: 'radio failure' }),
   }),
   quakeMinMagnitude: 4.5,
-  quakeMaxAgeH: 6,
+  /** Quakes older than this are no longer shown. */
+  quakeMaxAgeH: 3,
   /** Radius used for "aircraft near this stop" counts. */
   nearbyRadiusKm: 100,
+  airportRadiusKm: 50,
+  /** Ships slower than this are treated as parked. */
+  vesselMinKts: 8,
 });
 
-/** Layers the Director switches on when it starts. */
-export const TOUR_LAYERS = Object.freeze(['flights', 'earthquakes']);
+/**
+ * What to show between incidents, in order, repeating. A slot with nothing
+ * available is skipped. New incidents always jump the queue.
+ */
+export const TOUR_ROTATION = Object.freeze([
+  'recent',
+  'airport',
+  'vessel',
+  'satellite',
+  'recent',
+  'city',
+]);
 
-/** Fixed stops visited, in order, whenever there is no event to show. */
+/** Layers the Director switches on when it starts. */
+export const TOUR_LAYERS = Object.freeze([
+  'flights',
+  'earthquakes',
+  'satellites',
+  'ais-live-vessels',
+]);
+
+/** Airports with SilentWing close-ups (runway data from OurAirports). */
+export const TOUR_AIRPORTS = Object.freeze([
+  { id: 'ybbn', label: 'Brisbane Airport', lat: -27.3842, lon: 153.117 },
+  { id: 'yssy', label: 'Sydney Airport', lat: -33.9461, lon: 151.177 },
+  { id: 'ypad', label: 'Adelaide Airport', lat: -34.9475, lon: 138.5334 },
+].map((a) => Object.freeze(a)));
+
+/** Wide views used when nothing else is available. */
 export const TOUR_STOPS = Object.freeze([
-  {
-    id: 'globe',
-    label: 'Planet overview',
-    lat: -10,
-    lon: 140,
-    rangeM: 18_000_000,
-    pitchDeg: -90,
-  },
-  {
-    id: 'egll',
-    label: 'London Heathrow',
-    lat: 51.47,
-    lon: -0.4543,
-    rangeM: 40_000,
-    pitchDeg: -35,
-  },
-  {
-    id: 'kjfk',
-    label: 'New York JFK',
-    lat: 40.6413,
-    lon: -73.7781,
-    rangeM: 40_000,
-    pitchDeg: -35,
-  },
-  {
-    id: 'omdb',
-    label: 'Dubai International',
-    lat: 25.2532,
-    lon: 55.3657,
-    rangeM: 40_000,
-    pitchDeg: -35,
-  },
-  {
-    id: 'rjtt',
-    label: 'Tokyo Haneda',
-    lat: 35.5494,
-    lon: 139.7798,
-    rangeM: 40_000,
-    pitchDeg: -35,
-  },
-  {
-    id: 'yssy',
-    label: 'Sydney',
-    lat: -33.9399,
-    lon: 151.1753,
-    rangeM: 40_000,
-    pitchDeg: -35,
-  },
+  { id: 'globe', label: 'Planet overview', lat: -10, lon: 140, rangeM: 18_000_000, pitchDeg: -90 },
+  { id: 'egll', label: 'London Heathrow', lat: 51.47, lon: -0.4543, rangeM: 40_000, pitchDeg: -35 },
+  { id: 'kjfk', label: 'New York JFK', lat: 40.6413, lon: -73.7781, rangeM: 40_000, pitchDeg: -35 },
+  { id: 'omdb', label: 'Dubai International', lat: 25.2532, lon: 55.3657, rangeM: 40_000, pitchDeg: -35 },
+  { id: 'rjtt', label: 'Tokyo Haneda', lat: 35.5494, lon: 139.7798, rangeM: 40_000, pitchDeg: -35 },
 ].map((stop) => Object.freeze(stop)));

@@ -51,7 +51,7 @@ test('emergency aircraft rank 7500, 7700, 7600 and ignore ordinary codes', () =>
 test('aircraft come before quakes; quakes rank by size then recency', () => {
   const events = rankEvents({
     flights: [plane('a', '7700')],
-    quakes: [quake('q1', 5.0, 30), quake('q2', 6.2, 200), quake('q3', 5.0, 5)],
+    quakes: [quake('q1', 5.0, 30), quake('q2', 6.2, 150), quake('q3', 5.0, 5)],
     now,
   });
   assert.deepEqual(
@@ -65,7 +65,7 @@ test('small, old and positionless quakes are ignored', () => {
     flights: [plane('x', '7700', { lat: null })],
     quakes: [
       quake('small', 4.4, 10),
-      quake('old', 7.0, 6 * 60 + 1),
+      quake('old', 7.0, 3 * 60 + 1),
       quake('nopos', 6.0, 10, { lat: null }),
     ],
     now,
