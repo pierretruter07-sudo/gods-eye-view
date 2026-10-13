@@ -7,14 +7,17 @@
 
 const cache = new Map();
 
-function sprite(key, draw, size = 128) {
+/** Sprites are designed on a 128 px grid and rasterised at `size` px so the
+ * expanding pulse stays sharp when drawn large on high-density screens. */
+function sprite(key, draw, size = 192) {
   const hit = cache.get(key);
   if (hit) return hit;
   const c = document.createElement('canvas');
   c.width = size;
   c.height = size;
   const ctx = c.getContext('2d');
-  draw(ctx, size);
+  ctx.scale(size / 128, size / 128);
+  draw(ctx, 128);
   const url = c.toDataURL();
   cache.set(key, url);
   return url;

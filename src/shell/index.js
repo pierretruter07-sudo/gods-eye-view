@@ -4,6 +4,7 @@ import { installTour } from '../tour/index.js';
 import { createExerciseMode } from '../exercise/mode.js';
 import { installIntel } from '../intel/index.js';
 import { installIdleSpin } from './idleSpin.js';
+import { showWelcome, welcomeEnabled } from './welcome.js';
 import { installAdaptiveQuality } from './quality.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
 import { TOUR_AIRPORTS, TOUR_STOPS } from '../tour/config.js';
@@ -234,6 +235,18 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     }
   })();
 
+  // ── Opening card → Director (the default start) ───────────────────────
+  let closeWelcome = null;
+  if (welcomeEnabled()) {
+    closeWelcome = showWelcome({
+      onDone(action) {
+        closeWelcome = null;
+        if (action === 'explore' || action === 'dismissed' || mode !== 'live') return;
+        tour.controller.start();
+      },
+    });
+  } else tour.controller.start();
+
   directorBtn.addEventListener('click', () => {
     if (tour.controller.isRunning()) tour.controller.exit('button');
     else tour.controller.start();
@@ -335,6 +348,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
 
   return () => {
     searchAbort?.abort();
+    closeWelcome?.();
     clearInterval(badgeTimer);
     stopSpin();
     stopQuality();

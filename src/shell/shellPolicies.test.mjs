@@ -1,24 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { QUALITY, initialRatio, nextQuality } from './qualityPolicy.js';
+import { QUALITY, START_LEVEL, nextQuality, qualityLevels } from './qualityPolicy.js';
 import { shouldRefreshFlights, PREFETCH_MAX_AGE_MS } from './flightPrefetchPolicy.js';
 
-test('quality starts crisp but never supersamples past the cap', () => {
-  assert.equal(initialRatio(1), 1);
-  assert.equal(initialRatio(1.25), 1.25);
-  assert.equal(initialRatio(3), QUALITY.maxRatio);
+test('quality ladder holds native resolution and never drops below CSS pixels', () => {
+  const l = qualityLevels(1.5);
+  assert.deepEqual(l.slice(0, 3).map((x) => x.ratio), [1.5, 1.5, 1.5]);
+  assert.deepEqual(l.map((x) => x.msaa).slice(0, 3), [4, 2, 1]);
+  assert.ok(l.every((x) => x.ratio >= 1));
+  assert.equal(qualityLevels(3)[0].ratio, QUALITY.maxRatio);
+  assert.equal(qualityLevels(1).length, 3);
 });
 
-test('quality steps down on low fps and recovers only after sustained headroom', () => {
-  let s = { ratio: 1.5, good: 0, ceiling: 1.5 };
-  s = nextQuality(s, 30);
-  assert.equal(s.ratio, 1.35);
-  for (let i = 0; i < QUALITY.goodWindowsToRaise - 1; i += 1) s = nextQuality(s, 60);
-  assert.equal(s.ratio, 1.35);
-  s = nextQuality(s, 60);
-  assert.equal(s.ratio, 1.5);
-  const low = { ratio: QUALITY.minRatio, good: 0, ceiling: 1.5 };
-  assert.equal(nextQuality(low, 10).ratio, QUALITY.minRatio);
+test('one slow window does not drop quality; sustained slowness does; recovery needs headroom', () => {
+  const n = qualityLevels(1.5).length;
+  let s = { level: START_LEVEL, good: 0, bad: 0 };
+  s = nextQuality(s, 30, n);
+  assert.equal(s.level, START_LEVEL);
+  s = nextQuality(s, 30, n);
+  assert.equal(s.level, START_LEVEL + 1);
+  for (let i = 0; i < QUALITY.goodWindowsToRaise; i += 1) s = nextQuality(s, 60, n);
+  assert.equal(s.level, START_LEVEL);
+  let worst = { level: n - 1, good: 0, bad: 5 };
+  assert.equal(nextQuality(worst, 5, n).level, n - 1);
 });
 
 test('flight refresh on arrival: new place, stale data, not from space', () => {

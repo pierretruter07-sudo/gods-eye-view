@@ -1,42 +1,54 @@
 /**
- * Adaptive render quality. Rendering cost scales with pixel count, so the
- * one dial that reliably buys frame rate is the render pixel ratio
- * (render pixels per CSS pixel). Start crisp, step down when the frame rate
- * sags, step back up when there is headroom. Pure: no Cesium, no DOM.
+ * Adaptive render quality as a ladder of levels, best first. Native device
+ * resolution keeps text, icons and edges crisp, so it is held as long as
+ * possible: the ladder first trades away multisample anti-aliasing, and only
+ * drops below native resolution when the frame rate is really suffering —
+ * and never below CSS resolution. Pure: no Cesium, no DOM.
  */
 export const QUALITY = Object.freeze({
-  /** Never render sharper than this many pixels per CSS pixel. */
-  maxRatio: 1.5,
-  /** Never render softer than this (FXAA keeps it clean). */
-  minRatio: 0.7,
-  step: 0.15,
-  /** Step down below this FPS… */
-  lowFps: 42,
-  /** …step up above this FPS, after this many good windows in a row. */
-  highFps: 57,
+  /** Step down after this many windows below lowFps in a row. */
+  lowFps: 40,
+  badWindowsToDrop: 2,
+  /** Step up after this many windows above highFps in a row. */
+  highFps: 56,
   goodWindowsToRaise: 4,
+  /** Never render sharper than this many pixels per CSS pixel. */
+  maxRatio: 2,
 });
 
-/** Starting ratio for a display: crisp, but never above maxRatio. */
-export function initialRatio(devicePixelRatio = 1) {
-  return Math.min(QUALITY.maxRatio, Math.max(1, devicePixelRatio || 1));
+/** Quality levels for a display, best first. */
+export function qualityLevels(devicePixelRatio = 1) {
+  const native = Math.min(QUALITY.maxRatio, Math.max(1, devicePixelRatio || 1));
+  const levels = [
+    { ratio: native, msaa: 4 },
+    { ratio: native, msaa: 2 },
+    { ratio: native, msaa: 1 },
+  ];
+  if (native > 1.15) levels.push({ ratio: +Math.max(1, native * 0.85).toFixed(2), msaa: 1 });
+  if (native > 1) levels.push({ ratio: 1, msaa: 1 });
+  return levels;
 }
+
+/** Start one step below the best: crisp, anti-aliased, with headroom. */
+export const START_LEVEL = 1;
 
 /**
  * One measurement window → next state.
- * @param {{ratio:number, good:number, ceiling:number}} state
- * @param {number} fps measured over the window (continuous rendering only)
+ * @param {{level:number, good:number, bad:number}} state
+ * @param {number} fps
+ * @param {number} levelCount
  */
-export function nextQuality(state, fps) {
-  const { ratio, good, ceiling } = state;
-  if (fps < QUALITY.lowFps && ratio > QUALITY.minRatio) {
-    return { ratio: Math.max(QUALITY.minRatio, +(ratio - QUALITY.step).toFixed(2)), good: 0, ceiling };
+export function nextQuality(state, fps, levelCount) {
+  const { level } = state;
+  if (fps < QUALITY.lowFps) {
+    const bad = state.bad + 1;
+    if (bad >= QUALITY.badWindowsToDrop && level < levelCount - 1) return { level: level + 1, good: 0, bad: 0 };
+    return { level, good: 0, bad };
   }
-  if (fps > QUALITY.highFps && ratio < ceiling) {
-    const g = good + 1;
-    if (g >= QUALITY.goodWindowsToRaise)
-      return { ratio: Math.min(ceiling, +(ratio + QUALITY.step).toFixed(2)), good: 0, ceiling };
-    return { ratio, good: g, ceiling };
+  if (fps > QUALITY.highFps) {
+    const good = state.good + 1;
+    if (good >= QUALITY.goodWindowsToRaise && level > 0) return { level: level - 1, good: 0, bad: 0 };
+    return { level, good, bad: 0 };
   }
-  return { ratio, good: 0, ceiling };
+  return { level, good: 0, bad: 0 };
 }
