@@ -34,32 +34,22 @@ export function ringSprite(hex) {
   });
 }
 
-/** Four corner brackets plus a faint inner ring: a targeting reticle. */
+/** A clean double ring: a steady scope rim (no corner brackets). */
 export function reticleSprite(hex) {
   return sprite(`reticle:${hex}`, (ctx, s) => {
-    const m = 14;
-    const len = 22;
+    const r = s / 2;
     ctx.strokeStyle = hex;
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
     ctx.shadowColor = hex;
     ctx.shadowBlur = 6;
-    const corner = (x, y, dx, dy) => {
-      ctx.beginPath();
-      ctx.moveTo(x, y + dy * len);
-      ctx.lineTo(x, y);
-      ctx.lineTo(x + dx * len, y);
-      ctx.stroke();
-    };
-    corner(m, m, 1, 1);
-    corner(s - m, m, -1, 1);
-    corner(m, s - m, 1, -1);
-    corner(s - m, s - m, -1, -1);
-    ctx.globalAlpha = 0.45;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(r, r, r - 12, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 1.5;
     ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.arc(s / 2, s / 2, s / 2 - 34, 0, Math.PI * 2);
+    ctx.arc(r, r, r - 30, 0, Math.PI * 2);
     ctx.stroke();
   });
 }

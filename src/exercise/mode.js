@@ -110,7 +110,8 @@ export function createExerciseMode({ viewer, dataManager, liveLayerIds, onBanner
     if (!active) return null;
     currentPackage = generatePackage(scenario);
     panel.show(currentPackage);
-    flyTo({ ...scenario.target, rangeM: 120_000, pitchDeg: -45 });
+    // Close enough that the fictional airfield (runway, apron, buildings) reads.
+    flyTo({ ...scenario.target, rangeM: 9000, pitchDeg: -40 });
     return currentPackage;
   }
 

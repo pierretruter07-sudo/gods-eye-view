@@ -49,6 +49,79 @@ export function createExerciseOverlay(viewer) {
     });
   }
 
+  /** A point `de` m east and `dn` m north of (lat,lon). */
+  function offsetGeo(lat, lon, de, dn) {
+    const dLat = dn / 111_320;
+    const dLon = de / (111_320 * Math.cos((lat * Math.PI) / 180));
+    return [lon + dLon, lat + dLat];
+  }
+
+  /** Degrees ring for a rectangle centred at local (cE,cN), rotated by heading. */
+  function rect(lat, lon, cE, cN, len, wid, hdgDeg) {
+    const h = (hdgDeg * Math.PI) / 180;
+    const ax = [Math.sin(h), Math.cos(h)]; // along-runway (east,north)
+    const bx = [Math.cos(h), -Math.sin(h)]; // across
+    const out = [];
+    for (const [a, b] of [[1, 1], [1, -1], [-1, -1], [-1, 1]]) {
+      const e = cE + a * (len / 2) * ax[0] + b * (wid / 2) * bx[0];
+      const n = cN + a * (len / 2) * ax[1] + b * (wid / 2) * bx[1];
+      out.push(...offsetGeo(lat, lon, e, n));
+    }
+    return out;
+  }
+
+  function slab(lat, lon, cE, cN, len, wid, hdg, cssColor, height = 0) {
+    source.entities.add({
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(rect(lat, lon, cE, cN, len, wid, hdg)),
+        material: Cesium.Color.fromCssColorString(cssColor),
+        height,
+      },
+    });
+  }
+
+  function building(lat, lon, cE, cN, len, wid, hdg, cssColor, extrudedHeight) {
+    source.entities.add({
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(rect(lat, lon, cE, cN, len, wid, hdg)),
+        material: Cesium.Color.fromCssColorString(cssColor),
+        extrudedHeight,
+        outline: true,
+        outlineColor: Cesium.Color.BLACK.withAlpha(0.35),
+      },
+    });
+  }
+
+  /** A fictional forward airfield so the target reads as a real place. */
+  function drawAirfield(target) {
+    const { lat, lon } = target;
+    const hdg = 70; // runway orientation
+    slab(lat, lon, 0, 0, 2600, 55, hdg, '#2c2d2b', 1); // runway
+    slab(lat, lon, 0, 0, 2600, 3, hdg, '#d8d2b8', 1.2); // centreline
+    slab(lat, lon, -300, 320, 900, 360, hdg, '#52534c', 0.8); // apron
+    // Four hangars along the apron.
+    for (let i = 0; i < 4; i += 1) {
+      building(lat, lon, -600 + i * 200, 360, 70, 55, hdg, '#71726b', 16);
+    }
+    // Control tower.
+    building(lat, lon, 120, 300, 20, 20, hdg, '#6a6b64', 40);
+    // Fuel farm: three tanks.
+    for (let i = 0; i < 3; i += 1) {
+      const [tlon, tlat] = offsetGeo(lat, lon, 420 + i * 55, 240);
+      source.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(tlon, tlat, 11),
+        cylinder: {
+          length: 22,
+          topRadius: 24,
+          bottomRadius: 24,
+          material: Cesium.Color.fromCssColorString('#8a8b82'),
+          outline: true,
+          outlineColor: Cesium.Color.BLACK.withAlpha(0.3),
+        },
+      });
+    }
+  }
+
   function ring(threat) {
     const color = Cesium.Color.fromCssColorString(threat.band === 'high' ? DEEP_ORANGE : AMBER);
     source.entities.add({
@@ -82,6 +155,7 @@ export function createExerciseOverlay(viewer) {
       });
     }
     for (const threat of scenario.threats || []) ring(threat);
+    drawAirfield(scenario.target);
     marker(scenario.friendlyBase, BLUE, scenario.friendlyBase.name);
     marker(scenario.target, DEEP_ORANGE, `${scenario.target.name}  · SIMULATED`, { diamond: true });
   }
