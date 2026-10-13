@@ -11,6 +11,24 @@ import {
 export * from './model.js';
 export { createUsgsEarthquakeSource } from './source.js';
 
+/** A radial white→transparent gradient, cached, so zones fade out at the edge. */
+let _radialFade = null;
+function radialFadeImage() {
+  if (_radialFade) return _radialFade;
+  const s = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = s;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.5, 'rgba(255,255,255,0.45)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, s, s);
+  _radialFade = c.toDataURL();
+  return _radialFade;
+}
+
 /** Own one earthquake display and its refresh lifecycle. */
 export function createEarthquakesLayer({ source, overlayHost } = {}) {
   if (typeof source?.getSnapshot !== 'function')
@@ -87,13 +105,15 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
           time,
         } of rows) {
           count++;
-          const baseRadius = Math.pow(2, mag) * 1000;
+          // Minimalist zones: a small ring, gently larger with magnitude,
+          // so clustered quakes stay legible instead of overlapping blobs.
+          const baseRadius = Math.pow(1.7, mag) * 850;
           const color = depthColor(depthKm || 0);
           const isSignificant = mag >= 5.0;
-          // Softer, translucent fills read as clean overlapping zones instead
-          // of near-solid blobs where many quakes cluster.
-          const fillAlpha = isSignificant ? 0.16 : 0.1;
-          const outlineAlpha = isSignificant ? 0.7 : 0.45;
+          // Minimalist soft ping: a radial wash that fades to nothing at the
+          // edge (ImageMaterialProperty below), so clustered quakes read as
+          // clean glows rather than stacked solid zones.
+          const centerAlpha = isSignificant ? 0.5 : 0.34;
 
           const position = Cesium.Cartesian3.fromDegrees(lon, lat);
           nextEntities.push(
@@ -105,12 +125,12 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
                 // re-tessellates the clamped ground geometry every frame.
                 semiMajorAxis: baseRadius,
                 semiMinorAxis: baseRadius,
-                material: new Cesium.ColorMaterialProperty(
-                  color.withAlpha(fillAlpha),
-                ),
-                outline: true,
-                outlineColor: color.withAlpha(outlineAlpha),
-                outlineWidth: isSignificant ? 2 : 1,
+                material: new Cesium.ImageMaterialProperty({
+                  image: radialFadeImage(),
+                  color: color.withAlpha(centerAlpha),
+                  transparent: true,
+                }),
+                outline: false,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
               },
               properties: {

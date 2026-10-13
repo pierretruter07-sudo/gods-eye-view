@@ -192,6 +192,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   });
 
   // ── Exercise mode ────────────────────────────────────────────────────
+  const exCaption = el('div', { class: 'gev-caption gev-glass', 'aria-live': 'polite', 'data-visible': 'false' });
+  document.body.append(exCaption);
   const exercise = createExerciseMode({
     viewer,
     dataManager,
@@ -199,10 +201,15 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     onBanner: (on) => {
       banner.hidden = !on;
     },
-    onLaunch: () => {
-      // The drone-swarm cinematic (Milestone 7) plugs in here.
-      console.info('[exercise] launch requested');
+    onCaption: (text) => {
+      exCaption.textContent = text || '';
+      exCaption.dataset.visible = text ? 'true' : 'false';
     },
+  });
+  // Esc cancels an in-flight exercise launch (the cinematic) without leaving
+  // Exercise mode.
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && exercise.isLaunching()) exercise.cancelLaunch();
   });
 
   async function setMode(mode) {
@@ -253,6 +260,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     bar.remove();
     panel.remove();
     banner.remove();
+    exCaption.remove();
     demo?.remove();
     document.body.classList.remove('gev-clean', 'gev-exercise');
   };
