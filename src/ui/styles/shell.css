@@ -1,0 +1,397 @@
+/* Clean glass shell (design 1 "Floating Island").
+   body.gev-clean hides the original chrome; the new controls live here. */
+
+body.gev-clean #intel-hud,
+body.gev-clean #title-bar,
+body.gev-clean #style-indicator,
+body.gev-clean #top-center-actions,
+body.gev-clean #command-dock,
+body.gev-clean #left-panel-stack,
+body.gev-clean #data-panel,
+body.gev-clean #cctv-panel,
+body.gev-clean #scene-panel,
+body.gev-clean #right-context-rail,
+body.gev-clean #pp-toggles,
+body.gev-clean #scope-mask,
+body.gev-clean #celestial-ring-overlay,
+body.gev-clean #safe-frame-overlay,
+body.gev-clean #first-run-launcher,
+body.gev-clean #key-setup-chip,
+body.gev-clean #traffic-sync-chip,
+body.gev-clean #cctv-sync-chip,
+body.gev-clean #cockpit-hud {
+  display: none !important;
+}
+
+.gev-glass {
+  background: rgba(30, 34, 44, 0.46);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  color: #f5f7fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif;
+}
+
+/* ── Top bar ─────────────────────────────────────────────── */
+.gev-bar {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 7px 7px 7px 16px;
+  border-radius: 999px;
+}
+
+.gev-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gev-bar__divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.gev-bar__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  width: 260px;
+  min-width: 0;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(235, 240, 245, 0.62);
+}
+
+.gev-bar__search.is-busy {
+  opacity: 0.6;
+}
+
+.gev-bar__search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #f5f7fa;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.gev-bar__search input::placeholder {
+  color: rgba(235, 240, 245, 0.62);
+}
+
+.gev-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f5f7fa;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms ease;
+}
+
+.gev-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.gev-btn[aria-expanded='true'] {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.gev-btn--primary {
+  background: #0a84ff;
+  color: #ffffff;
+}
+
+.gev-btn--primary:hover {
+  background: #2b95ff;
+}
+
+.gev-btn--live {
+  background: #ff453a;
+}
+
+.gev-btn--live:hover {
+  background: #ff5b51;
+}
+
+.gev-btn:focus-visible,
+.gev-icon-btn:focus-visible,
+.gev-layer:focus-visible,
+.gev-chip:focus-visible {
+  outline: 2px solid #64b5ff;
+  outline-offset: 2px;
+}
+
+/* ── Layers panel ────────────────────────────────────────── */
+.gev-layers {
+  position: fixed;
+  top: 92px;
+  left: 24px;
+  z-index: 200;
+  width: 290px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 14px 8px 8px;
+  border-radius: 22px;
+}
+
+.gev-layers[hidden] {
+  display: none;
+}
+
+.gev-layers__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8px 8px 12px;
+}
+
+.gev-layers__head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(235, 240, 245, 0.7);
+}
+
+.gev-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f7fa;
+  cursor: pointer;
+}
+
+.gev-layer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #f5f7fa;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gev-layer:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.gev-layer:disabled {
+  cursor: progress;
+}
+
+.gev-layer__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.gev-layer__name {
+  flex: 1;
+}
+
+.gev-switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  flex: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 150ms ease;
+}
+
+.gev-switch span {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: left 150ms ease;
+}
+
+.gev-layer[aria-pressed='true'] .gev-switch {
+  background: #30d158;
+}
+
+.gev-layer[aria-pressed='true'] .gev-switch span {
+  left: 18px;
+}
+
+/* ── Director caption and alert card ─────────────────────── */
+.gev-caption {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 200;
+  width: max-content;
+  max-width: min(620px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 12px 20px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.gev-caption[data-visible='true'] {
+  opacity: 1;
+}
+
+.gev-alert {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 200;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 14px 18px 16px;
+  border-radius: 22px;
+}
+
+.gev-alert[hidden] {
+  display: none;
+}
+
+.gev-alert__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.gev-alert__badge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 69, 58, 0.18);
+  color: #ff6961;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.gev-alert[data-simulated='true'] .gev-alert__badge {
+  background: rgba(255, 159, 10, 0.18);
+  color: #ffb340;
+}
+
+.gev-alert__source {
+  font-size: 12px;
+  color: rgba(235, 240, 245, 0.62);
+}
+
+.gev-alert__title {
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.gev-alert__facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.gev-alert__facts dt {
+  color: rgba(235, 240, 245, 0.62);
+}
+
+.gev-alert__facts dd {
+  margin: 0;
+}
+
+.gev-alert__note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: rgba(235, 240, 245, 0.5);
+}
+
+/* ── Demo buttons ────────────────────────────────────────── */
+.gev-demo {
+  position: fixed;
+  left: 24px;
+  bottom: 56px;
+  z-index: 200;
+  display: flex;
+  gap: 8px;
+}
+
+.gev-chip {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 159, 10, 0.4);
+  border-radius: 999px;
+  background: rgba(30, 34, 44, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #ffb340;
+  font: 600 12px/1 -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .gev-bar__brand span,
+  .gev-btn span {
+    display: none;
+  }
+  .gev-bar__search {
+    width: auto;
+    flex: 1;
+  }
+  .gev-btn {
+    padding: 0 14px;
+  }
+  .gev-alert {
+    bottom: 96px;
+  }
+}

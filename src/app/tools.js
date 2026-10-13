@@ -5,7 +5,7 @@ import { initImageryBoxTool } from '../ui/imageryBoxTool.js';
 import { createRecentImageryPanel } from '../ui/recentImagery.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
 import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
-import { installTour } from '../tour/index.js';
+import { installShell } from '../shell/index.js';
 import {
   installRenderGovernor,
   getRenderGovernorDiagnostics,
@@ -158,8 +158,8 @@ export function createApplicationTools({
   defer(() => {
     if (window.__godsEyeView === debug) delete window.__godsEyeView;
   });
-  // Director (tour mode): automatic narrated camera tour of live events.
-  defer(installTour({ viewer, dataManager }));
+  // Clean shell: glass top bar, Layers panel and the Director tour.
+  defer(installShell({ viewer, dataManager, placeSearch }));
   const voiceCommands = initGevVoiceCommands({
     ...voice,
     floorServices: operations.surface.groundFloor,

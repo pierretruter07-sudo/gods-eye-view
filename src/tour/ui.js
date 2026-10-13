@@ -1,6 +1,7 @@
 /**
- * Director on-screen controls: start/resume, live indicator, event card,
- * spoken-line caption and (demo builds only) staged-event buttons.
+ * Director on-screen output: the event card and the spoken-line caption.
+ * The start/stop control lives in the top bar (src/shell), which listens
+ * through `onState`.
  */
 
 const FT_PER_M = 3.28084;
@@ -18,8 +19,7 @@ function factRows(event) {
   if (event.kind === 'aircraft') {
     return [
       ['Callsign', f.callsign],
-      ['ICAO', f.icao24],
-      ['Squawk', `${f.squawk} (${f.meaning})`],
+      ['Squawk', `${f.squawk} · ${f.meaning}`],
       ['Altitude', f.onGround ? 'On ground' : f.altitudeM != null ? `${Math.round(f.altitudeM * FT_PER_M).toLocaleString('en-US')} ft` : null],
       ['Speed', f.speedMps != null ? `${Math.round(f.speedMps * KT_PER_MPS)} kt` : null],
       ['Heading', f.heading != null ? `${Math.round(f.heading)}°` : null],
@@ -27,41 +27,25 @@ function factRows(event) {
     ];
   }
   return [
-    ['Magnitude', f.magnitude.toFixed(1)],
     ['Where', f.place],
     ['Depth', f.depthKm != null ? `${Math.round(f.depthKm)} km` : null],
-    ['Time', new Date(f.timeMs).toUTCString().replace(' GMT', ' UTC')],
+    ['Time', new Date(f.timeMs).toUTCString().slice(5, 22) + ' UTC'],
   ];
 }
 
-export function createTourUi({ onStart, onResume, onSimulate, demo = false, root = document.body }) {
-  const dock = el('div', { class: 'tour-dock', 'data-state': 'idle' });
-  const start = el('button', { class: 'tour-btn tour-btn--primary', type: 'button', 'data-role': 'start' }, 'DIRECTOR');
-  const resume = el('button', { class: 'tour-btn tour-btn--primary', type: 'button', 'data-role': 'resume' }, 'RESUME DIRECTOR');
-  const live = el('div', { class: 'tour-live', role: 'status' }, 'DIRECTOR LIVE · ESC OR DRAG TO TAKE CONTROL');
-  start.addEventListener('click', () => onStart());
-  resume.addEventListener('click', () => onResume());
-  dock.append(start, resume, live);
-  if (demo) {
-    const sim = el('button', { class: 'tour-btn tour-btn--demo', type: 'button' }, 'SIMULATE 7700');
-    const quake = el('button', { class: 'tour-btn tour-btn--demo', type: 'button' }, 'SIMULATE QUAKE');
-    sim.addEventListener('click', () => onSimulate('aircraft'));
-    quake.addEventListener('click', () => onSimulate('earthquake'));
-    dock.append(sim, quake);
-  }
-
-  const caption = el('div', { class: 'tour-caption', 'aria-live': 'polite', 'data-visible': 'false' });
-  const card = el('aside', { class: 'tour-card', 'aria-live': 'assertive' });
+export function createTourUi({ onState = () => {}, root = document.body } = {}) {
+  const caption = el('div', { class: 'gev-caption gev-glass', 'aria-live': 'polite', 'data-visible': 'false' });
+  const card = el('aside', { class: 'gev-alert gev-glass', 'aria-live': 'assertive' });
   card.hidden = true;
-  root.append(dock, caption, card);
+  root.append(caption, card);
 
   return {
     setState(state) {
-      dock.dataset.state = state;
       if (state !== 'running') {
         caption.dataset.visible = 'false';
         card.hidden = true;
       }
+      onState(state);
     },
     setCaption(text) {
       caption.textContent = text;
@@ -74,11 +58,13 @@ export function createTourUi({ onStart, onResume, onSimulate, demo = false, root
     showEvent(event) {
       card.replaceChildren();
       card.dataset.simulated = String(event.simulated);
-      card.append(
-        el('span', { class: 'tour-card__badge' }, event.simulated ? 'SIMULATED' : 'LIVE ALERT'),
-        el('h2', { class: 'tour-card__title' }, event.title),
+      const head = el('div', { class: 'gev-alert__head' });
+      head.append(
+        el('span', { class: 'gev-alert__badge' }, event.simulated ? 'SIMULATED' : 'LIVE ALERT'),
+        el('span', { class: 'gev-alert__source' }, event.kind === 'aircraft' ? 'ADS-B' : 'USGS'),
       );
-      const facts = el('dl', { class: 'tour-card__facts' });
+      card.append(head, el('h2', { class: 'gev-alert__title' }, event.title));
+      const facts = el('dl', { class: 'gev-alert__facts' });
       for (const [label, value] of factRows(event)) {
         if (value == null) continue;
         facts.append(el('dt', {}, label), el('dd', {}, String(value)));
@@ -87,17 +73,16 @@ export function createTourUi({ onStart, onResume, onSimulate, demo = false, root
         facts,
         el(
           'p',
-          { class: 'tour-card__note' },
+          { class: 'gev-alert__note' },
           event.simulated
             ? 'Staged demonstration event. Not real.'
-            : 'Public feed data. May lag; not an official alert.',
+            : 'Public feed. May lag; not an official alert.',
         ),
       );
       caption.dataset.visible = 'false';
       card.hidden = false;
     },
     destroy() {
-      dock.remove();
       caption.remove();
       card.remove();
     },
