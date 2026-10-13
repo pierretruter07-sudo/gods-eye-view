@@ -6,6 +6,12 @@ import {
   finite,
 } from './contract.js';
 
+/** A transponder code is exactly four octal digits; anything else is absent. */
+export function cleanSquawk(value) {
+  const text = cleanText(value);
+  return text && /^[0-7]{4}$/.test(text) ? text : null;
+}
+
 /** Normalize the OpenSky state-vector route, including its regional fallback. */
 export function normalizeOpenSkyAircraft(row) {
   if (!Array.isArray(row)) return null;
@@ -26,6 +32,7 @@ export function normalizeOpenSkyAircraft(row) {
     speedMps: finite(row[9]),
     courseDeg: finite(row[10]),
     verticalRateMps: finite(row[11]),
+    squawk: cleanSquawk(row[14]),
     category: finite(row[17]),
     typeCode: null,
     registration: null,
@@ -64,6 +71,7 @@ export function normalizeReadsbAircraft(row, snapshotTimeMs) {
     speedMps: speedKts == null ? null : speedKts * 0.514444,
     courseDeg: finite(row.track),
     verticalRateMps: rateFtMin == null ? null : rateFtMin * 0.00508,
+    squawk: cleanSquawk(row.squawk),
     category: row.category ?? null,
     typeCode: cleanText(row.t),
     registration: cleanText(row.r),

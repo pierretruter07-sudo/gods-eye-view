@@ -44,6 +44,7 @@ export class FlightRecords {
       ellipsoidAltitudeM: geo_alt,
       category,
       verticalRateMps: vertical_rate,
+      squawk,
     } = observation;
 
     const onGround = on_ground === true;
@@ -222,6 +223,9 @@ export class FlightRecords {
       }),
       turnRateDps: prevMeta?.turnRateDps || 0,
       verticalRate: stickyNumber(vertical_rate, prevMeta?.verticalRate, null),
+      // Transponder code (OpenSky state[14] / readsb `squawk`). Sticky so a
+      // row that omits it does not clear an emergency code mid-event.
+      squawk: stickyText(squawk, prevMeta?.squawk) || null,
       // Analyst seam: OpenSky origin_country (state[2]) — additive, sticky
       // like callsign so a transient blank row doesn't blank the field.
       originCountry:

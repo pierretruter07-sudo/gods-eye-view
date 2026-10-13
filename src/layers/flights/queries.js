@@ -246,6 +246,7 @@ export function createQueries({
       speedMps: num(info?.velocity),
       heading: num(info?.true_track),
       verticalRateMps: num(info?.verticalRate),
+      squawk: text(info?.squawk),
       onGround: info?.onGround === true,
       military,
       // A converted contact reports the class it RENDERS as, so an analyst
