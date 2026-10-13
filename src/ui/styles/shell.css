@@ -19,7 +19,8 @@ body.gev-clean #first-run-launcher,
 body.gev-clean #key-setup-chip,
 body.gev-clean #traffic-sync-chip,
 body.gev-clean #cctv-sync-chip,
-body.gev-clean #cockpit-hud {
+body.gev-clean #cockpit-hud,
+body.gev-clean #toast {
   display: none !important;
 }
 
