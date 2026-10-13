@@ -156,7 +156,8 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
         new Cesium.BoundingSphere(Cesium.Cartesian3.fromDegrees(lon, lat, heightM), 0),
         {
           offset: new Cesium.HeadingPitchRange(
-            viewer.camera.heading,
+            // Planet-scale views arrive north-up so the globe spin starts clean.
+            rangeM >= TOUR_TIMING.globeSpinMinRangeM ? 0 : viewer.camera.heading,
             Cesium.Math.toRadians(pitchDeg),
             rangeM,
           ),
@@ -183,6 +184,21 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
     let heading = viewer.camera.heading;
     let last = performance.now();
     holdContinuousRender(RENDER_HOLD);
+    // Planet-scale views are shot near straight down, where turning the
+    // heading only spins the picture in place. Turn the globe instead: walk
+    // the look-at point westward so the Earth rolls eastward, as from space.
+    if (rangeM >= TOUR_TIMING.globeSpinMinRangeM) {
+      const spin = TOUR_TIMING.globeSpinDegPerS;
+      let centreLon = lon;
+      const north = new Cesium.HeadingPitchRange(0, pitch, rangeM);
+      removeOrbit = viewer.scene.preRender.addEventListener(() => {
+        const now = performance.now();
+        centreLon -= spin * Math.min(0.25, (now - last) / 1000);
+        last = now;
+        viewer.camera.lookAt(Cesium.Cartesian3.fromDegrees(centreLon, lat, 0), north);
+      });
+      return;
+    }
     removeOrbit = viewer.scene.preRender.addEventListener(() => {
       const now = performance.now();
       heading += rate * Math.min(0.25, (now - last) / 1000);

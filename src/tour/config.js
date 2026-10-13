@@ -12,6 +12,10 @@ export const TOUR_TIMING = Object.freeze({
   globeDwellS: 5,
   /** Orbit speed while dwelling. */
   orbitDegPerS: 3,
+  /** Wide (planet-scale) views turn the globe instead, at this rate. */
+  globeSpinDegPerS: 3,
+  /** Views at least this far out count as planet-scale. */
+  globeSpinMinRangeM: 5_000_000,
   /** How often to check for a brand-new incident while dwelling. */
   interruptCheckS: 2,
   /** An incident already shown may be revisited after this long. */
