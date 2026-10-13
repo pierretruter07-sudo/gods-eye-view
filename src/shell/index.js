@@ -1,6 +1,7 @@
 import { searchAndFlyTo } from '../locations.js';
 import { setScopeMaskEnabled } from '../scopeMask.js';
 import { installTour } from '../tour/index.js';
+import { createExerciseMode } from '../exercise/mode.js';
 
 /** Layers offered in the Layers panel, in display order. */
 export const SHELL_LAYERS = Object.freeze([
@@ -25,6 +26,7 @@ const ICONS = {
   play: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
   stop: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>',
   back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>',
+  target: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>',
 };
 
 function el(tag, attrs = {}, html) {
@@ -61,9 +63,15 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const form = el('form', { class: 'gev-bar__search', role: 'search' });
   const input = el('input', { type: 'search', placeholder: 'Search a place', 'aria-label': 'Search a place', autocomplete: 'off' });
   form.append(el('span', { class: 'gev-bar__search-icon' }, ICONS.search), input);
+  const modeSwitch = el('div', { class: 'gev-seg', role: 'group', 'aria-label': 'Mode' });
+  const liveBtn = el('button', { type: 'button', 'data-mode': 'live', 'aria-pressed': 'true' }, '<span class="gev-seg__dot gev-seg__dot--live"></span>Live');
+  const exBtn = el('button', { type: 'button', 'data-mode': 'exercise', 'aria-pressed': 'false' }, '<span class="gev-seg__dot gev-seg__dot--ex"></span>Exercise');
+  modeSwitch.append(liveBtn, exBtn);
   const layersBtn = el('button', { type: 'button', class: 'gev-btn', 'aria-expanded': 'false', 'aria-controls': 'gev-layers' }, `${ICONS.layers}<span>Layers</span>`);
   const directorBtn = el('button', { type: 'button', class: 'gev-btn gev-btn--primary' }, `${ICONS.play}<span>Director</span>`);
-  bar.append(brand, el('span', { class: 'gev-bar__divider', 'aria-hidden': 'true' }), form, layersBtn, directorBtn);
+  const generateBtn = el('button', { type: 'button', class: 'gev-btn gev-btn--exercise' }, `${ICONS.target}<span>Generate strike package</span>`);
+  generateBtn.hidden = true;
+  bar.append(brand, el('span', { class: 'gev-bar__divider', 'aria-hidden': 'true' }), modeSwitch, form, layersBtn, directorBtn, generateBtn);
 
   // ── Layers panel ─────────────────────────────────────────────────────
   const panel = el('section', { id: 'gev-layers', class: 'gev-layers gev-glass', 'aria-label': 'Layers' });
@@ -96,7 +104,11 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     demo.append(sim, quake);
   }
 
-  document.body.append(bar, panel, ...(demo ? [demo] : []));
+  // ── Exercise banner (hidden until Exercise mode) ─────────────────────
+  const banner = el('div', { class: 'gev-exbanner', role: 'status' }, '<span class="gev-exbanner__dot" aria-hidden="true"></span>EXERCISE · FICTIONAL SCENARIO · LIVE FEEDS DISCONNECTED');
+  banner.hidden = true;
+
+  document.body.append(bar, panel, banner, ...(demo ? [demo] : []));
 
   // ── Behaviour ────────────────────────────────────────────────────────
   function isOn(id) {
@@ -158,6 +170,41 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     else tour.controller.start();
   });
 
+  // ── Exercise mode ────────────────────────────────────────────────────
+  const exercise = createExerciseMode({
+    viewer,
+    dataManager,
+    liveLayerIds: SHELL_LAYERS.map((l) => l.id),
+    onBanner: (on) => {
+      banner.hidden = !on;
+    },
+    onLaunch: () => {
+      // The drone-swarm cinematic (Milestone 7) plugs in here.
+      console.info('[exercise] launch requested');
+    },
+  });
+
+  async function setMode(mode) {
+    const ex = mode === 'exercise';
+    liveBtn.setAttribute('aria-pressed', String(!ex));
+    exBtn.setAttribute('aria-pressed', String(ex));
+    document.body.classList.toggle('gev-exercise', ex);
+    bar.classList.toggle('gev-bar--exercise', ex);
+    layersBtn.hidden = ex;
+    directorBtn.hidden = ex;
+    generateBtn.hidden = !ex;
+    if (ex) {
+      tour.controller.exit('exercise');
+      setPanel(false);
+      await exercise.enter();
+    } else {
+      await exercise.exit();
+    }
+  }
+  liveBtn.addEventListener('click', () => setMode('live'));
+  exBtn.addEventListener('click', () => setMode('exercise'));
+  generateBtn.addEventListener('click', () => exercise.generate());
+
   let searchAbort = null;
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -179,10 +226,13 @@ export function installShell({ viewer, dataManager, placeSearch }) {
 
   return () => {
     searchAbort?.abort();
+    exercise.exit();
+    exercise.destroy();
     tour.dispose();
     bar.remove();
     panel.remove();
+    banner.remove();
     demo?.remove();
-    document.body.classList.remove('gev-clean');
+    document.body.classList.remove('gev-clean', 'gev-exercise');
   };
 }

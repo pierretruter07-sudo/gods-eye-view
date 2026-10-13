@@ -396,3 +396,316 @@ body.gev-clean #toast {
     bottom: 96px;
   }
 }
+
+/* ── Exercise mode: segmented switch, banner, strike-package panel ─────── */
+.gev-seg {
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  flex: none;
+}
+
+.gev-seg button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(235, 240, 245, 0.72);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gev-seg button[data-mode='live'][aria-pressed='true'] {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.gev-seg button[data-mode='exercise'][aria-pressed='true'] {
+  background: rgba(255, 159, 10, 0.22);
+  color: #ffc36b;
+}
+
+.gev-seg__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.gev-seg__dot--live {
+  background: #30d158;
+}
+
+.gev-seg__dot--ex {
+  background: #ff9f0a;
+}
+
+.gev-btn--exercise {
+  background: #ff9f0a;
+  color: #1a1205;
+}
+
+.gev-btn--exercise:hover {
+  background: #ffb340;
+}
+
+.gev-bar--exercise {
+  border-color: rgba(255, 159, 10, 0.55);
+}
+
+body.gev-exercise .gev-demo {
+  display: none;
+}
+
+.gev-exbanner {
+  position: fixed;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 190;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  background: rgba(255, 159, 10, 0.16);
+  border: 1px solid rgba(255, 159, 10, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #ffc36b;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.gev-exbanner[hidden] {
+  display: none;
+}
+
+.gev-exbanner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff9f0a;
+  animation: gev-blink 1.6s infinite;
+}
+
+@keyframes gev-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Strike-package panel */
+.gev-pkg {
+  position: fixed;
+  top: 128px;
+  right: 24px;
+  z-index: 200;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 16px 18px 18px;
+  border-radius: 24px;
+  border-color: rgba(255, 159, 10, 0.45);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 28px rgba(255, 159, 10, 0.12);
+}
+
+.gev-pkg[hidden] {
+  display: none;
+}
+
+.gev-pkg__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.gev-pkg__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.gev-pkg__badge {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 159, 10, 0.18);
+  color: #ffb340;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.gev-pkg__name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.gev-pkg__target {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: rgba(235, 240, 245, 0.68);
+}
+
+.gev-pkg__risk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--risk) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--risk) 55%, transparent);
+  flex: none;
+}
+
+.gev-pkg__risk-score {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--risk);
+  line-height: 1;
+}
+
+.gev-pkg__risk-band {
+  margin-top: 2px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: rgba(235, 240, 245, 0.7);
+}
+
+.gev-pkg__close {
+  flex: none;
+}
+
+.gev-pkg__h {
+  margin: 16px 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(235, 240, 245, 0.62);
+}
+
+.gev-pkg__roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.gev-pkg__role {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.gev-pkg__role-count {
+  font: 700 13px var(--font-mono, monospace);
+  color: #ffc36b;
+}
+
+.gev-pkg__role-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gev-pkg__role-plat {
+  font-size: 11px;
+  color: rgba(235, 240, 245, 0.6);
+}
+
+.gev-pkg__timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gev-pkg__timeline li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.gev-pkg__t {
+  flex: none;
+  width: 52px;
+  font: 600 12px var(--font-mono, monospace);
+  color: #ffc36b;
+}
+
+.gev-pkg__ev {
+  color: rgba(235, 240, 245, 0.85);
+}
+
+.gev-pkg__auth {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gev-pkg__auth li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  color: rgba(235, 240, 245, 0.85);
+}
+
+.gev-pkg__tick {
+  width: 16px;
+  text-align: center;
+}
+
+.gev-pkg__auth li[data-cleared='true'] .gev-pkg__tick {
+  color: #30d158;
+}
+
+.gev-pkg__auth li[data-cleared='false'] {
+  color: rgba(235, 240, 245, 0.6);
+}
+
+.gev-pkg__auth li[data-cleared='false'] .gev-pkg__tick {
+  color: #ff9f0a;
+}
+
+.gev-pkg__launch {
+  width: 100%;
+  margin-top: 18px;
+  height: 46px;
+  border: 0;
+  border-radius: 14px;
+  background: #ff9f0a;
+  color: #1a1205;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.gev-pkg__launch:hover {
+  background: #ffb340;
+}
