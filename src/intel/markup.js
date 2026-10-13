@@ -95,3 +95,63 @@ export function actionBar(o, state) {
   ].join('');
 }
 
+
+// ── Constellation HUD ───────────────────────────────────────────────────
+const SRC_CHIP = {
+  feed: '<span class="gev-prov gev-prov--feed">FEED</span>',
+  sim: '<span class="gev-prov gev-prov--sim">SIMULATED</span>',
+  mixed: '<span class="gev-prov gev-prov--feed">FEED</span><span class="gev-prov gev-prov--sim">SIM</span>',
+};
+const TONE = { ok: '#5ee27f', warn: '#ffbe55', alert: '#ff8a3d' };
+
+function gaugeSvg(g) {
+  const r = 22;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(1, g.value));
+  return `<div class="gev-hud__gauge"><svg viewBox="0 0 56 56" width="56" height="56" role="img" aria-label="${esc(g.label)} ${esc(g.text)}">
+    <circle cx="28" cy="28" r="${r}" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="5"/>
+    <circle cx="28" cy="28" r="${r}" fill="none" stroke="${TONE[g.tone] || TONE.ok}" stroke-width="5" stroke-linecap="round"
+      stroke-dasharray="${(c * v).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 28 28)"/></svg>
+    <div><b>${esc(g.text)}</b><span>${esc(g.label)}</span></div></div>`;
+}
+
+function routeSvg(rt) {
+  return `<svg class="gev-hud__route" viewBox="0 0 240 46" role="img" aria-label="Route ${esc(rt.from)} to ${esc(rt.to)}">
+    <path d="M14 34 C 80 4, 160 4, 226 34" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="1.6" stroke-dasharray="4 4"/>
+    <circle cx="14" cy="34" r="3.5" fill="#fff"/><circle cx="226" cy="34" r="3.5" fill="#64d2ff"/>
+    <text x="14" y="45" text-anchor="start">${esc(rt.from).slice(0, 14)}</text>
+    <text x="226" y="45" text-anchor="end">${esc(rt.to).slice(0, 18)}</text></svg>`;
+}
+
+export function hudHeader(h, headline = '') {
+  return `<p class="gev-hud__kicker">LOCKED · ${esc(KIND_LABEL[h.kind] || h.kind).toUpperCase()} · ${esc(h.source)}</p>
+    <h2 class="gev-hud__title">${esc(h.title)}</h2>
+    <p class="gev-hud__status">${esc([h.subtitle, h.status].filter(Boolean).join(' · '))}</p>
+    ${headline ? `<p class="gev-hud__headline">${esc(headline)}</p>` : ''}`;
+}
+
+export function hudCard(c, index) {
+  const list = c.rows
+    .map((r) => `<dt>${r.sim ? '<i class="gev-hud__sim" aria-label="simulated"></i>' : ''}${esc(r.label)}</dt><dd>${esc(r.value)}</dd>`)
+    .join('');
+  return `<header class="gev-hud__head"><span>${String(index + 1).padStart(2, '0')} · ${esc(c.title)}</span>${SRC_CHIP[c.source] || ''}</header>
+    ${c.route ? routeSvg(c.route) : ''}
+    ${c.gauge ? gaugeSvg(c.gauge) : ''}
+    ${list ? `<dl>${list}</dl>` : ''}`;
+}
+
+export function hudActions(h, state, { touring = false } = {}) {
+  const btn = (act, icon, label, pressed = false, cls = '') =>
+    `<button type="button" class="gev-act ${cls}" data-act="${act}" aria-pressed="${pressed}">${icon}<span>${label}</span></button>`;
+  const sim = h.actions.map((a) => btn(`sim:${a.id}`, '', a.label, false, 'gev-act--sim')).join('');
+  if (touring) return sim + btn('watch', ICON.watch, state.watched ? 'On watchlist' : 'Watch', state.watched);
+  return [
+    btn('follow', ICON.follow, state.following ? 'Following' : 'Follow', state.following),
+    sim,
+    btn('watch', ICON.watch, state.watched ? 'On watchlist' : 'Watch', state.watched),
+    btn('aoi', ICON.aoi, state.aoi ? 'Area marked' : 'Mark area', state.aoi),
+    btn('brief', ICON.brief, 'Brief me'),
+    btn('copy', ICON.copy, state.copied ? 'Copied' : 'Copy report'),
+    `<button type="button" class="gev-act gev-act--close" data-act="close" aria-label="Close">${ICON.close}</button>`,
+  ].join('');
+}

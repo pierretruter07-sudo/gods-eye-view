@@ -10,7 +10,7 @@
 const FT = 3.28084;
 const KT = 1.943844;
 
-function seedFrom(text) {
+export function seedFrom(text) {
   let h = 2166136261;
   const s = String(text);
   for (let i = 0; i < s.length; i += 1) {
@@ -19,7 +19,7 @@ function seedFrom(text) {
   }
   return h >>> 0;
 }
-function rng(seed) {
+export function rng(seed) {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) | 0;
@@ -28,7 +28,7 @@ function rng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-const pick = (rand, arr) => arr[Math.floor(rand() * arr.length)];
+export const pick = (rand, arr) => arr[Math.floor(rand() * arr.length)];
 const n0 = (v) => (Number.isFinite(v) ? v : null);
 const txt = (v) => {
   const t = String(v ?? '').trim();

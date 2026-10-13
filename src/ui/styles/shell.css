@@ -1121,3 +1121,146 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .gev-welcome, .gev-welcome.is-leaving { animation: none; }
 }
+
+/* ══ Constellation HUD (intel view) ══════════════════════════════════════
+   Header top-centre, up to four cards in the corners joined to the asset
+   by leader lines, actions along the bottom. Centre stays clear. */
+.gev-hud {
+  position: fixed;
+  inset: 76px 16px 16px;
+  z-index: 190;
+  display: grid;
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr) minmax(230px, 280px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  pointer-events: none;
+  font-size: clamp(11.5px, 1.3vh, 13px);
+  color: #fff;
+}
+.gev-hud[hidden] { display: none; }
+.gev-hud > * { pointer-events: auto; }
+.gev-hud .gev-hud__leaders { pointer-events: none; }
+
+.gev-hud__leaders { position: fixed; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: -1; }
+.gev-hud__leader line { stroke: rgba(100, 210, 255, 0.55); stroke-width: 1.2; }
+.gev-hud__leader circle { fill: #64d2ff; }
+.gev-hud__leader--sim line,
+.gev-hud__leader--mixed line { stroke: rgba(255, 190, 85, 0.55); stroke-dasharray: 5 4; }
+.gev-hud__leader--sim circle,
+.gev-hud__leader--mixed circle { fill: #ffbe55; }
+
+.gev-hud__header {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  align-self: start;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+.gev-hud__kicker { margin: 0; font-size: 0.82em; font-weight: 650; letter-spacing: 0.16em; color: #64d2ff; }
+.gev-hud__title { margin: 2px 0 0; font-size: 2em; font-weight: 700; line-height: 1.1; }
+.gev-hud__status { margin: 3px 0 0; font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 0.9em; color: rgba(255, 255, 255, 0.8); }
+.gev-hud__headline {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 138, 61, 0.22);
+  border: 1px solid rgba(255, 138, 61, 0.5);
+  color: #ffd2b0;
+  font-weight: 650;
+  text-shadow: none;
+}
+
+.gev-hud__card {
+  box-sizing: border-box;
+  max-height: 100%;
+  overflow: hidden;
+  padding: 11px 14px 12px;
+  border-radius: 16px;
+  background: rgba(16, 20, 28, 0.36);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gev-hud__card[hidden] { display: none; }
+.gev-hud__card--tl { grid-column: 1; grid-row: 1; align-self: start; }
+.gev-hud__card--tr { grid-column: 3; grid-row: 1; align-self: start; }
+.gev-hud__card--bl { grid-column: 1; grid-row: 2; align-self: end; }
+.gev-hud__card--br { grid-column: 3; grid-row: 2; align-self: end; }
+
+.gev-hud__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78em;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+.gev-hud__head > span:first-child { flex: 1; }
+.gev-hud__card dl { display: grid; grid-template-columns: auto 1fr; gap: 0.32em 12px; margin: 0; }
+.gev-hud__card dt { color: rgba(255, 255, 255, 0.66); display: flex; align-items: center; gap: 6px; }
+.gev-hud__card dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gev-hud__sim { width: 6px; height: 6px; border-radius: 50%; background: #ffbe55; flex: none; }
+.gev-hud__gauge { display: flex; align-items: center; gap: 12px; }
+.gev-hud__gauge div { display: flex; flex-direction: column; }
+.gev-hud__gauge b { font-size: 1.35em; font-variant-numeric: tabular-nums; }
+.gev-hud__gauge span { color: rgba(255, 255, 255, 0.66); }
+.gev-hud__route { width: 100%; height: auto; }
+.gev-hud__route text { fill: rgba(255, 255, 255, 0.85); font-size: 10px; }
+
+.gev-hud__bottom {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.gev-hud__bottom > * { pointer-events: auto; }
+.gev-act--sim { background: rgba(100, 210, 255, 0.14); }
+.gev-act--sim:hover { background: rgba(100, 210, 255, 0.24); }
+
+.gev-hud__toast {
+  position: fixed;
+  left: 50%;
+  top: 168px;
+  transform: translateX(-50%);
+  z-index: 260;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  border: 1px solid rgba(100, 210, 255, 0.35);
+}
+.gev-hud__toast[hidden] { display: none; }
+
+/* Director running: actions sit above the caption; the HUD header carries
+   the incident headline, so the separate alert card steps aside. */
+body.gev-touring .gev-hud { bottom: 84px; }
+body.gev-touring.gev-intel-open .gev-alert { display: none; }
+
+@media (max-height: 760px) {
+  .gev-hud { inset: 72px 14px 12px; gap: 8px; }
+  .gev-hud__title { font-size: 1.6em; }
+  .gev-hud__gauge svg { width: 44px; height: 44px; }
+}
+@media (max-width: 900px) {
+  .gev-hud { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto auto; top: 30vh; }
+  .gev-hud__header { grid-column: 1 / -1; grid-row: 1; }
+  .gev-hud__card--tl, .gev-hud__card--bl { grid-column: 1; }
+  .gev-hud__card--tr, .gev-hud__card--br { grid-column: 2; }
+  .gev-hud__card--tl, .gev-hud__card--tr { grid-row: 2; }
+  .gev-hud__card--bl, .gev-hud__card--br { grid-row: 3; }
+  .gev-hud__bottom { grid-row: 4; }
+  .gev-hud__leaders { display: none; }
+}
+/* The HUD title sits where the live-data status chip lives: hide the chip
+   while an asset is focused. */
+body.gev-intel-open #global-loading-status { display: none !important; }

@@ -223,12 +223,17 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
   function focusOf(next) {
     if (next.kind === 'event' && next.event?.kind === 'aircraft') {
       const f = next.event.facts || {};
-      return { layerId: 'flights', record: { ...f, lat: next.event.lat, lon: next.event.lon, simulated: next.event.simulated } };
+      return {
+        layerId: 'flights',
+        headline: next.event.title,
+        record: { ...f, lat: next.event.lat, lon: next.event.lon, simulated: next.event.simulated },
+      };
     }
     if (next.kind === 'event' && next.event?.kind === 'earthquake') {
       const f = next.event.facts || {};
       return {
         layerId: 'earthquakes',
+        headline: next.event.title,
         record: { ...f, id: next.event.key, lat: next.event.lat, lon: next.event.lon, simulated: next.event.simulated },
       };
     }

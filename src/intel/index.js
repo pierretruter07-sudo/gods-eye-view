@@ -8,18 +8,19 @@ import {
   nearbyObjects,
   insideArea,
 } from './objects.js';
-import { KIND_LABEL, SEV_LABEL, ACCENT, AOI_KM, esc, chip, ICON, leftCard, rightCard, actionBar } from './markup.js';
+import { KIND_LABEL, SEV_LABEL, ACCENT, AOI_KM, esc, chip, ICON, hudHeader, hudCard, hudActions } from './markup.js';
+import { buildHud, MAX_CARDS } from './hud.js';
 import { reticleSprite } from '../tour/pulseGraphics.js';
 import { createNarrator } from '../tour/narrator.js';
 import { createSubjectVisual } from './subjectVisual.js';
 import { holdContinuousRender, releaseContinuousRender } from '../renderGovernor.js';
 
 /**
- * Live-mode intelligence view. Click any aircraft, ship, satellite or quake:
- * the whole screen becomes a glass analyst console around it — identity and
- * live feed fields on the left, assessment, links and pattern of life on the
- * right, actions along the bottom. Nothing scrolls. Real feed values are
- * tagged FEED; illustrative content is tagged SIMULATED.
+ * Live-mode intelligence view — the Constellation HUD. Click any aircraft,
+ * ship, satellite or quake (or let the Director focus one): a header names
+ * it, up to four glass cards sit in the screen corners joined to the asset
+ * by leader lines, and analyst actions run along the bottom. Nothing
+ * scrolls. Real feed values are tagged FEED; illustrative content SIMULATED.
  */
 const CACHE_MS = 4000;
 
@@ -35,17 +36,37 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const narrator = createNarrator();
 
   // ── Console (three glass pieces around a clear centre) ───────────────
-  const view = el('div', 'gev-iv');
+  const view = el('div', 'gev-hud');
   view.hidden = true;
-  const left = el('aside', 'gev-iv__card gev-iv__left gev-glass');
-  const right = el('aside', 'gev-iv__card gev-iv__right gev-glass');
-  const bottom = el('div', 'gev-iv__bottom');
+  const header = el('div', 'gev-hud__header');
+  // Four card slots around the asset: top-left, top-right, bottom-left, bottom-right.
+  const SLOTS = ['tl', 'tr', 'bl', 'br'];
+  const cards = SLOTS.slice(0, MAX_CARDS).map((slot) => el('section', `gev-hud__card gev-hud__card--${slot} gev-glass`));
+  const bottom = el('div', 'gev-hud__bottom');
   const brief = el('p', 'gev-iv__brief gev-glass');
   brief.hidden = true;
   const actions = el('nav', 'gev-iv__actions gev-glass');
-  actions.setAttribute('aria-label', 'Actions');
+  actions.setAttribute('aria-label', 'Analyst actions');
   bottom.append(brief, actions);
-  view.append(left, right, bottom);
+  // Leader lines from the asset to each card (decorative).
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const leaders = document.createElementNS(svgNS, 'svg');
+  leaders.setAttribute('class', 'gev-hud__leaders');
+  leaders.setAttribute('aria-hidden', 'true');
+  const leaderEls = cards.map(() => {
+    const g = document.createElementNS(svgNS, 'g');
+    const line = document.createElementNS(svgNS, 'line');
+    const dot = document.createElementNS(svgNS, 'circle');
+    dot.setAttribute('r', '3');
+    g.append(line, dot);
+    leaders.append(g);
+    return { g, line, dot };
+  });
+  const toast = el('div', 'gev-hud__toast gev-glass');
+  toast.setAttribute('role', 'status');
+  toast.hidden = true;
+  view.append(leaders, header, ...cards, bottom);
+  document.body.append(toast);
 
   const triage = el('section', 'gev-triage gev-glass');
   triage.setAttribute('aria-label', 'Triage queue');
@@ -111,12 +132,73 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     marker.show = o.kind === 'vessel' || o.kind === 'earthquake';
     scene.requestRender();
   }
+  let hud = null;
+  let headline = '';
+  const touring = () => document.body.classList.contains('gev-touring');
+  function renderActions() {
+    if (hud) actions.innerHTML = hudActions(hud, state, { touring: touring() });
+  }
   function render() {
     if (!selected) return;
-    const d = buildDossier(selected);
-    left.innerHTML = leftCard(d, nearby);
-    right.innerHTML = rightCard(d);
-    actions.innerHTML = actionBar(selected, state);
+    const all = nearbyObjects(collect(), selected, { limit: Infinity });
+    hud = buildHud(selected, all.items);
+    header.innerHTML = hudHeader(hud, headline);
+    cards.forEach((node, i) => {
+      const c = hud.cards[i];
+      node.hidden = !c;
+      node.dataset.source = c?.source || '';
+      node.innerHTML = c ? hudCard(c, i) : '';
+    });
+    renderActions();
+    requestAnimationFrame(updateLeaders);
+  }
+
+  // Leader lines: from the asset's screen position to each card's inner corner.
+  const scratchWin = new Cesium.Cartesian2();
+  const scratchPos = new Cesium.Cartesian3();
+  function assetScreen() {
+    const p =
+      (NATIVE_FOLLOW.has(selected?.kind) && viewer.trackedEntity?.position?.getValue(viewer.clock.currentTime, scratchPos)) ||
+      trackedPosition(scratchPos);
+    if (!p) return null;
+    const occluder = new Cesium.EllipsoidalOccluder(Cesium.Ellipsoid.WGS84, viewer.camera.positionWC);
+    if (!occluder.isPointVisible(p)) return null;
+    return Cesium.SceneTransforms.worldToWindowCoordinates(scene, p, scratchWin);
+  }
+  function updateLeaders() {
+    if (view.hidden || !selected) return;
+    const at = assetScreen();
+    leaderEls.forEach(({ g, line, dot }, i) => {
+      const node = cards[i];
+      if (!at || node.hidden) {
+        g.style.display = 'none';
+        return;
+      }
+      const r = node.getBoundingClientRect();
+      const slot = SLOTS[i];
+      const x = slot.endsWith('l') ? r.right : r.left;
+      const y = slot.startsWith('t') ? r.bottom - 18 : r.top + 18;
+      g.style.display = '';
+      g.setAttribute('class', `gev-hud__leader gev-hud__leader--${node.dataset.source || 'feed'}`);
+      line.setAttribute('x1', at.x.toFixed(1));
+      line.setAttribute('y1', at.y.toFixed(1));
+      line.setAttribute('x2', x.toFixed(1));
+      line.setAttribute('y2', y.toFixed(1));
+      dot.setAttribute('cx', x.toFixed(1));
+      dot.setAttribute('cy', y.toFixed(1));
+    });
+  }
+  const removeLeaderHook = scene.postRender.addEventListener(updateLeaders);
+  window.addEventListener('resize', updateLeaders);
+
+  let toastTimer = null;
+  function showToast(text) {
+    toast.textContent = text;
+    toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.hidden = true;
+    }, 3200);
   }
   let briefing = false;
   function stopBrief() {
@@ -124,10 +206,11 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     if (briefing) narrator.stop();
     briefing = false;
   }
-  function open(o, { quiet = false } = {}) {
+  function open(o, { quiet = false, headline: line = '' } = {}) {
     stopFollow();
     stopOrbit();
     selected = o;
+    headline = line;
     nearby = nearbyObjects(collect(), o);
     state = { watched: watchlist.has(o.key), aoi: areas.some((a) => a.key === o.key) };
     brief.hidden = true;
@@ -170,7 +253,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       orbit(o);
       state.following = true;
     }
-    actions.innerHTML = actionBar(o, state);
+    renderActions();
     if (o.kind === 'aircraft' || o.kind === 'vessel') {
       followTimer = setInterval(() => {
         if (!selected) return;
@@ -179,6 +262,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
           selected = fresh;
           setFix(fresh);
           visual.update(fresh);
+          render();
         }
       }, CACHE_MS);
     }
@@ -318,7 +402,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     stopOrbit();
     if (selected && state.following && !NATIVE_FOLLOW.has(selected.kind)) {
       state.following = false;
-      actions.innerHTML = actionBar(selected, state);
+      renderActions();
     }
   };
   scene.canvas.addEventListener('pointerdown', releaseCamera, { passive: true });
@@ -396,6 +480,11 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     if (!act || !selected) return;
     const o = selected;
     if (act === 'close') return close();
+    if (act.startsWith('sim:')) {
+      const a = hud?.actions.find((x) => `sim:${x.id}` === act);
+      if (a) showToast(a.toast);
+      return;
+    }
     if (act === 'fly') flyTo(o);
     if (act === 'follow') {
       if (NATIVE_FOLLOW.has(o.kind)) {
@@ -436,18 +525,13 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
         state.copied = true;
         setTimeout(() => {
           state.copied = false;
-          if (selected === o) actions.innerHTML = actionBar(o, state);
+          if (selected === o) renderActions();
         }, 1800);
       } catch (error) {
         console.warn('[intel] clipboard unavailable', error);
       }
     }
-    actions.innerHTML = actionBar(o, state);
-  });
-  left.addEventListener('click', (event) => {
-    const i = event.target.closest('[data-near]')?.dataset.near;
-    const item = i == null ? null : nearby.items[Number(i)];
-    if (item) open(item.object);
+    renderActions();
   });
 
   // ── Click to inspect ─────────────────────────────────────────────────
@@ -545,7 +629,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     const o = toIntelObject(focus.layerId, focus.record);
     if (!o) return close();
     const live = collect().find((x) => x.key === o.key);
-    open(live ? { ...live, simulated: o.simulated } : o, { quiet: true });
+    open(live ? { ...live, simulated: o.simulated } : o, { quiet: true, headline: focus.headline || '' });
   }
   let onOpen = null;
 
@@ -553,6 +637,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     open,
     close,
     showFocus,
+    /** Re-render the action dock (Director started/stopped). */
+    refresh: renderActions,
     onOpen(fn) {
       onOpen = fn;
     },
@@ -579,6 +665,9 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       close();
       setTriage(false);
       handler.destroy();
+      removeLeaderHook();
+      window.removeEventListener('resize', updateLeaders);
+      toast.remove();
       scene.canvas.removeEventListener('pointerdown', releaseCamera);
       scene.canvas.removeEventListener('wheel', releaseCamera);
       viewer.entities.remove(marker);

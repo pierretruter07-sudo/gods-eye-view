@@ -172,6 +172,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   });
   collapse.addEventListener('click', () => setPanel(false));
 
+  let intelRef = null; // set once the intel view exists (the tour can start first)
   const prefetch = installFlightPrefetch({ viewer, dataManager });
   // While the Director runs, keep every airport/city stop's aircraft warm on
   // the server (it serves recent snapshots instantly), one request every
@@ -203,12 +204,13 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     },
     // The Director's current subject opens in the intel view, as if clicked.
     onFocus(focus) {
-      if (mode === 'live') intel.showFocus(focus);
+      if (intelRef && mode === 'live') intelRef.showFocus(focus);
     },
     onState(state) {
       const live = state === 'running';
       document.body.classList.toggle('gev-touring', live);
       setTourWarming(live);
+      intelRef?.refresh?.();
       directorBtn.classList.toggle('gev-btn--live', live);
       directorBtn.innerHTML = live
         ? `${ICONS.stop}<span>Stop</span>`
@@ -255,6 +257,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   // ── Intelligence layer (Live mode only) ─────────────────────────────
   let mode = 'live';
   const intel = installIntel({ viewer, dataManager, isLive: () => mode === 'live' });
+  intelRef = intel;
   const badge = triageBtn.querySelector('.gev-badge');
   function refreshBadge() {
     if (mode !== 'live') return;
