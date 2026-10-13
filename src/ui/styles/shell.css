@@ -24,6 +24,13 @@ body.gev-clean #toast {
   display: none !important;
 }
 
+/* The base .gev-btn sets display:flex, which would beat the `hidden`
+   attribute's UA display:none — spell it out so hidden controls stay hidden. */
+.gev-btn[hidden],
+.gev-seg[hidden] {
+  display: none !important;
+}
+
 .gev-glass {
   background: rgba(30, 34, 44, 0.46);
   backdrop-filter: blur(28px) saturate(170%);

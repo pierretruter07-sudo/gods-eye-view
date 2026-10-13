@@ -63,34 +63,63 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
   }
 
   function clearMarker() {
-    if (marker) {
-      viewer.entities.remove(marker);
-      marker = null;
-    }
+    for (const e of marker || []) viewer.entities.remove(e);
+    marker = null;
   }
 
+  /**
+   * A soft, animated focus pulse: two expanding sonar rings that fade as they
+   * grow, a glowing core and a crisp label pill. One entity per visual, driven
+   * by wall-clock callbacks (the orbit already holds continuous rendering).
+   */
   function showMarker(event) {
     clearMarker();
-    marker = viewer.entities.add({
-      position: Cesium.Cartesian3.fromDegrees(event.lon, event.lat),
+    const base = Cesium.Color.fromCssColorString(event.simulated ? '#ff9f0a' : '#ff3b30');
+    const maxM = event.kind === 'earthquake' ? 90_000 : 18_000;
+    const pos = Cesium.Cartesian3.fromDegrees(event.lon, event.lat);
+    const period = 2400;
+    // Two rings half a cycle apart so a pulse is always expanding.
+    const phase = (offset) => (((performance.now() / period) + offset) % 1);
+    const ring = (offset) =>
+      viewer.entities.add({
+        position: pos,
+        ellipse: {
+          semiMajorAxis: new Cesium.CallbackProperty(() => maxM * (0.1 + 0.9 * phase(offset)), false),
+          semiMinorAxis: new Cesium.CallbackProperty(() => maxM * (0.1 + 0.9 * phase(offset)), false),
+          material: new Cesium.ColorMaterialProperty(
+            new Cesium.CallbackProperty(() => base.withAlpha(0.22 * (1 - phase(offset))), false),
+          ),
+          outline: true,
+          outlineColor: new Cesium.CallbackProperty(() => base.withAlpha(0.85 * (1 - phase(offset))), false),
+          outlineWidth: 2,
+          height: 0,
+        },
+      });
+
+    const core = viewer.entities.add({
+      position: pos,
       point: {
-        pixelSize: 16,
-        color: Cesium.Color.RED.withAlpha(0.85),
-        outlineColor: Cesium.Color.WHITE,
+        pixelSize: 13,
+        color: base.withAlpha(0.95),
+        outlineColor: Cesium.Color.WHITE.withAlpha(0.85),
         outlineWidth: 2,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
       label: {
-        text: event.simulated ? 'SIMULATED' : event.title.toUpperCase(),
-        font: 'bold 14px sans-serif',
-        fillColor: event.simulated ? Cesium.Color.ORANGE : Cesium.Color.WHITE,
-        outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 3,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        pixelOffset: new Cesium.Cartesian2(0, -24),
+        text: event.simulated ? 'SIMULATED' : event.title,
+        font: '600 14px -apple-system, "Segoe UI", sans-serif',
+        fillColor: event.simulated ? Cesium.Color.fromCssColorString('#ffc36b') : Cesium.Color.WHITE,
+        showBackground: true,
+        backgroundColor: Cesium.Color.fromCssColorString('#0a0f16').withAlpha(0.62),
+        backgroundPadding: new Cesium.Cartesian2(10, 6),
+        style: Cesium.LabelStyle.FILL,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        pixelOffset: new Cesium.Cartesian2(0, -18),
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
+
+    marker = [ring(0), ring(0.5), core];
   }
 
   /** Fly so the target sits in view at the given range and pitch. */
@@ -190,7 +219,11 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       const started = Date.now();
       await narrator.speak(next.line, { signal });
       const spokenS = (Date.now() - started) / 1000;
-      await dwell(Math.max(next.dwellS - spokenS, 1), profile, signal);
+      // The whole-planet overview is held briefly and left rotating; every
+      // other stop keeps its own dwell.
+      const isGlobe = next.stop?.id === 'globe';
+      const budget = isGlobe ? TOUR_TIMING.globeDwellS : next.dwellS;
+      await dwell(Math.max(budget - spokenS, isGlobe ? 0.5 : 1), profile, signal);
     }
   }
 

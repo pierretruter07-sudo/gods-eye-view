@@ -57,6 +57,27 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   document.body.classList.add('gev-clean');
   setScopeMaskEnabled(false);
 
+  // Smooth, anti-aliased rendering: render at the display's real pixel density
+  // (capped so 3x phones don't tank), with MSAA and FXAA to clean every edge —
+  // labels, markers and the overlay rings.
+  try {
+    viewer.useBrowserRecommendedResolution = false;
+    viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 2);
+  } catch (error) {
+    console.warn('[shell] resolution scale unavailable', error);
+  }
+  try {
+    viewer.scene.msaaSamples = 4;
+  } catch (error) {
+    console.warn('[shell] MSAA unavailable', error);
+  }
+  try {
+    const fxaa = viewer.scene.postProcessStages?.fxaa;
+    if (fxaa) fxaa.enabled = true;
+  } catch (error) {
+    console.warn('[shell] FXAA unavailable', error);
+  }
+
   // ── Top bar ──────────────────────────────────────────────────────────
   const bar = el('header', { class: 'gev-bar gev-glass' });
   const brand = el('span', { class: 'gev-bar__brand' }, `${ICONS.eye}<span>God's Eye</span>`);

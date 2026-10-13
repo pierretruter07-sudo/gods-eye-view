@@ -90,8 +90,10 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
           const baseRadius = Math.pow(2, mag) * 1000;
           const color = depthColor(depthKm || 0);
           const isSignificant = mag >= 5.0;
-          const fillAlpha = isSignificant ? 0.4 : 0.3;
-          const outlineAlpha = isSignificant ? 1.0 : 0.8;
+          // Softer, translucent fills read as clean overlapping zones instead
+          // of near-solid blobs where many quakes cluster.
+          const fillAlpha = isSignificant ? 0.16 : 0.1;
+          const outlineAlpha = isSignificant ? 0.7 : 0.45;
 
           const position = Cesium.Cartesian3.fromDegrees(lon, lat);
           nextEntities.push(
@@ -108,7 +110,7 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
                 ),
                 outline: true,
                 outlineColor: color.withAlpha(outlineAlpha),
-                outlineWidth: isSignificant ? 3 : 2,
+                outlineWidth: isSignificant ? 2 : 1,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
               },
               properties: {

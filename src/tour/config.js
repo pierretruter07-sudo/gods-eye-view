@@ -8,6 +8,8 @@ export const TOUR_TIMING = Object.freeze({
   eventDwellS: 15,
   /** Time spent at any other stop. */
   stopDwellS: 12,
+  /** The whole-planet overview is kept brief and always rotating. */
+  globeDwellS: 5,
   /** Orbit speed while dwelling. */
   orbitDegPerS: 3,
   /** How often to check for a brand-new incident while dwelling. */
