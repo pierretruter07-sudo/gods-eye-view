@@ -81,7 +81,7 @@ export function createSwarmCinematic({ viewer }) {
     width: '100%',
     height: '100%',
     pointerEvents: 'none',
-    zIndex: '120',
+    zIndex: '170',
     opacity: '0',
     transition: 'opacity 400ms ease',
   });
@@ -94,7 +94,11 @@ export function createSwarmCinematic({ viewer }) {
   const scene = new THREE.Scene();
   let W = window.innerWidth;
   let H = window.innerHeight;
-  let camera = new THREE.OrthographicCamera(0, W, 0, H, -1000, 1000);
+  // Pixel-space ortho overlay: x 0..W (left→right), y 0..H (top→bottom).
+  // Camera pulled back on +Z looking down -Z, so sprites at z 0..5 sit in
+  // front of it within the near/far range (a defensive, unambiguous setup).
+  const camera = new THREE.OrthographicCamera(0, W, 0, H, 0.1, 1000);
+  camera.position.z = 10;
 
   const tex = {
     glow: glowTexture(),
@@ -203,6 +207,9 @@ export function createSwarmCinematic({ viewer }) {
     running = true;
     canvas.style.opacity = '1';
     const startMs = performance.now();
+    console.info(`[exercise] swarm cinematic started: ${pts.length} anchors`);
+    // Fail-safe: never leave the overlay or the awaiting launch hanging.
+    const safety = setTimeout(() => stop(), durationMs + 6000);
     // Schedule drones in waves over the first ~70% of the run.
     const total = 90;
     for (let i = 0; i < total; i += 1) {
@@ -211,12 +218,34 @@ export function createSwarmCinematic({ viewer }) {
     }
 
     return new Promise((resolve) => {
-      pendingResolve = resolve;
+      pendingResolve = () => {
+        clearTimeout(safety);
+        resolve();
+      };
       let last = startMs;
       const tick = (now) => {
-        if (!running) return resolve();
-        const dt = Math.min(0.05, (now - last) / 1000);
+        if (!running) return pendingResolve();
+        let dt = Math.min(0.05, (now - last) / 1000);
         last = now;
+        try {
+          step(now, dt);
+        } catch (error) {
+          console.error('[exercise] swarm tick error', error);
+          running = false;
+          canvas.style.opacity = '0';
+          clearAll();
+          return pendingResolve();
+        }
+        if (now - startMs > durationMs && drones.every((d) => d.done) && sprites.length === 0) {
+          running = false;
+          canvas.style.opacity = '0';
+          clearAll();
+          return pendingResolve();
+        }
+        raf = requestAnimationFrame(tick);
+      };
+
+      const step = (now, dt) => {
 
         for (const d of drones) {
           if (d.done || now < d.launchAtMs) continue;
@@ -285,14 +314,6 @@ export function createSwarmCinematic({ viewer }) {
         }
 
         renderer.render(scene, camera);
-
-        if (now - startMs > durationMs && drones.every((d) => d.done) && sprites.length === 0) {
-          running = false;
-          canvas.style.opacity = '0';
-          clearAll();
-          return resolve();
-        }
-        raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
     });

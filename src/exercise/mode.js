@@ -116,6 +116,7 @@ export function createExerciseMode({ viewer, dataManager, liveLayerIds, onBanner
   }
 
   async function launch() {
+    console.info('[exercise] launch() called', { active, launching, hasPackage: !!currentPackage });
     if (!active || launching) return;
     if (!currentPackage) generate();
     launching = true;
