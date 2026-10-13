@@ -48,3 +48,25 @@ test('nearestHit picks the closest point within radius', () => {
   assert.equal(nearestHit(pts, 8, 0).id, 'b');
   assert.equal(nearestHit(pts, 100, 100), null);
 });
+
+import { nearbyObjects, distanceKm, insideArea } from './objects.js';
+import { composeBrief } from './enrichment.js';
+
+test('nearby uses real geometry and excludes self', () => {
+  const a = toIntelObject('flights', { icao24: 'a', lat: 0, lon: 0, altitudeM: 0 });
+  const b = toIntelObject('flights', { icao24: 'b', lat: 0, lon: 0.5, altitudeM: 0 });
+  const c = toIntelObject('flights', { icao24: 'c', lat: 10, lon: 10, altitudeM: 0 });
+  assert.ok(Math.abs(distanceKm(a, b) - 55.6) < 1);
+  const n = nearbyObjects([a, b, c], a);
+  assert.equal(n.total, 1);
+  assert.equal(n.items[0].object.key, b.key);
+  assert.equal(insideArea([a, b, c], { lat: 0, lon: 0, radiusKm: 100 }).length, 2);
+});
+
+test('brief states feed facts and labels the simulated part', () => {
+  const text = composeBrief(buildDossier(plane), { total: 2, radiusKm: 150 });
+  assert.match(text, /From ADS-B \/ OpenSky:/);
+  assert.match(text, /squawk 7700/);
+  assert.match(text, /2 other contacts within 150/);
+  assert.match(text, /Simulated assessment:/);
+});

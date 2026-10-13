@@ -1,19 +1,25 @@
 import * as Cesium from 'cesium';
-import { buildDossier } from './enrichment.js';
-import { INTEL_LAYERS, toIntelObject, buildTriage, nearestHit } from './objects.js';
+import { buildDossier, composeBrief } from './enrichment.js';
+import {
+  INTEL_LAYERS,
+  toIntelObject,
+  buildTriage,
+  nearestHit,
+  nearbyObjects,
+  insideArea,
+} from './objects.js';
+import { KIND_LABEL, SEV_LABEL, ACCENT, AOI_KM, esc, chip, ICON, leftCard, rightCard, actionBar } from './markup.js';
 import { reticleSprite } from '../tour/pulseGraphics.js';
+import { createNarrator } from '../tour/narrator.js';
 
 /**
- * Live-mode intelligence layer: click any aircraft, ship, satellite or quake
- * for a dossier (real feed fields + clearly-labelled simulated analysis), and
- * a triage queue ranked from real feed signals. Live mode only.
+ * Live-mode intelligence view. Click any aircraft, ship, satellite or quake:
+ * the whole screen becomes a glass analyst console around it — identity and
+ * live feed fields on the left, assessment, links and pattern of life on the
+ * right, actions along the bottom. Nothing scrolls. Real feed values are
+ * tagged FEED; illustrative content is tagged SIMULATED.
  */
-const KIND_LABEL = { aircraft: 'Aircraft', vessel: 'Vessel', satellite: 'Satellite', earthquake: 'Seismic event' };
-const SEV_LABEL = { critical: 'Priority', high: 'Elevated', watch: 'Watch' };
-const ACCENT = '#64d2ff';
-
-const esc = (s) =>
-  String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const CACHE_MS = 4000;
 
 function el(tag, cls, html) {
   const n = document.createElement(tag);
@@ -22,83 +28,39 @@ function el(tag, cls, html) {
   return n;
 }
 
-const chip = (source) =>
-  source === 'feed'
-    ? '<span class="gev-prov gev-prov--feed">FEED</span>'
-    : '<span class="gev-prov gev-prov--sim">SIMULATED</span>';
-
-/** A small radial link graph: the object in the centre, links around it. */
-function linkGraph(title, links) {
-  const W = 300;
-  const H = 150;
-  const cx = W / 2;
-  const cy = H / 2;
-  const n = Math.max(links.length, 1);
-  let edges = '';
-  let nodes = '';
-  links.forEach((link, i) => {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n + (n === 1 ? Math.PI / 2 : 0);
-    const x = cx + Math.cos(a) * 110;
-    const y = cy + Math.sin(a) * 52;
-    const sim = link.source !== 'feed';
-    const col = sim ? '#ff9f0a' : '#30d158';
-    edges += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${col}" stroke-opacity=".7" stroke-width="1.2"${sim ? ' stroke-dasharray="4 3"' : ''}/>`;
-    nodes += `<circle cx="${x}" cy="${y}" r="5" fill="${col}"/><text x="${x}" y="${y + (y < cy ? -9 : 16)}" text-anchor="middle">${esc(link.name).slice(0, 22)}</text>`;
-  });
-  return `<svg class="gev-graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Link graph">${edges}${nodes}<circle cx="${cx}" cy="${cy}" r="8" fill="${ACCENT}"/><text x="${cx}" y="${cy + 22}" text-anchor="middle" class="gev-graph__centre">${esc(title).slice(0, 24)}</text></svg>`;
-}
-
-function dossierHtml(d) {
-  const feedRows = d.feed.map((f) => `<dt>${esc(f.label)}</dt><dd>${esc(f.value)}</dd>`).join('');
-  const links = d.links
-    .map((l) => `<li><span class="gev-dos__rel">${esc(l.rel)}</span><span>${esc(l.name)}</span>${chip(l.source)}</li>`)
-    .join('');
-  const analysis = d.analysis.map((a) => `<dt>${esc(a.label)}</dt><dd>${esc(a.value)}</dd>`).join('');
-  const pol = d.pol.map((p) => `<li><span class="gev-dos__t">${esc(p.t)}</span>${esc(p.text)}</li>`).join('');
-  return `
-    <header class="gev-dos__head">
-      <span class="gev-dos__kind">${esc(KIND_LABEL[d.kind] || d.kind)}</span>
-      <button type="button" class="gev-icon-btn" data-act="close" aria-label="Close dossier">✕</button>
-    </header>
-    <h2 class="gev-dos__title">${esc(d.title)}</h2>
-    <p class="gev-dos__sub">${esc(d.subtitle || '')}</p>
-    <section><h3>Observed ${chip('feed')}<span class="gev-dos__src">${esc(d.source)}</span></h3><dl>${feedRows || '<dd>No feed fields</dd>'}</dl></section>
-    ${d.links.length ? `<section><h3>Links</h3>${linkGraph(d.title, d.links)}<ul class="gev-dos__links">${links}</ul></section>` : ''}
-    ${d.analysis.length ? `<section><h3>Assessment ${chip('sim')}</h3><dl>${analysis}</dl></section>` : ''}
-    ${d.pol.length ? `<section><h3>Pattern of life ${chip('sim')}</h3><ol class="gev-dos__pol">${pol}</ol></section>` : ''}
-    <footer class="gev-dos__foot">
-      <button type="button" class="gev-btn" data-act="fly">Fly to</button>
-      <span class="gev-dos__note">Feed values are live public data. Simulated sections are illustrative.</span>
-    </footer>`;
-}
-
 export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const scene = viewer.scene;
+  const narrator = createNarrator();
 
-  // ── Panels ───────────────────────────────────────────────────────────
-  const dossier = el('aside', 'gev-dos gev-glass');
-  dossier.setAttribute('aria-label', 'Object dossier');
-  dossier.hidden = true;
+  // ── Console (three glass pieces around a clear centre) ───────────────
+  const view = el('div', 'gev-iv');
+  view.hidden = true;
+  const left = el('aside', 'gev-iv__card gev-iv__left gev-glass');
+  const right = el('aside', 'gev-iv__card gev-iv__right gev-glass');
+  const bottom = el('div', 'gev-iv__bottom');
+  const brief = el('p', 'gev-iv__brief gev-glass');
+  brief.hidden = true;
+  const actions = el('nav', 'gev-iv__actions gev-glass');
+  actions.setAttribute('aria-label', 'Actions');
+  bottom.append(brief, actions);
+  view.append(left, right, bottom);
+
   const triage = el('section', 'gev-triage gev-glass');
   triage.setAttribute('aria-label', 'Triage queue');
   triage.hidden = true;
-  document.body.append(dossier, triage);
+  document.body.append(view, triage);
 
-  // ── Selection reticle ────────────────────────────────────────────────
+  // ── Globe graphics: reticle + areas of interest ──────────────────────
   const marker = viewer.entities.add({
     show: false,
     position: Cesium.Cartesian3.fromDegrees(0, 0),
-    billboard: {
-      image: reticleSprite(ACCENT),
-      width: 46,
-      height: 46,
-      disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    },
+    billboard: { image: reticleSprite(ACCENT), width: 46, height: 46, disableDepthTestDistance: Number.POSITIVE_INFINITY },
   });
+  const areas = []; // { key, title, lat, lon, radiusKm, entity }
+  const watchlist = new Map(); // key -> object snapshot
 
-  let selected = null;
-  let followTimer = null;
-
+  // ── Data (cached so clicks and the badge never rescan every layer) ───
+  let cache = { at: 0, objects: [] };
   function layerOn(id) {
     try {
       return dataManager.isEnabled(id) === true;
@@ -106,59 +68,89 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       return false;
     }
   }
-  function layerRecords(id, cap = 30000) {
+  function layerModule(id) {
     try {
-      return dataManager.layers.get(id)?.module?.getAnalystRecords?.(cap) || [];
+      return dataManager.layers.get(id)?.module || null;
     } catch {
-      return [];
+      return null;
     }
   }
-  function collect() {
+  function collect({ fresh = false } = {}) {
+    const now = performance.now();
+    if (!fresh && now - cache.at < CACHE_MS) return cache.objects;
     const out = [];
     for (const id of Object.keys(INTEL_LAYERS)) {
       if (!layerOn(id)) continue;
-      for (const r of layerRecords(id)) {
+      let records = [];
+      try {
+        records = layerModule(id)?.getAnalystRecords?.(20000) || [];
+      } catch (error) {
+        console.warn(`[intel] ${id} records unavailable`, error);
+      }
+      for (const r of records) {
         const o = toIntelObject(id, r);
         if (o) out.push(o);
       }
     }
+    cache = { at: now, objects: out };
     return out;
   }
   const cartesianOf = (o) => Cesium.Cartesian3.fromDegrees(o.lon, o.lat, o.heightM || 0);
+
+  // ── Selection state ──────────────────────────────────────────────────
+  let selected = null;
+  let state = {};
+  let nearby = { total: 0, radiusKm: 0, items: [] };
+  let followTimer = null;
 
   function placeMarker(o) {
     marker.position = cartesianOf(o);
     marker.show = true;
     scene.requestRender();
   }
-
+  function render() {
+    if (!selected) return;
+    const d = buildDossier(selected);
+    left.innerHTML = leftCard(d, nearby);
+    right.innerHTML = rightCard(d);
+    actions.innerHTML = actionBar(selected, state);
+  }
   function open(o) {
+    stopFollow();
     selected = o;
-    dossier.innerHTML = dossierHtml(buildDossier(o));
-    dossier.hidden = false;
+    nearby = nearbyObjects(collect(), o);
+    state = { watched: watchlist.has(o.key), aoi: areas.some((a) => a.key === o.key) };
+    brief.hidden = true;
+    narrator.stop();
+    render();
+    setTriage(false);
+    view.hidden = false;
+    document.body.classList.add('gev-intel-open');
     placeMarker(o);
     clearInterval(followTimer);
-    // Keep the reticle on a moving contact by re-reading its own layer.
-    if (o.kind === 'aircraft' || o.kind === 'vessel' || o.kind === 'satellite') {
+    if (o.kind !== 'earthquake') {
       followTimer = setInterval(() => {
         if (!selected) return;
-        const fresh = layerRecords(selected.layerId)
-          .map((r) => toIntelObject(selected.layerId, r))
-          .find((x) => x && x.key === selected.key);
+        const fresh = collect().find((x) => x.key === selected.key);
         if (fresh) {
           selected = fresh;
           placeMarker(fresh);
         }
-      }, 3000);
+      }, CACHE_MS);
     }
   }
   function close() {
+    stopFollow();
+    narrator.stop();
     selected = null;
     clearInterval(followTimer);
-    dossier.hidden = true;
+    view.hidden = true;
+    document.body.classList.remove('gev-intel-open');
     marker.show = false;
     scene.requestRender();
   }
+
+  // ── Actions ──────────────────────────────────────────────────────────
   function flyTo(o) {
     const range = o.kind === 'satellite' ? 2_500_000 : o.kind === 'earthquake' ? 400_000 : o.kind === 'vessel' ? 40_000 : 60_000;
     viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(cartesianOf(o), 1), {
@@ -166,19 +158,113 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       duration: 2.2,
     });
   }
+  function follow(o) {
+    const mod = layerModule(o.layerId);
+    const id = o.kind === 'satellite' ? o.noradId : o.icao24;
+    let ok = false;
+    try {
+      ok = !!mod?.trackById?.(id, { origin: 'user' });
+    } catch (error) {
+      console.warn('[intel] follow failed', error);
+    }
+    if (!ok) flyTo(o);
+    return ok;
+  }
+  function stopFollow() {
+    if (!state.following || !selected) return;
+    try {
+      layerModule(selected.layerId)?.stopTracking?.({ origin: 'user' });
+    } catch {
+      /* layer has no follow */
+    }
+    state.following = false;
+  }
+  function toggleArea(o) {
+    const i = areas.findIndex((a) => a.key === o.key);
+    if (i >= 0) {
+      viewer.entities.remove(areas[i].entity);
+      areas.splice(i, 1);
+      scene.requestRender();
+      return false;
+    }
+    const col = Cesium.Color.fromCssColorString(ACCENT);
+    const entity = viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(o.lon, o.lat),
+      ellipse: {
+        semiMajorAxis: AOI_KM * 1000,
+        semiMinorAxis: AOI_KM * 1000,
+        material: col.withAlpha(0.07),
+        outline: true,
+        outlineColor: col.withAlpha(0.55),
+        height: 0,
+      },
+    });
+    areas.push({ key: o.key, title: buildDossier(o).title, lat: o.lat, lon: o.lon, radiusKm: AOI_KM, entity });
+    scene.requestRender();
+    return true;
+  }
+  function reportText(o) {
+    const d = buildDossier(o);
+    const lines = [`${d.title} — ${KIND_LABEL[d.kind]} (${d.subtitle || ''})`, `Source: ${d.source} [FEED]`];
+    for (const f of d.feed) lines.push(`  ${f.label}: ${f.value}`);
+    lines.push(`Position: ${o.lat.toFixed(4)}, ${o.lon.toFixed(4)}`);
+    lines.push(`Nearby: ${nearby.total} contacts within ${nearby.radiusKm} km [FEED]`);
+    lines.push('Assessment [SIMULATED]');
+    for (const a of d.analysis) lines.push(`  ${a.label}: ${a.value}`);
+    lines.push('Links');
+    for (const l of d.links) lines.push(`  ${l.rel}: ${l.name} [${l.source === 'feed' ? 'FEED' : 'SIMULATED'}]`);
+    lines.push(`Generated ${new Date().toUTCString()} by God's Eye View`);
+    return lines.join('\n');
+  }
 
-  dossier.addEventListener('click', (event) => {
+  actions.addEventListener('click', async (event) => {
     const act = event.target.closest('[data-act]')?.dataset.act;
-    if (act === 'close') close();
-    if (act === 'fly' && selected) flyTo(selected);
+    if (!act || !selected) return;
+    const o = selected;
+    if (act === 'close') return close();
+    if (act === 'fly') flyTo(o);
+    if (act === 'follow') {
+      if (state.following) stopFollow();
+      else state.following = follow(o);
+    }
+    if (act === 'watch') {
+      if (watchlist.has(o.key)) watchlist.delete(o.key);
+      else watchlist.set(o.key, o);
+      state.watched = watchlist.has(o.key);
+      onWatchChange?.();
+    }
+    if (act === 'aoi') state.aoi = toggleArea(o);
+    if (act === 'brief') {
+      const text = composeBrief(buildDossier(o), nearby);
+      brief.textContent = text;
+      brief.hidden = false;
+      narrator.speak(text);
+    }
+    if (act === 'copy') {
+      try {
+        await navigator.clipboard.writeText(reportText(o));
+        state.copied = true;
+        setTimeout(() => {
+          state.copied = false;
+          if (selected === o) actions.innerHTML = actionBar(o, state);
+        }, 1800);
+      } catch (error) {
+        console.warn('[intel] clipboard unavailable', error);
+      }
+    }
+    actions.innerHTML = actionBar(o, state);
+  });
+  left.addEventListener('click', (event) => {
+    const i = event.target.closest('[data-near]')?.dataset.near;
+    const item = i == null ? null : nearby.items[Number(i)];
+    if (item) open(item.object);
   });
 
   // ── Click to inspect ─────────────────────────────────────────────────
   const handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
   handler.setInputAction((click) => {
     if (!isLive()) return;
-    const objects = collect();
-    if (!objects.length) return;
+    const objects = collect({ fresh: true });
     const occluder = new Cesium.EllipsoidalOccluder(Cesium.Ellipsoid.WGS84, viewer.camera.positionWC);
     const points = [];
     for (const o of objects) {
@@ -189,71 +275,106 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     }
     const hit = nearestHit(points, click.position.x, click.position.y, 22);
     if (hit) open(hit.o);
+    else if (selected) close();
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  // ── Triage queue ─────────────────────────────────────────────────────
+  // ── Triage queue (+ watchlist and areas of interest) ─────────────────
   let triageTimer = null;
   let lastItems = [];
+  let onWatchChange = null;
   function renderTriage() {
-    lastItems = buildTriage(collect());
-    const rows = lastItems
+    const objects = collect();
+    const watched = [...watchlist.values()].map((w) => ({
+      severity: 'watch',
+      reason: 'Analyst watchlist',
+      object: objects.find((x) => x.key === w.key) || w,
+      pinned: true,
+    }));
+    const ranked = buildTriage(objects).filter((i) => !watchlist.has(i.object.key));
+    lastItems = [...watched, ...ranked];
+    const list = lastItems
       .map(
-        (item, i) => `<li><button type="button" data-i="${i}" class="gev-tri gev-tri--${item.severity}">
-          <span class="gev-tri__sev">${SEV_LABEL[item.severity]}</span>
+        (item, i) => `<li><button type="button" data-i="${i}" class="gev-tri gev-tri--${item.severity}${item.pinned ? ' gev-tri--pinned' : ''}">
+          <span class="gev-tri__sev">${item.pinned ? 'Pinned' : SEV_LABEL[item.severity]}</span>
           <span class="gev-tri__title">${esc(buildDossier(item.object).title)}</span>
           <span class="gev-tri__why">${esc(item.reason)}</span></button></li>`,
       )
       .join('');
-    triage.innerHTML = `<header class="gev-dos__head"><span class="gev-dos__kind">Triage queue ${chip('feed')}</span>
-      <button type="button" class="gev-icon-btn" data-act="close" aria-label="Close triage">✕</button></header>
-      ${rows ? `<ol class="gev-tri__list">${rows}</ol>` : '<p class="gev-dos__note">Nothing flagged in the enabled layers. Switch on Flights, Military, Ships or Earthquakes.</p>'}
-      <p class="gev-dos__note">Ranked from live feed signals: emergency squawks, military ICAO blocks, AIS state vessels, USGS magnitude.</p>`;
-    return lastItems.length;
+    const aoiRows = areas
+      .map((a, i) => `<li class="gev-aoi"><span>Area · ${esc(a.title)}</span><b>${insideArea(objects, a).length}</b><span class="gev-aoi__unit">contacts</span><button type="button" class="gev-aoi__x" data-aoi="${i}" aria-label="Remove area">${ICON.close}</button></li>`)
+      .join('');
+    triage.innerHTML = `<header class="gev-tri__head"><span>Triage queue ${chip('feed')}</span>
+      <button type="button" class="gev-icon-btn" data-act="close" aria-label="Close triage">${ICON.close}</button></header>
+      ${aoiRows ? `<ul class="gev-aoi__list">${aoiRows}</ul>` : ''}
+      ${list ? `<ol class="gev-tri__list">${list}</ol>` : '<p class="gev-iv__empty">Nothing flagged in the enabled layers.</p>'}
+      <p class="gev-iv__note">Ranked from live feed signals: emergency squawks, military ICAO blocks, AIS state vessels, USGS magnitude.</p>`;
   }
   triage.addEventListener('click', (event) => {
     if (event.target.closest('[data-act="close"]')) return setTriage(false);
+    const a = event.target.closest('[data-aoi]')?.dataset.aoi;
+    if (a != null) {
+      const area = areas[Number(a)];
+      if (area) {
+        viewer.entities.remove(area.entity);
+        areas.splice(Number(a), 1);
+        scene.requestRender();
+      }
+      return renderTriage();
+    }
     const i = event.target.closest('[data-i]')?.dataset.i;
-    if (i == null) return;
-    const item = lastItems[Number(i)];
+    const item = i == null ? null : lastItems[Number(i)];
     if (item) {
       open(item.object);
       flyTo(item.object);
     }
   });
+  let onTriageChange = null;
   function setTriage(on) {
     triage.hidden = !on;
     clearInterval(triageTimer);
     if (on) {
+      if (selected) close();
       renderTriage();
       triageTimer = setInterval(renderTriage, 15000);
     }
     onTriageChange?.(on);
   }
-  let onTriageChange = null;
 
-  /** Count of flagged objects right now (for the top-bar badge). */
-  const flaggedCount = () => buildTriage(collect(), { limit: 99 }).length;
+  /** Priority + elevated items right now, plus the watchlist (top-bar badge).
+   * Routine 'watch' items (e.g. every military airframe) stay in the list but
+   * don't inflate the badge. Uses the cache. */
+  const flaggedCount = () =>
+    buildTriage(collect(), { limit: 999 }).filter((i) => i.severity !== 'watch').length + watchlist.size;
 
   return {
     open,
     close,
+    isOpen: () => !!selected,
     setTriage,
     isTriageOpen: () => !triage.hidden,
     flaggedCount,
     onTriage(fn) {
       onTriageChange = fn;
     },
+    onWatch(fn) {
+      onWatchChange = fn;
+    },
     /** Hide everything (used when switching to Exercise mode). */
     suspend() {
       close();
       setTriage(false);
+      for (const a of areas) a.entity.show = false;
+    },
+    resume() {
+      for (const a of areas) a.entity.show = true;
     },
     destroy() {
       close();
       setTriage(false);
       handler.destroy();
       viewer.entities.remove(marker);
-      dossier.remove();
+      for (const a of areas) viewer.entities.remove(a.entity);
+      view.remove();
       triage.remove();
     },
   };

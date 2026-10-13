@@ -17,8 +17,16 @@ export const SHELL_LAYERS = Object.freeze([
   { id: 'telegeography-submarine-cables', name: 'Submarine cables', dot: '#30d158' },
 ].map((layer) => Object.freeze(layer)));
 
-/** Layers switched on when the app opens. */
-const DEFAULT_ON = Object.freeze(['satellites']);
+/** Layers switched on when the app opens (staggered so start-up stays smooth). */
+const DEFAULT_ON = Object.freeze([
+  'satellites',
+  'earthquakes',
+  'flights',
+  'military',
+  'ais-live-vessels',
+  'military-installations',
+]);
+const DEFAULT_ON_STAGGER_MS = 1500;
 
 const ICONS = {
   eye: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
@@ -185,12 +193,21 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   });
   // Key satellites (stations, GPS, Galileo, GLONASS, geostationary) are on
   // from the start; the dense Starlink shell stays off.
-  for (const id of DEFAULT_ON) {
-    if (!isOn(id))
-      Promise.resolve(dataManager.setEnabled(id, true))
-        .catch((error) => console.warn(`[shell] could not switch on ${id}`, error))
-        .finally(refreshRows);
-  }
+  // One at a time, each after the previous has finished loading, so the
+  // browser never has to ingest every feed in the same moment.
+  const startupTimers = [];
+  (async () => {
+    for (const id of DEFAULT_ON) {
+      if (isOn(id)) continue;
+      try {
+        await dataManager.setEnabled(id, true);
+      } catch (error) {
+        console.warn(`[shell] could not switch on ${id}`, error);
+      }
+      refreshRows();
+      await new Promise((resolve) => startupTimers.push(setTimeout(resolve, DEFAULT_ON_STAGGER_MS)));
+    }
+  })();
 
   directorBtn.addEventListener('click', () => {
     if (tour.controller.isRunning()) tour.controller.exit('button');
@@ -208,12 +225,13 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     badge.textContent = n > 99 ? '99+' : String(n);
   }
   intel.onTriage((on) => triageBtn.setAttribute('aria-pressed', String(on)));
+  intel.onWatch(refreshBadge);
   triageBtn.addEventListener('click', () => {
     setPanel(false);
     intel.setTriage(!intel.isTriageOpen());
   });
   const badgeTimer = setInterval(refreshBadge, 15000);
-  setTimeout(refreshBadge, 4000);
+  setTimeout(refreshBadge, 12000);
 
   // ── Exercise mode ────────────────────────────────────────────────────
   const exCaption = el('div', { class: 'gev-caption gev-glass', 'aria-live': 'polite', 'data-visible': 'false' });
@@ -243,6 +261,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     const ex = next === 'exercise';
     triageBtn.hidden = ex;
     if (ex) intel.suspend();
+    else intel.resume();
     liveBtn.setAttribute('aria-pressed', String(!ex));
     exBtn.setAttribute('aria-pressed', String(ex));
     document.body.classList.toggle('gev-exercise', ex);
@@ -284,6 +303,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   return () => {
     searchAbort?.abort();
     clearInterval(badgeTimer);
+    startupTimers.forEach(clearTimeout);
     intel.destroy();
     exercise.exit();
     exercise.destroy();

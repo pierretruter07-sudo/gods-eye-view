@@ -45,11 +45,14 @@ function patternOfLife(rand, kind) {
     vessel: ['loitered off the coast', 'made way at cruise speed', 'approached a port approach lane', 'held station'],
     satellite: ['passed over the region', 'completed an orbit', 'entered sunlight', 'crossed the equator'],
   };
-  const list = verbs[kind] || verbs.aircraft;
-  const out = [];
-  const count = 3 + Math.floor(rand() * 2);
-  for (let i = 0; i < count; i += 1) out.push({ t: windows[i], text: pick(rand, list) });
-  return out;
+  // Seeded shuffle so each line appears once.
+  const list = [...(verbs[kind] || verbs.aircraft)];
+  for (let i = list.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    [list[i], list[j]] = [list[j], list[i]];
+  }
+  const count = Math.min(list.length, 3 + Math.floor(rand() * 2));
+  return list.slice(0, count).map((text, i) => ({ t: windows[i], text }));
 }
 
 export function buildDossier(object) {
@@ -66,7 +69,7 @@ function aircraftDossier(o, rand) {
   const alt = n0(o.altitudeM);
   const spd = n0(o.speedMps);
   const roles = ['Commercial transport', 'Charter / business', 'State / government', 'Cargo / logistics', 'General aviation'];
-  const role = o.military ? 'Military' : pick(rand, roles);
+  const role = o.military ? 'Military' : o.operator ? 'Commercial transport' : pick(rand, roles);
   return {
     kind: 'aircraft',
     title: txt(o.callsign) || txt(o.icao24) || 'Aircraft',
@@ -145,7 +148,7 @@ function satelliteDossier(o, rand) {
       { rel: 'Assessed operator', name: 'State / commercial', kind: 'org', source: 'sim' },
     ].filter(Boolean),
     analysis: [
-      { label: 'Assessed mission', value: o.isIss ? 'Crewed station' : pick(rand, missions) },
+      { label: 'Assessed mission', value: /station/i.test(String(o.satelliteClass || o.group || '')) ? 'Crewed station / resupply' : pick(rand, missions) },
       { label: 'Next pass', value: `${5 + Math.floor(rand() * 80)} min` },
       { label: 'Status', value: 'Active' },
     ],
@@ -173,4 +176,22 @@ function quakeDossier(o, rand) {
     ],
     pol: [],
   };
+}
+
+/**
+ * A spoken/copyable analyst brief. Feed facts come first; simulated content
+ * is introduced as such so a listener can always tell the two apart.
+ */
+export function composeBrief(d, nearby = null) {
+  const facts = d.feed
+    .filter((f) => !/^(Name|ICAO 24|NORAD ID|MMSI)$/.test(f.label))
+    .slice(0, 5)
+    .map((f) => `${f.label.toLowerCase()} ${f.value}`)
+    .join(', ');
+  const parts = [`${d.title}. ${d.subtitle || ''}.`];
+  if (facts) parts.push(`From ${d.source}: ${facts}.`);
+  if (nearby && nearby.total) parts.push(`${nearby.total} other contact${nearby.total === 1 ? '' : 's'} within ${nearby.radiusKm} kilometres.`);
+  if (d.analysis.length)
+    parts.push(`Simulated assessment: ${d.analysis.map((a) => `${a.label.toLowerCase()} ${a.value}`).join(', ')}.`);
+  return parts.join(' ').replace(/\s+\./g, '.').replace(/\.\./g, '.');
 }
