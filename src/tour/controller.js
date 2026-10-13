@@ -8,6 +8,8 @@ import { TOUR_LAYERS, TOUR_TIMING } from './config.js';
 import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
+import { createAirportOverlay } from '../airports/overlay.js';
+import { AIRPORT_PROFILES } from '../airports/profiles.js';
 
 const RENDER_HOLD = 'tour-orbit';
 
@@ -36,6 +38,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
   let run = null; // { controller: AbortController }
   let removeOrbit = null;
   let marker = null;
+  let airport = null; // created lazily; one CustomDataSource for the whole run
 
   const layerModule = (id) => dataManager.layers.get(id)?.module;
   const records = (id) => {
@@ -150,11 +153,12 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
   }
 
   /** Wait out a stop, cutting it short if a brand-new incident appears. */
-  async function dwell(seconds, signal) {
+  async function dwell(seconds, profile, signal) {
     const until = Date.now() + seconds * 1000;
     while (Date.now() < until) {
       const step = Math.min(TOUR_TIMING.interruptCheckS * 1000, until - Date.now());
       await sleep(step, signal);
+      if (profile) airport?.update(profile, records('flights'));
       const incidents = {
         flights: [...records('flights'), ...staged.flights],
         quakes: [...records('earthquakes'), ...staged.quakes],
@@ -168,6 +172,8 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       const next = planner.next(liveData());
       stopOrbit();
       clearMarker();
+      airport?.clear();
+      const profile = next.kind === 'airport' ? AIRPORT_PROFILES[next.airport.id] : null;
       if (next.event) {
         ui.showEvent(next.event);
         showMarker(next.event);
@@ -176,11 +182,15 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       }
       await flyTo(next.view, signal);
       startOrbit(next.view);
+      if (profile) {
+        if (!airport) airport = createAirportOverlay(viewer);
+        airport.update(profile, records('flights'));
+      }
       ui.setCaption(next.line);
       const started = Date.now();
       await narrator.speak(next.line, { signal });
       const spokenS = (Date.now() - started) / 1000;
-      await dwell(Math.max(next.dwellS - spokenS, 1), signal);
+      await dwell(Math.max(next.dwellS - spokenS, 1), profile, signal);
     }
   }
 
@@ -220,6 +230,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
     narrator.stop();
     stopOrbit();
     clearMarker();
+    airport?.clear();
     ui.setState('paused');
   }
 
@@ -244,6 +255,8 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
 
   function destroy() {
     exit('destroy');
+    airport?.destroy();
+    airport = null;
     canvas.removeEventListener('pointerdown', onInput);
     canvas.removeEventListener('wheel', onInput);
     window.removeEventListener('keydown', onKey);
