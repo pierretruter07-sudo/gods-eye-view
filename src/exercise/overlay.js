@@ -92,6 +92,43 @@ export function createExerciseOverlay(viewer) {
     });
   }
 
+  /** A fictional town around the airfield: a road grid and blocks of
+   * buildings on a cardinal grid, with the runway cutting across it. */
+  function drawCity(target) {
+    const { lat, lon } = target;
+    const h = (70 * Math.PI) / 180; // runway axis, to keep a clear corridor
+    const sin = Math.sin(h);
+    const cos = Math.cos(h);
+    const spacing = 300;
+    const N = 7;
+    const half = N * spacing;
+    // Roads (dark asphalt): N/S lines (heading 0) and E/W lines (heading 90).
+    for (let i = -N; i <= N; i += 1) {
+      slab(lat, lon, i * spacing, 0, half * 2 + 400, 13, 0, '#43413c', 0.3);
+      slab(lat, lon, 0, i * spacing, half * 2 + 400, 13, 90, '#43413c', 0.3);
+    }
+    // Buildings in the grid cells, skipping the runway corridor and apron.
+    const palette = ['#8b8578', '#9a9488', '#787266', '#a19a8b', '#6f6a60'];
+    for (let gx = -N; gx <= N; gx += 1) {
+      for (let gy = -N; gy <= N; gy += 1) {
+        const cE = gx * spacing + rand(-55, 55);
+        const cN = gy * spacing + rand(-55, 55);
+        const along = cE * sin + cN * cos;
+        const cross = cE * cos - cN * sin;
+        if (Math.abs(cross) < 170 && Math.abs(along) < 1500) continue; // runway clear zone
+        if (Math.hypot(cE + 300, cN - 320) < 320) continue; // apron/terminal
+        if (Math.random() < 0.28) continue; // some empty lots
+        const dist = Math.hypot(cE + 200, cN - 350);
+        const height = Math.max(8, Math.min(55, (9 + 40 * Math.exp(-dist / 650)) * rand(0.7, 1.2)));
+        building(lat, lon, cE, cN, rand(44, 82), rand(44, 82), 0, palette[Math.floor(rand(0, palette.length))], height);
+      }
+    }
+  }
+
+  function rand(a, b) {
+    return a + Math.random() * (b - a);
+  }
+
   /** A fictional forward airfield so the target reads as a real place. */
   function drawAirfield(target) {
     const { lat, lon } = target;
@@ -155,6 +192,7 @@ export function createExerciseOverlay(viewer) {
       });
     }
     for (const threat of scenario.threats || []) ring(threat);
+    drawCity(scenario.target);
     drawAirfield(scenario.target);
     marker(scenario.friendlyBase, BLUE, scenario.friendlyBase.name);
     marker(scenario.target, DEEP_ORANGE, `${scenario.target.name}  · SIMULATED`, { diamond: true });

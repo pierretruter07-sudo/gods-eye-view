@@ -156,8 +156,8 @@ export function createSwarmCinematic() {
     for (let i = 0; i < (big ? 6 : 4); i += 1) {
       add({ kind: 'dust', x: a.x + rand(-20, 20), y: a.y + rand(2, 16), sz0: rand(50, 90), sz: 0, grow: rand(50, 90), vx: rand(-70, 70), vy: rand(-4, 6), life: rand(1.6, 2.8), peak: rand(0.16, 0.26) });
     }
-    // Shock: a faint, fast dust ring.
-    add({ kind: 'shock', x: a.x, y: a.y, r: base * 0.2, to: base * rand(1.6, 2.2), life: 0.4 });
+    // Shock: a faint, fast dust ring on the big hits only.
+    if (big) add({ kind: 'shock', x: a.x, y: a.y, r: base * 0.2, to: base * rand(1.6, 2.1), life: 0.38 });
     if (big) shakeAmt = Math.max(shakeAmt, 13);
   }
 
@@ -290,9 +290,9 @@ export function createSwarmCinematic() {
         ctx.fill();
       } else if (p.kind === 'shock') {
         const r = p.r + (p.to - p.r) * easeOut(k);
-        ctx.globalAlpha = (1 - k) * 0.25;
+        ctx.globalAlpha = (1 - k) * 0.12;
         ctx.strokeStyle = 'rgba(255,230,190,1)';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
         ctx.stroke();
@@ -321,7 +321,7 @@ export function createSwarmCinematic() {
     const startMs = performance.now();
     console.info(`[exercise] swarm cinematic started: ${pts.length} anchors, ${W}x${H}`);
     const safety = setTimeout(finish, durationMs + 7000);
-    const total = 90;
+    const total = 26;
     for (let i = 0; i < total; i += 1) {
       spawnDrone(pts[i % pts.length], startMs + (i / total) * durationMs * 0.7 + rand(0, 400));
     }
