@@ -12,7 +12,7 @@ function el(tag, attrs = {}, text) {
   return node;
 }
 
-const RISK_COLOR = { Low: '#30d158', Moderate: '#ff9f0a', High: '#ff453a' };
+const RISK_COLOR = { Low: '#30d158', Moderate: '#ffb020', High: '#ff6a00' };
 
 export function createPackagePanel({ onLaunch, onClose, root = document.body }) {
   const panel = el('aside', { class: 'gev-pkg gev-glass', 'aria-label': 'Strike package', role: 'region' });

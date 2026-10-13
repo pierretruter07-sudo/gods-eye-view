@@ -142,11 +142,12 @@ body.gev-clean #toast {
 }
 
 .gev-btn--live {
-  background: #ff453a;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 .gev-btn--live:hover {
-  background: #ff5b51;
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .gev-btn:focus-visible,
@@ -319,8 +320,8 @@ body.gev-clean #toast {
 .gev-alert__badge {
   padding: 3px 8px;
   border-radius: 6px;
-  background: rgba(255, 69, 58, 0.18);
-  color: #ff6961;
+  background: rgba(255, 149, 0, 0.18);
+  color: #ffb340;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;

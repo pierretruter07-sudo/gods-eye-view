@@ -6,7 +6,7 @@ import * as Cesium from 'cesium';
  * Cesium entities. Everything is labelled as simulated. Clearable/disposable.
  */
 const AMBER = '#ff9f0a';
-const RED = '#ff453a';
+const DEEP_ORANGE = '#ff7a1a';
 const BLUE = '#64d2ff';
 
 export function createExerciseOverlay(viewer) {
@@ -50,7 +50,7 @@ export function createExerciseOverlay(viewer) {
   }
 
   function ring(threat) {
-    const color = Cesium.Color.fromCssColorString(threat.band === 'high' ? RED : AMBER);
+    const color = Cesium.Color.fromCssColorString(threat.band === 'high' ? DEEP_ORANGE : AMBER);
     source.entities.add({
       position: Cesium.Cartesian3.fromDegrees(threat.lon, threat.lat),
       ellipse: {
@@ -83,7 +83,7 @@ export function createExerciseOverlay(viewer) {
     }
     for (const threat of scenario.threats || []) ring(threat);
     marker(scenario.friendlyBase, BLUE, scenario.friendlyBase.name);
-    marker(scenario.target, RED, `${scenario.target.name}  · SIMULATED`, { diamond: true });
+    marker(scenario.target, DEEP_ORANGE, `${scenario.target.name}  · SIMULATED`, { diamond: true });
   }
 
   function destroy() {

@@ -106,7 +106,7 @@ export const POINT_STYLES = {
   // Its card still reads "STATION · ISS", so the class stays legible.
   iss: {
     pixelSize: 12,
-    color: Cesium.Color.fromCssColorString('#ff4444'),
+    color: Cesium.Color.fromCssColorString('#ff9500'),
     outlineColor: POINT_OUTLINE,
     outlineWidth: 2,
   },

@@ -10,9 +10,10 @@ export const EARTHQUAKE_OVERLAY_COLLISION_CAPACITY = 48;
  *  - Deep (>300km): Yellow
  */
 export function depthColor(depthKm) {
-  if (depthKm < 70) return Cesium.Color.RED;
-  if (depthKm < 300) return Cesium.Color.ORANGE;
-  return Cesium.Color.YELLOW;
+  // Warm palette, no red: shallow → orange, intermediate → amber, deep → gold.
+  if (depthKm < 70) return Cesium.Color.fromCssColorString('#ff8c1a');
+  if (depthKm < 300) return Cesium.Color.fromCssColorString('#ffb347');
+  return Cesium.Color.fromCssColorString('#ffe066');
 }
 
 /**

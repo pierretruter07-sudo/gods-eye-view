@@ -67,7 +67,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     console.warn('[shell] resolution scale unavailable', error);
   }
   try {
-    viewer.scene.msaaSamples = 4;
+    viewer.scene.msaaSamples = 2;
   } catch (error) {
     console.warn('[shell] MSAA unavailable', error);
   }
