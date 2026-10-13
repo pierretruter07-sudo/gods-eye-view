@@ -717,3 +717,131 @@ body.gev-exercise .gev-demo {
 .gev-pkg__launch:hover {
   background: #ffb340;
 }
+
+/* ── Intelligence layer: dossier, provenance, triage ─────── */
+.gev-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: #ff9f0a;
+  color: #1b1b1b;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+.gev-badge[hidden] { display: none; }
+.gev-btn[aria-pressed='true'] { background: rgba(255, 255, 255, 0.18); }
+
+.gev-dos,
+.gev-triage {
+  position: fixed;
+  top: 92px;
+  z-index: 199;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 300px);
+  min-height: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 14px 16px 16px;
+  border-radius: 22px;
+  font-size: 13px;
+}
+.gev-dos { right: 24px; }
+.gev-triage { left: 24px; max-height: calc(100vh - 120px); }
+.gev-dos[hidden],
+.gev-triage[hidden] { display: none; }
+
+.gev-dos__head { display: flex; justify-content: space-between; align-items: center; }
+.gev-dos__kind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(235, 240, 245, 0.7);
+}
+.gev-dos__title { margin: 8px 0 2px; font-size: 20px; font-weight: 650; }
+.gev-dos__sub { margin: 0 0 10px; color: rgba(235, 240, 245, 0.62); }
+.gev-dos section { border-top: 1px solid rgba(255, 255, 255, 0.09); padding-top: 10px; margin-top: 10px; }
+.gev-dos h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(235, 240, 245, 0.62);
+}
+.gev-dos__src { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.gev-dos dl { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; }
+.gev-dos dt { color: rgba(235, 240, 245, 0.55); }
+.gev-dos dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.gev-dos__links, .gev-dos__pol, .gev-tri__list { list-style: none; margin: 0; padding: 0; }
+.gev-dos__links li { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.gev-dos__links li > span:nth-child(2) { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gev-dos__rel { color: rgba(235, 240, 245, 0.55); min-width: 92px; }
+.gev-dos__pol li { position: relative; padding: 3px 0 3px 16px; }
+.gev-dos__pol li::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 159, 10, 0.8);
+}
+.gev-dos__t { display: inline-block; min-width: 82px; color: rgba(235, 240, 245, 0.55); }
+.gev-dos__foot { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.gev-dos__foot .gev-btn { align-self: flex-start; }
+.gev-dos__note { margin: 8px 0 0; font-size: 11px; color: rgba(235, 240, 245, 0.5); }
+
+.gev-prov {
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.gev-prov--feed { background: rgba(48, 209, 88, 0.16); color: #4cd964; }
+.gev-prov--sim { background: rgba(255, 159, 10, 0.18); color: #ffb340; }
+
+.gev-graph { width: 100%; height: auto; display: block; margin: 2px 0 6px; }
+.gev-graph text { fill: rgba(235, 240, 245, 0.75); font-size: 10px; }
+.gev-graph .gev-graph__centre { fill: #f5f7fa; font-weight: 600; }
+
+.gev-tri__list li + li { margin-top: 6px; }
+.gev-tri {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  padding: 9px 12px;
+  border: 0;
+  border-left: 3px solid #64d2ff;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gev-tri:hover { background: rgba(255, 255, 255, 0.1); }
+.gev-tri--critical { border-left-color: #ff7a1a; }
+.gev-tri--high { border-left-color: #ff9f0a; }
+.gev-tri__sev { grid-row: span 2; align-self: center; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(235, 240, 245, 0.6); min-width: 58px; }
+.gev-tri__title { font-weight: 600; }
+.gev-tri__why { font-size: 12px; color: rgba(235, 240, 245, 0.6); }
+
+@media (max-width: 720px) {
+  .gev-dos { top: auto; bottom: 16px; right: 16px; max-height: 55vh; }
+  .gev-triage { left: 16px; }
+}

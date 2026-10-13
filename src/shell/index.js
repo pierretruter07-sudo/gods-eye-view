@@ -2,6 +2,7 @@ import { searchAndFlyTo } from '../locations.js';
 import { setScopeMaskEnabled } from '../scopeMask.js';
 import { installTour } from '../tour/index.js';
 import { createExerciseMode } from '../exercise/mode.js';
+import { installIntel } from '../intel/index.js';
 
 /** Layers offered in the Layers panel, in display order. */
 export const SHELL_LAYERS = Object.freeze([
@@ -26,6 +27,7 @@ const ICONS = {
   play: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
   stop: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>',
   back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>',
+  list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
   target: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>',
 };
 
@@ -89,10 +91,11 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const exBtn = el('button', { type: 'button', 'data-mode': 'exercise', 'aria-pressed': 'false' }, '<span class="gev-seg__dot gev-seg__dot--ex"></span>Exercise');
   modeSwitch.append(liveBtn, exBtn);
   const layersBtn = el('button', { type: 'button', class: 'gev-btn', 'aria-expanded': 'false', 'aria-controls': 'gev-layers' }, `${ICONS.layers}<span>Layers</span>`);
+  const triageBtn = el('button', { type: 'button', class: 'gev-btn', 'aria-pressed': 'false' }, `${ICONS.list}<span>Triage</span><span class="gev-badge" hidden></span>`);
   const directorBtn = el('button', { type: 'button', class: 'gev-btn gev-btn--primary' }, `${ICONS.play}<span>Director</span>`);
   const generateBtn = el('button', { type: 'button', class: 'gev-btn gev-btn--exercise' }, `${ICONS.target}<span>Generate strike package</span>`);
   generateBtn.hidden = true;
-  bar.append(brand, el('span', { class: 'gev-bar__divider', 'aria-hidden': 'true' }), modeSwitch, form, layersBtn, directorBtn, generateBtn);
+  bar.append(brand, el('span', { class: 'gev-bar__divider', 'aria-hidden': 'true' }), modeSwitch, form, layersBtn, triageBtn, directorBtn, generateBtn);
 
   // ── Layers panel ─────────────────────────────────────────────────────
   const panel = el('section', { id: 'gev-layers', class: 'gev-layers gev-glass', 'aria-label': 'Layers' });
@@ -161,7 +164,10 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     layersBtn.setAttribute('aria-expanded', String(open));
     if (open) refreshRows();
   }
-  layersBtn.addEventListener('click', () => setPanel(panel.hidden));
+  layersBtn.addEventListener('click', () => {
+    if (panel.hidden) intel.setTriage(false);
+    setPanel(panel.hidden);
+  });
   collapse.addEventListener('click', () => setPanel(false));
 
   const tour = installTour({
@@ -191,6 +197,24 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     else tour.controller.start();
   });
 
+  // ── Intelligence layer (Live mode only) ─────────────────────────────
+  let mode = 'live';
+  const intel = installIntel({ viewer, dataManager, isLive: () => mode === 'live' });
+  const badge = triageBtn.querySelector('.gev-badge');
+  function refreshBadge() {
+    if (mode !== 'live') return;
+    const n = intel.flaggedCount();
+    badge.hidden = n === 0;
+    badge.textContent = n > 99 ? '99+' : String(n);
+  }
+  intel.onTriage((on) => triageBtn.setAttribute('aria-pressed', String(on)));
+  triageBtn.addEventListener('click', () => {
+    setPanel(false);
+    intel.setTriage(!intel.isTriageOpen());
+  });
+  const badgeTimer = setInterval(refreshBadge, 15000);
+  setTimeout(refreshBadge, 4000);
+
   // ── Exercise mode ────────────────────────────────────────────────────
   const exCaption = el('div', { class: 'gev-caption gev-glass', 'aria-live': 'polite', 'data-visible': 'false' });
   document.body.append(exCaption);
@@ -209,11 +233,16 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   // Esc cancels an in-flight exercise launch (the cinematic) without leaving
   // Exercise mode.
   window.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && exercise.isLaunching()) exercise.cancelLaunch();
+    if (event.key !== 'Escape') return;
+    if (exercise.isLaunching()) exercise.cancelLaunch();
+    else intel.close();
   });
 
-  async function setMode(mode) {
-    const ex = mode === 'exercise';
+  async function setMode(next) {
+    mode = next;
+    const ex = next === 'exercise';
+    triageBtn.hidden = ex;
+    if (ex) intel.suspend();
     liveBtn.setAttribute('aria-pressed', String(!ex));
     exBtn.setAttribute('aria-pressed', String(ex));
     document.body.classList.toggle('gev-exercise', ex);
@@ -254,6 +283,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
 
   return () => {
     searchAbort?.abort();
+    clearInterval(badgeTimer);
+    intel.destroy();
     exercise.exit();
     exercise.destroy();
     tour.dispose();
