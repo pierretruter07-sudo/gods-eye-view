@@ -72,3 +72,20 @@ test('vessel lines use feed values only', () => {
   const stop = planner.next({ flights: [], quakes: [], vessels: [ship], satellites: [] }, t0);
   assert.equal(stop.line, 'Cargo Ever Test, making 14 knots, bound for Singapore.');
 });
+
+test('naval / state vessels are preferred, even when slow', () => {
+  const planner = createPlanner({ rotation: ['vessel'] });
+  const cargo = { mmsi: '1', name: 'BULK ONE', lat: 1, lon: 1, speedKts: 14, shipType: 'Cargo' };
+  const navy = { mmsi: '2', name: 'PATROL', lat: 2, lon: 2, speedKts: 3, shipType: 'Military ops' };
+  const stop = planner.next({ flights: [], quakes: [], vessels: [cargo, navy], satellites: [] }, t0);
+  assert.equal(stop.vessel.mmsi, '2');
+});
+
+test('military aircraft get their own stop, from feed values', () => {
+  const planner = createPlanner({ rotation: ['military'] });
+  const m = { icao24: 'ae1234', callsign: 'RCH123', aircraftClass: 'C17', lat: 10, lon: 20, altitudeM: 9144, onGround: false };
+  const stop = planner.next({ flights: [], quakes: [], vessels: [], satellites: [], military: [m] }, t0);
+  assert.equal(stop.kind, 'military');
+  assert.match(stop.line, /RCH123/);
+  assert.match(stop.line, /30,000 feet/);
+});

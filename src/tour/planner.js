@@ -10,10 +10,14 @@ import { countNearby, rankEvents } from './events.js';
 import {
   airportLine,
   eventLine,
+  militaryLine,
   satelliteLine,
   stopLine,
   vesselLine,
 } from './lines.js';
+
+/** AIS ship types that mark a naval or other state vessel. */
+const STATE_VESSEL = /military|naval|law enforce|search and rescue|\bsar\b|warship|coast ?guard/i;
 
 const ISS_NORAD = '25544';
 /** Satellite groups worth showing, in the order they are visited. */
@@ -32,6 +36,7 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
   let airportIndex = 0;
   let cityIndex = 0;
   let vesselIndex = 0;
+  let militaryIndex = 0;
   let satelliteIndex = 0;
 
   const dwell = (kind) =>
@@ -77,15 +82,17 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
     },
 
     vessel(data) {
-      const moving = (data.vessels || []).filter(
-        (v) =>
-          Number.isFinite(v?.lat) &&
-          Number.isFinite(v?.lon) &&
-          (v.speedKts ?? 0) >= EVENT_RULES.vesselMinKts,
+      const placed = (data.vessels || []).filter(
+        (v) => Number.isFinite(v?.lat) && Number.isFinite(v?.lon),
       );
-      if (!moving.length) return null;
+      // Naval / state ships first (even slow ones), then moving cargo.
+      const naval = placed.filter(
+        (v) => STATE_VESSEL.test(v.shipType || '') && (v.speedKts ?? 0) >= EVENT_RULES.stateVesselMinKts,
+      );
+      const moving = placed.filter((v) => (v.speedKts ?? 0) >= EVENT_RULES.vesselMinKts);
+      if (!naval.length && !moving.length) return null;
       const cargo = moving.filter((v) => /cargo|tanker|container/i.test(v.shipType || ''));
-      const pool = cargo.length ? cargo : moving;
+      const pool = naval.length ? naval : cargo.length ? cargo : moving;
       const vessel = pool[vesselIndex % pool.length];
       vesselIndex += 1;
       return {
@@ -94,6 +101,25 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
         view: { lat: vessel.lat, lon: vessel.lon, heightM: 0, ...STOP_CAMERA.vessel },
         line: vesselLine(vessel),
         dwellS: dwell('vessel'),
+      };
+    },
+
+    military(data) {
+      const airborne = (data.military || []).filter(
+        (m) => Number.isFinite(m?.lat) && Number.isFinite(m?.lon) && !m.onGround,
+      );
+      if (!airborne.length) return null;
+      // Identified airframes (callsign or type) make the better story.
+      const named = airborne.filter((m) => m.callsign || m.aircraftClass);
+      const pool = named.length ? named : airborne;
+      const aircraft = pool[militaryIndex % pool.length];
+      militaryIndex += 1;
+      return {
+        kind: 'military',
+        aircraft,
+        view: { lat: aircraft.lat, lon: aircraft.lon, heightM: Number.isFinite(aircraft.altitudeM) ? aircraft.altitudeM : 0, ...STOP_CAMERA.military },
+        line: militaryLine(aircraft),
+        dwellS: dwell('military'),
       };
     },
 

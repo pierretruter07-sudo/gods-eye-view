@@ -69,6 +69,10 @@ const _adsbLolPointCache = new Map();
 /** Per-anchor single-flight map for concurrent regional fallback requests. */
 const _adsbLolPointInFlight = new Map();
 const ADSBLOL_POINT_CACHE_MS = 12000;
+/** Serve a regional snapshot up to this old instantly while refreshing it. */
+const ADSBLOL_POINT_STALE_OK_MS = 120_000;
+const OPENSKY_FETCH_TIMEOUT_MS = 6000;
+const OPENSKY_NETWORK_ERROR_COOLDOWN_MS = 5 * 60_000;
 const ADSBLOL_POINT_CACHE_MAX = 80;
 const ADSBLOL_POINT_RADIUS_NM = 250;
 const ADSBLOL_POINT_MAX_RESPONSE_BYTES = 8 * 1024 * 1024;
@@ -299,6 +303,9 @@ async function fetchAdsbLolPointFallback(req) {
   if (cached && now - cached.cachedAt < ADSBLOL_POINT_CACHE_MS) {
     return { ...cached, cacheStatus: 'HIT' };
   }
+  // Stale-while-revalidate: a recent snapshot is returned at once (aircraft
+  // appear instantly) and refreshed in the background for the next poll.
+  const revalidateOnly = cached && now - cached.cachedAt < ADSBLOL_POINT_STALE_OK_MS;
 
   const request = coalesceProxyRequest(
     _adsbLolPointInFlight,
@@ -329,6 +336,10 @@ async function fetchAdsbLolPointFallback(req) {
       }
     },
   );
+  if (revalidateOnly) {
+    request.promise.catch(() => {});
+    return { ...cached, cacheStatus: 'STALE-REVALIDATE' };
+  }
   try {
     const record = await request.promise;
     return { ...record, cacheStatus: request.shared ? 'INFLIGHT' : 'MISS' };
@@ -514,7 +525,7 @@ export function openSkyProxy() {
 
         let upstream = await fetch(
           'https://opensky-network.org/api/states/all?extended=1',
-          { headers },
+          { headers, signal: AbortSignal.timeout(OPENSKY_FETCH_TIMEOUT_MS) },
         );
         // Auto-mode fallback: if OAuth was rejected, retry with Basic credentials
         if (
@@ -529,7 +540,7 @@ export function openSkyProxy() {
           };
           upstream = await fetch(
             'https://opensky-network.org/api/states/all?extended=1',
-            { headers: retryHeaders },
+            { headers: retryHeaders, signal: AbortSignal.timeout(OPENSKY_FETCH_TIMEOUT_MS) },
           );
           usedMode = 'basic';
           reason = 'oauth_rejected_fallback_basic';
@@ -689,6 +700,10 @@ export function openSkyProxy() {
         res.end(body);
       } catch (e) {
         console.error('[OpenSky Proxy]', e.message);
+        // Unreachable (blocked host, DNS, timeout): stop asking for a while so
+        // every view goes straight to the regional sources instead of waiting
+        // out a fresh connection failure each time.
+        _openskyCooldownUntil = Date.now() + OPENSKY_NETWORK_ERROR_COOLDOWN_MS;
         if (_openskyCacheBody) {
           const cachedMeta = _openskyCacheMeta || {
             requestedMode: normalizeOpenSkyAuthMode(

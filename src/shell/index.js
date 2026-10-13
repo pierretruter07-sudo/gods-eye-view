@@ -4,6 +4,9 @@ import { installTour } from '../tour/index.js';
 import { createExerciseMode } from '../exercise/mode.js';
 import { installIntel } from '../intel/index.js';
 import { installIdleSpin } from './idleSpin.js';
+import { installAdaptiveQuality } from './quality.js';
+import { installFlightPrefetch } from './flightPrefetch.js';
+import { TOUR_AIRPORTS, TOUR_STOPS } from '../tour/config.js';
 
 /** Layers offered in the Layers panel, in display order. */
 export const SHELL_LAYERS = Object.freeze([
@@ -68,25 +71,14 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   document.body.classList.add('gev-clean');
   setScopeMaskEnabled(false);
 
-  // Smooth, anti-aliased rendering: render at the display's real pixel density
-  // (capped so 3x phones don't tank), with MSAA and FXAA to clean every edge —
-  // labels, markers and the overlay rings.
+  // Smoothness first: adaptive render resolution + FXAA (see quality.js).
+  const stopQuality = installAdaptiveQuality(viewer);
+  // Animated ocean: normal-mapped waves and sun glint wherever the terrain's
+  // water mask says sea (Cesium World Terrain, requested with a water mask).
   try {
-    viewer.useBrowserRecommendedResolution = false;
-    viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 2);
-  } catch (error) {
-    console.warn('[shell] resolution scale unavailable', error);
-  }
-  try {
-    viewer.scene.msaaSamples = 2;
-  } catch (error) {
-    console.warn('[shell] MSAA unavailable', error);
-  }
-  try {
-    const fxaa = viewer.scene.postProcessStages?.fxaa;
-    if (fxaa) fxaa.enabled = true;
-  } catch (error) {
-    console.warn('[shell] FXAA unavailable', error);
+    viewer.scene.globe.showWaterEffect = true;
+  } catch {
+    /* globe unavailable */
   }
 
   // ── Top bar ──────────────────────────────────────────────────────────
@@ -179,9 +171,35 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   });
   collapse.addEventListener('click', () => setPanel(false));
 
+  const prefetch = installFlightPrefetch({ viewer, dataManager });
+  // While the Director runs, keep every airport/city stop's aircraft warm on
+  // the server (it serves recent snapshots instantly), one request every
+  // 1.5 s so the free upstream sources never see a burst.
+  const WARM_SPOTS = [...TOUR_AIRPORTS, ...TOUR_STOPS.filter((st) => st.rangeM <= 1_000_000)];
+  let warmTimers = [];
+  function warmAll() {
+    WARM_SPOTS.forEach((spot, i) => warmTimers.push(setTimeout(() => prefetch.warm(spot.lat, spot.lon), i * 1500)));
+  }
+  let warmLoop = null;
+  function setTourWarming(on) {
+    clearInterval(warmLoop);
+    warmTimers.forEach(clearTimeout);
+    warmTimers = [];
+    warmLoop = null;
+    if (!on) return;
+    warmAll();
+    warmLoop = setInterval(warmAll, 90_000);
+  }
   const tour = installTour({
     viewer,
     dataManager,
+    // Warm the destination's aircraft before the camera gets there, then
+    // refresh the moment it arrives (instead of waiting for the 30 s poll).
+    onTravel(phase, view) {
+      if (!view || !(view.rangeM <= 1_000_000)) return;
+      if (phase === 'depart') prefetch.warm(view.lat, view.lon);
+      else prefetch.refreshHere();
+    },
     // The Director's current subject opens in the intel view, as if clicked.
     onFocus(focus) {
       if (mode === 'live') intel.showFocus(focus);
@@ -189,6 +207,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     onState(state) {
       const live = state === 'running';
       document.body.classList.toggle('gev-touring', live);
+      setTourWarming(live);
       directorBtn.classList.toggle('gev-btn--live', live);
       directorBtn.innerHTML = live
         ? `${ICONS.stop}<span>Stop</span>`
@@ -318,6 +337,9 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     searchAbort?.abort();
     clearInterval(badgeTimer);
     stopSpin();
+    stopQuality();
+    setTourWarming(false);
+    prefetch.destroy();
     startupTimers.forEach(clearTimeout);
     intel.destroy();
     exercise.exit();

@@ -11,6 +11,8 @@ import {
 import { KIND_LABEL, SEV_LABEL, ACCENT, AOI_KM, esc, chip, ICON, leftCard, rightCard, actionBar } from './markup.js';
 import { reticleSprite } from '../tour/pulseGraphics.js';
 import { createNarrator } from '../tour/narrator.js';
+import { createSubjectVisual } from './subjectVisual.js';
+import { holdContinuousRender, releaseContinuousRender } from '../renderGovernor.js';
 
 /**
  * Live-mode intelligence view. Click any aircraft, ship, satellite or quake:
@@ -104,8 +106,9 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   let followTimer = null;
 
   function placeMarker(o) {
-    marker.position = cartesianOf(o);
-    marker.show = true;
+    // Aircraft and satellites use their layer's own smooth follow camera and
+    // highlight; the reticle marks ships and quakes.
+    marker.show = o.kind === 'vessel' || o.kind === 'earthquake';
     scene.requestRender();
   }
   function render() {
@@ -123,6 +126,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   }
   function open(o, { quiet = false } = {}) {
     stopFollow();
+    stopOrbit();
     selected = o;
     nearby = nearbyObjects(collect(), o);
     state = { watched: watchlist.has(o.key), aoi: areas.some((a) => a.key === o.key) };
@@ -134,34 +138,191 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     document.body.classList.add('gev-intel-open');
     onOpen?.();
     clearInterval(followTimer);
+    track.fix = null;
+    setFix(o);
+    visual.show(o);
+    if (o.kind === 'satellite') {
+      // Satellites move ~7 km/s: re-fix every second from the layer itself.
+      followTimer = setInterval(() => {
+        if (!selected) return;
+        const fresh = layerModule('satellites')
+          ?.getAnalystRecords?.(20000)
+          ?.map((r) => toIntelObject('satellites', r))
+          .find((x) => x && x.key === selected.key);
+        if (fresh) {
+          selected = { ...fresh, simulated: selected.simulated };
+          setFix(fresh);
+        }
+      }, 1000);
+    }
     // From the Director: its own pulse marks the target and the camera is
-    // already orbiting it, so no reticle and no follow polling.
+    // already orbiting it, so no reticle and no camera moves.
     if (quiet) {
       marker.show = false;
       return;
     }
     placeMarker(o);
-    if (o.kind !== 'earthquake') {
+    // Focus the camera on it, Director-style.
+    if (NATIVE_FOLLOW.has(o.kind)) {
+      state.following = follow(o);
+      if (state.following) spinTracked();
+    } else {
+      orbit(o);
+      state.following = true;
+    }
+    actions.innerHTML = actionBar(o, state);
+    if (o.kind === 'aircraft' || o.kind === 'vessel') {
       followTimer = setInterval(() => {
         if (!selected) return;
         const fresh = collect().find((x) => x.key === selected.key);
         if (fresh) {
           selected = fresh;
-          placeMarker(fresh);
+          setFix(fresh);
+          visual.update(fresh);
         }
       }, CACHE_MS);
     }
   }
   function close() {
     stopFollow();
+    stopOrbit();
     stopBrief();
     selected = null;
     clearInterval(followTimer);
     view.hidden = true;
     document.body.classList.remove('gev-intel-open');
     marker.show = false;
+    visual.hide();
+    track.fix = null;
     scene.requestRender();
   }
+
+  // ── Smooth track: dead-reckon between feed fixes ─────────────────────
+  // Feed fixes arrive every few seconds; the camera and reticle move every
+  // frame along the contact's reported heading and speed, and blend out any
+  // correction over a second when the next fix lands — smooth, never a jump.
+  const track = { fix: null, vel: new Cesium.Cartesian3(), at: 0, err: new Cesium.Cartesian3(), errAt: 0 };
+  const scratch = new Cesium.Cartesian3();
+  function velocityOf(o, at) {
+    const mps =
+      o.kind === 'aircraft' ? Number(o.speedMps) : o.kind === 'vessel' ? Number(o.speedKts) / 1.943844 : 0;
+    const hdg = o.kind === 'aircraft' ? Number(o.heading) : Number(o.courseDeg);
+    if (!(mps > 0) || !Number.isFinite(hdg) || o.onGround) return new Cesium.Cartesian3();
+    const h = Cesium.Math.toRadians(hdg);
+    const enu = new Cesium.Cartesian3(Math.sin(h) * mps, Math.cos(h) * mps, 0);
+    const frame = Cesium.Transforms.eastNorthUpToFixedFrame(at);
+    return Cesium.Matrix4.multiplyByPointAsVector(frame, enu, new Cesium.Cartesian3());
+  }
+  function trackedPosition(result = new Cesium.Cartesian3()) {
+    if (!track.fix) return undefined;
+    const now = performance.now();
+    const dt = (now - track.at) / 1000;
+    Cesium.Cartesian3.multiplyByScalar(track.vel, dt, scratch);
+    Cesium.Cartesian3.add(track.fix, scratch, result);
+    const blend = Math.max(0, 1 - (now - track.errAt) / 1000);
+    if (blend > 0) Cesium.Cartesian3.add(result, Cesium.Cartesian3.multiplyByScalar(track.err, blend, scratch), result);
+    return result;
+  }
+  function setFix(o) {
+    const before = track.fix ? trackedPosition() : null;
+    const prevFix = track.fix;
+    const prevAt = track.at;
+    track.fix = cartesianOf(o);
+    track.at = performance.now();
+    // Satellites have no heading/speed fields: derive velocity from fixes.
+    if (o.kind === 'satellite' && prevFix && track.key === o.key && track.at > prevAt) {
+      track.vel = Cesium.Cartesian3.multiplyByScalar(
+        Cesium.Cartesian3.subtract(track.fix, prevFix, new Cesium.Cartesian3()),
+        1000 / (track.at - prevAt),
+        new Cesium.Cartesian3(),
+      );
+    } else track.vel = velocityOf(o, track.fix);
+    track.key = o.key;
+    if (before) {
+      Cesium.Cartesian3.subtract(before, track.fix, track.err);
+      track.errAt = track.at;
+    } else {
+      track.err = new Cesium.Cartesian3();
+      track.errAt = 0;
+    }
+  }
+  marker.position = new Cesium.CallbackProperty((time, result) => trackedPosition(result), false);
+  const visual = createSubjectVisual(viewer, { position: (result) => trackedPosition(result) });
+
+  const ORBIT = {
+    aircraft: { rangeM: 22_000, pitchDeg: -25 },
+    vessel: { rangeM: 6_000, pitchDeg: -30 },
+    earthquake: { rangeM: 320_000, pitchDeg: -50 },
+  };
+  let removeOrbit = null;
+  let orbitToken = 0;
+  let orbitFlying = false;
+  function stopOrbit() {
+    orbitToken += 1;
+    if (orbitFlying) {
+      orbitFlying = false;
+      viewer.camera.cancelFlight();
+    }
+    if (!removeOrbit) return;
+    const native = removeOrbit.native === true;
+    removeOrbit();
+    removeOrbit = null;
+    releaseContinuousRender('intel-orbit');
+    if (!native) viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+  }
+  const NATIVE_FOLLOW = new Set(['aircraft', 'satellite']);
+  /** While a layer's follow camera tracks the contact, circle it slowly. */
+  function spinTracked() {
+    stopOrbit();
+    let last = performance.now();
+    holdContinuousRender('intel-orbit');
+    removeOrbit = scene.preRender.addEventListener(() => {
+      const now = performance.now();
+      const dt = Math.min(0.25, (now - last) / 1000);
+      last = now;
+      if (viewer.trackedEntity) viewer.camera.rotateRight(Cesium.Math.toRadians(3) * dt);
+    });
+    removeOrbit.native = true;
+  }
+  /** Fly in, then circle the contact slowly while it moves — like the Director. */
+  function orbit(o) {
+    stopOrbit();
+    const frame = ORBIT[o.kind];
+    if (!frame) return;
+    const token = orbitToken;
+    const pitch = Cesium.Math.toRadians(frame.pitchDeg);
+    let heading = viewer.camera.heading;
+    orbitFlying = true;
+    viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(trackedPosition() || cartesianOf(o), 1), {
+      offset: new Cesium.HeadingPitchRange(heading, pitch, frame.rangeM),
+      duration: 2.0,
+      complete: () => {
+        orbitFlying = false;
+        if (token !== orbitToken || !selected) return;
+        let last = performance.now();
+        const target = new Cesium.Cartesian3();
+        holdContinuousRender('intel-orbit');
+        removeOrbit = scene.preRender.addEventListener(() => {
+          const now = performance.now();
+          heading += Cesium.Math.toRadians(3) * Math.min(0.25, (now - last) / 1000);
+          last = now;
+          if (!trackedPosition(target)) return;
+          viewer.camera.lookAt(target, new Cesium.HeadingPitchRange(heading, pitch, frame.rangeM));
+        });
+      },
+    });
+  }
+  // The viewer takes the camera back the moment they touch it.
+  const releaseCamera = () => {
+    if (!removeOrbit && !orbitFlying) return;
+    stopOrbit();
+    if (selected && state.following && !NATIVE_FOLLOW.has(selected.kind)) {
+      state.following = false;
+      actions.innerHTML = actionBar(selected, state);
+    }
+  };
+  scene.canvas.addEventListener('pointerdown', releaseCamera, { passive: true });
+  scene.canvas.addEventListener('wheel', releaseCamera, { passive: true });
 
   // ── Actions ──────────────────────────────────────────────────────────
   function flyTo(o) {
@@ -184,7 +345,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     return ok;
   }
   function stopFollow() {
-    if (!state.following || !selected) return;
+    if (!state.following || !selected || !NATIVE_FOLLOW.has(selected.kind)) return;
     try {
       layerModule(selected.layerId)?.stopTracking?.({ origin: 'user' });
     } catch {
@@ -237,8 +398,21 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     if (act === 'close') return close();
     if (act === 'fly') flyTo(o);
     if (act === 'follow') {
-      if (state.following) stopFollow();
-      else state.following = follow(o);
+      if (NATIVE_FOLLOW.has(o.kind)) {
+        if (state.following) {
+          stopOrbit();
+          stopFollow();
+        } else {
+          state.following = follow(o);
+          if (state.following) spinTracked();
+        }
+      } else if (removeOrbit) {
+        stopOrbit();
+        state.following = false;
+      } else {
+        orbit(o);
+        state.following = true;
+      }
     }
     if (act === 'watch') {
       if (watchlist.has(o.key)) watchlist.delete(o.key);
@@ -405,7 +579,10 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       close();
       setTriage(false);
       handler.destroy();
+      scene.canvas.removeEventListener('pointerdown', releaseCamera);
+      scene.canvas.removeEventListener('wheel', releaseCamera);
       viewer.entities.remove(marker);
+      visual.destroy();
       for (const a of areas) viewer.entities.remove(a.entity);
       view.remove();
       triage.remove();

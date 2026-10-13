@@ -81,7 +81,7 @@ export function rightCard(d) {
 }
 
 export function actionBar(o, state) {
-  const canFollow = o.kind === 'aircraft' || o.kind === 'satellite';
+  const canFollow = true;
   const btn = (act, icon, label, pressed = false) =>
     `<button type="button" class="gev-act" data-act="${act}" aria-pressed="${pressed}">${icon}<span>${label}</span></button>`;
   return [

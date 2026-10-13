@@ -169,7 +169,8 @@ export function createRendering({
   }
 
   /**
-   * Build (and cache) a chevron/delta-wing SVG data URL tinted for the vessel.
+   * Build (and cache) a top-down ship-hull SVG data URL tinted for the vessel
+   * (pointed bow, flat stern, bridge block aft).
    * The shape points north (up) so billboard rotation maps directly to heading.
    * One icon is generated per color+variant and reused across all billboards.
    * @param {Object} record - Vessel record (drives per-type tint).
@@ -187,7 +188,9 @@ export function createRendering({
     const strokeWidth = selected ? 1.1 : 0.7;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
     <g transform="translate(16,16)">
-      <path d="M0,-14 L11,10 L4,7 L0,14 L-4,7 L-11,10 Z" fill="${cssColor}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>
+      <path d="M0,-15 C3.6,-10 5,-5 5,0 L5,12 Q5,14 3,14 L-3,14 Q-5,14 -5,12 L-5,0 C-5,-5 -3.6,-10 0,-15 Z" fill="${cssColor}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>
+      <rect x="-3.3" y="5.5" width="6.6" height="5.6" rx="1" fill="${stroke}" opacity="0.55"/>
+      <path d="M0,-11 L0,3" stroke="${stroke}" stroke-width="0.8" opacity="0.45"/>
     </g>
   </svg>`;
     const icon = 'data:image/svg+xml;base64,' + btoa(svg);

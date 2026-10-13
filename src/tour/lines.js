@@ -86,6 +86,16 @@ export function vesselLine(vessel) {
   return `${parts.join(', ')}.`;
 }
 
+export function militaryLine(aircraft) {
+  const id = aircraft.callsign ? `callsign ${aircraft.callsign}` : 'without a public callsign';
+  const parts = [`A military aircraft, ${id}`];
+  if (aircraft.aircraftClass) parts.push(`type ${aircraft.aircraftClass}`);
+  if (Number.isFinite(aircraft.altitudeM) && !aircraft.onGround)
+    parts.push(`at ${round(aircraft.altitudeM * 3.28084, 100).toLocaleString('en-US')} feet`);
+  if (aircraft.originCountry) parts.push(`registered to ${aircraft.originCountry}`);
+  return `${parts.join(', ')}.`;
+}
+
 export function satelliteLine(sat) {
   const name = sat.isIss ? 'The International Space Station' : titleCase(sat.name || 'A satellite');
   const parts = [name];

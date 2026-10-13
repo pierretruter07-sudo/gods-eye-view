@@ -24,6 +24,7 @@ export const STOP_CAMERA = Object.freeze({
   earthquake: Object.freeze({ rangeM: 350_000, pitchDeg: -50 }),
   airport: Object.freeze({ rangeM: 14_000, pitchDeg: -30 }),
   vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -35 }),
+  military: Object.freeze({ rangeM: 45_000, pitchDeg: -35 }),
   satellite: Object.freeze({ rangeM: 2_500_000, pitchDeg: -35 }),
 });
 
@@ -42,6 +43,8 @@ export const EVENT_RULES = Object.freeze({
   airportRadiusKm: 50,
   /** Ships slower than this are treated as parked. */
   vesselMinKts: 8,
+  /** Naval / state vessels are shown even when slow. */
+  stateVesselMinKts: 1,
 });
 
 /**
@@ -51,6 +54,7 @@ export const EVENT_RULES = Object.freeze({
 export const TOUR_ROTATION = Object.freeze([
   'recent',
   'airport',
+  'military',
   'vessel',
   'satellite',
   'recent',
@@ -60,6 +64,7 @@ export const TOUR_ROTATION = Object.freeze([
 /** Layers the Director switches on when it starts. */
 export const TOUR_LAYERS = Object.freeze([
   'flights',
+  'military',
   'earthquakes',
   'satellites',
   'ais-live-vessels',

@@ -2,9 +2,9 @@ import { createTourController } from './controller.js';
 import { createTourUi } from './ui.js';
 
 /** Mount the Director for this application lifetime. */
-export function installTour({ viewer, dataManager, onState, onFocus = null }) {
+export function installTour({ viewer, dataManager, onState, onFocus = null, onTravel = null }) {
   const ui = createTourUi({ onState });
-  const controller = createTourController({ viewer, dataManager, ui, onFocus });
+  const controller = createTourController({ viewer, dataManager, ui, onFocus, onTravel });
   window.__gevTour = controller;
   return {
     controller,

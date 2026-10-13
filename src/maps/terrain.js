@@ -11,7 +11,7 @@ export async function createWorldTerrain(accessToken, { signal } = {}) {
   return {
     provider: await Cesium.CesiumTerrainProvider.fromUrl(resource, {
       requestVertexNormals: true,
-      requestWaterMask: false,
+      requestWaterMask: true, // animated ocean surface (see shell/ocean)
       ellipsoid: Cesium.Ellipsoid.WGS84,
     }),
   };

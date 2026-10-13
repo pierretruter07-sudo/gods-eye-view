@@ -166,6 +166,34 @@ export function createRendering({
     return updated;
   }
 
+  /** Propagate `fraction` of the core (non-dense) fleet, round-robin. */
+  function _propagateSlice(fraction) {
+    const catalog = layerState._catalog;
+    if (!layerState._sliceIds || layerState._sliceSize !== catalog.size) {
+      layerState._sliceIds = [];
+      for (const [id, sat] of catalog) if (sat.group !== 'dense') layerState._sliceIds.push(id);
+      layerState._sliceSize = catalog.size;
+      layerState._sliceCursor = 0;
+    }
+    const ids = layerState._sliceIds;
+    if (!ids.length) return 0;
+    const count = Math.min(ids.length, Math.max(1, Math.ceil(ids.length * fraction)));
+    const now = new Date();
+    let updated = 0;
+    for (let i = 0; i < count; i += 1) {
+      const id = ids[layerState._sliceCursor];
+      layerState._sliceCursor = (layerState._sliceCursor + 1) % ids.length;
+      const sat = catalog.get(id);
+      const point = layerState._points.get(id);
+      if (!sat || !point) continue;
+      const pos = parts.orbits.propagatePosition(sat.satrec, now);
+      if (!pos) continue;
+      point.position = Cesium.Cartesian3.fromDegrees(pos.longitude, pos.latitude, pos.altitude);
+      updated += 1;
+    }
+    return updated;
+  }
+
   /**
    * Shared scene.preRender tick (single definition for init + enable):
    * - core fleet propagation at 200ms-tracked / 1s-idle cadence,
@@ -183,11 +211,14 @@ export function createRendering({
     // hiding its standalone fleet. Do not rebuild hidden point buffers on the
     // one-second propagation cadence: that GPU upload presented as a periodic
     // whole-globe pulse even though the camera remained stationary.
-    if (
-      layerState._params.showPoints &&
-      now - layerState._lastPropagation >= interval
-    ) {
-      _propagateAll();
+    // Spread the core fleet over the interval instead of propagating every
+    // satellite in one frame: one big pass per second showed as a periodic
+    // hitch. Each frame updates the slice that keeps the whole fleet on the
+    // same cadence.
+    if (layerState._params.showPoints) {
+      const dt = layerState._lastSliceAt ? now - layerState._lastSliceAt : interval;
+      layerState._lastSliceAt = now;
+      _propagateSlice(Math.min(1, Math.max(0, dt) / interval));
       layerState._lastPropagation = now;
     }
 

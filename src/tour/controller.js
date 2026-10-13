@@ -33,7 +33,7 @@ function sleep(ms, signal) {
  * The Director: an automatic, narrated tour that visits live events first
  * and fixed stops otherwise. Any manual camera input hands control back.
  */
-export function createTourController({ viewer, dataManager, ui, narrator = createNarrator(), onFocus = null }) {
+export function createTourController({ viewer, dataManager, ui, narrator = createNarrator(), onFocus = null, onTravel = null }) {
   const planner = createPlanner();
   const staged = { flights: [], quakes: [] };
   let run = null; // { controller: AbortController }
@@ -199,6 +199,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       flights: [...records('flights'), ...staged.flights],
       quakes: [...records('earthquakes'), ...staged.quakes],
       vessels: records('ais-live-vessels'),
+      military: records('military'),
       satellites: records('satellites'),
     };
   }
@@ -232,6 +233,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       };
     }
     if (next.kind === 'vessel') return { layerId: 'ais-live-vessels', record: next.vessel };
+    if (next.kind === 'military') return { layerId: 'military', record: next.aircraft };
     if (next.kind === 'satellite') return { layerId: 'satellites', record: next.satellite };
     return null;
   }
@@ -250,8 +252,10 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
         ui.showStop(next);
       }
       onFocus?.(null);
+      onTravel?.('depart', next.view);
       await flyTo(next.view, signal);
       startOrbit(next.view);
+      onTravel?.('arrive', next.view);
       onFocus?.(focusOf(next));
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);

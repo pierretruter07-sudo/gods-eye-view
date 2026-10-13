@@ -10,7 +10,7 @@ export const LANDED_MISSING_POLL_LIMIT = 1;
 export const MISSING_POLL_LIMIT = 3;
 
 /** Cooldown in milliseconds after a transient source error. */
-export const ERROR_BACKOFF_INTERVAL = 20000;
+export const ERROR_BACKOFF_INTERVAL = 8000;
 
 /** Local equirectangular distance used for viewer-proximate floor sampling. */
 export function approxDistanceKm(lat1, lon1, lat2, lon2) {
