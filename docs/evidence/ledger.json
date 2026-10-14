@@ -36,9 +36,9 @@
   {
    "id": "approve",
    "name": "Plan approved",
-   "status": "pending",
-   "date": null,
-   "ref": null
+   "status": "done",
+   "date": "2026-10-14",
+   "ref": "Owner approval, Pierre Truter (Digital Dynamics Group), 14 Oct 2026 21:08 AEST"
   },
   {
    "id": "wave1",
@@ -110,6 +110,81 @@
    }
   }
  ],
+ "projections": {
+  "journey": [
+   {
+    "label": "Baseline",
+    "safety": 0.3817,
+    "security": 0.6185,
+    "kind": "actual"
+   },
+   {
+    "label": "After Wave 1",
+    "safety": 0.4393,
+    "security": 0.8631,
+    "kind": "target"
+   },
+   {
+    "label": "After Wave 2",
+    "safety": 0.4393,
+    "security": 0.8869,
+    "kind": "target"
+   },
+   {
+    "label": "After Wave 3",
+    "safety": 0.8354,
+    "security": 0.8869,
+    "kind": "target"
+   },
+   {
+    "label": "After Wave 4",
+    "safety": 0.8708,
+    "security": 0.8869,
+    "kind": "target"
+   }
+  ],
+  "scenarios": [
+   {
+    "id": "A",
+    "label": "Claude + Replit + owner actions",
+    "safety": 0.8708,
+    "security": 0.8869,
+    "safety_verdict": "Not yet supported: human-only steps remain open",
+    "security_verdict": "ASVS Level 2 met",
+    "human_only": [
+     {
+      "id": "3.4.1",
+      "why": "Validation with operational users"
+     },
+     {
+      "id": "3.4.3",
+      "why": "Process assurance by someone independent of the developers"
+     },
+     {
+      "id": "5.5.x",
+      "why": "Validation with operational users"
+     },
+     {
+      "id": "5.6.x",
+      "why": "Joint reviews with the customer"
+     },
+     {
+      "id": "5.7.2–5.7.4",
+      "why": "Independent audit"
+     }
+    ]
+   },
+   {
+    "id": "B",
+    "label": "Plus customer and independent reviewer",
+    "safety": 0.9635,
+    "security": 0.9018,
+    "safety_verdict": "SWAL 3 claim supported, ready for independent assessment",
+    "security_verdict": "ASVS Level 2 met"
+   }
+  ],
+  "note": "Readiness = weighted score (Compliant 1, Largely 0.75, Partial 0.4, Non-compliant 0) over rated in-scope items. Verdicts follow the CrossCheck rules, not the score. New scope from sign-in (ASVS V6, V7, V9, V10) is assessed in Wave 2 and is not in these projections."
+ },
  "waves": [
   {
    "id": 1,
