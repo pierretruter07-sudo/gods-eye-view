@@ -74,7 +74,7 @@ and quality assurance. This is a self-assessment. It is not an audit opinion.
 | 14 | Baseline security | ❌ | The repository is **public** and `main` is unprotected | Make the repository private (or split public and private parts). Protect `main` (reviews and status checks). Enable 2FA and secret scanning. |
 | 15 | COTS / previously developed software | ❌ | Licences inventoried ([THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)). Data-source terms flagged ([DATA_SOURCES.md](../DATA_SOURCES.md)). | Write a PDS/COTS assessment for CesiumJS, satellite.js, the upstream fork and every live data feed: version, known defects, behaviour on failure, how they are monitored. |
 | 16 | Tool assessment | 🟡 | Tools pinned in the lockfile: Vite, Prettier, Node test runner | List the development and verification tools and state why none needs qualification (none generates flight or ATC output). Record the AI-assisted authoring and its review controls. |
-| 17 | Software quality assurance | ❌ | CI gates exist but CI has been red on `main` (fixed on this branch) | Define a QA role and checks: CI must pass before merge; periodic process audit. |
+| 17 | Software quality assurance | ❌ | CI gates (format, boundaries, traceability, orphan code, tests, build) are green on `main` since `7780b09` | Define a QA role and checks: CI must pass before merge; periodic process audit. |
 | 18 | Software Safety Folder / SSAR | 🟡 | This analysis plus the documents above form the folder index (§3) | Write the SSAR safety argument once items 1–2 exist. Until then, a "readiness folder" is the honest label. |
 
 ## 3. Software Safety Folder: current index

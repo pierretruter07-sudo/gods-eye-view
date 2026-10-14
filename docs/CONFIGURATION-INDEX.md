@@ -51,7 +51,10 @@ uncommitted changes and is **not** a baseline build.
 2. **Two Replit-only files are not under GitHub control:**
    `.replit-artifact/artifact.toml` and `vite.replit.config.js`.
    *Remediation:* commit them, or document their content here.
-3. **There are no release tags yet.** *Remediation:* tag the presentation
+3. **The deployed build stamp showed the Replit checkpoint** (`636fae5-dirty`)
+   instead of the GitHub commit, because the workspace builds from its own
+   git history. *Mitigation:* deploys set `GEV_BUILD` to the GitHub commit.
+4. **There are no release tags yet.** *Remediation:* tag the presentation
    baseline (`v0.2.0-demo`) after final verification.
 
 ## 4. Change and problem reporting
