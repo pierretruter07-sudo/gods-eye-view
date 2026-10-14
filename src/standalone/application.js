@@ -15,7 +15,6 @@ export function createStandaloneApplication({
   googleApiKey,
   cesiumToken,
   geospatial = {},
-  voice = {},
   allowQaRegistration = false,
 }) {
   if (constructed)
@@ -43,14 +42,6 @@ export function createStandaloneApplication({
         loaderStatus,
       });
       catalog = createStandaloneCatalog({
-        nepalBoundaryResolver: (signal) =>
-          scene.operations.annotationResolver.resolveRegionRingForQuery(
-            'Nepal',
-            signal,
-            placeSearch,
-            // The locator draws the border whenever it arrives.
-            { budgetMs: Infinity },
-          ),
         signal: context.signal,
         surface: scene.operations.surface,
       });
@@ -66,6 +57,6 @@ export function createStandaloneApplication({
     createData: (context) =>
       createStandaloneData({ ...context, allowQaRegistration, catalog }),
     createTools: (context) =>
-      createStandaloneTools({ ...context, loadingScreen, placeSearch, voice }),
+      createStandaloneTools({ ...context, loadingScreen, placeSearch }),
   });
 }

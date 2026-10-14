@@ -39,8 +39,19 @@ function listSources(dir) {
   return out;
 }
 
+const PKG = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+const SELF = `${PKG.name}/`;
+
 function resolveSpec(from, spec) {
+  // The package's own name resolves through its "exports" map.
+  if (spec.startsWith(SELF)) {
+    const entry = PKG.exports?.[`./${spec.slice(SELF.length)}`];
+    const target = typeof entry === 'string' ? entry : entry?.node || entry?.default;
+    if (!target) return { missing: `exports:${spec}` };
+    return path.relative(ROOT, path.resolve(ROOT, target));
+  }
   if (!spec.startsWith('.') && !spec.startsWith('/')) return null; // package
+  if (spec.endsWith('/')) return null; // a directory URL (e.g. the repo root), not a module
   const base = path.resolve(ROOT, path.dirname(from), spec.split('?')[0]);
   for (const c of [base, `${base}.js`, `${base}.mjs`, path.join(base, 'index.js')]) {
     if (existsSync(c) && statSync(c).isFile()) return path.relative(ROOT, c);

@@ -97,33 +97,21 @@ const PAINT_LANE_INDEX = new Map(
  * backdrop-filled cockpit windows survive as exclusions.
  */
 export const WORLD_OVERLAY_OCCLUDER_SELECTORS = Object.freeze([
-  '#title-bar',
-  '#style-indicator',
-  '#top-center-actions',
-  '#traffic-sync-chip',
-  '#cctv-sync-chip',
-  '#left-panel-stack',
-  '#right-context-rail',
-  '.weather-summary',
-  '#pp-toggles',
-  '#command-dock',
-  '#gev-voice-control',
+  // God's Eye View shell (src/shell, src/intel, src/tour): map labels never
+  // draw over a glass panel.
+  '.gev-bar',
+  '.gev-layers',
+  '.gev-triage',
+  '.gev-hud__card',
+  '.gev-hud__header',
+  '.gev-iv__actions',
+  '.gev-res',
+  '.gev-caption',
+  '.gev-alert',
+  '.gev-pkg',
+  '.gev-exbanner',
+  '.gev-welcome__card',
   '#cesium-credits',
-  '.hud-top-left',
-  '.hud-top-right',
-  '.hud-bottom-left',
-  '.hud-bottom-right',
-  '.hud-top-bar',
-  '.hud-bottom-bar',
-  '#space-mission-panel',
-  '#space-mission-panel-host',
-  '#military-awareness-panel',
-  '#bhote-koshi-event-panel',
-  // Cockpit: solid backdrop-filled windows only (both bounded to
-  // `min(340px, 28vw)` wide and `min(42vh, 410px)` tall, both `hidden` until
-  // toggled). Every other cockpit selector was removed — see the block comment.
-  '#cockpit-context',
-  '#cockpit-signal-stream',
 ]);
 
 /** @typedef {{x:number,y:number,w:number,h:number}} OverlayRect */
