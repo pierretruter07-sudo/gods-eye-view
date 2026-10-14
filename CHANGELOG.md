@@ -11,8 +11,9 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   stop it explains.
 - **Director look-ahead.** The next stop is chosen on arrival at the
   current one, and its aircraft load during the whole dwell instead of the
-  4 s flight. An airport with no aircraft is skipped rather than shown
-  empty. The airport overlay fades in and out, and each aircraft label
+  4 s flight. The loaded aircraft are drawn the moment the camera
+  arrives. An airport with no aircraft is skipped rather than shown
+  empty. The background loop that warmed every stop has been removed. The airport overlay fades in and out, and each aircraft label
   fades in as its data arrives.
 - **Satellite orbit rings.** They now close exactly: the drift from orbit
   precession and drag over one period is spread around the ring. The part

@@ -1,8 +1,5 @@
 import * as Cesium from 'cesium';
-import {
-  countStatesNear,
-  shouldRefreshFlights,
-} from './flightPrefetchPolicy.js';
+import { shouldRefreshFlights, statesNear } from './flightPrefetchPolicy.js';
 
 /**
  * Makes aircraft appear as soon as the camera arrives somewhere new instead of
@@ -85,7 +82,7 @@ export function installFlightPrefetch({ viewer, dataManager }) {
    * Load a destination's aircraft ahead of the Director's flight (a whole
    * dwell early). The answer also warms the server's regional cache, so the
    * layer's own refresh on departure is served at once.
-   * @returns {Promise<{ready: boolean, count: number|null}>}
+   * @returns {Promise<{ready: boolean, count: number|null, aircraft?: object[], at?: number}>}
    */
   async function stage(view, { radiusKm = 50 } = {}) {
     const { lat, lon } = view || {};
@@ -96,10 +93,8 @@ export function installFlightPrefetch({ viewer, dataManager }) {
       const r = await fetch(url, { headers: { Accept: 'application/json' } });
       if (!r.ok) return { ready: false, count: 0 };
       const payload = await r.json();
-      return {
-        ready: true,
-        count: countStatesNear(payload?.states, lat, lon, radiusKm),
-      };
+      const aircraft = statesNear(payload?.states, lat, lon, radiusKm);
+      return { ready: true, count: aircraft.length, aircraft, at: Date.now() };
     } catch {
       return { ready: false, count: 0 };
     }

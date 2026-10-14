@@ -85,7 +85,12 @@ export function createStopQueue({
           skipped: empty && skips < maxSkips,
         });
         if (log.length > 20) log.shift();
-        if (!empty || skips >= maxSkips) return entry.stop;
+        if (!empty || skips >= maxSkips) {
+          // The loaded data travels with the stop, so the arrival can draw
+          // it at once, before the live layer's own refresh lands.
+          entry.stop.staged = r;
+          return entry.stop;
+        }
         entry = plan();
       }
     },

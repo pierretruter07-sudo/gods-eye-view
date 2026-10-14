@@ -8,7 +8,6 @@ import { showWelcome, welcomeEnabled } from './welcome.js';
 import { installAdaptiveQuality } from './quality.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
 import { installAudit } from '../audit/index.js';
-import { TOUR_AIRPORTS, TOUR_STOPS } from '../tour/config.js';
 
 /** Layers offered in the Layers panel, in display order. */
 export const SHELL_LAYERS = Object.freeze(
@@ -318,31 +317,9 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   let intelRef = null; // set once the intel view exists (the tour can start first)
   let auditRef = null; // set once AUDIT is installed (idle spin starts first)
   const prefetch = installFlightPrefetch({ viewer, dataManager });
-  // While the Director runs, keep every airport/city stop's aircraft warm on
-  // the server (it serves recent snapshots instantly), one request every
-  // 1.5 s so the free upstream sources never see a burst.
-  const WARM_SPOTS = [
-    ...TOUR_AIRPORTS,
-    ...TOUR_STOPS.filter((st) => st.rangeM <= 1_000_000),
-  ];
-  let warmTimers = [];
-  function warmAll() {
-    WARM_SPOTS.forEach((spot, i) =>
-      warmTimers.push(
-        setTimeout(() => prefetch.warm(spot.lat, spot.lon), i * 1500),
-      ),
-    );
-  }
-  let warmLoop = null;
-  function setTourWarming(on) {
-    clearInterval(warmLoop);
-    warmTimers.forEach(clearTimeout);
-    warmTimers = [];
-    warmLoop = null;
-    if (!on) return;
-    warmAll();
-    warmLoop = setInterval(warmAll, 90_000);
-  }
+  // The Director stages each next stop's aircraft itself (one request per
+  // stop, a whole dwell ahead), so there is no background warm loop: a loop
+  // over every stop kept the free regional sources near their rate limits.
   const tour = installTour({
     viewer,
     dataManager,
@@ -377,7 +354,6 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     onState(state) {
       const live = state === 'running';
       document.body.classList.toggle('gev-touring', live);
-      setTourWarming(live);
       intelRef?.refresh?.();
       directorBtn.classList.toggle('gev-btn--live', live);
       directorBtn.innerHTML = live
@@ -591,7 +567,6 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     clearInterval(badgeTimer);
     stopSpin();
     stopQuality();
-    setTourWarming(false);
     prefetch.destroy();
     startupTimers.forEach(clearTimeout);
     document.removeEventListener('visibilitychange', onVisibility);

@@ -260,6 +260,17 @@ export function createTourController({
     wait: (ms) => sleep(ms, runSignal),
   });
 
+  // Aircraft loaded ahead for the current stop: drawn on arrival until the
+  // live layer's own records cover the place (dropped after a minute).
+  let stagedAircraft = [];
+  let stagedAt = 0;
+  function airportFlights() {
+    const live = records('flights');
+    if (!stagedAircraft.length || Date.now() - stagedAt > 60_000) return live;
+    const seen = new Set(live.map((f) => f.icao24).filter(Boolean));
+    return [...live, ...stagedAircraft.filter((f) => !seen.has(f.icao24))];
+  }
+
   function liveData() {
     return {
       flights: [...records('flights'), ...staged.flights],
@@ -279,7 +290,7 @@ export function createTourController({
         until - Date.now(),
       );
       await sleep(step, signal);
-      if (profile) airport?.update(profile, records('flights'));
+      if (profile) airport?.update(profile, airportFlights());
       if (planner.hasFresh(incidentData())) return;
     }
   }
@@ -327,6 +338,8 @@ export function createTourController({
     for (;;) {
       // Keep orbiting here until the next stop's data is in (or briefly).
       const next = await queue.take();
+      stagedAircraft = next.staged?.aircraft || [];
+      stagedAt = next.staged?.at || Date.now();
       // The airport picture fades out as the camera leaves.
       await airport?.fadeOut();
       stopOrbit();
@@ -350,7 +363,7 @@ export function createTourController({
       onFocus?.(focusOf(next));
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);
-        airport.update(profile, records('flights'));
+        airport.update(profile, airportFlights());
         airport.fadeIn();
       }
       ui.setCaption(next.line);

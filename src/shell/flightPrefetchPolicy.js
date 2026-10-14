@@ -26,17 +26,37 @@ export function shouldRefreshFlights({ last, here, heightM, now }) {
 }
 
 /**
- * Aircraft in an OpenSky-style `states` array within `radiusKm` of a point
- * (state vectors carry longitude at index 5 and latitude at index 6).
+ * Aircraft records from an OpenSky-style `states` array within `radiusKm`
+ * of a point. State vectors: [icao24, callsign, country, time, contact,
+ * lon, lat, baroAlt, onGround, velocity, track, verticalRate, sensors,
+ * geoAlt, …]. Records use the analyst field names the overlays read.
  */
-export function countStatesNear(states, lat, lon, radiusKm) {
-  if (!Array.isArray(states)) return 0;
-  let n = 0;
+export function statesNear(states, lat, lon, radiusKm) {
+  if (!Array.isArray(states)) return [];
+  const out = [];
   for (const s of states) {
-    const sLon = Array.isArray(s) ? s[5] : s?.lon;
-    const sLat = Array.isArray(s) ? s[6] : s?.lat;
+    if (!Array.isArray(s)) continue;
+    const sLon = s[5];
+    const sLat = s[6];
     if (!Number.isFinite(sLat) || !Number.isFinite(sLon)) continue;
-    if (km({ lat, lon }, { lat: sLat, lon: sLon }) <= radiusKm) n += 1;
+    if (km({ lat, lon }, { lat: sLat, lon: sLon }) > radiusKm) continue;
+    const num = (v) => (Number.isFinite(v) ? v : null);
+    out.push({
+      icao24: s[0] || null,
+      callsign: typeof s[1] === 'string' ? s[1].trim() || null : null,
+      lat: sLat,
+      lon: sLon,
+      altitudeM: num(s[13]) ?? num(s[7]) ?? 0,
+      onGround: s[8] === true,
+      speedMps: num(s[9]),
+      headingDeg: num(s[10]),
+      verticalRateMps: num(s[11]),
+    });
   }
-  return n;
+  return out;
+}
+
+/** How many aircraft of a `states` array are within `radiusKm`. */
+export function countStatesNear(states, lat, lon, radiusKm) {
+  return statesNear(states, lat, lon, radiusKm).length;
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { QUALITY, START_LEVEL, nextQuality, qualityLevels } from './qualityPolicy.js';
-import { countStatesNear, shouldRefreshFlights, PREFETCH_MAX_AGE_MS } from './flightPrefetchPolicy.js';
+import { countStatesNear, shouldRefreshFlights, statesNear, PREFETCH_MAX_AGE_MS } from './flightPrefetchPolicy.js';
 
 test('quality ladder holds native resolution and never drops below CSS pixels', () => {
   const l = qualityLevels(1.5);
@@ -58,4 +58,21 @@ test('staged aircraft are counted near the destination only', () => {
   assert.equal(countStatesNear(states, bne.lat, bne.lon, 50), 2);
   assert.equal(countStatesNear(states, bne.lat, bne.lon, 5), 1);
   assert.equal(countStatesNear(null, 0, 0, 50), 0);
+  const [qfa] = statesNear(
+    [['7c1', 'QFA1  ', 'AU', 0, 0, 153.12, -27.39, 300, false, 70, 190, -4, null, 320]],
+    bne.lat,
+    bne.lon,
+    50,
+  );
+  assert.deepEqual(qfa, {
+    icao24: '7c1',
+    callsign: 'QFA1',
+    lat: -27.39,
+    lon: 153.12,
+    altitudeM: 320,
+    onGround: false,
+    speedMps: 70,
+    headingDeg: 190,
+    verticalRateMps: -4,
+  });
 });
