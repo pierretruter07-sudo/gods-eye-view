@@ -58,10 +58,21 @@ function instrument() {
   } catch {
     /* unsupported */
   }
+  // Completed flights refreshes, from the data manager's own events (the
+  // layer's lastUpdate is the FEED's timestamp, which a cached result keeps).
+  let lastFlightsRefresh = 0;
+  const hook = setInterval(() => {
+    const dm = window.__godsEyeView?.dataManager;
+    if (!dm?.subscribe) return;
+    clearInterval(hook);
+    dm.subscribe((change) => {
+      if (change?.layerId === 'flights' && change.type === 'refresh') lastFlightsRefresh = Date.now();
+    });
+  }, 200);
   const flights = () => {
     const all = window.__godsEyeView?.dataManager?.getAll?.() || [];
     const f = all.find((x) => x.id === 'flights');
-    return { count: f?.stats?.count ?? 0, lastUpdate: f?.stats?.lastUpdate ?? 0 };
+    return { count: f?.stats?.count ?? 0, lastUpdate: lastFlightsRefresh };
   };
   const tilesLoaded = () => {
     const g = window.__godsEyeView;
