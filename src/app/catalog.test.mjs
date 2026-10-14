@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createLayerCatalog, catalogControlServices } from './catalog.js';
+import { createLayerCatalog } from './catalog.js';
 import { createApplicationData } from './data.js';
 
 const metadata = (layers) =>
@@ -38,7 +38,7 @@ test('duplicate, missing and extra metadata fail before application registration
   );
 });
 
-test('data setup seals the caller catalog before controls can restore and drains its exact instances', async (t) => {
+test('data setup seals the caller catalog and drains its exact instances', async (t) => {
   const previous = globalThis.document;
   globalThis.document = { getElementById: () => null };
   t.after(() => {
@@ -57,14 +57,6 @@ test('data setup seals the caller catalog before controls can restore and drains
   let observed;
   const { dataManager } = createApplicationData({
     scene: { viewer: {} },
-    controls: {
-      styleManager: {
-        attachDataManager(manager) {
-          assert.equal(manager.registrationsFinalized, true);
-          assert.equal(manager.layers.get('one').module, layers[0]);
-        },
-      },
-    },
     catalog: createLayerCatalog(layers, metadata(layers)),
     defer: (release) => releases.push(release),
     onData: (manager) => {
@@ -72,6 +64,8 @@ test('data setup seals the caller catalog before controls can restore and drains
     },
   });
   assert.equal(observed, dataManager);
+  assert.equal(dataManager.registrationsFinalized, true);
+  assert.equal(dataManager.layers.get('one').module, layers[0]);
   assert.deepEqual(attached, [['one', 'two']]);
   assert.deepEqual([...dataManager.layers.keys()], ['one', 'two']);
   assert.throws(() => dataManager.register({ id: 'late' }), /finalized/);
@@ -79,32 +73,3 @@ test('data setup seals the caller catalog before controls can restore and drains
   assert.equal(dataManager.layers.size, 0);
 });
 
-test('controls bind catalog instances rather than similarly named defaults', () => {
-  const ids = [
-    'traffic',
-    'flights',
-    'military',
-    'satellites',
-    'cctv',
-    'radio',
-    'bikeshare',
-    'transit',
-    'ais-live-vessels',
-    'military-awareness',
-    'military-installations',
-    'rocket-launches',
-    'local-adsb',
-  ];
-  const layers = ids.map((id) => ({ id }));
-  const catalog = createLayerCatalog(layers, metadata(layers));
-  const services = catalogControlServices(catalog);
-  assert.equal(services.flightsLayer, layers[1]);
-  assert.equal(services.transitLayer, layers[7]);
-  assert.equal(services.aisLiveVesselsLayer, layers[8]);
-  assert.equal(services.localAdsbLayer, layers[12]);
-  assert.equal(new Set(Object.values(services)).size, layers.length);
-  assert.throws(
-    () => catalogControlServices(createLayerCatalog([], [])),
-    /Control layer missing/,
-  );
-});

@@ -1,4 +1,3 @@
-import { applicationHtmlPlugin } from './application-html.js';
 import cesium from 'vite-plugin-cesium';
 
 /** Build browser assets with explicit inputs; never load environment or providers. */
@@ -12,21 +11,16 @@ export function createBrowserViteConfig({
   command,
 } = {}) {
   return {
-    plugins: [cesium(), applicationHtmlPlugin(), ...plugins],
+    plugins: [cesium(), ...plugins],
     ...(publicDir === undefined ? {} : { publicDir }),
     // A production build must not clean the dependency cache a running dev
     // server is still serving optimized module URLs from.
     ...(command === 'build' ? { cacheDir: 'node_modules/.vite-build' } : {}),
     optimizeDeps: {
-      // First reached through the SDR worker or a dynamic import. Pre-bundle
-      // them at startup so first use cannot invalidate already-transformed
-      // URLs with Vite's "Outdated Optimize Dep" 504 response.
-      include: [
-        '@jtarrio/signals/demod/demodulator.js',
-        '@jtarrio/signals/demod/modes.js',
-        '@jtarrio/webrtlsdr/rtlsdr.js',
-        'egm96-universal',
-      ],
+      // First reached through a dynamic import. Pre-bundle at startup so first
+      // use cannot invalidate already-transformed URLs with Vite's
+      // "Outdated Optimize Dep" 504 response.
+      include: ['egm96-universal'],
     },
     server: {
       host: host || 'localhost',
@@ -38,7 +32,7 @@ export function createBrowserViteConfig({
       fs: {
         deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/ENVIRONMENT'],
       },
-      // These headers protect the document containing Provider Settings.
+      // Never framed (clickjacking).
       headers: {
         'X-Frame-Options': 'DENY',
         'Content-Security-Policy': "frame-ancestors 'none'",

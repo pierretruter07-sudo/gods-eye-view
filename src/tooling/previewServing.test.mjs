@@ -7,22 +7,11 @@ import { localProviderPlugins } from '../../server/providers/local.js';
 import { apiNotFoundPlugin } from '../../server/standalone/api-not-found.js';
 import { makeFixtureRoot } from './fixtureRoot.mjs';
 
-test('data providers have both hooks; credential editing stays development-only', () => {
+test('every data provider serves both the dev and the built-preview server', () => {
   const plugins = localProviderPlugins();
-  assert.ok(plugins.some(({ name }) => name === 'fire-perimeters'));
+  assert.ok(plugins.length > 0);
   for (const plugin of plugins) {
-    if (plugin.name === 'gev-key-setup') {
-      assert.equal(plugin.configurePreviewServer, undefined);
-      assert.equal(
-        plugin.apply({}, { command: 'serve', isPreview: true }),
-        false,
-      );
-      assert.equal(
-        plugin.apply({}, { command: 'serve', isPreview: false }),
-        true,
-      );
-      continue;
-    }
+    assert.notEqual(plugin.name, 'gev-key-setup', 'credential editing was removed');
     assert.equal(typeof plugin.configureServer, 'function', plugin.name);
     assert.equal(typeof plugin.configurePreviewServer, 'function', plugin.name);
   }
@@ -41,18 +30,11 @@ test('real dev and built-preview servers serve provider JSON and terminate unkno
     AISSTREAM_API_KEY: '',
     FIRMS_MAP_KEY: '',
     FIRMS_API_KEY: '',
-    TOMTOM_API_KEY: '',
     GOOGLE_MAPS_API_KEY: '',
     GOOGLE_MAPS_SERVER_API_KEY: '',
-    OPENAI_API_KEY: '',
     OPENSKY_AUTH_MODE: 'anon',
     OPENSKY_CLIENT_ID: '',
     OPENSKY_CLIENT_SECRET: '',
-    CCTV_FORCE_AUSTIN: '0',
-    CCTV_SOURCES_FILE: path.join(root, 'absent.json'),
-    CCTV_SOURCES_JSON: JSON.stringify([
-      { id: 'fixture', lat: 30.27, lon: -97.74 },
-    ]),
   })) {
     const before = process.env[name];
     process.env[name] = value;
@@ -101,14 +83,12 @@ test('real dev and built-preview servers serve provider JSON and terminate unkno
         ['/api/adsblol/mil', 200],
         ['/api/adsbdb/type/invalid', 400],
         ['/api/firms/status', 200],
-        ['/api/fire-perimeters/inciweb/publication/invalid', 400],
         ['/api/terrain/heights?points=invalid', 400],
         ['/api/overpass', 405],
-        ['/api/cctv/sources', 200],
-        ['/api/gbfs/', 400],
-        ['/api/tomtom/status', 200],
-        ['/api/radio/unknown', 404],
-        ['/api/setup/status', isPreview ? 404 : 200],
+        ['/api/cctv/sources', 404],
+        ['/api/tomtom/status', 404],
+        ['/api/launches', 404],
+        ['/api/setup/status', 404],
         ['/api/setup/update', 404],
         ['/api/does-not-exist', 404],
         ['/api', 404],
@@ -125,12 +105,7 @@ test('real dev and built-preview servers serve provider JSON and terminate unkno
           route,
         );
         const body = await response.json();
-        if (route === '/api/cctv/sources')
-          assert.equal(body.sources[0].id, 'fixture');
-        if (
-          route === '/api/does-not-exist' ||
-          (isPreview && route.startsWith('/api/setup'))
-        ) {
+        if (status === 404) {
           assert.deepEqual(body, { error: 'Unknown API route' });
           assert.equal(response.headers.get('cache-control'), 'no-store');
         }
@@ -138,7 +113,7 @@ test('real dev and built-preview servers serve provider JSON and terminate unkno
       const tle = await fetch(origin + '/api/celestrak/invalid!');
       assert.equal(tle.status, 400);
       assert.equal(await tle.text(), 'invalid group');
-      if (isPreview) {
+      {
         const write = await fetch(origin + '/api/setup/keys', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

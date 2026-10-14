@@ -17,13 +17,13 @@ test('unit runner serializes only GC-bracketed allocation microbenchmarks', () =
   ];
   const plan = buildUnitTestPlan([
     ordinary[1],
-    ALLOCATION_TEST_FILES[1],
+    ...ALLOCATION_TEST_FILES.slice().reverse(),
     ordinary[0],
-    ALLOCATION_TEST_FILES[0],
     ordinary[2],
   ]);
 
   assert.deepEqual(plan.parallel, ordinary);
+  assert.ok(ALLOCATION_TEST_FILES.length > 0);
   assert.deepEqual(plan.serializedAllocations, ALLOCATION_TEST_FILES);
   assert.equal(plan.parallel.some((file) => ALLOCATION_TEST_FILES.includes(file)), false);
   for (const file of ALLOCATION_TEST_FILES) {
