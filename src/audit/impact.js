@@ -4,7 +4,7 @@
  * The standards speak in general terms; a viewer needs to see the effect on
  * this system: which feeds, screens or people a gap touches and what would
  * go wrong. Must-fix items have their own statement; every other item uses
- * the statement for its process area or ASVS chapter. Wording says "could":
+ * the statement for its process area, ASVS chapter or ISO 42001 group. Wording says "could":
  * these are consequences of an open gap, not incidents that happened.
  * @module audit/impact
  */
@@ -22,6 +22,7 @@ export const PARTS = Object.freeze({
   operators: 'People using it',
   release: 'Releases',
   evidence: 'Safety case',
+  ai: 'AI features',
 });
 
 const LIVE = ['aircraft', 'ships', 'satellites', 'hazards'];
@@ -108,9 +109,41 @@ const ITEMS = Object.freeze({
     parts: ['evidence'],
     text: 'Hazards have not been turned into safety requirements, so there is nothing specific to build or test the software against.',
   },
+  'C4.3': {
+    parts: ['ai', 'director', 'operators'],
+    text: 'Nobody has decided which AI is in scope (the Director’s automatic picks and announcements, the planned HENRI narrator, AI-written code), so none of it is governed and a customer cannot be told what is controlled.',
+  },
+  'C5.2': {
+    parts: ['ai', 'director', 'operators'],
+    text: 'With no AI policy, there is no written rule that the Director and narration only advise and never act, so that boundary could quietly erode as features are added.',
+  },
+  'C6.1.2': {
+    parts: ['ai', 'director', 'aircraft', 'ships'],
+    text: 'Nobody has assessed what happens if the Director announces the wrong aircraft or ship, misses an emergency squawk or narrates stale data as live, so no defence against it is required.',
+  },
+  'C6.1.4': {
+    parts: ['ai', 'operators', 'director'],
+    text: 'The effect of automatic announcements on the people watching, and on the crews and vessels being singled out on a public display, has not been assessed.',
+  },
+  'A.2.2': {
+    parts: ['ai', 'operators'],
+    text: 'Without a published AI policy, operators and customers have nothing to hold the AI features to, and the advisory-only promise exists only in the README.',
+  },
+  'A.5.2': {
+    parts: ['ai', 'director', 'operators'],
+    text: 'There is no process to check a new AI feature (such as HENRI narration) for its effect on people before it ships, so each one goes live unassessed.',
+  },
+  'A.9.4': {
+    parts: ['ai', 'operators', 'exercise'],
+    text: 'Without a formal intended-use statement, nothing says the picture must not be used to target, track individuals or make operational decisions, so misuse cannot be refused on paper.',
+  },
+  'A.10.3': {
+    parts: ['ai', 'release', 'server'],
+    text: 'AI coding agents and a future HENRI model provider are not assessed, so unreviewed AI-written code or a provider’s data terms could reach the live system unnoticed.',
+  },
 });
 
-/** Statements per process area (ED-153) and chapter (ASVS). */
+/** Statements per process area (ED-153), chapter (ASVS) and clause or control group (ISO 42001). */
 const AREAS = Object.freeze({
   '3 SSAS': {
     parts: ['evidence', 'operators'],
@@ -275,6 +308,71 @@ const AREAS = Object.freeze({
     risk: 'Real-time media channels could be abused.',
     na: 'God’s Eye View uses no WebRTC.',
   },
+  C4: {
+    parts: ['ai', 'operators'],
+    risk: 'The AI features have no defined context or scope, so nobody can say which of them are controlled.',
+  },
+  C5: {
+    parts: ['ai', 'operators'],
+    risk: 'No one in leadership owns the AI features or their policy, so their limits depend on whoever writes the next change.',
+  },
+  C6: {
+    parts: ['ai', 'director', 'aircraft', 'ships'],
+    risk: 'AI risks such as a wrong announcement or misleading narration are not assessed or planned for, so no fix is ever required.',
+  },
+  C7: {
+    parts: ['ai', 'operators'],
+    risk: 'People building and using the AI features are not shown to be competent or aware of its limits.',
+  },
+  C8: {
+    parts: ['ai', 'director'],
+    risk: 'AI risks are not re-checked as the system changes, so a new feed or feature can add risk unseen.',
+  },
+  C9: {
+    parts: ['ai', 'director', 'evidence'],
+    risk: 'Nobody measures how often the Director gets it wrong, so problems with the AI features stay invisible.',
+  },
+  C10: {
+    parts: ['ai', 'evidence'],
+    risk: 'Problems with the AI features are not tracked to a fix, so they can recur.',
+  },
+  'A.2': {
+    parts: ['ai', 'operators'],
+    risk: 'There is no AI policy to steer how the AI features are built and used.',
+  },
+  'A.3': {
+    parts: ['ai', 'operators'],
+    risk: 'Nobody is accountable for the AI features, and there is no way to raise a concern about them.',
+  },
+  'A.4': {
+    parts: ['ai', 'release'],
+    risk: 'The AI parts of the system and the tools that build them are not identified, so they cannot be managed.',
+  },
+  'A.5': {
+    parts: ['ai', 'operators', 'director'],
+    risk: 'The effect of automatic announcements on people and groups is not assessed.',
+  },
+  'A.6': {
+    parts: ['ai', 'director', 'release'],
+    risk: 'The AI features are not validated, monitored or logged, so a wrong announcement cannot be detected or explained.',
+  },
+  'A.7': {
+    parts: ['ai', ...LIVE],
+    risk: 'The feed data the AI features decide on is not held to stated quality requirements.',
+    na: 'God’s Eye View trains or tunes no model; its rules use live feed values only.',
+  },
+  'A.8': {
+    parts: ['ai', 'operators'],
+    risk: 'Users are not told how the AI features choose what to show, or about AI incidents.',
+  },
+  'A.9': {
+    parts: ['ai', 'operators', 'exercise'],
+    risk: 'Responsible use of the AI features is not defined, so misuse has no line to cross.',
+  },
+  'A.10': {
+    parts: ['ai', 'release', 'server'],
+    risk: 'Responsibilities between Digital Dynamics Group, AI suppliers and customers are not set.',
+  },
 });
 
 const OPEN = new Set(['P', 'N']);
@@ -295,7 +393,9 @@ export function impactFor(item) {
         area.na ||
         (item.out
           ? 'Above the security level chosen for God’s Eye View (ASVS Level 2).'
-          : 'Not required at the safety level chosen (SWAL 3).'),
+          : item.lens === 'ai'
+            ? 'Excluded in the statement of applicability for God’s Eye View.'
+            : 'Not required at the safety level chosen (SWAL 3).'),
       parts: [],
     };
   if (!item.status)

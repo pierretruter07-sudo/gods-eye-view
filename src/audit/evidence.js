@@ -5,7 +5,15 @@
  * (workstreams), Level 3 (each finding's dated history).
  * @module audit/evidence
  */
-import { SEC_STATUS_NAME, STATUS_NAME, pct } from './model.js';
+import { pct, statusNames } from './model.js';
+
+const LEDGER_LENS = { ASVS: 'sec', ISO42001: 'ai' };
+const lensOf = (f) => LEDGER_LENS[f.lens] || 'saf';
+const SCORES = [
+  ['safety', 'is-saf', 'Safety'],
+  ['security', 'is-sec', 'Security'],
+  ['ai', 'is-ai', 'AI'],
+];
 import {
   drillDown,
   ledgerProgress,
@@ -56,17 +64,32 @@ function journeySvg(j) {
     s += `<text x="${xs[i]}" y="${H - 6}" text-anchor="middle" class="ax">${i === 0 ? 'Base' : `W${i}`}</text>`;
   });
   const B = j.scenarios[1];
+  // End labels: stacked top-down by value so close lines do not collide.
+  const ends = [
+    ['safety', 'targetSafety'],
+    ['security', 'targetSecurity'],
+    ['ai', 'targetAi'],
+  ]
+    .filter(([, tk]) => typeof P[P.length - 1][tk] === 'number')
+    .map(([k, tk]) => ({ k, y: y(P[P.length - 1][tk]) + 3 }))
+    .sort((p, q) => p.y - q.y);
+  ends.forEach((e, i) => {
+    if (i) e.y = Math.max(e.y, ends[i - 1].y + 11);
+  });
+  const endY = Object.fromEntries(ends.map((e) => [e.k, e.y]));
   for (const [k, tk, col] of [
     ['safety', 'targetSafety', '#7aa7dc'],
     ['security', 'targetSecurity', '#a294dc'],
+    ['ai', 'targetAi', '#d890c0'],
   ]) {
+    if (typeof P[0][tk] !== 'number') continue;
     s += `<polyline points="${P.map((p, i) => `${xs[i]},${y(p[tk])}`).join(' ')}" fill="none" stroke="${col}" stroke-width="1.6" stroke-dasharray="4 3"/>`;
     P.forEach((p, i) => {
       if (p.kind === 'actual')
         s += `<circle cx="${xs[i]}" cy="${y(p[k])}" r="3.6" fill="${col}"/>`;
     });
     const last = P[P.length - 1][tk];
-    s += `<text x="${xs[xs.length - 1] + 6}" y="${y(last) + (k === 'security' ? -3 : 10)}" class="end" fill="${col}">${Math.round(last * 100)}%</text>`;
+    s += `<text x="${xs[xs.length - 1] + 6}" y="${endY[k]}" class="end" fill="${col}">${Math.round(last * 100)}%</text>`;
     if (B && typeof B[k] === 'number')
       s += `<circle cx="${xs[xs.length - 1]}" cy="${y(B[k])}" r="3" fill="none" stroke="${col}" stroke-width="1.3"/>`;
   }
@@ -127,13 +150,11 @@ export function createEvidenceDrawer({
     ]) {
       const c = h('div', 'gev-ev-card');
       c.append(h('span', 'gev-audit-zlabel', `${label} · ${a.date}`));
-      for (const [lens, cls] of [
-        ['safety', 'is-saf'],
-        ['security', 'is-sec'],
-      ]) {
+      for (const [lens, cls, name] of SCORES) {
+        if (!a[lens]) continue;
         const r = h('div', `gev-ev-score ${cls}`);
         r.append(
-          h('span', null, lens === 'safety' ? 'Safety' : 'Security'),
+          h('span', null, name),
           h('b', null, pct(a[lens].readiness)),
           h('span', 'gev-audit-muted', a[lens].verdict),
         );
@@ -178,7 +199,7 @@ export function createEvidenceDrawer({
     parts.push(levelHead('LEVEL 1', 'Waves and re-audits'));
     const table = h('table', 'gev-ev-table');
     const thead = h('tr');
-    for (const c of ['Audit', 'Date', 'Commit', 'Safety', 'Security'])
+    for (const c of ['Audit', 'Date', 'Commit', 'Safety', 'Security', 'AI'])
       thead.append(h('th', null, c));
     table.append(thead);
     for (const a of ledger.audits) {
@@ -189,6 +210,7 @@ export function createEvidenceDrawer({
         h('td', 'gev-ev-mono', a.commit || '—'),
         h('td', null, `${pct(a.safety.readiness)} · ${a.safety.verdict}`),
         h('td', null, `${pct(a.security.readiness)} · ${a.security.verdict}`),
+        h('td', null, a.ai ? `${pct(a.ai.readiness)} · ${a.ai.verdict}` : '—'),
       );
       table.append(tr);
     }
@@ -228,11 +250,7 @@ export function createEvidenceDrawer({
           const s3 = h('summary');
           const item = itemById.get(f.id);
           s3.append(
-            h(
-              'span',
-              `gev-audit-id is-${f.lens === 'ASVS' ? 'sec' : 'saf'}`,
-              f.id,
-            ),
+            h('span', `gev-audit-id is-${lensOf(f)}`, f.id),
             h('span', 'gev-ev-ftitle', item ? cardFor(item).title : f.title),
             h(
               'span',
@@ -242,7 +260,7 @@ export function createEvidenceDrawer({
           );
           row.append(s3);
           const hist = h('ol', 'gev-audit-hist');
-          const names = f.lens === 'ASVS' ? SEC_STATUS_NAME : STATUS_NAME;
+          const names = statusNames(lensOf(f));
           for (const e of f.history) {
             const li = h('li');
             li.dataset.ok = String(['C', 'L', 'NA'].includes(e.status));

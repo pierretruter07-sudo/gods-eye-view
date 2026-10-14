@@ -106,6 +106,46 @@ export const PLAIN = Object.freeze({
     why: 'The PSSA turns hazards into the safety requirements the software must meet.',
     fix: 'Do the preliminary system safety assessment after the hazard assessment.',
   },
+  'C4.3': {
+    title: 'Nobody has said which AI is covered',
+    why: 'The Director’s automatic picks, the planned narrator and AI-written code all need managing, but none is formally in scope.',
+    fix: 'Write down the scope of the AI management system and what sits inside it.',
+  },
+  'C5.2': {
+    title: 'There is no AI policy',
+    why: 'A policy fixes the advisory-only, non-kinetic boundary and the commitments every AI feature must keep.',
+    fix: 'Issue a short AI policy approved by the owner.',
+  },
+  'C6.1.2': {
+    title: 'AI risks have not been assessed',
+    why: 'A wrong announcement, misleading narration or unreviewed AI-written code are real risks nobody has weighed.',
+    fix: 'Run an AI risk assessment with clear criteria and record the result.',
+  },
+  'C6.1.4': {
+    title: 'No assessment of how the AI affects people',
+    why: 'Automatic announcements single out crews and vessels on a public display and shape what operators believe.',
+    fix: 'Assess the impact on individuals, groups and society and record it.',
+  },
+  'A.2.2': {
+    title: 'The AI policy is not documented',
+    why: 'Operators and customers need a written policy to hold the AI features to.',
+    fix: 'Publish the AI policy (the same document as clause 5.2).',
+  },
+  'A.5.2': {
+    title: 'No process to check AI features before release',
+    why: 'Each new AI feature, such as narration, should be assessed for its effect on people before it ships.',
+    fix: 'Define an impact assessment step in the release process.',
+  },
+  'A.9.4': {
+    title: 'Intended use is not formally stated',
+    why: 'Without a statement of intended and prohibited uses, misuse such as targeting cannot be refused on paper.',
+    fix: 'Publish an intended-use statement that lists prohibited uses.',
+  },
+  'A.10.3': {
+    title: 'AI suppliers are not checked',
+    why: 'AI coding agents and a future model provider shape the code and data, but their terms and risks are unknown.',
+    fix: 'Assess and register each AI supplier and agree terms for data and model use.',
+  },
 });
 
 /** Shorten text at a word boundary for lists. */

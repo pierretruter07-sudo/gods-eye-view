@@ -51,8 +51,10 @@ export function readinessJourney(ledger) {
       kind: audit ? 'actual' : 'target',
       safety: audit ? audit.safety.readiness : t.safety,
       security: audit ? audit.security.readiness : t.security,
+      ai: audit?.ai ? audit.ai.readiness : t.ai,
       targetSafety: t.safety,
       targetSecurity: t.security,
+      targetAi: t.ai,
     };
   });
   return { points, scenarios: ledger.projections?.scenarios || [] };

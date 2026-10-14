@@ -79,7 +79,7 @@ const setLayer = (a, m, id, on) => {
 export const TOUR_STEPS = Object.freeze([
   {
     title: 'Welcome to CrossCheck',
-    body: 'CrossCheck checks software against two global standards: EUROCAE ED-153 for aviation software safety, and OWASP ASVS for application security. Here it is checking God’s Eye View itself.',
+    body: 'CrossCheck checks software against three global standards: EUROCAE ED-153 for aviation software safety, OWASP ASVS for application security and ISO/IEC 42001 for managing AI responsibly. Here it is checking God’s Eye View itself.',
     shade: '3d',
     shot: (a) => ({
       az: -38,
@@ -123,7 +123,7 @@ export const TOUR_STEPS = Object.freeze([
     move: 'tilt',
   },
   {
-    title: 'The outer ring is security',
+    title: 'The middle ring is security',
     body: '345 requirements from OWASP ASVS 5.0, grouped into chapters. Level 2 applies here: 253 of them.',
     shade: '3d',
     focus: 'sec',
@@ -138,8 +138,23 @@ export const TOUR_STEPS = Object.freeze([
     move: 'zoomOut',
   },
   {
+    title: 'The outer ring is AI management',
+    body: '65 items from ISO/IEC 42001: the management-system clauses 4 to 10 and the Annex A controls. They ask whether the AI parts of God’s Eye View (the narrator and its sources) are governed, risk-assessed and monitored.',
+    shade: '3d',
+    focus: 'ai',
+    shot: () => ({
+      target: [0, -0.8, 0],
+      az: -20,
+      el: 30,
+      dist: 31,
+      seconds: 3,
+      drift: 4,
+    }),
+    move: 'rotate',
+  },
+  {
     title: 'Raised pins must be fixed',
-    body: 'These items block a safe-and-secure claim. They are the only things lit on first load, and they are listed on the left, grouped by standard.',
+    body: 'These items block a claim on their standard. They are the only things lit on first load, and they are listed on the left, grouped by standard.',
     shade: '3d',
     focus: 'mustfix',
     zone: 'mustfix',
@@ -181,8 +196,8 @@ export const TOUR_STEPS = Object.freeze([
     move: 'focus',
   },
   {
-    title: 'Some fixes help both standards',
-    body: 'Threads link safety and security items that need the same evidence. Fix once and both sides improve.',
+    title: 'One fix can help several standards',
+    body: 'Threads link safety, security and AI items that need the same evidence. Fix once and every linked ring improves.',
     shade: '3d',
     focus: 'links',
     zone: 'detail',
@@ -192,7 +207,7 @@ export const TOUR_STEPS = Object.freeze([
       target: [0, -0.2, 0],
       az: 64,
       el: 58,
-      dist: 19,
+      dist: 24,
       seconds: 3,
       lift: 0.1,
       drift: 4,

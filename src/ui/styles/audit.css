@@ -18,6 +18,7 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
   --a-rule: rgba(150, 175, 205, 0.16);
   --a-saf: #7aa7dc;
   --a-sec: #a294dc;
+  --a-ai: #d890c0;
   --a-bad: #ff6b5e;
   --a-warn: #f0b44c;
   --a-ok: #6fd3a6;
@@ -88,7 +89,8 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
   letter-spacing: 0.22em;
 }
 .gev-audit-label.is-saf,
-.gev-audit-label.is-sec {
+.gev-audit-label.is-sec,
+.gev-audit-label.is-ai {
   translate: -50% 8px;
   padding: 3px 8px;
   border-radius: 4px;
@@ -100,6 +102,9 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
 .gev-audit-label.is-sec {
   color: #bbb1e8;
 }
+.gev-audit-label.is-ai {
+  color: #e6b3d6;
+}
 .gev-audit-label.is-group {
   translate: -50% -50%;
   font: 500 10px/1 var(--a-mono);
@@ -109,6 +114,9 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
 }
 .gev-audit-label.is-group.is-sec {
   color: rgba(195, 180, 240, 0.75);
+}
+.gev-audit-label.is-group.is-ai {
+  color: rgba(230, 179, 214, 0.75);
 }
 .gev-audit-label.is-callout {
   translate: calc(-100% - 16px) -50%;
@@ -236,6 +244,9 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
 }
 .gev-audit-id.is-sec {
   color: #bbb1e8;
+}
+.gev-audit-id.is-ai {
+  color: #e6b3d6;
 }
 
 /* ── Cockpit frame: top bar, left rail, open centre, detail column ──── */
@@ -449,6 +460,9 @@ details[open] > summary > .gev-chev {
 .gev-ready.is-sec .gev-audit-lens {
   color: #bbb1e8;
 }
+.gev-ready.is-ai .gev-audit-lens {
+  color: #e6b3d6;
+}
 .gev-audit-verdict {
   font-size: 11px;
   color: #ffb2a8;
@@ -474,6 +488,9 @@ details[open] > summary > .gev-chev {
 }
 .gev-must-name.is-sec {
   color: #bbb1e8;
+}
+.gev-must-name.is-ai {
+  color: #e6b3d6;
 }
 .gev-audit-alerts {
   list-style: none;
@@ -627,6 +644,10 @@ details[open] > summary > .gev-chev {
   border: 2px solid var(--a-sec);
   border-color: var(--a-sec) transparent var(--a-sec) transparent;
 }
+.gev-key-mark.is-ai {
+  border: 2px solid var(--a-ai);
+  border-color: var(--a-ai) transparent var(--a-ai) transparent;
+}
 .gev-key-mark.is-pin {
   width: 8px;
   height: 8px;
@@ -777,15 +798,15 @@ details[open] > summary > .gev-chev {
 }
 .gev-story-score {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
 }
 .gev-story-num {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: baseline;
-  gap: 0 8px;
-  padding: 8px 10px;
+  gap: 0 6px;
+  padding: 7px 8px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--a-rule);
@@ -803,12 +824,15 @@ details[open] > summary > .gev-chev {
 .gev-story-num.is-sec > span {
   color: #bbb1e8;
 }
+.gev-story-num.is-ai > span {
+  color: #e6b3d6;
+}
 .gev-story-num small {
   font: 500 12px var(--a-mono);
   color: var(--a-ink-3);
 }
 .gev-story-num b {
-  font-size: 22px;
+  font-size: 19px;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
@@ -1306,6 +1330,9 @@ details[open] > summary > .gev-chev {
 }
 .gev-ev-score.is-sec > span:first-child {
   color: #bbb1e8;
+}
+.gev-ev-score.is-ai > span:first-child {
+  color: #e6b3d6;
 }
 .gev-ev-bar {
   display: block;

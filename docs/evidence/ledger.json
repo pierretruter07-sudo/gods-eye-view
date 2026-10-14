@@ -9,7 +9,13 @@
  },
  "standards": {
   "safety": "EUROCAE ED-153 (CrossCheck reconstructed catalogue v0.1), SWAL 3",
-  "security": "OWASP ASVS 5.0.0, Level 2"
+  "security": "OWASP ASVS 5.0.0, Level 2",
+  "ai": "ISO/IEC 42001:2023 AI management system (clause numbers and paraphrased titles; confirm against the standard)"
+ },
+ "aiBaseline": {
+  "branch": "baseline/iso42001-2026-10-15",
+  "commit": "eeadc22",
+  "date": "2026-10-15"
  },
  "stages": [
   {
@@ -108,6 +114,22 @@
     "open": 31,
     "blocking": 5,
     "verdict": "ASVS L2 not met"
+   },
+   "ai": {
+    "readiness": 0.2375,
+    "counts": {
+     "C": 0,
+     "L": 8,
+     "P": 23,
+     "N": 33,
+     "NA": 1
+    },
+    "open": 56,
+    "blocking": 8,
+    "verdict": "ISO 42001 not met",
+    "date": "2026-10-15",
+    "commit": "eeadc22",
+    "note": "ISO 42001 lens added on 2026-10-15, assessed against main at eeadc22."
    }
   }
  ],
@@ -117,30 +139,35 @@
     "label": "Baseline",
     "safety": 0.3817,
     "security": 0.6185,
+    "ai": 0.2375,
     "kind": "actual"
    },
    {
     "label": "After Wave 1",
     "safety": 0.4393,
     "security": 0.8592,
+    "ai": 0.2375,
     "kind": "target"
    },
    {
     "label": "After Wave 2",
     "safety": 0.4393,
     "security": 0.8822,
+    "ai": 0.6352,
     "kind": "target"
    },
    {
     "label": "After Wave 3",
     "safety": 0.8354,
     "security": 0.8822,
+    "ai": 0.8961,
     "kind": "target"
    },
    {
     "label": "After Wave 4",
     "safety": 0.8708,
     "security": 0.8822,
+    "ai": 0.9117,
     "kind": "target"
    }
   ],
@@ -150,8 +177,10 @@
     "label": "Claude + Replit + owner actions",
     "safety": 0.8708,
     "security": 0.8822,
+    "ai": 0.9117,
     "safety_verdict": "Not yet supported: human-only steps remain open",
     "security_verdict": "ASVS Level 2 met",
+    "ai_verdict": "Met with conditions: management review and an independent AIMS audit remain open",
     "human_only": [
      {
       "id": "3.4.1",
@@ -172,6 +201,22 @@
      {
       "id": "5.7.2–5.7.4",
       "why": "Independent audit"
+     },
+     {
+      "id": "C9.3",
+      "why": "Management review by leadership"
+     },
+     {
+      "id": "C9.2",
+      "why": "Independent AIMS internal audit"
+     },
+     {
+      "id": "C7.2",
+      "why": "Competence evidence for the team"
+     },
+     {
+      "id": "A.4.6",
+      "why": "Human resources and competence records"
      }
     ]
    },
@@ -180,8 +225,10 @@
     "label": "Plus customer and independent reviewer",
     "safety": 0.9635,
     "security": 0.8966,
+    "ai": 0.9688,
     "safety_verdict": "SWAL 3 claim supported, ready for independent assessment",
-    "security_verdict": "ASVS Level 2 met"
+    "security_verdict": "ASVS Level 2 met",
+    "ai_verdict": "ISO 42001 conformity supported, ready for certification audit"
    }
   ],
   "note": "Readiness = weighted score (Compliant 1, Largely 0.75, Partial 0.4, Non-compliant 0) over rated in-scope items. Verdicts follow the CrossCheck rules, not the score. New scope from sign-in (ASVS V6, V7, V9, V10) is assessed in Wave 2 and is not in these projections."
@@ -212,8 +259,8 @@
  "signoff": {
   "name": "Sign-off",
   "who": "Customer and independent reviewer",
-  "fixes": "The customer validates the system with operational users, and an independent reviewer audits the process.",
-  "unlocks": "SWAL 3 claim supported and ASVS Level 2 met: ready for formal assessment."
+  "fixes": "The customer validates the system with operational users, an independent reviewer audits the process, and leadership holds the AI management review.",
+  "unlocks": "SWAL 3 claim supported, ASVS Level 2 met and ISO 42001 met: ready for formal assessment and certification."
  },
  "waves": [
   {
@@ -230,8 +277,8 @@
    "name": "Control access",
    "who": "Engineering + customer identity provider",
    "effort": "1 week",
-   "exit": "ASVS Level 2 met; re-audit",
-   "fixes": "Adds company sign-in and roles (viewer, operator, admin), so only known people reach live data, paid services and Exercise mode.",
+   "exit": "ASVS Level 2 met; AI policy, AIMS scope and intended use issued; re-audit",
+   "fixes": "Adds company sign-in and roles (viewer, operator, admin), so only known people reach live data, paid services and Exercise mode. Sets up the AI management system: scope, AI policy, roles, intended use and an AI supplier register.",
    "unlocks": "Every user known and every action attributable, so the Wave 3 safety work can be written against real roles and real use."
   },
   {
@@ -239,18 +286,18 @@
    "name": "Prove safety",
    "who": "Safety lead, engineering, customer",
    "effort": "2–3 weeks",
-   "exit": "No S1–S2 finding open",
-   "fixes": "Writes the safety evidence: hazard log, failure modes and their effects, a safety level per failure, the safety plan, requirements and verification, and feed-health monitoring.",
-   "unlocks": "A safety argument with evidence behind it, ready for Wave 4 to review and hand over."
+   "exit": "No S1–S2 safety or High AI finding open",
+   "fixes": "Writes the safety evidence: hazard log, failure modes and their effects, a safety level per failure, the safety plan, requirements and verification, and feed-health monitoring. Assesses AI risks and impacts (wrong or missed announcements, effects on the people shown) and logs what the Director announces.",
+   "unlocks": "A safety argument with evidence behind it, and AI risks and impacts on record, ready for Wave 4 to review and hand over."
   },
   {
    "id": 4,
    "name": "Assure and hand over",
    "who": "Safety lead, independent reviewer",
    "effort": "1 week",
-   "exit": "SWAL 3 claim supported; evidence pack issued",
-   "fixes": "Builds the safety case and safety folder, and issues the release evidence pack.",
-   "unlocks": "Only steps that need people remain: validation with operational users and an independent process audit."
+   "exit": "SWAL 3 claim supported; first AIMS internal audit done; evidence pack issued",
+   "fixes": "Builds the safety case and safety folder, issues the release evidence pack, and runs the first AI management system internal audit.",
+   "unlocks": "Only steps that need people remain: validation with operational users, an independent process audit and the AI management review."
   }
  ],
  "workstreams": [
@@ -489,6 +536,103 @@
     "3.5.3",
     "5.7.2–5.7.4",
     "8"
+   ]
+  },
+  {
+   "id": "W11",
+   "name": "AI management system",
+   "wave": 2,
+   "deliverables": [
+    "AIMS scope and manual: which AI uses are covered (Director, narration, AI-assisted development, HENRI).",
+    "AI policy with the advisory-only boundary and principles; roles (AIMS owner, AI risk owner); objectives.",
+    "Intended-use statement with prohibited uses; in-app disclosure of automated selection and synthetic narration; package description corrected.",
+    "AI supplier register (coding agents, future model provider) with data and model-use terms; customer obligations.",
+    "AI tooling documented; human review and tests required for every AI-generated change."
+   ],
+   "evidence": "Issued AIMS manual, policy, intended-use statement and supplier register; disclosure visible in the app.",
+   "findings": [
+    "C4.1",
+    "C4.2",
+    "C4.3",
+    "C4.4",
+    "C5.1",
+    "C5.2",
+    "C5.3",
+    "C6.2",
+    "C6.3",
+    "C7.1",
+    "C7.2",
+    "C7.3",
+    "C7.4",
+    "A.2.2",
+    "A.2.3",
+    "A.2.4",
+    "A.3.2",
+    "A.3.3",
+    "A.4.2",
+    "A.4.4",
+    "A.4.5",
+    "A.4.6",
+    "A.6.1.2",
+    "A.6.1.3",
+    "A.8.2",
+    "A.8.3",
+    "A.8.5",
+    "A.9.2",
+    "A.9.3",
+    "A.9.4",
+    "A.10.2",
+    "A.10.3",
+    "A.10.4"
+   ]
+  },
+  {
+   "id": "W12",
+   "name": "AI risk, impact and monitoring",
+   "wave": 3,
+   "deliverables": [
+    "AI risk assessment and treatment with a statement of applicability for Annex A.",
+    "Impact assessments: individuals and groups, societal and dual-use effects of a public military-asset picture.",
+    "Event log of every automated selection and announcement with its inputs; AI performance measures (false and missed announcements).",
+    "Validation of announcements against feeds and with users; AI release criteria; AI incident communication."
+   ],
+   "evidence": "Risk register, impact assessments, event-log samples, validation record.",
+   "findings": [
+    "C6.1.1",
+    "C6.1.2",
+    "C6.1.3",
+    "C6.1.4",
+    "C8.1",
+    "C8.2",
+    "C8.3",
+    "C8.4",
+    "C9.1",
+    "C10.2",
+    "A.5.2",
+    "A.5.3",
+    "A.5.4",
+    "A.5.5",
+    "A.6.2.4",
+    "A.6.2.5",
+    "A.6.2.6",
+    "A.6.2.8",
+    "A.7.4",
+    "A.8.4"
+   ]
+  },
+  {
+   "id": "W13",
+   "name": "AIMS audit and review",
+   "wave": 4,
+   "deliverables": [
+    "AIMS internal audit programme (CrossCheck as the method, an independent auditor for sign-off).",
+    "Management review minutes; continual-improvement log in the evidence ledger."
+   ],
+   "evidence": "Audit report and management-review minutes.",
+   "findings": [
+    "C9.2",
+    "C9.3",
+    "C10.1"
    ]
   }
  ],
@@ -3786,6 +3930,1798 @@
      "severity": "S3",
      "ref": "baseline 1518ea8",
      "note": "Folder index in the gap analysis."
+    }
+   ]
+  },
+  {
+   "id": "C4.1",
+   "lens": "ISO42001",
+   "title": "Organisation and its context",
+   "area": "C4 Context",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No analysis of the organisation’s context for AI (purpose, climate, legal and contractual factors)."
+   },
+   "fix": "Write the AI context statement as part of the AIMS manual.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No analysis of the organisation’s context for AI (purpose, climate, legal and contractual factors)."
+    }
+   ]
+  },
+  {
+   "id": "C4.2",
+   "lens": "ISO42001",
+   "title": "Interested parties and their needs",
+   "area": "C4 Context",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "Interested parties (operators, customer, regulators, people under surveillance) and their AI expectations are not listed."
+   },
+   "fix": "Register interested parties and their requirements.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Interested parties (operators, customer, regulators, people under surveillance) and their AI expectations are not listed."
+    }
+   ]
+  },
+  {
+   "id": "C4.3",
+   "lens": "ISO42001",
+   "title": "Scope of the AI management system",
+   "area": "C4 Context",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "No defined scope for an AI management system: which AI uses (Director, narration, AI coding, HENRI) are covered is undecided."
+   },
+   "fix": "Define and document the AIMS scope and its boundaries.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No defined scope for an AI management system: which AI uses (Director, narration, AI coding, HENRI) are covered is undecided."
+    }
+   ]
+  },
+  {
+   "id": "C4.4",
+   "lens": "ISO42001",
+   "title": "AI management system established",
+   "area": "C4 Context",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No AI management system exists."
+   },
+   "fix": "Establish the AIMS: manual, processes and their interactions.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No AI management system exists."
+    }
+   ]
+  },
+  {
+   "id": "C5.1",
+   "lens": "ISO42001",
+   "title": "Leadership and commitment",
+   "area": "C5 Leadership",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Owner approval of the remediation plan shows commitment, but no AI-specific leadership commitment is recorded."
+   },
+   "fix": "Record leadership commitment and resourcing for the AIMS.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Owner approval of the remediation plan shows commitment, but no AI-specific leadership commitment is recorded."
+    }
+   ]
+  },
+  {
+   "id": "C5.2",
+   "lens": "ISO42001",
+   "title": "AI policy",
+   "area": "C5 Leadership",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "No AI policy."
+   },
+   "fix": "Issue an AI policy: purpose, advisory-only boundary, principles, commitments to requirements and improvement.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No AI policy."
+    }
+   ]
+  },
+  {
+   "id": "C5.3",
+   "lens": "ISO42001",
+   "title": "Roles, responsibilities and authorities",
+   "area": "C5 Leadership",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No AI roles or authorities assigned."
+   },
+   "fix": "Assign AIMS owner, AI risk owner and approver roles.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No AI roles or authorities assigned."
+    }
+   ]
+  },
+  {
+   "id": "C6.2",
+   "lens": "ISO42001",
+   "title": "AI objectives and plans",
+   "area": "C6 Planning",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No measurable AI objectives."
+   },
+   "fix": "Set AI objectives with measures and owners.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No measurable AI objectives."
+    }
+   ]
+  },
+  {
+   "id": "C6.3",
+   "lens": "ISO42001",
+   "title": "Planning of changes",
+   "area": "C6 Planning",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "Changes are tracked (changelog, configuration index, evidence ledger) but not assessed for AI effects."
+   },
+   "fix": "Add an AI impact check to change planning.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "Changes are tracked (changelog, configuration index, evidence ledger) but not assessed for AI effects."
+    }
+   ]
+  },
+  {
+   "id": "C7.1",
+   "lens": "ISO42001",
+   "title": "Resources",
+   "area": "C7 Support",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "Engineering resources exist; none allocated to the AIMS."
+   },
+   "fix": "Allocate AIMS resources.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "Engineering resources exist; none allocated to the AIMS."
+    }
+   ]
+  },
+  {
+   "id": "C7.2",
+   "lens": "ISO42001",
+   "title": "Competence",
+   "area": "C7 Support",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "AI competence of the people building and using the system is not defined or evidenced."
+   },
+   "fix": "Define AI competence needs and keep training records.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "AI competence of the people building and using the system is not defined or evidenced."
+    }
+   ]
+  },
+  {
+   "id": "C7.3",
+   "lens": "ISO42001",
+   "title": "Awareness",
+   "area": "C7 Support",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "No AI awareness for staff (policy, their contribution, consequences of non-conformity)."
+   },
+   "fix": "Brief everyone working on the system on the AI policy.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No AI awareness for staff (policy, their contribution, consequences of non-conformity)."
+    }
+   ]
+  },
+  {
+   "id": "C7.4",
+   "lens": "ISO42001",
+   "title": "Communication",
+   "area": "C7 Support",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "No AI communication plan."
+   },
+   "fix": "Decide what is communicated about AI, to whom and when.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No AI communication plan."
+    }
+   ]
+  },
+  {
+   "id": "A.2.2",
+   "lens": "ISO42001",
+   "title": "AI policy",
+   "area": "A.2 Policies for AI",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "No documented AI policy."
+   },
+   "fix": "Issue the AI policy (shared with clause 5.2).",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No documented AI policy."
+    }
+   ]
+  },
+  {
+   "id": "A.2.3",
+   "lens": "ISO42001",
+   "title": "Alignment with other policies",
+   "area": "A.2 Policies for AI",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "AI policy alignment with security, privacy and ethics rules not shown."
+   },
+   "fix": "Map the AI policy to existing policies.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "AI policy alignment with security, privacy and ethics rules not shown."
+    }
+   ]
+  },
+  {
+   "id": "A.2.4",
+   "lens": "ISO42001",
+   "title": "Review of the AI policy",
+   "area": "A.2 Policies for AI",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "No review cycle for an AI policy."
+   },
+   "fix": "Review the AI policy at planned intervals.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No review cycle for an AI policy."
+    }
+   ]
+  },
+  {
+   "id": "A.3.2",
+   "lens": "ISO42001",
+   "title": "AI roles and responsibilities",
+   "area": "A.3 Internal organisation",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "Nobody is accountable for AI decisions in the product."
+   },
+   "fix": "Name AI roles (shared with 5.3).",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Nobody is accountable for AI decisions in the product."
+    }
+   ]
+  },
+  {
+   "id": "A.3.3",
+   "lens": "ISO42001",
+   "title": "Reporting of concerns",
+   "area": "A.3 Internal organisation",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "SECURITY.md gives a vulnerability route; there is no route for AI concerns."
+   },
+   "fix": "Add an AI concern reporting route.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "SECURITY.md gives a vulnerability route; there is no route for AI concerns."
+    }
+   ]
+  },
+  {
+   "id": "A.4.2",
+   "lens": "ISO42001",
+   "title": "Resource documentation",
+   "area": "A.4 Resources for AI systems",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Dependencies and configuration are documented; AI components are not identified as such."
+   },
+   "fix": "Document AI resources in an AI system inventory.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Dependencies and configuration are documented; AI components are not identified as such."
+    }
+   ]
+  },
+  {
+   "id": "A.4.4",
+   "lens": "ISO42001",
+   "title": "Tooling resources",
+   "area": "A.4 Resources for AI systems",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "AI coding tools (Claude, Replit Agent) are visible in commit trailers but not documented as tooling with versions and limits."
+   },
+   "fix": "Document AI tooling, versions and permitted use.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI coding tools (Claude, Replit Agent) are visible in commit trailers but not documented as tooling with versions and limits."
+    }
+   ]
+  },
+  {
+   "id": "A.4.5",
+   "lens": "ISO42001",
+   "title": "System and computing resources",
+   "area": "A.4 Resources for AI systems",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "Hosting is known (Replit) but computing resources for AI features are not documented."
+   },
+   "fix": "Document system and computing resources.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "Hosting is known (Replit) but computing resources for AI features are not documented."
+    }
+   ]
+  },
+  {
+   "id": "A.4.6",
+   "lens": "ISO42001",
+   "title": "Human resources",
+   "area": "A.4 Resources for AI systems",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "Human resources and competence for AI are not documented."
+   },
+   "fix": "Record people, roles and competence.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "Human resources and competence for AI are not documented."
+    }
+   ]
+  },
+  {
+   "id": "A.6.1.2",
+   "lens": "ISO42001",
+   "title": "Objectives for responsible development",
+   "area": "A.6 AI system life cycle",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Ethics guardrails are stated in the README (non-kinetic, no dossiers, FEED/SIMULATED tags) but not as formal objectives."
+   },
+   "fix": "Turn the guardrails into responsible-development objectives.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Ethics guardrails are stated in the README (non-kinetic, no dossiers, FEED/SIMULATED tags) but not as formal objectives."
+    }
+   ]
+  },
+  {
+   "id": "A.6.1.3",
+   "lens": "ISO42001",
+   "title": "Responsible design and development processes",
+   "area": "A.6 AI system life cycle",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "CI gates and traceability apply to all code; AI-generated changes have no specific review rule."
+   },
+   "fix": "Require human review and tests for AI-generated changes.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "CI gates and traceability apply to all code; AI-generated changes have no specific review rule."
+    }
+   ]
+  },
+  {
+   "id": "A.8.2",
+   "lens": "ISO42001",
+   "title": "Documentation and information for users",
+   "area": "A.8 Information for interested parties",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "FEED/SIMULATED labels and known limitations exist, but users are not told selections and narration are automated, and the package still advertises voice control that is not shipped."
+   },
+   "fix": "Disclose automated selection and synthetic narration; correct the package description.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "FEED/SIMULATED labels and known limitations exist, but users are not told selections and narration are automated, and the package still advertises voice control that is not shipped."
+    }
+   ]
+  },
+  {
+   "id": "A.8.3",
+   "lens": "ISO42001",
+   "title": "External reporting",
+   "area": "A.8 Information for interested parties",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "No external reporting obligations identified for AI."
+   },
+   "fix": "Identify external reporting duties.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No external reporting obligations identified for AI."
+    }
+   ]
+  },
+  {
+   "id": "A.8.5",
+   "lens": "ISO42001",
+   "title": "Information for interested parties",
+   "area": "A.8 Information for interested parties",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "README and runbook inform some parties; no plan for others."
+   },
+   "fix": "Plan information for interested parties.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "README and runbook inform some parties; no plan for others."
+    }
+   ]
+  },
+  {
+   "id": "A.9.2",
+   "lens": "ISO42001",
+   "title": "Processes for responsible use",
+   "area": "A.9 Use of AI systems",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "The Director is advisory and any input hands control back, but responsible-use processes are not documented."
+   },
+   "fix": "Document responsible-use processes for operators.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "The Director is advisory and any input hands control back, but responsible-use processes are not documented."
+    }
+   ]
+  },
+  {
+   "id": "A.9.3",
+   "lens": "ISO42001",
+   "title": "Objectives for responsible use",
+   "area": "A.9 Use of AI systems",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "No objectives for responsible use."
+   },
+   "fix": "Set responsible-use objectives.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No objectives for responsible use."
+    }
+   ]
+  },
+  {
+   "id": "A.9.4",
+   "lens": "ISO42001",
+   "title": "Intended use",
+   "area": "A.9 Use of AI systems",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": true,
+   "baseline": {
+    "status": "P",
+    "severity": "SH",
+    "evidence": "The advisory-only, non-kinetic boundary is stated, but there is no formal intended-use statement with prohibited uses."
+   },
+   "fix": "Publish an intended-use statement, including prohibited uses.",
+   "current": {
+    "status": "P",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "The advisory-only, non-kinetic boundary is stated, but there is no formal intended-use statement with prohibited uses."
+    }
+   ]
+  },
+  {
+   "id": "A.10.2",
+   "lens": "ISO42001",
+   "title": "Allocation of responsibilities",
+   "area": "A.10 Third parties and customers",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "Responsibilities between Digital Dynamics Group, AI suppliers and customers are not allocated."
+   },
+   "fix": "Allocate AI responsibilities in contracts and the AIMS.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Responsibilities between Digital Dynamics Group, AI suppliers and customers are not allocated."
+    }
+   ]
+  },
+  {
+   "id": "A.10.3",
+   "lens": "ISO42001",
+   "title": "Suppliers",
+   "area": "A.10 Third parties and customers",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "AI suppliers (AI coding agents, a future HENRI model provider) are not assessed or managed."
+   },
+   "fix": "Assess and register AI suppliers; set terms for data and model use.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "AI suppliers (AI coding agents, a future HENRI model provider) are not assessed or managed."
+    }
+   ]
+  },
+  {
+   "id": "A.10.4",
+   "lens": "ISO42001",
+   "title": "Customers",
+   "area": "A.10 Third parties and customers",
+   "workstream": "W11",
+   "wave": 2,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Customer-facing limitations exist; AI-specific customer obligations are not defined."
+   },
+   "fix": "Define customer AI obligations and expectations.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Customer-facing limitations exist; AI-specific customer obligations are not defined."
+    }
+   ]
+  },
+  {
+   "id": "C6.1.1",
+   "lens": "ISO42001",
+   "title": "Actions on AI risks and opportunities",
+   "area": "C6 Planning",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "AI risks and opportunities are not planned for."
+   },
+   "fix": "Plan actions on AI risks and opportunities in the AIMS.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI risks and opportunities are not planned for."
+    }
+   ]
+  },
+  {
+   "id": "C6.1.2",
+   "lens": "ISO42001",
+   "title": "AI risk assessment",
+   "area": "C6 Planning",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "No AI risk assessment (e.g. a wrong automated announcement, misleading narration, unreviewed AI-written code)."
+   },
+   "fix": "Run and document an AI risk assessment with criteria.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No AI risk assessment (e.g. a wrong automated announcement, misleading narration, unreviewed AI-written code)."
+    }
+   ]
+  },
+  {
+   "id": "C6.1.3",
+   "lens": "ISO42001",
+   "title": "AI risk treatment",
+   "area": "C6 Planning",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "The CrossCheck remediation plan treats safety and security risks; AI-specific risks have no treatment plan."
+   },
+   "fix": "Add AI risk treatment and a statement of applicability for Annex A.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "The CrossCheck remediation plan treats safety and security risks; AI-specific risks have no treatment plan."
+    }
+   ]
+  },
+  {
+   "id": "C6.1.4",
+   "lens": "ISO42001",
+   "title": "AI system impact assessment",
+   "area": "C6 Planning",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "No AI system impact assessment for the people and groups affected by the display and its announcements."
+   },
+   "fix": "Assess and document impacts on individuals, groups and society.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No AI system impact assessment for the people and groups affected by the display and its announcements."
+    }
+   ]
+  },
+  {
+   "id": "C8.1",
+   "lens": "ISO42001",
+   "title": "Operational planning and control",
+   "area": "C8 Operation",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "CI gates and traceability control the build, but AI-specific operational controls are not defined."
+   },
+   "fix": "Define operational controls for AI features and AI-assisted development.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "CI gates and traceability control the build, but AI-specific operational controls are not defined."
+    }
+   ]
+  },
+  {
+   "id": "C8.2",
+   "lens": "ISO42001",
+   "title": "AI risk assessment in operation",
+   "area": "C8 Operation",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "AI risk assessments are not performed at planned intervals."
+   },
+   "fix": "Schedule AI risk reassessment.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI risk assessments are not performed at planned intervals."
+    }
+   ]
+  },
+  {
+   "id": "C8.3",
+   "lens": "ISO42001",
+   "title": "AI risk treatment in operation",
+   "area": "C8 Operation",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No AI risk treatment in operation."
+   },
+   "fix": "Implement and track AI risk treatment.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No AI risk treatment in operation."
+    }
+   ]
+  },
+  {
+   "id": "C8.4",
+   "lens": "ISO42001",
+   "title": "AI system impact assessment in operation",
+   "area": "C8 Operation",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "Impact assessments are not repeated on change."
+   },
+   "fix": "Repeat impact assessment on significant change.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Impact assessments are not repeated on change."
+    }
+   ]
+  },
+  {
+   "id": "C9.1",
+   "lens": "ISO42001",
+   "title": "Monitoring, measurement and evaluation",
+   "area": "C9 Performance evaluation",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "AI performance (announcement accuracy, false alerts, feed staleness) is not measured."
+   },
+   "fix": "Define and collect AI performance measures.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI performance (announcement accuracy, false alerts, feed staleness) is not measured."
+    }
+   ]
+  },
+  {
+   "id": "C10.2",
+   "lens": "ISO42001",
+   "title": "Nonconformity and corrective action",
+   "area": "C10 Improvement",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Findings are tracked to closure in the evidence ledger; no AI nonconformity process."
+   },
+   "fix": "Handle AI nonconformities through the same ledger.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Findings are tracked to closure in the evidence ledger; no AI nonconformity process."
+    }
+   ]
+  },
+  {
+   "id": "A.5.2",
+   "lens": "ISO42001",
+   "title": "Impact assessment process",
+   "area": "A.5 Impact assessment",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "No process to assess the impact of AI features (shared with 6.1.4)."
+   },
+   "fix": "Define the impact assessment process.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No process to assess the impact of AI features (shared with 6.1.4)."
+    }
+   ]
+  },
+  {
+   "id": "A.5.3",
+   "lens": "ISO42001",
+   "title": "Documented impact assessments",
+   "area": "A.5 Impact assessment",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No impact assessments on record."
+   },
+   "fix": "Keep impact assessments as documented information.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No impact assessments on record."
+    }
+   ]
+  },
+  {
+   "id": "A.5.4",
+   "lens": "ISO42001",
+   "title": "Impacts on individuals and groups",
+   "area": "A.5 Impact assessment",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Principles exist (no person dossiers, generic ownership, SIMULATED labels) but impacts on individuals are not assessed."
+   },
+   "fix": "Assess impacts on individuals and groups, building on the existing guardrails.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Principles exist (no person dossiers, generic ownership, SIMULATED labels) but impacts on individuals are not assessed."
+    }
+   ]
+  },
+  {
+   "id": "A.5.5",
+   "lens": "ISO42001",
+   "title": "Societal impacts",
+   "area": "A.5 Impact assessment",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "Societal effects of a public military-asset picture with automated announcements are not assessed."
+   },
+   "fix": "Assess societal and dual-use impacts.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Societal effects of a public military-asset picture with automated announcements are not assessed."
+    }
+   ]
+  },
+  {
+   "id": "A.6.2.4",
+   "lens": "ISO42001",
+   "title": "Verification and validation",
+   "area": "A.6 AI system life cycle",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Director rules are unit-tested; no validation that announcements are accurate and useful."
+   },
+   "fix": "Validate announcements against feeds and with users.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Director rules are unit-tested; no validation that announcements are accurate and useful."
+    }
+   ]
+  },
+  {
+   "id": "A.6.2.5",
+   "lens": "ISO42001",
+   "title": "Deployment",
+   "area": "A.6 AI system life cycle",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Deployed to Replit without release criteria for AI features."
+   },
+   "fix": "Define AI release criteria.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Deployed to Replit without release criteria for AI features."
+    }
+   ]
+  },
+  {
+   "id": "A.6.2.6",
+   "lens": "ISO42001",
+   "title": "Operation and monitoring",
+   "area": "A.6 AI system life cycle",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "AI features are not monitored in operation (false or missed announcements, stale feeds)."
+   },
+   "fix": "Monitor AI features in operation (shared with feed-health telemetry).",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI features are not monitored in operation (false or missed announcements, stale feeds)."
+    }
+   ]
+  },
+  {
+   "id": "A.6.2.8",
+   "lens": "ISO42001",
+   "title": "Event logs",
+   "area": "A.6 AI system life cycle",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No event logs of what the Director announced and why."
+   },
+   "fix": "Log automated selections and announcements with their inputs.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No event logs of what the Director announced and why."
+    }
+   ]
+  },
+  {
+   "id": "A.7.4",
+   "lens": "ISO42001",
+   "title": "Data quality",
+   "area": "A.7 Data for AI systems",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Records are validated and stale data is flagged, but data-quality requirements for automated decisions are not set."
+   },
+   "fix": "Set data-quality requirements for decision inputs.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Records are validated and stale data is flagged, but data-quality requirements for automated decisions are not set."
+    }
+   ]
+  },
+  {
+   "id": "A.8.4",
+   "lens": "ISO42001",
+   "title": "Communication of incidents",
+   "area": "A.8 Information for interested parties",
+   "workstream": "W12",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No plan to communicate AI incidents to users or customers."
+   },
+   "fix": "Define AI incident communication.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No plan to communicate AI incidents to users or customers."
+    }
+   ]
+  },
+  {
+   "id": "C9.2",
+   "lens": "ISO42001",
+   "title": "Internal audit",
+   "area": "C9 Performance evaluation",
+   "workstream": "W13",
+   "wave": 4,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "The CrossCheck audit is an internal audit, but there is no AIMS audit programme."
+   },
+   "fix": "Plan internal AIMS audits; keep CrossCheck as the method.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "The CrossCheck audit is an internal audit, but there is no AIMS audit programme."
+    }
+   ]
+  },
+  {
+   "id": "C9.3",
+   "lens": "ISO42001",
+   "title": "Management review",
+   "area": "C9 Performance evaluation",
+   "workstream": "W13",
+   "wave": 4,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SL",
+    "evidence": "No management review of AI."
+   },
+   "fix": "Hold and minute AIMS management reviews.",
+   "current": {
+    "status": "N",
+    "severity": "SL"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No management review of AI."
+    }
+   ]
+  },
+  {
+   "id": "C10.1",
+   "lens": "ISO42001",
+   "title": "Continual improvement",
+   "area": "C10 Improvement",
+   "workstream": "W13",
+   "wave": 4,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "The audit-to-compliance pipeline shows continual improvement for safety and security."
+   },
+   "fix": "Extend it to the AIMS.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "The audit-to-compliance pipeline shows continual improvement for safety and security."
     }
    ]
   }

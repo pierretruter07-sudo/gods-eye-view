@@ -50,8 +50,8 @@ export function localToEcef(v, basis) {
 export function auditPose(lon, fovy, { radiusM = EARTH_RADIUS_M } = {}) {
   const designFovy = (30 * Math.PI) / 180;
   const k = Math.tan(designFovy / 2) / Math.tan(fovy / 2);
-  const target = [0, -0.8, 0.13];
-  const eye = add(target, scale(sub([0, 13, 20.33], target), k));
+  const target = HOME_TARGET;
+  const eye = add(target, scale(sub(HOME_EYE, target), k));
   const basis = basisForLongitude(lon);
   const destination = scale(localToEcef(eye, basis), radiusM);
   const targetEcef = scale(localToEcef(target, basis), radiusM);
@@ -134,8 +134,11 @@ export function phase(t, a, b) {
 // Earth radii). Interpolating rigs keeps the target in frame all the way.
 
 const EL_LIMIT = (85 * Math.PI) / 180;
-const HOME_TARGET = [0, -0.8, 0.13];
-const HOME_EYE = [0, 13, 20.33];
+// Aimed a little in front of the Earth so the near side of the outer ring
+// clears the timeline at the bottom of the screen.
+const HOME_TARGET = [0, -0.8, 2.4];
+// Far enough out to frame all three rings (the outer ring is 9.2 radii).
+const HOME_EYE = [0, 19, 28.3];
 
 /** The rig matching `auditPose` (the AUDIT view's home framing). */
 export function homeRig(fovy) {

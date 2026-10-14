@@ -6,6 +6,12 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **ISO/IEC 42001 audit ring.** AUDIT now checks God's Eye View against a
+  third standard, the AI management system (clauses 4–10 and Annex A, 65
+  items), on an outer ring. Baseline: 24%, not met, 8 must-fix. The
+  readiness rail, must-fix list, impact statements, tour, narrated
+  timeline, evidence drawer and ledger all carry the third lens.
+  Remediation plan v0.4 adds workstreams W11–W13.
 - **Place intel at Director stops.** Airport and city stops now open a
   four-card view instead of an empty screen:
   - **Live traffic:** aircraft within 50 km; on ground, arriving and

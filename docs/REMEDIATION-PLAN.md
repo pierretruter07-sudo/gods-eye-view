@@ -339,6 +339,109 @@ Closes 7 findings:
 | 5.7.2–5.7.4 | ED-153 | Audit (numbers only) | Partial | S4 | Independent audit. |
 | 8 | ED-153 | Safety Folder | Partial | S3 | Software Safety Folder / SSAR. |
 
+### W11 AI management system (Wave 2)
+
+**Deliverables**
+
+- AIMS scope and manual: which AI uses are covered (Director, narration, AI-assisted development, HENRI).
+- AI policy with the advisory-only boundary and principles; roles (AIMS owner, AI risk owner); objectives.
+- Intended-use statement with prohibited uses; in-app disclosure of automated selection and synthetic narration; package description corrected.
+- AI supplier register (coding agents, future model provider) with data and model-use terms; customer obligations.
+- AI tooling documented; human review and tests required for every AI-generated change.
+
+**Evidence:** Issued AIMS manual, policy, intended-use statement and supplier register; disclosure visible in the app.
+
+Closes 33 findings:
+
+| ID | Lens | Requirement | Status | Severity | Fix |
+|---|---|---|---|---|---|
+| C4.1 | ISO42001 | Organisation and its context | Non-compliant | Medium | Write the AI context statement as part of the AIMS manual. |
+| C4.2 | ISO42001 | Interested parties and their needs | Non-compliant | Medium | Register interested parties and their requirements. |
+| C4.3 | ISO42001 | Scope of the AI management system | Non-compliant | High | Define and document the AIMS scope and its boundaries. |
+| C4.4 | ISO42001 | AI management system established | Non-compliant | Medium | Establish the AIMS: manual, processes and their interactions. |
+| C5.1 | ISO42001 | Leadership and commitment | Partial | Medium | Record leadership commitment and resourcing for the AIMS. |
+| C5.2 | ISO42001 | AI policy | Non-compliant | High | Issue an AI policy: purpose, advisory-only boundary, principles, commitments to requirements and improvement. |
+| C5.3 | ISO42001 | Roles, responsibilities and authorities | Non-compliant | Medium | Assign AIMS owner, AI risk owner and approver roles. |
+| C6.2 | ISO42001 | AI objectives and plans | Non-compliant | Medium | Set AI objectives with measures and owners. |
+| C6.3 | ISO42001 | Planning of changes | Partial | Low | Add an AI impact check to change planning. |
+| C7.1 | ISO42001 | Resources | Partial | Low | Allocate AIMS resources. |
+| C7.2 | ISO42001 | Competence | Non-compliant | Low | Define AI competence needs and keep training records. |
+| C7.3 | ISO42001 | Awareness | Non-compliant | Low | Brief everyone working on the system on the AI policy. |
+| C7.4 | ISO42001 | Communication | Non-compliant | Low | Decide what is communicated about AI, to whom and when. |
+| A.2.2 | ISO42001 | AI policy | Non-compliant | High | Issue the AI policy (shared with clause 5.2). |
+| A.2.3 | ISO42001 | Alignment with other policies | Non-compliant | Low | Map the AI policy to existing policies. |
+| A.2.4 | ISO42001 | Review of the AI policy | Non-compliant | Low | Review the AI policy at planned intervals. |
+| A.3.2 | ISO42001 | AI roles and responsibilities | Non-compliant | Medium | Name AI roles (shared with 5.3). |
+| A.3.3 | ISO42001 | Reporting of concerns | Partial | Medium | Add an AI concern reporting route. |
+| A.4.2 | ISO42001 | Resource documentation | Partial | Medium | Document AI resources in an AI system inventory. |
+| A.4.4 | ISO42001 | Tooling resources | Partial | Medium | Document AI tooling, versions and permitted use. |
+| A.4.5 | ISO42001 | System and computing resources | Partial | Low | Document system and computing resources. |
+| A.4.6 | ISO42001 | Human resources | Non-compliant | Low | Record people, roles and competence. |
+| A.6.1.2 | ISO42001 | Objectives for responsible development | Partial | Medium | Turn the guardrails into responsible-development objectives. |
+| A.6.1.3 | ISO42001 | Responsible design and development processes | Partial | Medium | Require human review and tests for AI-generated changes. |
+| A.8.2 | ISO42001 | Documentation and information for users | Partial | Medium | Disclose automated selection and synthetic narration; correct the package description. |
+| A.8.3 | ISO42001 | External reporting | Non-compliant | Low | Identify external reporting duties. |
+| A.8.5 | ISO42001 | Information for interested parties | Partial | Low | Plan information for interested parties. |
+| A.9.2 | ISO42001 | Processes for responsible use | Partial | Medium | Document responsible-use processes for operators. |
+| A.9.3 | ISO42001 | Objectives for responsible use | Non-compliant | Low | Set responsible-use objectives. |
+| A.9.4 | ISO42001 | Intended use | Partial | High | Publish an intended-use statement, including prohibited uses. |
+| A.10.2 | ISO42001 | Allocation of responsibilities | Non-compliant | Medium | Allocate AI responsibilities in contracts and the AIMS. |
+| A.10.3 | ISO42001 | Suppliers | Non-compliant | High | Assess and register AI suppliers; set terms for data and model use. |
+| A.10.4 | ISO42001 | Customers | Partial | Medium | Define customer AI obligations and expectations. |
+
+### W12 AI risk, impact and monitoring (Wave 3)
+
+**Deliverables**
+
+- AI risk assessment and treatment with a statement of applicability for Annex A.
+- Impact assessments: individuals and groups, societal and dual-use effects of a public military-asset picture.
+- Event log of every automated selection and announcement with its inputs; AI performance measures (false and missed announcements).
+- Validation of announcements against feeds and with users; AI release criteria; AI incident communication.
+
+**Evidence:** Risk register, impact assessments, event-log samples, validation record.
+
+Closes 20 findings:
+
+| ID | Lens | Requirement | Status | Severity | Fix |
+|---|---|---|---|---|---|
+| C6.1.1 | ISO42001 | Actions on AI risks and opportunities | Non-compliant | Medium | Plan actions on AI risks and opportunities in the AIMS. |
+| C6.1.2 | ISO42001 | AI risk assessment | Non-compliant | High | Run and document an AI risk assessment with criteria. |
+| C6.1.3 | ISO42001 | AI risk treatment | Partial | Medium | Add AI risk treatment and a statement of applicability for Annex A. |
+| C6.1.4 | ISO42001 | AI system impact assessment | Non-compliant | High | Assess and document impacts on individuals, groups and society. |
+| C8.1 | ISO42001 | Operational planning and control | Partial | Medium | Define operational controls for AI features and AI-assisted development. |
+| C8.2 | ISO42001 | AI risk assessment in operation | Non-compliant | Medium | Schedule AI risk reassessment. |
+| C8.3 | ISO42001 | AI risk treatment in operation | Non-compliant | Medium | Implement and track AI risk treatment. |
+| C8.4 | ISO42001 | AI system impact assessment in operation | Non-compliant | Medium | Repeat impact assessment on significant change. |
+| C9.1 | ISO42001 | Monitoring, measurement and evaluation | Non-compliant | Medium | Define and collect AI performance measures. |
+| C10.2 | ISO42001 | Nonconformity and corrective action | Partial | Medium | Handle AI nonconformities through the same ledger. |
+| A.5.2 | ISO42001 | Impact assessment process | Non-compliant | High | Define the impact assessment process. |
+| A.5.3 | ISO42001 | Documented impact assessments | Non-compliant | Medium | Keep impact assessments as documented information. |
+| A.5.4 | ISO42001 | Impacts on individuals and groups | Partial | Medium | Assess impacts on individuals and groups, building on the existing guardrails. |
+| A.5.5 | ISO42001 | Societal impacts | Non-compliant | Medium | Assess societal and dual-use impacts. |
+| A.6.2.4 | ISO42001 | Verification and validation | Partial | Medium | Validate announcements against feeds and with users. |
+| A.6.2.5 | ISO42001 | Deployment | Partial | Medium | Define AI release criteria. |
+| A.6.2.6 | ISO42001 | Operation and monitoring | Non-compliant | Medium | Monitor AI features in operation (shared with feed-health telemetry). |
+| A.6.2.8 | ISO42001 | Event logs | Non-compliant | Medium | Log automated selections and announcements with their inputs. |
+| A.7.4 | ISO42001 | Data quality | Partial | Medium | Set data-quality requirements for decision inputs. |
+| A.8.4 | ISO42001 | Communication of incidents | Non-compliant | Medium | Define AI incident communication. |
+
+### W13 AIMS audit and review (Wave 4)
+
+**Deliverables**
+
+- AIMS internal audit programme (CrossCheck as the method, an independent auditor for sign-off).
+- Management review minutes; continual-improvement log in the evidence ledger.
+
+**Evidence:** Audit report and management-review minutes.
+
+Closes 3 findings:
+
+| ID | Lens | Requirement | Status | Severity | Fix |
+|---|---|---|---|---|---|
+| C9.2 | ISO42001 | Internal audit | Partial | Medium | Plan internal AIMS audits; keep CrossCheck as the method. |
+| C9.3 | ISO42001 | Management review | Non-compliant | Low | Hold and minute AIMS management reviews. |
+| C10.1 | ISO42001 | Continual improvement | Partial | Low | Extend it to the AIMS. |
+
 Out of scope at SWAL 3 but addressed anyway: **7.x Tool qualification**, covered by the AI-use policy in W8.
 
 ## 6. What only the customer or owner can do

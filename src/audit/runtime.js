@@ -29,12 +29,12 @@ import {
 } from './cameraMath.js';
 import {
   LAYERS,
-  SEC_STATUS_NAME,
-  STATUS_NAME,
+  LENS_NAME,
   layout,
   linkedIds,
   mustFix,
   rollup,
+  statusNames,
 } from './model.js';
 import { createCockpit } from './cockpit.js';
 import { createEvidenceDrawer } from './evidence.js';
@@ -108,11 +108,13 @@ export async function createAuditRuntime({ viewer, onExited }) {
   const baseItems = itemsAt(ledger, data.items, 0);
   const baseSaf = rollup(baseItems, 'saf', opts);
   const baseSec = rollup(baseItems, 'sec', opts);
+  const baseAi = rollup(baseItems, 'ai', opts);
   const mustAtBaseline = mustFix(baseItems);
   let stopIndex = latestMeasured(stops).index;
   let items = itemsAt(ledger, data.items, stopIndex);
   let saf = rollup(items, 'saf', opts);
   let sec = rollup(items, 'sec', opts);
+  let ai = rollup(items, 'ai', opts);
   const { nodes, groups } = layout(items);
   let itemById = new Map(items.map((i) => [i.id, i]));
   const historyById = new Map(ledger.findings.map((f) => [f.id, f]));
@@ -180,11 +182,15 @@ export async function createAuditRuntime({ viewer, onExited }) {
     { el: label('is-core', data.item), at: [0, 1.22, 0] },
     { el: label('is-saf', 'Safety · ED-153'), at: [0, -0.18, 3.73] },
     { el: label('is-sec', 'Security · OWASP ASVS'), at: [6.2, -0.62, 2.1] },
+    {
+      el: label('is-ai', 'AI management · ISO/IEC 42001'),
+      at: [8.3, -0.75, -3.9],
+    },
   ];
   const groupLabels = groups.map((g) => ({
     el: label(
       `is-group is-${g.lens}`,
-      g.lens === 'sec' ? `${g.key} ${g.name}` : g.name,
+      g.lens === 'saf' ? g.name : `${g.key} ${g.name}`,
     ),
     at: g.label,
   }));
@@ -456,7 +462,7 @@ export async function createAuditRuntime({ viewer, onExited }) {
       return;
     }
     const item = itemById.get(selected);
-    const names = item.lens === 'sec' ? SEC_STATUS_NAME : STATUS_NAME;
+    const names = statusNames(item.lens);
     callout.textContent = `${selected} · ${(names[item.status] || 'Not rated').toLowerCase()}`;
     callout.dataset.tone =
       item.status === 'N' ? 'bad' : item.status === 'P' ? 'warn' : 'ok';
@@ -498,6 +504,7 @@ export async function createAuditRuntime({ viewer, onExited }) {
     itemById = new Map(items.map((i) => [i.id, i]));
     saf = rollup(items, 'saf', opts);
     sec = rollup(items, 'sec', opts);
+    ai = rollup(items, 'ai', opts);
     orbit.setItems(items, { flash });
     const closed = new Set(
       mustAtBaseline.filter((m) => itemById.get(m.id)?.fixed).map((m) => m.id),
@@ -506,8 +513,10 @@ export async function createAuditRuntime({ viewer, onExited }) {
       stop: stops[stopIndex],
       saf,
       sec,
+      ai,
       baseSaf,
       baseSec,
+      baseAi,
       closed,
     });
     if (selected) select(selected);
@@ -534,6 +543,7 @@ export async function createAuditRuntime({ viewer, onExited }) {
     const before = i ? itemsAt(ledger, data.items, i - 1) : null;
     const prevSaf = before ? rollup(before, 'saf', opts) : null;
     const prevSec = before ? rollup(before, 'sec', opts) : null;
+    const prevAi = before ? rollup(before, 'ai', opts) : null;
     setStop(i, { flash: true });
     const st = stopStory(ledger, i, before, items, mustIds);
     const last = i === stops.length - 1;
@@ -541,9 +551,13 @@ export async function createAuditRuntime({ viewer, onExited }) {
     // Light the standard that moves most at this stop.
     const dSaf = prevSaf ? saf.readiness - prevSaf.readiness : 0;
     const dSec = prevSec ? sec.readiness - prevSec.readiness : 0;
-    orbit.setEmphasis(
-      i === 0 ? 'mustfix' : Math.abs(dSaf) > Math.abs(dSec) ? 'saf' : 'sec',
-    );
+    const dAi = prevAi ? ai.readiness - prevAi.readiness : 0;
+    const gains = [
+      ['saf', Math.abs(dSaf)],
+      ['sec', Math.abs(dSec)],
+      ['ai', Math.abs(dAi)],
+    ].sort((a, b) => b[1] - a[1]);
+    orbit.setEmphasis(i === 0 ? 'mustfix' : gains[0][0]);
     shot({
       az: -40 + i * 22,
       el: 40 - i * 2,
@@ -556,8 +570,10 @@ export async function createAuditRuntime({ viewer, onExited }) {
       story: st,
       saf,
       sec,
+      ai,
       prevSaf,
       prevSec,
+      prevAi,
       step: i + 1,
       total: stops.length,
       ms,
@@ -631,7 +647,7 @@ export async function createAuditRuntime({ viewer, onExited }) {
       target.style.cursor = id ? 'pointer' : '';
       if (id) {
         const item = itemById.get(id);
-        tooltip.textContent = `${id} · ${item.lens === 'sec' ? 'Security' : 'Safety'}`;
+        tooltip.textContent = `${id} · ${LENS_NAME[item.lens] || ''}`;
       }
     });
   };
@@ -656,6 +672,7 @@ export async function createAuditRuntime({ viewer, onExited }) {
     data,
     saf,
     sec,
+    ai,
     must: mustAtBaseline,
     stops,
     onStop: (i) => {
@@ -839,6 +856,9 @@ export async function createAuditRuntime({ viewer, onExited }) {
       },
       get sec() {
         return sec;
+      },
+      get ai() {
+        return ai;
       },
     },
   };

@@ -36,6 +36,7 @@ electing Apache-2.0.
 | three.js r160 (`three.module.min.js`), used only by the AUDIT view | `vendor/three/` (licence text alongside) | MIT, © 2010–2023 three.js authors |
 | OWASP Application Security Verification Standard 5.0 requirement text | `src/audit/data/assessment.json`, `docs/evidence/` | CC BY-SA 4.0, © The OWASP Foundation |
 | EUROCAE ED-153 objective references | `src/audit/data/assessment.json` | Objective numbers with short paraphrased titles only. The standard itself is © EUROCAE and is not reproduced. |
+| ISO/IEC 42001:2023 clause and control references | `src/audit/data/assessment.json`, `docs/evidence/` | Clause and Annex A control numbers with short paraphrased titles only. The standard itself is © ISO/IEC and is not reproduced. |
 
 The ASVS text is shared under the same CC BY-SA 4.0 licence; changes are
 limited to trimming for display.

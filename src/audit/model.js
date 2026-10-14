@@ -23,6 +23,21 @@ export const SEC_STATUS_NAME = Object.freeze({
   N: 'Fail',
   NA: 'Not applicable',
 });
+export const AI_STATUS_NAME = Object.freeze({
+  C: 'Conforms',
+  L: 'Largely',
+  P: 'Partial',
+  N: 'Nonconformity',
+  NA: 'Excluded',
+});
+/** Status names for an item's ring. */
+export function statusNames(lens) {
+  return lens === 'sec'
+    ? SEC_STATUS_NAME
+    : lens === 'ai'
+      ? AI_STATUS_NAME
+      : STATUS_NAME;
+}
 export const SEVERITY_NAME = Object.freeze({
   S1: 'S1',
   S2: 'S2',
@@ -34,6 +49,7 @@ export const SEVERITY_NAME = Object.freeze({
   SL: 'Low',
 });
 const SCORE = { C: 1, L: 0.75, P: 0.4, N: 0 };
+const LENS_ORDER = { sec: 0, saf: 1, ai: 2 };
 const RANK = { S1: 0, SC: 0, S2: 1, SH: 1, S3: 2, SM: 2, S4: 3, SL: 3 };
 
 /** Ring geometry, in Earth radii (the design's proportions). */
@@ -55,6 +71,27 @@ export const RINGS = Object.freeze({
     start: Math.PI * 0.3,
     anchor: 'V8.2.1',
   }),
+  ai: Object.freeze({
+    radius: 9.2,
+    base: -0.8,
+    lift: 0.7,
+    size: 0.06,
+    gap: 3,
+    start: Math.PI * 0.45,
+  }),
+});
+
+/** The lenses (rings), innermost first, and how the cockpit names them. */
+export const LENSES = Object.freeze(['saf', 'sec', 'ai']);
+export const LENS_NAME = Object.freeze({
+  saf: 'Safety',
+  sec: 'Security',
+  ai: 'AI management',
+});
+export const LENS_REF = Object.freeze({
+  saf: 'ED-153',
+  sec: 'OWASP ASVS',
+  ai: 'ISO/IEC 42001',
 });
 
 /** Layers in the order the cockpit lists them; `on` is the first-load state. */
@@ -74,11 +111,11 @@ export const FADED = 0.15;
 export function severityOf(item) {
   if (item.status !== 'P' && item.status !== 'N') return null;
   if (item.sev) return item.sev;
-  if (item.lens === 'sec') return item.status === 'N' ? 'SH' : 'SM';
+  if (item.lens !== 'saf') return item.status === 'N' ? 'SH' : 'SM';
   return item.status === 'N' ? 'S2' : 'S3';
 }
 
-/** A must-fix item blocks a claim: S1–S2 for safety, Critical–High for security. */
+/** A must-fix item blocks a claim: S1–S2 for safety, Critical–High otherwise. */
 export function isBlocking(item) {
   const sev = severityOf(item);
   return sev != null && RANK[sev] <= 1;
@@ -94,8 +131,21 @@ function isApplicable(item) {
  */
 export function rollup(items, lens, { swal = 3, asvsLevel = 2 } = {}) {
   const scope = items.filter(
-    (i) => i.lens === lens && (lens === 'sec' ? !i.out : isApplicable(i)),
+    (i) => i.lens === lens && (lens === 'saf' ? isApplicable(i) : !i.out),
   );
+  const claim = {
+    saf: [
+      `SWAL ${swal} claim not supported`,
+      'Supported with conditions',
+      `SWAL ${swal} claim supported`,
+    ],
+    sec: [
+      `ASVS L${asvsLevel} not met`,
+      `L${asvsLevel} met with conditions`,
+      `ASVS L${asvsLevel} met`,
+    ],
+    ai: ['ISO 42001 not met', 'ISO 42001 met with conditions', 'ISO 42001 met'],
+  }[lens];
   const counts = { C: 0, L: 0, P: 0, N: 0, NA: 0 };
   let score = 0;
   let scored = 0;
@@ -118,25 +168,16 @@ export function rollup(items, lens, { swal = 3, asvsLevel = 2 } = {}) {
   let state;
   if (counts.N || blocking) {
     state = 'blocked';
-    verdict =
-      lens === 'saf'
-        ? `SWAL ${swal} claim not supported`
-        : `ASVS L${asvsLevel} not met`;
+    verdict = claim[0];
   } else if (unrated) {
     state = 'incomplete';
     verdict = `Incomplete · ${scope.length - unrated} of ${scope.length} rated`;
   } else if (counts.P) {
     state = 'conditions';
-    verdict =
-      lens === 'saf'
-        ? 'Supported with conditions'
-        : `L${asvsLevel} met with conditions`;
+    verdict = claim[1];
   } else {
     state = 'ok';
-    verdict =
-      lens === 'saf'
-        ? `SWAL ${swal} claim supported`
-        : `ASVS L${asvsLevel} met`;
+    verdict = claim[2];
   }
   return {
     readiness: scored ? score / scored : 0,
@@ -150,13 +191,17 @@ export function rollup(items, lens, { swal = 3, asvsLevel = 2 } = {}) {
   };
 }
 
-/** One plain-English status line for the whole item. */
-export function headline(saf, sec) {
-  const n = saf.blocking + sec.blocking;
-  if (saf.state === 'ok' && sec.state === 'ok')
-    return 'Cleared: safe-and-secure claim supported on both standards';
+/**
+ * One plain-English status line for the whole item.
+ * @param {...object} lenses rollups, one per ring (missing rings are skipped)
+ */
+export function headline(...lenses) {
+  const all = lenses.filter(Boolean);
+  const n = all.reduce((sum, r) => sum + r.blocking, 0);
+  if (all.every((r) => r.state === 'ok'))
+    return `Cleared: claim supported on all ${all.length} standards`;
   if (n === 0) return 'Nearly there: no must-fix items left; conditions apply';
-  return `Not cleared yet: ${n} item${n === 1 ? '' : 's'} block a safe-and-secure claim`;
+  return `Not cleared yet: ${n} item${n === 1 ? '' : 's'} block a safe, secure and accountable claim`;
 }
 
 /**
@@ -167,7 +212,7 @@ export function headline(saf, sec) {
 export function layout(items) {
   const nodes = [];
   const groups = [];
-  for (const lens of ['saf', 'sec']) {
+  for (const lens of LENSES) {
     const ring = RINGS[lens];
     const list = items.filter((i) => i.lens === lens);
     const runs = [];
@@ -266,25 +311,30 @@ export function nodeOpacity(
 
 /** The themes (shared evidence) an item takes part in. */
 export function themesFor(themes, id) {
-  return themes.filter((t) => t.saf.includes(id) || t.sec.includes(id));
+  return themes.filter((t) => lensIds(t).includes(id));
+}
+
+/** Every item id a theme names, on all rings. */
+export function lensIds(theme) {
+  return LENSES.flatMap((lens) => theme[lens] || []);
 }
 
 /** Items linked to `id` through any shared theme (excluding itself). */
 export function linkedIds(themes, id) {
   const out = new Set();
   for (const t of themesFor(themes, id))
-    for (const other of [...t.saf, ...t.sec]) if (other !== id) out.add(other);
+    for (const other of lensIds(t)) if (other !== id) out.add(other);
   return out;
 }
 
-/** Must-fix items, most severe first, security before safety on ties. */
+/** Must-fix items, most severe first; on ties security, then safety, then AI. */
 export function mustFix(items) {
   return items
     .filter(isBlocking)
     .sort(
       (a, b) =>
         RANK[severityOf(a)] - RANK[severityOf(b)] ||
-        (a.lens === b.lens ? 0 : a.lens === 'sec' ? -1 : 1),
+        LENS_ORDER[a.lens] - LENS_ORDER[b.lens],
     );
 }
 

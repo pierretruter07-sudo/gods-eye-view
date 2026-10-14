@@ -114,6 +114,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-AUD-010 | `src/audit/cameraMath.js` `interpolateRig`, `src/audit/runtime.js` `flyRig` | T: `src/audit/audit.test.mjs` "the tour camera rig reproduces the home framing and keeps its target in view" |
 | GEV-AUD-011 | `src/audit/impact.js`, `src/audit/cockpit.js` `setDetail` | T: `src/audit/audit.test.mjs` "every item says how it affects God’s Eye View; must-fix items in their own words" |
 | GEV-AUD-012 | `src/audit/progress.js` `stopStory`, `src/audit/runtime.js` `playStep` | T: `src/audit/audit.test.mjs` "the narrated playback explains each stop: what it fixes, what it closes, what it unlocks" |
+| GEV-AUD-013 | `src/audit/model.js` `RINGS.ai`, `rollup`, `src/audit/scene.js`, `src/audit/cockpit.js`, `src/audit/impact.js` | T: `src/audit/audit.test.mjs` "the audit snapshot rolls up to the ledger baseline readiness and verdicts", "projected stops reproduce the plan’s readiness journey, wave by wave", "every item sits once on its ring" |
 
 ## 3. Coverage of code by requirements
 

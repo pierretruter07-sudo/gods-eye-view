@@ -172,7 +172,7 @@ export function stopStory(ledger, index, before, after, mustIds) {
     who: wave?.who || 'CrossCheck',
     fixes: wave
       ? wave.fixes || wave.exit || ''
-      : `CrossCheck rated every applicable objective and requirement against the code and documents: ${gaps} gaps, ${must} of them must-fix before any safe-and-secure claim.`,
+      : `CrossCheck rated every applicable objective and requirement against the code and documents: ${gaps} gaps, ${must} of them must-fix before a claim can be made on any of the three standards.`,
     unlocks: wave
       ? wave.unlocks || ''
       : `The plan gives every gap one owner and one wave, so the work can start with the quickest risk reduction.`,

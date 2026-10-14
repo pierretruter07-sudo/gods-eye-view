@@ -8,18 +8,19 @@
  */
 import {
   LAYERS,
-  SEC_STATUS_NAME,
+  LENS_NAME,
+  LENS_REF,
   SEVERITY_NAME,
-  STATUS_NAME,
   headline,
   pct,
   severityOf,
+  statusNames,
 } from './model.js';
 import { cardFor, shorten } from './plain.js';
 import { PARTS, impactFor } from './impact.js';
 
 const MARK =
-  '<svg width="26" height="17" viewBox="0 0 34 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#7aa7dc" stroke-width="2"/><circle cx="22" cy="12" r="9.5" fill="none" stroke="#a294dc" stroke-width="2"/></svg>';
+  '<svg width="26" height="17" viewBox="0 0 34 24" aria-hidden="true"><circle cx="10" cy="12" r="8" fill="none" stroke="#7aa7dc" stroke-width="2"/><circle cx="17" cy="12" r="8" fill="none" stroke="#a294dc" stroke-width="2"/><circle cx="24" cy="12" r="8" fill="none" stroke="#d890c0" stroke-width="2"/></svg>';
 const RESET_ICON =
   '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.6-3.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3.2 1.8v3h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -44,8 +45,7 @@ function dial(value, color) {
 }
 
 function statusName(item) {
-  const names = item.lens === 'sec' ? SEC_STATUS_NAME : STATUS_NAME;
-  return names[item.status] || 'Not rated';
+  return statusNames(item.lens)[item.status] || 'Not rated';
 }
 
 /** A collapsible rail section. */
@@ -81,8 +81,10 @@ export function createCockpit(o) {
   brand.append(h('b', null, 'CrossCheck'), h('span', null, o.data.item));
   const status = h('p', 'gev-audit-status');
   const sq = h('i', 'gev-audit-sq');
-  sq.dataset.tone = o.saf.state === 'ok' && o.sec.state === 'ok' ? 'ok' : 'bad';
-  const statusText = h('span', null, headline(o.saf, o.sec));
+  sq.dataset.tone = [o.saf, o.sec, o.ai].every((r) => r.state === 'ok')
+    ? 'ok'
+    : 'bad';
+  const statusText = h('span', null, headline(o.saf, o.sec, o.ai));
   status.append(sq, statusText);
   status.title = statusText.textContent;
   const actions = h('div', 'gev-audit-actions');
@@ -98,7 +100,7 @@ export function createCockpit(o) {
   const title = h(
     'h1',
     'gev-audit-pagetitle',
-    'Find, fix and prove every gap to global safety and security standards',
+    'Find, fix and prove every gap to global safety, security and AI standards',
   );
   title.title = title.textContent;
   top.append(brand, title, actions);
@@ -118,6 +120,7 @@ export function createCockpit(o) {
   for (const [lens, color, name] of [
     ['saf', '#7aa7dc', 'Safety · ED-153'],
     ['sec', '#a294dc', `Security · ASVS L${o.data.asvsLevel}`],
+    ['ai', '#d890c0', 'AI management · ISO 42001'],
   ]) {
     const row = h('div', `gev-ready is-${lens}`);
     const g = h('div', 'gev-ready-dial');
@@ -158,6 +161,7 @@ export function createCockpit(o) {
   for (const [lens, name] of [
     ['sec', 'Security'],
     ['saf', 'Safety'],
+    ['ai', 'AI management'],
   ]) {
     const items = o.must.filter((i) => i.lens === lens);
     if (!items.length) continue;
@@ -221,7 +225,8 @@ export function createCockpit(o) {
   for (const [cls, text] of [
     ['core', 'Centre: the software being checked'],
     ['saf', 'Inner ring: safety objectives (ED-153)'],
-    ['sec', 'Outer ring: security requirements (OWASP ASVS)'],
+    ['sec', 'Middle ring: security requirements (OWASP ASVS)'],
+    ['ai', 'Outer ring: AI management system (ISO/IEC 42001)'],
     ['pin', 'Raised pins: must fix before a claim'],
   ]) {
     const li = h('li');
@@ -363,7 +368,7 @@ export function createCockpit(o) {
     const { item, linked, finding } = sel;
     const card = cardFor(item);
     const sev = severityOf(item);
-    const lensName = item.lens === 'sec' ? 'Security' : 'Safety';
+    const lensName = LENS_NAME[item.lens];
     const blocking =
       sev === 'S1' || sev === 'S2' || sev === 'SC' || sev === 'SH';
     detailZone.dataset.tone = blocking
@@ -381,7 +386,7 @@ export function createCockpit(o) {
       h(
         'span',
         'gev-audit-ref',
-        `${item.lens === 'sec' ? 'ASVS' : 'ED-153'} ${item.id} · ${item.lens === 'sec' ? `${item.group} ${item.groupName}` : item.groupName}`,
+        `${LENS_REF[item.lens]} ${item.id} · ${item.lens === 'saf' ? item.groupName : `${item.group} ${item.groupName}`}`,
       ),
     ];
     // First: what this gap does to God's Eye View itself.
@@ -449,25 +454,25 @@ export function createCockpit(o) {
   }
 
   /** Show the state at a timeline stop: dials, headline, must-fix ticks. */
-  function setStop({ stop, saf, sec, baseSaf, baseSec, closed }) {
+  function setStop({ stop, saf, sec, ai, baseSaf, baseSec, baseAi, closed }) {
     setReadiness('saf', saf, baseSaf);
     setReadiness('sec', sec, baseSec);
-    ready.meta.textContent = `${pct(saf.readiness)} · ${pct(sec.readiness)}`;
+    setReadiness('ai', ai, baseAi);
+    ready.meta.textContent = `${pct(saf.readiness)} · ${pct(sec.readiness)} · ${pct(ai.readiness)}`;
     const projected = stop.kind === 'projected';
     readyNote.textContent = projected
       ? `Projected for ${stop.label} (${stop.name}) if every planned fix lands.`
       : stop.index === 0
         ? `Baseline audit, ${stop.audit.date}.`
         : `Measured at ${stop.audit.label}, ${stop.audit.date}.`;
-    statusText.textContent = `${projected ? 'Projected · ' : ''}${headline(saf, sec)}`;
+    statusText.textContent = `${projected ? 'Projected · ' : ''}${headline(saf, sec, ai)}`;
     status.title = statusText.textContent;
     status.dataset.projected = String(projected);
-    sq.dataset.tone =
-      saf.state === 'ok' && sec.state === 'ok'
-        ? 'ok'
-        : saf.blocking + sec.blocking
-          ? 'bad'
-          : 'warn';
+    sq.dataset.tone = [saf, sec, ai].every((r) => r.state === 'ok')
+      ? 'ok'
+      : saf.blocking + sec.blocking + ai.blocking
+        ? 'bad'
+        : 'warn';
     banner.hidden = !projected;
     bannerText.textContent = `${stop.label} · ${stop.name}: the plan's target, not yet measured`;
     let open = 0;
@@ -492,8 +497,10 @@ export function createCockpit(o) {
     story: st,
     saf,
     sec,
+    ai,
     prevSaf,
     prevSec,
+    prevAi,
     step,
     total,
     ms,
@@ -528,6 +535,7 @@ export function createCockpit(o) {
     for (const [name, now, was, cls] of [
       ['Safety', saf, prevSaf, 'is-saf'],
       ['Security', sec, prevSec, 'is-sec'],
+      ['AI', ai, prevAi, 'is-ai'],
     ]) {
       const c = h('div', `gev-story-num ${cls}`);
       const big = h('b', null, pct(now.readiness));

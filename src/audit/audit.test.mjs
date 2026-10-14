@@ -43,7 +43,12 @@ test('the audit snapshot rolls up to the ledger baseline readiness and verdicts'
   const atBase = itemsAt(ledger, data.items, 0);
   const saf = rollup(atBase, 'saf', opts);
   const sec = rollup(atBase, 'sec', opts);
+  const ai = rollup(atBase, 'ai', opts);
   const base = ledger.audits[0];
+  assert.ok(near(ai.readiness, base.ai.readiness, 1e-4));
+  assert.equal(ai.verdict, base.ai.verdict);
+  assert.equal(ai.open, base.ai.open);
+  assert.equal(ai.blocking, 8);
   assert.ok(near(saf.readiness, base.safety.readiness, 1e-4));
   assert.ok(near(sec.readiness, base.security.readiness, 1e-4));
   assert.equal(saf.verdict, base.safety.verdict);
@@ -71,7 +76,8 @@ test('the audit snapshot rolls up to the ledger baseline readiness and verdicts'
 
 test('every must-fix item has a plain-English card, and no card is stale', () => {
   const ids = mustFix(itemsAt(ledger, data.items, 0)).map((i) => i.id);
-  assert.equal(ids.length, 20);
+  assert.equal(ids.length, 28);
+  assert.equal(ids.filter((id) => /^(C\d|A\.)/.test(id)).length, 8);
   for (const id of ids) assert.ok(PLAIN[id], `missing plain card for ${id}`);
   for (const id of Object.keys(PLAIN))
     assert.ok(ids.includes(id), `stale plain card ${id}`);
@@ -92,6 +98,8 @@ test('every item sits once on its ring, with the must-fix pins raised', () => {
   }
   assert.equal(groups.filter((g) => g.lens === 'saf').length, 22);
   assert.equal(groups.filter((g) => g.lens === 'sec').length, 17);
+  assert.equal(groups.filter((g) => g.lens === 'ai').length, 16);
+  assert.ok(RINGS.ai.radius > RINGS.sec.radius);
   const anchor = nodes.find((n) => n.id === 'V8.2.1');
   assert.ok(near(anchor.angle, RINGS.sec.start, 1e-9));
 });
@@ -113,6 +121,7 @@ test('linked items come from the shared evidence themes', () => {
   assert.deepEqual([...linkedIds(data.themes, 'V8.2.1')].sort(), [
     '3.1.2',
     '4.4.2',
+    'C4.3',
     'V13.1.1',
     'V3.4.3',
   ]);
@@ -124,8 +133,13 @@ test('the headline states how many items block a claim', () => {
   const sec = rollup(data.items, 'sec');
   assert.equal(
     headline(saf, sec),
-    'Not cleared yet: 20 items block a safe-and-secure claim',
+    'Not cleared yet: 20 items block a safe, secure and accountable claim',
   );
+  assert.equal(
+    headline(saf, sec, rollup(data.items, 'ai')),
+    'Not cleared yet: 28 items block a safe, secure and accountable claim',
+  );
+  assert.equal(isBlocking({ lens: 'ai', status: 'N' }), true);
   assert.equal(isBlocking({ lens: 'sec', status: 'N' }), true);
   assert.equal(isBlocking({ lens: 'saf', status: 'P', sev: 'S3' }), false);
 });
@@ -174,13 +188,14 @@ test('the overlay camera copies Cesium’s camera in Earth radii', () => {
 
 test('the evidence view reads the ledger top down: progress and journey', () => {
   const p = ledgerProgress(ledger, data.items);
-  assert.equal(p.total, 103);
-  assert.equal(p.blockTotal, 20);
+  assert.equal(p.total, 159);
+  assert.equal(p.blockTotal, 28);
   assert.ok(p.closed >= 0 && p.closed <= p.total);
   const j = readinessJourney(ledger);
   assert.equal(j.points[0].label, 'Baseline');
   assert.equal(j.points[0].kind, 'actual');
   assert.equal(j.points.length, 5);
+  assert.equal(j.points[0].ai, ledger.audits[0].ai.readiness);
 });
 
 test('the tour camera rig reproduces the home framing and keeps its target in view', () => {
@@ -217,6 +232,11 @@ test('projected stops reproduce the plan’s readiness journey, wave by wave', (
     const at = itemsAt(ledger, data.items, w);
     const saf = rollup(at, 'saf', opts);
     const sec = rollup(at, 'sec', opts);
+    const ai = rollup(at, 'ai', opts);
+    assert.ok(
+      near(ai.readiness, j.ai, 1e-3),
+      `AI at stop ${w}: ${ai.readiness} vs ${j.ai}`,
+    );
     assert.ok(
       near(saf.readiness, j.safety, 1e-3),
       `safety at stop ${w}: ${saf.readiness} vs ${j.safety}`,
@@ -232,6 +252,8 @@ test('projected stops reproduce the plan’s readiness journey, wave by wave', (
   const end = itemsAt(ledger, data.items, stops.length - 1);
   const endSaf = rollup(end, 'saf', opts);
   const endSec = rollup(end, 'sec', opts);
+  const endAi = rollup(end, 'ai', opts);
+  assert.ok(near(endAi.readiness, full.ai, 1e-3));
   assert.ok(near(endSaf.readiness, full.safety, 1e-3));
   assert.ok(near(endSec.readiness, full.security, 1e-3));
   assert.equal(endSaf.verdict, 'SWAL 3 claim supported');

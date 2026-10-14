@@ -22,6 +22,7 @@ const COLOR = {
   OUT: 0x2a3546,
   saf: 0x7aa7dc,
   sec: 0xa294dc,
+  ai: 0xd890c0,
   link: 0x9fb6d4,
   linkHot: 0xffd0c8,
   FIXED: 0x6fe3b0,
@@ -32,6 +33,7 @@ const BASE = Object.freeze({
   core: 1,
   saf: 1,
   sec: 1,
+  ai: 1,
   tube: 1,
   floor: 1,
   links: 1,
@@ -41,9 +43,42 @@ const BASE = Object.freeze({
 /** Tour emphasis: multipliers on each part's opacity. */
 const EMPHASIS = Object.freeze({
   none: BASE,
-  core: { ...BASE, core: 1.6, saf: 0.22, sec: 0.22, floor: 0.4, links: 0.2 },
-  saf: { ...BASE, saf: 1.7, sec: 0.1, core: 0.35, links: 0.2, floor: 0.6 },
-  sec: { ...BASE, sec: 1.7, saf: 0.1, core: 0.35, links: 0.2, floor: 0.6 },
+  core: {
+    ...BASE,
+    core: 1.6,
+    saf: 0.22,
+    sec: 0.22,
+    ai: 0.22,
+    floor: 0.4,
+    links: 0.2,
+  },
+  saf: {
+    ...BASE,
+    saf: 1.7,
+    sec: 0.1,
+    ai: 0.1,
+    core: 0.35,
+    links: 0.2,
+    floor: 0.6,
+  },
+  sec: {
+    ...BASE,
+    sec: 1.7,
+    saf: 0.1,
+    ai: 0.1,
+    core: 0.35,
+    links: 0.2,
+    floor: 0.6,
+  },
+  ai: {
+    ...BASE,
+    ai: 1.7,
+    saf: 0.1,
+    sec: 0.1,
+    core: 0.35,
+    links: 0.2,
+    floor: 0.6,
+  },
   mustfix: {
     ...BASE,
     must: 1.3,
@@ -179,7 +214,7 @@ export function createOrbitScene({ nodes, groups, themes }) {
     key: 'rings',
     part: 'floor',
   });
-  for (const r of [2.6, 4.3, 5.9, 7.5])
+  for (const r of [2.6, 4.3, 5.9, 7.5, 8.6, 10.3])
     rings.add(new THREE.Line(circle(r, -1.47), floorMat));
 
   for (const g of groups) {
@@ -213,7 +248,7 @@ export function createOrbitScene({ nodes, groups, themes }) {
         new THREE.TubeGeometry(
           new THREE.CatmullRomCurve3(pts),
           48,
-          g.lens === 'sec' ? 0.02 : 0.019,
+          g.lens === 'saf' ? 0.019 : g.lens === 'sec' ? 0.02 : 0.022,
           6,
           false,
         ),
@@ -297,22 +332,28 @@ export function createOrbitScene({ nodes, groups, themes }) {
 
   // ── Links between the standards (shared evidence themes) ──────────────
   const links = [];
+  const PAIRS = [
+    ['saf', 'sec'],
+    ['saf', 'ai'],
+    ['sec', 'ai'],
+  ];
   themes.forEach((t, ti) => {
-    for (const a of t.saf)
-      for (const b of t.sec) {
-        const A = byId.get(a);
-        const B = byId.get(b);
-        if (!A || !B) continue;
-        const material = new THREE.MeshBasicMaterial({
-          color: COLOR.link,
-          transparent: true,
-          opacity: 0,
-          depthWrite: false,
-        });
-        const mesh = new THREE.Mesh(new THREE.BufferGeometry(), material);
-        rings.add(mesh);
-        links.push({ theme: ti, a, b, mesh, material, built: -1 });
-      }
+    for (const [la, lb] of PAIRS)
+      for (const a of t[la] || [])
+        for (const b of t[lb] || []) {
+          const A = byId.get(a);
+          const B = byId.get(b);
+          if (!A || !B) continue;
+          const material = new THREE.MeshBasicMaterial({
+            color: COLOR.link,
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+          });
+          const mesh = new THREE.Mesh(new THREE.BufferGeometry(), material);
+          rings.add(mesh);
+          links.push({ theme: ti, a, b, mesh, material, built: -1 });
+        }
   });
 
   // ── Selection marks ───────────────────────────────────────────────────
@@ -336,8 +377,8 @@ export function createOrbitScene({ nodes, groups, themes }) {
     layers: {},
     selected: null,
     linked: new Set(),
-    pulse: null, // { key: 'saf'|'sec'|'core'|'mustfix', until }
-    emphasis: null, // the tour's focus: 'core'|'saf'|'sec'|'mustfix'|'links'
+    pulse: null, // { key: 'saf'|'sec'|'ai'|'core'|'mustfix', until }
+    emphasis: null, // the tour's focus: 'core'|'saf'|'sec'|'ai'|'mustfix'|'links'
   };
   // Emphasis factors, eased towards their targets each frame.
   const ef = { ...EMPHASIS.none };
