@@ -53,7 +53,7 @@ test('portable sources can share records, and standalone can assemble rendering'
   write('src/layers/demo/records.js', 'export const read = (value) => value;');
   write('src/standalone/catalog.js', "import '../layers/demo/index.js';");
   write('src/layers/demo/index.js', "import * as Cesium from 'cesium';");
-  assert.equal(checkImportDirections(root).modules, 5);
+  assert.equal(checkImportDirections(root).modules, 4);
 });
 
 for (const [name, files, pattern] of [

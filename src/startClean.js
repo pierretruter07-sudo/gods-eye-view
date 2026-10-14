@@ -9,7 +9,11 @@
 try {
   if (!new URLSearchParams(window.location.search).has('restore')) {
     if (window.location.hash)
-      history.replaceState(null, '', window.location.pathname + window.location.search);
+      history.replaceState(
+        null,
+        '',
+        window.location.pathname + window.location.search,
+      );
     window.localStorage?.removeItem('gev:layer-state:v2');
   }
 } catch {

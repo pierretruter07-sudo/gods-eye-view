@@ -17,13 +17,24 @@ const COPY = {
   kicker: "God's Eye View",
   title: "Welcome to the God's Eye View dashboard",
   by: 'Developed by Digital Dynamics Group',
-  lead:
-    'A live, real-time picture of the planet built entirely from public data — and an intelligence layer on top of it, in the style of the analytic platforms used by defence and security organisations.',
+  lead: 'A live, real-time picture of the planet built entirely from public data — and an intelligence layer on top of it, in the style of the analytic platforms used by defence and security organisations.',
   points: [
-    ['Live feeds', 'Aircraft (ADS-B), military flights, ships (AIS), satellites (orbital data) and earthquakes (USGS), updated continuously.'],
-    ['The Director', 'An automated narrator tours the globe on its own, flying to emergencies, airports, naval and military traffic, ships and satellites, and describing what the feeds show.'],
-    ['Intel view', 'Click any contact for up to four cards of live data and context, plus analyst actions. Live data is tagged FEED; illustrative content is tagged SIMULATED.'],
-    ['Triage', 'A ranked queue of what needs attention right now — emergency squawks, significant earthquakes and state assets — plus your own watchlist and areas of interest.'],
+    [
+      'Live feeds',
+      'Aircraft (ADS-B), military flights, ships (AIS), satellites (orbital data) and earthquakes (USGS), updated continuously.',
+    ],
+    [
+      'The Director',
+      'An automated narrator tours the globe on its own, flying to emergencies, airports, naval and military traffic, ships and satellites, and describing what the feeds show.',
+    ],
+    [
+      'Intel view',
+      'Click any contact for up to four cards of live data and context, plus analyst actions. Live data is tagged FEED; illustrative content is tagged SIMULATED.',
+    ],
+    [
+      'Triage',
+      'A ranked queue of what needs attention right now — emergency squawks, significant earthquakes and state assets — plus your own watchlist and areas of interest.',
+    ],
   ],
 };
 

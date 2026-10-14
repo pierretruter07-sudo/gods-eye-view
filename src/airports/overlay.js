@@ -35,7 +35,8 @@ export function createAirportOverlay(viewer) {
     const lat1 = lat * r;
     const lon1 = lon * r;
     const lat2 = Math.asin(
-      Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(br),
+      Math.sin(lat1) * Math.cos(d) +
+        Math.cos(lat1) * Math.sin(d) * Math.cos(br),
     );
     const lon2 =
       lon1 +
@@ -56,7 +57,10 @@ export function createAirportOverlay(viewer) {
     collection.entities.add({
       polyline: {
         positions: Cesium.Cartesian3.fromDegreesArray([
-          profile.lon, profile.lat, far.lon, far.lat,
+          profile.lon,
+          profile.lat,
+          far.lon,
+          far.lat,
         ]),
         width: 2,
         material: new Cesium.PolylineDashMaterialProperty({
@@ -89,10 +93,15 @@ export function createAirportOverlay(viewer) {
     drawApproach(profile);
     for (const f of flights || []) {
       if (!Number.isFinite(f?.lat) || !Number.isFinite(f?.lon)) continue;
-      if (distanceKm(profile.lat, profile.lon, f.lat, f.lon) > profile.terminalRadiusKm)
+      if (
+        distanceKm(profile.lat, profile.lon, f.lat, f.lon) >
+        profile.terminalRadiusKm
+      )
         continue;
       const { phase, label } = derivePhase(f, profile);
-      const color = Cesium.Color.fromCssColorString(PHASE_COLOR[phase] || '#f5f7fa');
+      const color = Cesium.Color.fromCssColorString(
+        PHASE_COLOR[phase] || '#f5f7fa',
+      );
       const name = f.callsign || f.icao24 || 'contact';
       collection.entities.add({
         position: Cesium.Cartesian3.fromDegrees(

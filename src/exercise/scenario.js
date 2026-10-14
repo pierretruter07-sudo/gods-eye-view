@@ -14,15 +14,21 @@ export const SCENARIOS = Object.freeze({
     id: 'grey-tide',
     name: 'Operation Grey Tide',
     theatre: 'Kestran Federation',
-    blurb: 'Coastal-desert theatre. Coalition tasking against a fictional forward airfield.',
+    blurb:
+      'Coastal-desert theatre. Coalition tasking against a fictional forward airfield.',
     /** Camera home for the theatre overview. */
     overview: { lat: 20.5, lon: 49.0, rangeM: 900_000, pitchDeg: -55 },
     adversary: 'Kestran Federation',
     friendly: 'Meridian Coalition',
     /** Invented border ring (lon/lat pairs) — a soft blob, not any real border. */
     border: [
-      [46.5, 23.5], [50.5, 24.0], [52.5, 21.5], [51.5, 18.5],
-      [48.5, 17.5], [45.5, 19.5], [46.5, 23.5],
+      [46.5, 23.5],
+      [50.5, 24.0],
+      [52.5, 21.5],
+      [51.5, 18.5],
+      [48.5, 17.5],
+      [45.5, 19.5],
+      [46.5, 23.5],
     ],
     target: {
       id: 'zarin-west',
@@ -41,8 +47,22 @@ export const SCENARIOS = Object.freeze({
     },
     /** Abstract air-defence coverage: a game ring, not real SAM data. */
     threats: [
-      { id: 'sam-north', name: 'Area air-defence (long-range)', lat: 21.1, lon: 49.9, radiusKm: 120, band: 'high' },
-      { id: 'sam-point', name: 'Point defence (short-range)', lat: 20.6, lon: 49.4, radiusKm: 25, band: 'medium' },
+      {
+        id: 'sam-north',
+        name: 'Area air-defence (long-range)',
+        lat: 21.1,
+        lon: 49.9,
+        radiusKm: 120,
+        band: 'high',
+      },
+      {
+        id: 'sam-point',
+        name: 'Point defence (short-range)',
+        lat: 20.6,
+        lon: 49.4,
+        radiusKm: 25,
+        band: 'medium',
+      },
     ],
   },
 });

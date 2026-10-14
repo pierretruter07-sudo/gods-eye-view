@@ -65,7 +65,10 @@ export function createSubjectVisual(viewer, { position, dataManager = null }) {
   // The vessels layer's flat icon would sit on top of the 3D ship; hide it.
   const vesselIcons = () => dataManager?.getLayerModule?.('ais-live-vessels');
   let headingDeg = 0;
-  const pos = new Cesium.CallbackProperty((time, result) => position(result), false);
+  const pos = new Cesium.CallbackProperty(
+    (time, result) => position(result),
+    false,
+  );
 
   const ship = viewer.entities.add({
     show: false,
@@ -73,8 +76,18 @@ export function createSubjectVisual(viewer, { position, dataManager = null }) {
     orientation: new Cesium.CallbackProperty((time, result) => {
       const p = position();
       if (!p) return undefined;
-      const hpr = new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(headingDeg + SHIP_HEADING_OFFSET_DEG), 0, 0);
-      return Cesium.Transforms.headingPitchRollQuaternion(p, hpr, Cesium.Ellipsoid.WGS84, undefined, result);
+      const hpr = new Cesium.HeadingPitchRoll(
+        Cesium.Math.toRadians(headingDeg + SHIP_HEADING_OFFSET_DEG),
+        0,
+        0,
+      );
+      return Cesium.Transforms.headingPitchRollQuaternion(
+        p,
+        hpr,
+        Cesium.Ellipsoid.WGS84,
+        undefined,
+        result,
+      );
     }, false),
     model: {
       uri: SHIP_MODEL_URL,
@@ -98,7 +111,11 @@ export function createSubjectVisual(viewer, { position, dataManager = null }) {
 
   return {
     show(o) {
-      headingDeg = Number.isFinite(o.courseDeg) ? o.courseDeg : Number.isFinite(o.heading) ? o.heading : 0;
+      headingDeg = Number.isFinite(o.courseDeg)
+        ? o.courseDeg
+        : Number.isFinite(o.heading)
+          ? o.heading
+          : 0;
       ship.show = o.kind === 'vessel';
       sat.show = o.kind === 'satellite';
       vesselIcons()?.suppressIcon?.(o.kind === 'vessel' ? o.mmsi : null);

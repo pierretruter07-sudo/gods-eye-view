@@ -121,7 +121,11 @@ function ecef(o) {
   const la = (o.lat * Math.PI) / 180;
   const lo = (o.lon * Math.PI) / 180;
   const r = R + (o.heightM || 0);
-  return [r * Math.cos(la) * Math.cos(lo), r * Math.cos(la) * Math.sin(lo), r * Math.sin(la)];
+  return [
+    r * Math.cos(la) * Math.cos(lo),
+    r * Math.cos(la) * Math.sin(lo),
+    r * Math.sin(la),
+  ];
 }
 /** Straight-line distance in km between two intel objects (altitude-aware). */
 export function distanceKm(a, b) {
@@ -131,10 +135,19 @@ export function distanceKm(a, b) {
 }
 
 /** Search radius per kind: satellites look much wider than surface contacts. */
-export const NEARBY_KM = Object.freeze({ aircraft: 150, vessel: 100, satellite: 1500, earthquake: 300 });
+export const NEARBY_KM = Object.freeze({
+  aircraft: 150,
+  vessel: 100,
+  satellite: 1500,
+  earthquake: 300,
+});
 
 /** Real contacts near `o`, nearest first. Geometry only — no inference. */
-export function nearbyObjects(objects, o, { limit = 5, radiusKm = NEARBY_KM[o.kind] || 150 } = {}) {
+export function nearbyObjects(
+  objects,
+  o,
+  { limit = 5, radiusKm = NEARBY_KM[o.kind] || 150 } = {},
+) {
   const out = [];
   for (const x of objects) {
     if (x.key === o.key) continue;
@@ -148,5 +161,7 @@ export function nearbyObjects(objects, o, { limit = 5, radiusKm = NEARBY_KM[o.ki
 /** Objects inside a circular area of interest (surface distance). */
 export function insideArea(objects, area) {
   const centre = { lat: area.lat, lon: area.lon, heightM: 0 };
-  return objects.filter((x) => distanceKm(centre, { ...x, heightM: 0 }) <= area.radiusKm);
+  return objects.filter(
+    (x) => distanceKm(centre, { ...x, heightM: 0 }) <= area.radiusKm,
+  );
 }

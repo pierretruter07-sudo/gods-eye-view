@@ -25,7 +25,10 @@ export function createController({
 
   function _flightQuery(viewer) {
     if (queryAnchor && Date.now() < queryAnchor.until)
-      return { latitude: queryAnchor.latitude, longitude: queryAnchor.longitude };
+      return {
+        latitude: queryAnchor.latitude,
+        longitude: queryAnchor.longitude,
+      };
     queryAnchor = null;
     // Ask for aircraft around what the camera is LOOKING at (screen centre),
     // not where the camera hangs — at an oblique airport view those differ
@@ -35,7 +38,10 @@ export function createController({
       const centre =
         canvas &&
         viewer.camera.pickEllipsoid(
-          new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2),
+          new Cesium.Cartesian2(
+            canvas.clientWidth / 2,
+            canvas.clientHeight / 2,
+          ),
         );
       if (centre) {
         const c = Cesium.Cartographic.fromCartesian(centre);

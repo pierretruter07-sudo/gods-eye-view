@@ -20,8 +20,18 @@ function factRows(event) {
     return [
       ['Callsign', f.callsign],
       ['Squawk', `${f.squawk} · ${f.meaning}`],
-      ['Altitude', f.onGround ? 'On ground' : f.altitudeM != null ? `${Math.round(f.altitudeM * FT_PER_M).toLocaleString('en-US')} ft` : null],
-      ['Speed', f.speedMps != null ? `${Math.round(f.speedMps * KT_PER_MPS)} kt` : null],
+      [
+        'Altitude',
+        f.onGround
+          ? 'On ground'
+          : f.altitudeM != null
+            ? `${Math.round(f.altitudeM * FT_PER_M).toLocaleString('en-US')} ft`
+            : null,
+      ],
+      [
+        'Speed',
+        f.speedMps != null ? `${Math.round(f.speedMps * KT_PER_MPS)} kt` : null,
+      ],
       ['Heading', f.heading != null ? `${Math.round(f.heading)}°` : null],
       ['Operator', f.operator],
     ];
@@ -33,9 +43,19 @@ function factRows(event) {
   ];
 }
 
-export function createTourUi({ onState = () => {}, root = document.body } = {}) {
-  const caption = el('div', { class: 'gev-caption gev-glass', 'aria-live': 'polite', 'data-visible': 'false' });
-  const card = el('aside', { class: 'gev-alert gev-glass', 'aria-live': 'assertive' });
+export function createTourUi({
+  onState = () => {},
+  root = document.body,
+} = {}) {
+  const caption = el('div', {
+    class: 'gev-caption gev-glass',
+    'aria-live': 'polite',
+    'data-visible': 'false',
+  });
+  const card = el('aside', {
+    class: 'gev-alert gev-glass',
+    'aria-live': 'assertive',
+  });
   card.hidden = true;
   root.append(caption, card);
 
@@ -60,8 +80,16 @@ export function createTourUi({ onState = () => {}, root = document.body } = {}) 
       card.dataset.simulated = String(event.simulated);
       const head = el('div', { class: 'gev-alert__head' });
       head.append(
-        el('span', { class: 'gev-alert__badge' }, event.simulated ? 'SIMULATED' : 'LIVE ALERT'),
-        el('span', { class: 'gev-alert__source' }, event.kind === 'aircraft' ? 'ADS-B' : 'USGS'),
+        el(
+          'span',
+          { class: 'gev-alert__badge' },
+          event.simulated ? 'SIMULATED' : 'LIVE ALERT',
+        ),
+        el(
+          'span',
+          { class: 'gev-alert__source' },
+          event.kind === 'aircraft' ? 'ADS-B' : 'USGS',
+        ),
       );
       card.append(head, el('h2', { class: 'gev-alert__title' }, event.title));
       const facts = el('dl', { class: 'gev-alert__facts' });

@@ -76,17 +76,56 @@ export const TOUR_LAYERS = Object.freeze([
 ]);
 
 /** Airports with SilentWing close-ups (runway data from OurAirports). */
-export const TOUR_AIRPORTS = Object.freeze([
-  { id: 'ybbn', label: 'Brisbane Airport', lat: -27.3842, lon: 153.117 },
-  { id: 'yssy', label: 'Sydney Airport', lat: -33.9461, lon: 151.177 },
-  { id: 'ypad', label: 'Adelaide Airport', lat: -34.9475, lon: 138.5334 },
-].map((a) => Object.freeze(a)));
+export const TOUR_AIRPORTS = Object.freeze(
+  [
+    { id: 'ybbn', label: 'Brisbane Airport', lat: -27.3842, lon: 153.117 },
+    { id: 'yssy', label: 'Sydney Airport', lat: -33.9461, lon: 151.177 },
+    { id: 'ypad', label: 'Adelaide Airport', lat: -34.9475, lon: 138.5334 },
+  ].map((a) => Object.freeze(a)),
+);
 
 /** Wide views used when nothing else is available. */
-export const TOUR_STOPS = Object.freeze([
-  { id: 'globe', label: 'Planet overview', lat: -10, lon: 140, rangeM: 18_000_000, pitchDeg: -90 },
-  { id: 'egll', label: 'London Heathrow', lat: 51.47, lon: -0.4543, rangeM: 34_000, pitchDeg: -48 },
-  { id: 'kjfk', label: 'New York JFK', lat: 40.6413, lon: -73.7781, rangeM: 34_000, pitchDeg: -48 },
-  { id: 'omdb', label: 'Dubai International', lat: 25.2532, lon: 55.3657, rangeM: 34_000, pitchDeg: -48 },
-  { id: 'rjtt', label: 'Tokyo Haneda', lat: 35.5494, lon: 139.7798, rangeM: 34_000, pitchDeg: -48 },
-].map((stop) => Object.freeze(stop)));
+export const TOUR_STOPS = Object.freeze(
+  [
+    {
+      id: 'globe',
+      label: 'Planet overview',
+      lat: -10,
+      lon: 140,
+      rangeM: 18_000_000,
+      pitchDeg: -90,
+    },
+    {
+      id: 'egll',
+      label: 'London Heathrow',
+      lat: 51.47,
+      lon: -0.4543,
+      rangeM: 34_000,
+      pitchDeg: -48,
+    },
+    {
+      id: 'kjfk',
+      label: 'New York JFK',
+      lat: 40.6413,
+      lon: -73.7781,
+      rangeM: 34_000,
+      pitchDeg: -48,
+    },
+    {
+      id: 'omdb',
+      label: 'Dubai International',
+      lat: 25.2532,
+      lon: 55.3657,
+      rangeM: 34_000,
+      pitchDeg: -48,
+    },
+    {
+      id: 'rjtt',
+      label: 'Tokyo Haneda',
+      lat: 35.5494,
+      lon: 139.7798,
+      rangeM: 34_000,
+      pitchDeg: -48,
+    },
+  ].map((stop) => Object.freeze(stop)),
+);

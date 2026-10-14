@@ -158,5 +158,6 @@ export function applyHorizonHaze(scene, haze = HORIZON_HAZE) {
   const fog = scene?.fog;
   if (!fog) return;
   fog.enabled = true;
-  for (const [key, value] of Object.entries(haze)) if (key in fog) fog[key] = value;
+  for (const [key, value] of Object.entries(haze))
+    if (key in fog) fog[key] = value;
 }

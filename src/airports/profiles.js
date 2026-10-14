@@ -60,8 +60,10 @@ export const AIRPORTS = Object.freeze(Object.values(AIRPORT_PROFILES));
 /** The heading an aircraft flies when landing/departing on the calm-wind end. */
 export function calmWindHeadingDeg(profile) {
   for (const rw of profile.runways) {
-    if (rw.low.replace(/[LRC]$/, '') === profile.calmWind) return rw.lowHeadingDeg;
-    if (rw.high.replace(/[LRC]$/, '') === profile.calmWind) return rw.highHeadingDeg;
+    if (rw.low.replace(/[LRC]$/, '') === profile.calmWind)
+      return rw.lowHeadingDeg;
+    if (rw.high.replace(/[LRC]$/, '') === profile.calmWind)
+      return rw.highHeadingDeg;
   }
   return null;
 }

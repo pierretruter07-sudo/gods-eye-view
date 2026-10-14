@@ -9,12 +9,18 @@ export const PREFETCH_MAX_AGE_MS = 25_000;
 
 function km(a, b) {
   const dLat = (b.lat - a.lat) * 111.32;
-  const dLon = (b.lon - a.lon) * 111.32 * Math.cos((((a.lat + b.lat) / 2) * Math.PI) / 180);
+  const dLon =
+    (b.lon - a.lon) *
+    111.32 *
+    Math.cos((((a.lat + b.lat) / 2) * Math.PI) / 180);
   return Math.hypot(dLat, dLon);
 }
 
 export function shouldRefreshFlights({ last, here, heightM, now }) {
   if (!here || !(heightM <= PREFETCH_MAX_HEIGHT_M)) return false;
   if (!last) return true;
-  return km(last, here) >= PREFETCH_MIN_MOVE_KM || now - last.at >= PREFETCH_MAX_AGE_MS;
+  return (
+    km(last, here) >= PREFETCH_MIN_MOVE_KM ||
+    now - last.at >= PREFETCH_MAX_AGE_MS
+  );
 }

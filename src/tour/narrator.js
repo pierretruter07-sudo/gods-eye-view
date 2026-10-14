@@ -9,14 +9,19 @@ function pickVoice(synth) {
   const voices = synth.getVoices?.() || [];
   const english = voices.filter((v) => /^en(-|_|$)/i.test(v.lang));
   return (
-    english.find((v) => /natural|neural|google uk english male|daniel/i.test(v.name)) ||
+    english.find((v) =>
+      /natural|neural|google uk english male|daniel/i.test(v.name),
+    ) ||
     english.find((v) => /^en-(GB|AU)/i.test(v.lang)) ||
     english[0] ||
     null
   );
 }
 
-export function createNarrator({ synth = globalThis.speechSynthesis, log = console } = {}) {
+export function createNarrator({
+  synth = globalThis.speechSynthesis,
+  log = console,
+} = {}) {
   let current = null;
 
   function stop() {

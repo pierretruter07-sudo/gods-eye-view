@@ -1,5 +1,8 @@
 import * as Cesium from 'cesium';
-import { holdContinuousRender, releaseContinuousRender } from '../renderGovernor.js';
+import {
+  holdContinuousRender,
+  releaseContinuousRender,
+} from '../renderGovernor.js';
 
 import { IDLE_SPIN_DEG_PER_S, shouldSpin } from './idleSpinPolicy.js';
 
@@ -21,7 +24,8 @@ export function installIdleSpin({ viewer, isBlocked = () => false }) {
     lastInput = performance.now();
   };
   const events = ['pointerdown', 'wheel', 'touchstart', 'keydown'];
-  for (const e of events) window.addEventListener(e, poke, { passive: true, capture: true });
+  for (const e of events)
+    window.addEventListener(e, poke, { passive: true, capture: true });
 
   function setHold(on) {
     if (on === holding) return;
@@ -45,16 +49,27 @@ export function installIdleSpin({ viewer, isBlocked = () => false }) {
     if (!holding || !dt) return;
     const heightM = scene.camera.positionCartographic?.height ?? 0;
     const idleS = (now - lastInput) / 1000;
-    if (!shouldSpin({ idleS, heightM, blocked: !!viewer.camera._currentFlight || isBlocked() })) return;
+    if (
+      !shouldSpin({
+        idleS,
+        heightM,
+        blocked: !!viewer.camera._currentFlight || isBlocked(),
+      })
+    )
+      return;
     // Rotating the camera about the polar axis the opposite way makes the
     // globe appear to turn eastward.
-    scene.camera.rotate(Cesium.Cartesian3.UNIT_Z, -Cesium.Math.toRadians(IDLE_SPIN_DEG_PER_S * dt));
+    scene.camera.rotate(
+      Cesium.Cartesian3.UNIT_Z,
+      -Cesium.Math.toRadians(IDLE_SPIN_DEG_PER_S * dt),
+    );
   });
 
   return () => {
     clearInterval(timer);
     remove();
     setHold(false);
-    for (const e of events) window.removeEventListener(e, poke, { capture: true });
+    for (const e of events)
+      window.removeEventListener(e, poke, { capture: true });
   };
 }

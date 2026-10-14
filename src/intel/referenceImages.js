@@ -20,8 +20,16 @@ const stripHtml = (s) =>
     .trim();
 
 function query(params, fetchImpl) {
-  const qs = new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', origin: '*', ...params });
-  return fetchImpl(`${API}?${qs}`).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))));
+  const qs = new URLSearchParams({
+    action: 'query',
+    format: 'json',
+    formatversion: '2',
+    origin: '*',
+    ...params,
+  });
+  return fetchImpl(`${API}?${qs}`).then((r) =>
+    r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)),
+  );
 }
 
 /** Resolve article titles to { thumb, file } through redirects. Exported for tests. */
@@ -32,7 +40,11 @@ export function parsePageImages(json) {
   const pages = new Map();
   for (const p of json?.query?.pages || []) {
     if (p.missing || !p.thumbnail?.source) continue;
-    pages.set(p.title, { thumb: p.thumbnail.source, file: p.pageimage || null, page: p.title });
+    pages.set(p.title, {
+      thumb: p.thumbnail.source,
+      file: p.pageimage || null,
+      page: p.title,
+    });
   }
   return (title) => {
     let t = title;
@@ -54,7 +66,10 @@ export function parseCredits(json) {
   return (file) => out.get(String(file || '').replace(/_/g, ' ')) || null;
 }
 
-export function createReferenceImages({ fetchImpl = (...a) => fetch(...a), types = ASSET_TYPES } = {}) {
+export function createReferenceImages({
+  fetchImpl = (...a) => fetch(...a),
+  types = ASSET_TYPES,
+} = {}) {
   const byArticle = new Map(); // article -> { src, page, artist, licence } | null
   const listeners = new Set();
   let loading = null;
@@ -64,20 +79,46 @@ export function createReferenceImages({ fetchImpl = (...a) => fetch(...a), types
     for (let i = 0; i < articles.length; i += BATCH) {
       const chunk = articles.slice(i, i + BATCH);
       const json = await query(
-        { prop: 'pageimages', piprop: 'thumbnail|name', pithumbsize: String(THUMB_PX), pilicense: 'free', redirects: '1', titles: chunk.join('|') },
+        {
+          prop: 'pageimages',
+          piprop: 'thumbnail|name',
+          pithumbsize: String(THUMB_PX),
+          pilicense: 'free',
+          redirects: '1',
+          titles: chunk.join('|'),
+        },
         fetchImpl,
       );
       const resolve = parsePageImages(json);
       const files = [];
       for (const a of chunk) {
         const hit = resolve(a);
-        byArticle.set(a, hit ? { src: hit.thumb, page: hit.page, file: hit.file, artist: null, licence: null } : null);
+        byArticle.set(
+          a,
+          hit
+            ? {
+                src: hit.thumb,
+                page: hit.page,
+                file: hit.file,
+                artist: null,
+                licence: null,
+              }
+            : null,
+        );
         if (hit?.file) files.push(`File:${hit.file}`);
       }
       if (files.length) {
         try {
           const credits = parseCredits(
-            await query({ prop: 'imageinfo', iiprop: 'extmetadata', iiextmetadatafilter: 'Artist|LicenseShortName', titles: files.join('|') }, fetchImpl),
+            await query(
+              {
+                prop: 'imageinfo',
+                iiprop: 'extmetadata',
+                iiextmetadatafilter: 'Artist|LicenseShortName',
+                titles: files.join('|'),
+              },
+              fetchImpl,
+            ),
           );
           for (const a of chunk) {
             const entry = byArticle.get(a);
@@ -93,10 +134,14 @@ export function createReferenceImages({ fetchImpl = (...a) => fetch(...a), types
   }
 
   function ensure() {
-    if (!loading) loading = loadAll().catch((error) => {
-      console.warn('[intel] reference images unavailable', error?.message || error);
-      loading = null; // allow a later retry
-    });
+    if (!loading)
+      loading = loadAll().catch((error) => {
+        console.warn(
+          '[intel] reference images unavailable',
+          error?.message || error,
+        );
+        loading = null; // allow a later retry
+      });
     return loading;
   }
 

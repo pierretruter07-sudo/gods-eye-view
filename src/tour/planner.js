@@ -21,7 +21,14 @@ import {
 
 const ISS_NORAD = '25544';
 /** Satellite groups worth showing, in the order they are visited. */
-const SATELLITE_GROUPS = ['stations', 'gps-ops', 'galileo', 'glonass', 'geo', 'visual'];
+const SATELLITE_GROUPS = [
+  'stations',
+  'gps-ops',
+  'galileo',
+  'glonass',
+  'geo',
+  'visual',
+];
 
 /**
  * Decides what the Director shows next. Pure: callers pass live records and
@@ -43,9 +50,11 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
     kind === 'event' ? TOUR_TIMING.eventDwellS : TOUR_TIMING.stopDwellS;
 
   function freshEvents(data, now) {
-    return rankEvents({ flights: data.flights, quakes: data.quakes, now }).filter(
-      (e) => !shownAt.has(e.key),
-    );
+    return rankEvents({
+      flights: data.flights,
+      quakes: data.quakes,
+      now,
+    }).filter((e) => !shownAt.has(e.key));
   }
 
   function eventStop(event, now, recent) {
@@ -53,7 +62,12 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
     return {
       kind: 'event',
       event,
-      view: { lat: event.lat, lon: event.lon, heightM: 0, ...STOP_CAMERA[event.kind] },
+      view: {
+        lat: event.lat,
+        lon: event.lon,
+        heightM: 0,
+        ...STOP_CAMERA[event.kind],
+      },
       line: eventLine(event, now, { recent }),
       dwellS: dwell('event'),
     };
@@ -62,8 +76,14 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
   const builders = {
     recent(data, now) {
       const revisitMs = TOUR_TIMING.revisitAfterMin * 60_000;
-      const candidates = rankEvents({ flights: data.flights, quakes: data.quakes, now })
-        .filter((e) => shownAt.has(e.key) && now - shownAt.get(e.key) >= revisitMs)
+      const candidates = rankEvents({
+        flights: data.flights,
+        quakes: data.quakes,
+        now,
+      })
+        .filter(
+          (e) => shownAt.has(e.key) && now - shownAt.get(e.key) >= revisitMs,
+        )
         .sort((a, b) => shownAt.get(a.key) - shownAt.get(b.key));
       return candidates.length ? eventStop(candidates[0], now, true) : null;
     },
@@ -71,11 +91,21 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
     airport(data) {
       const airport = TOUR_AIRPORTS[airportIndex % TOUR_AIRPORTS.length];
       airportIndex += 1;
-      const airborne = countNearby(data.flights, airport.lat, airport.lon, EVENT_RULES.airportRadiusKm);
+      const airborne = countNearby(
+        data.flights,
+        airport.lat,
+        airport.lon,
+        EVENT_RULES.airportRadiusKm,
+      );
       return {
         kind: 'airport',
         airport,
-        view: { lat: airport.lat, lon: airport.lon, heightM: 0, ...STOP_CAMERA.airport },
+        view: {
+          lat: airport.lat,
+          lon: airport.lon,
+          heightM: 0,
+          ...STOP_CAMERA.airport,
+        },
         line: airportLine(airport, airborne, EVENT_RULES.airportRadiusKm),
         dwellS: dwell('airport'),
       };
@@ -87,18 +117,29 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
       );
       // Naval / state ships first (even slow ones), then moving cargo.
       const naval = placed.filter(
-        (v) => isStateVessel(v) && (v.speedKts ?? 0) >= EVENT_RULES.stateVesselMinKts,
+        (v) =>
+          isStateVessel(v) &&
+          (v.speedKts ?? 0) >= EVENT_RULES.stateVesselMinKts,
       );
-      const moving = placed.filter((v) => (v.speedKts ?? 0) >= EVENT_RULES.vesselMinKts);
+      const moving = placed.filter(
+        (v) => (v.speedKts ?? 0) >= EVENT_RULES.vesselMinKts,
+      );
       if (!naval.length && !moving.length) return null;
-      const cargo = moving.filter((v) => /cargo|tanker|container/i.test(v.shipType || ''));
+      const cargo = moving.filter((v) =>
+        /cargo|tanker|container/i.test(v.shipType || ''),
+      );
       const pool = naval.length ? naval : cargo.length ? cargo : moving;
       const vessel = pool[vesselIndex % pool.length];
       vesselIndex += 1;
       return {
         kind: 'vessel',
         vessel,
-        view: { lat: vessel.lat, lon: vessel.lon, heightM: 0, ...STOP_CAMERA.vessel },
+        view: {
+          lat: vessel.lat,
+          lon: vessel.lon,
+          heightM: 0,
+          ...STOP_CAMERA.vessel,
+        },
         line: vesselLine(vessel),
         dwellS: dwell('vessel'),
       };
@@ -106,7 +147,8 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
 
     military(data) {
       const airborne = (data.military || []).filter(
-        (m) => Number.isFinite(m?.lat) && Number.isFinite(m?.lon) && !m.onGround,
+        (m) =>
+          Number.isFinite(m?.lat) && Number.isFinite(m?.lon) && !m.onGround,
       );
       if (!airborne.length) return null;
       // Identified airframes (callsign or type) make the better story.
@@ -117,7 +159,12 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
       return {
         kind: 'military',
         aircraft,
-        view: { lat: aircraft.lat, lon: aircraft.lon, heightM: Number.isFinite(aircraft.altitudeM) ? aircraft.altitudeM : 0, ...STOP_CAMERA.military },
+        view: {
+          lat: aircraft.lat,
+          lon: aircraft.lon,
+          heightM: Number.isFinite(aircraft.altitudeM) ? aircraft.altitudeM : 0,
+          ...STOP_CAMERA.military,
+        },
         line: militaryLine(aircraft),
         dwellS: dwell('military'),
       };
@@ -125,7 +172,10 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
 
     satellite(data) {
       const sats = (data.satellites || []).filter(
-        (s) => Number.isFinite(s?.lat) && Number.isFinite(s?.lon) && Number.isFinite(s?.altitudeM),
+        (s) =>
+          Number.isFinite(s?.lat) &&
+          Number.isFinite(s?.lon) &&
+          Number.isFinite(s?.altitudeM),
       );
       if (!sats.length) return null;
       const order = [
@@ -141,7 +191,12 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
       return {
         kind: 'satellite',
         satellite: sat,
-        view: { lat: sat.lat, lon: sat.lon, heightM: sat.altitudeM, ...STOP_CAMERA.satellite },
+        view: {
+          lat: sat.lat,
+          lon: sat.lon,
+          heightM: sat.altitudeM,
+          ...STOP_CAMERA.satellite,
+        },
         line: satelliteLine(sat),
         dwellS: dwell('satellite'),
       };
@@ -153,7 +208,12 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
       const airborne =
         stop.id === 'globe'
           ? (data.flights || []).filter((f) => !f.onGround).length
-          : countNearby(data.flights, stop.lat, stop.lon, EVENT_RULES.nearbyRadiusKm);
+          : countNearby(
+              data.flights,
+              stop.lat,
+              stop.lon,
+              EVENT_RULES.nearbyRadiusKm,
+            );
       return {
         kind: 'city',
         stop,

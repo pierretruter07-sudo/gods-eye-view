@@ -118,7 +118,12 @@ export function createRecords({ state, parts }) {
     const out = [];
     for (const [noradId, sat] of state._catalog) {
       if (!sat?.satrec || sat.group === 'dense') continue;
-      out.push({ noradId: String(noradId), name: sat.name, group: sat.group, satrec: sat.satrec });
+      out.push({
+        noradId: String(noradId),
+        name: sat.name,
+        group: sat.group,
+        satrec: sat.satrec,
+      });
     }
     return out;
   }

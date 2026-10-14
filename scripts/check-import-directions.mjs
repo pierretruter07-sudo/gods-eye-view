@@ -124,11 +124,7 @@ export function checkImportDirections(root) {
         (to.startsWith('server/standalone/') || renderer(to))
       )
         report(file, `Provider imports application/rendering: ${to}`);
-      if (
-        file.startsWith('src/') &&
-        !entry(file) &&
-        entry(to)
-      )
+      if (file.startsWith('src/') && !entry(file) && entry(to))
         report(file, `Reusable module imports standalone setup: ${to}`);
       if (source(file) && renderer(to))
         report(file, `Source imports rendering/application: ${to}`);

@@ -28,7 +28,10 @@ export function installFlightPrefetch({ viewer, dataManager }) {
     );
     if (!p) return null;
     const c = Cesium.Cartographic.fromCartesian(p);
-    return { lat: Cesium.Math.toDegrees(c.latitude), lon: Cesium.Math.toDegrees(c.longitude) };
+    return {
+      lat: Cesium.Math.toDegrees(c.latitude),
+      lon: Cesium.Math.toDegrees(c.longitude),
+    };
   }
 
   function refreshNow(here) {
@@ -44,13 +47,15 @@ export function installFlightPrefetch({ viewer, dataManager }) {
     const heightM = viewer.camera.positionCartographic?.height ?? Infinity;
     const here = centre();
     if (!here) return;
-    if (shouldRefreshFlights({ last, here, heightM, now: Date.now() })) refreshNow(here);
+    if (shouldRefreshFlights({ last, here, heightM, now: Date.now() }))
+      refreshNow(here);
   };
   const remove = viewer.camera.moveEnd.addEventListener(onMoveEnd);
 
   /** Warm the server cache for a destination before the camera gets there. */
   function warm(lat, lon) {
-    if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon))
+      return;
     const url = `/api/opensky?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
     fetch(url, { headers: { Accept: 'application/json' } })
       .then((r) => r.body?.cancel?.())
@@ -64,7 +69,8 @@ export function installFlightPrefetch({ viewer, dataManager }) {
    * fresh result for this place and is skipped.
    */
   function preload(lat, lon) {
-    if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon))
+      return;
     const flights = dataManager.getLayerModule?.('flights');
     if (typeof flights?.setQueryAnchor !== 'function') return warm(lat, lon);
     flights.setQueryAnchor(lat, lon, 12000);
@@ -80,7 +86,8 @@ export function installFlightPrefetch({ viewer, dataManager }) {
       const here = centre();
       if (!here || !isOn('flights')) return;
       const heightM = viewer.camera.positionCartographic?.height ?? Infinity;
-      if (shouldRefreshFlights({ last, here, heightM, now: Date.now() })) refreshNow(here);
+      if (shouldRefreshFlights({ last, here, heightM, now: Date.now() }))
+        refreshNow(here);
     },
     destroy: () => remove(),
   };

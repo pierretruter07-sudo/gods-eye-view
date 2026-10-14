@@ -41,8 +41,21 @@ test('adsbdb is credited and carries its published route-data restriction', () =
 test('every shipped live source and bundled asset has an attribution entry', () => {
   const keys = new Set(DATA_CREDITS.map((credit) => credit.key));
   for (const key of [
-    'opensky', 'adsblol', 'airplanes-live', 'adsb-fi', 'adsbdb', 'aisstream',
-    'celestrak', 'usgs', 'firms', 'weather-cyclones', 'telegeography',
-    'military-installations-osm', 'photon-geocoder', 'reearth-terrain', '3d-models',
-  ]) assert.ok(keys.has(key), `missing credit: ${key}`);
+    'opensky',
+    'adsblol',
+    'airplanes-live',
+    'adsb-fi',
+    'adsbdb',
+    'aisstream',
+    'celestrak',
+    'usgs',
+    'firms',
+    'weather-cyclones',
+    'telegeography',
+    'military-installations-osm',
+    'photon-geocoder',
+    'reearth-terrain',
+    '3d-models',
+  ])
+    assert.ok(keys.has(key), `missing credit: ${key}`);
 });

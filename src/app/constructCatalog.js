@@ -41,7 +41,9 @@ const SOURCE_METHODS = Object.freeze({
 
 /** Serialization metadata for exactly the layers this catalog constructs. */
 export const APPLICATION_LAYER_METADATA = Object.freeze(
-  LAYER_STATE_REGISTRY.filter((entry) => APPLICATION_LAYER_IDS.includes(entry.id)),
+  LAYER_STATE_REGISTRY.filter((entry) =>
+    APPLICATION_LAYER_IDS.includes(entry.id),
+  ),
 );
 
 /** Construct the current catalog without choosing any source provider.

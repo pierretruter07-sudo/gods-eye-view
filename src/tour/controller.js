@@ -33,7 +33,14 @@ function sleep(ms, signal) {
  * The Director: an automatic, narrated tour that visits live events first
  * and fixed stops otherwise. Any manual camera input hands control back.
  */
-export function createTourController({ viewer, dataManager, ui, narrator = createNarrator(), onFocus = null, onTravel = null }) {
+export function createTourController({
+  viewer,
+  dataManager,
+  ui,
+  narrator = createNarrator(),
+  onFocus = null,
+  onTravel = null,
+}) {
   const planner = createPlanner();
   const staged = { flights: [], quakes: [] };
   let run = null; // { controller: AbortController }
@@ -85,7 +92,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
     };
     const easeOut = (t) => 1 - (1 - t) * (1 - t);
     const period = 2600;
-    const ringPhase = (offset) => ((performance.now() / period + offset) % 1);
+    const ringPhase = (offset) => (performance.now() / period + offset) % 1;
 
     const reticle = viewer.entities.add({
       position: pos,
@@ -107,7 +114,10 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
         image: sweepSprite(hex),
         width: 84,
         height: 84,
-        rotation: new Cesium.CallbackProperty(() => (-performance.now() / 900) % (Math.PI * 2), false),
+        rotation: new Cesium.CallbackProperty(
+          () => (-performance.now() / 900) % (Math.PI * 2),
+          false,
+        ),
         color: base.withAlpha(0.9),
         ...common,
       },
@@ -118,9 +128,18 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
         position: pos,
         billboard: {
           image: ringSprite(hex),
-          width: new Cesium.CallbackProperty(() => 40 + 150 * easeOut(ringPhase(offset)), false),
-          height: new Cesium.CallbackProperty(() => 40 + 150 * easeOut(ringPhase(offset)), false),
-          color: new Cesium.CallbackProperty(() => base.withAlpha(0.8 * (1 - ringPhase(offset)) ** 1.4), false),
+          width: new Cesium.CallbackProperty(
+            () => 40 + 150 * easeOut(ringPhase(offset)),
+            false,
+          ),
+          height: new Cesium.CallbackProperty(
+            () => 40 + 150 * easeOut(ringPhase(offset)),
+            false,
+          ),
+          color: new Cesium.CallbackProperty(
+            () => base.withAlpha(0.8 * (1 - ringPhase(offset)) ** 1.4),
+            false,
+          ),
           ...common,
         },
       });
@@ -130,9 +149,12 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       label: {
         text: event.simulated ? 'SIMULATED' : event.title,
         font: '600 14px -apple-system, "Segoe UI", sans-serif',
-        fillColor: Cesium.Color.fromCssColorString(event.simulated ? '#ffd480' : '#ffffff'),
+        fillColor: Cesium.Color.fromCssColorString(
+          event.simulated ? '#ffd480' : '#ffffff',
+        ),
         showBackground: true,
-        backgroundColor: Cesium.Color.fromCssColorString('#0a0f16').withAlpha(0.62),
+        backgroundColor:
+          Cesium.Color.fromCssColorString('#0a0f16').withAlpha(0.62),
         backgroundPadding: new Cesium.Cartesian2(10, 6),
         style: Cesium.LabelStyle.FILL,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
@@ -153,11 +175,16 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       };
       signal.addEventListener('abort', onAbort, { once: true });
       viewer.camera.flyToBoundingSphere(
-        new Cesium.BoundingSphere(Cesium.Cartesian3.fromDegrees(lon, lat, heightM), 0),
+        new Cesium.BoundingSphere(
+          Cesium.Cartesian3.fromDegrees(lon, lat, heightM),
+          0,
+        ),
         {
           offset: new Cesium.HeadingPitchRange(
             // Planet-scale views arrive north-up so the globe spin starts clean.
-            rangeM >= TOUR_TIMING.globeSpinMinRangeM ? 0 : viewer.camera.heading,
+            rangeM >= TOUR_TIMING.globeSpinMinRangeM
+              ? 0
+              : viewer.camera.heading,
             Cesium.Math.toRadians(pitchDeg),
             rangeM,
           ),
@@ -195,7 +222,10 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
         const now = performance.now();
         centreLon -= spin * Math.min(0.25, (now - last) / 1000);
         last = now;
-        viewer.camera.lookAt(Cesium.Cartesian3.fromDegrees(centreLon, lat, 0), north);
+        viewer.camera.lookAt(
+          Cesium.Cartesian3.fromDegrees(centreLon, lat, 0),
+          north,
+        );
       });
       return;
     }
@@ -224,7 +254,10 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
   async function dwell(seconds, profile, signal) {
     const until = Date.now() + seconds * 1000;
     while (Date.now() < until) {
-      const step = Math.min(TOUR_TIMING.interruptCheckS * 1000, until - Date.now());
+      const step = Math.min(
+        TOUR_TIMING.interruptCheckS * 1000,
+        until - Date.now(),
+      );
       await sleep(step, signal);
       if (profile) airport?.update(profile, records('flights'));
       const incidents = {
@@ -242,7 +275,12 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       return {
         layerId: 'flights',
         headline: next.event.title,
-        record: { ...f, lat: next.event.lat, lon: next.event.lon, simulated: next.event.simulated },
+        record: {
+          ...f,
+          lat: next.event.lat,
+          lon: next.event.lon,
+          simulated: next.event.simulated,
+        },
       };
     }
     if (next.kind === 'event' && next.event?.kind === 'earthquake') {
@@ -250,12 +288,21 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       return {
         layerId: 'earthquakes',
         headline: next.event.title,
-        record: { ...f, id: next.event.key, lat: next.event.lat, lon: next.event.lon, simulated: next.event.simulated },
+        record: {
+          ...f,
+          id: next.event.key,
+          lat: next.event.lat,
+          lon: next.event.lon,
+          simulated: next.event.simulated,
+        },
       };
     }
-    if (next.kind === 'vessel') return { layerId: 'ais-live-vessels', record: next.vessel };
-    if (next.kind === 'military') return { layerId: 'military', record: next.aircraft };
-    if (next.kind === 'satellite') return { layerId: 'satellites', record: next.satellite };
+    if (next.kind === 'vessel')
+      return { layerId: 'ais-live-vessels', record: next.vessel };
+    if (next.kind === 'military')
+      return { layerId: 'military', record: next.aircraft };
+    if (next.kind === 'satellite')
+      return { layerId: 'satellites', record: next.satellite };
     return null;
   }
 
@@ -265,7 +312,8 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       stopOrbit();
       clearMarker();
       airport?.clear();
-      const profile = next.kind === 'airport' ? AIRPORT_PROFILES[next.airport.id] : null;
+      const profile =
+        next.kind === 'airport' ? AIRPORT_PROFILES[next.airport.id] : null;
       if (next.event) {
         ui.showEvent(next.event);
         showMarker(next.event);
@@ -290,7 +338,11 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
       // other stop keeps its own dwell.
       const isGlobe = next.stop?.id === 'globe';
       const budget = isGlobe ? TOUR_TIMING.globeDwellS : next.dwellS;
-      await dwell(Math.max(budget - spokenS, isGlobe ? 0.5 : 1), profile, signal);
+      await dwell(
+        Math.max(budget - spokenS, isGlobe ? 0.5 : 1),
+        profile,
+        signal,
+      );
     }
   }
 

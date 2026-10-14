@@ -12,8 +12,15 @@ export function buildIdentity(cwd = root) {
   if (process.env.GEV_BUILD) return process.env.GEV_BUILD;
   const date = new Date().toISOString().slice(0, 10);
   try {
-    const git = (args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-    const dirty = git(['status', '--porcelain', '--untracked-files=no']) ? '-dirty' : '';
+    const git = (args) =>
+      execFileSync('git', args, {
+        cwd,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+    const dirty = git(['status', '--porcelain', '--untracked-files=no'])
+      ? '-dirty'
+      : '';
     return `${git(['rev-parse', '--short=7', 'HEAD'])}${dirty} · ${date}`;
   } catch {
     return `unversioned · ${date}`;

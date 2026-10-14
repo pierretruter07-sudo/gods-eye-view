@@ -13,7 +13,11 @@ export function installAdaptiveQuality(viewer) {
   const scene = viewer.scene;
   const dpr = window.devicePixelRatio || 1;
   const levels = qualityLevels(dpr);
-  let state = { level: Math.min(START_LEVEL, levels.length - 1), good: 0, bad: 0 };
+  let state = {
+    level: Math.min(START_LEVEL, levels.length - 1),
+    good: 0,
+    bad: 0,
+  };
 
   function apply() {
     const { ratio, msaa } = levels[state.level];
@@ -59,9 +63,17 @@ export function installAdaptiveQuality(viewer) {
     state = next;
     if (changed) {
       apply();
-      console.info(`[quality] ${fps.toFixed(0)} fps → level ${state.level}`, levels[state.level]);
+      console.info(
+        `[quality] ${fps.toFixed(0)} fps → level ${state.level}`,
+        levels[state.level],
+      );
     }
-    window.__gevQuality = { fps: Math.round(fps), level: state.level, ...levels[state.level], dpr };
+    window.__gevQuality = {
+      fps: Math.round(fps),
+      level: state.level,
+      ...levels[state.level],
+      dpr,
+    };
   });
 
   return () => remove();

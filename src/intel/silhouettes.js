@@ -8,12 +8,10 @@
 const PATHS = Object.freeze({
   airliner:
     'M32 4c2 0 3 3 3 7v13l22 12v4l-22-6v14l7 5v3l-10-2-10 2v-3l7-5V34l-22 6v-4l22-12V11c0-4 1-7 3-7Z',
-  transport:
-    'M30 6h4l1 5v13h24v4l-24 3v19h9v4H20v-4h9V31L5 28v-4h24V11Z',
+  transport: 'M30 6h4l1 5v13h24v4l-24 3v19h9v4H20v-4h9V31L5 28v-4h24V11Z',
   fighter:
     'M32 3l3 11 1 11 19 15v4l-19-4-1 9 7 6v3l-10-2-10 2v-3l7-6-1-9-19 4v-4l19-15 1-11Z',
-  light:
-    'M31 10h2l1 8h22v4l-22 2v18l7 2v3H24v-3l7-2V24l-22-2v-4h22Z M28 9h8',
+  light: 'M31 10h2l1 8h22v4l-22 2v18l7 2v3H24v-3l7-2V24l-22-2v-4h22Z M28 9h8',
   uav: 'M31 10h2l1 14 25 3v3l-25 2v14l7 6v2H23v-2l7-6V32L5 30v-3l25-3Z',
   helicopter:
     'M32 15c4 0 6 3 6 8s-2 9-6 9-6-4-6-9 2-8 6-8Z M32 32v21 M28 53h8 M15 9l34 28 M49 9L15 37',

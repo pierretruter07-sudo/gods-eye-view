@@ -30,10 +30,12 @@ export function createApplicationTools({
   installRenderGovernor(viewer);
 
   // Following a tracked entity is a per-frame animation.
-  const removeTrackingListener = viewer.trackedEntityChanged.addEventListener(() => {
-    if (viewer.trackedEntity) holdContinuousRender('tracked-entity');
-    else releaseContinuousRender('tracked-entity');
-  });
+  const removeTrackingListener = viewer.trackedEntityChanged.addEventListener(
+    () => {
+      if (viewer.trackedEntity) holdContinuousRender('tracked-entity');
+      else releaseContinuousRender('tracked-entity');
+    },
+  );
   defer(() => {
     removeTrackingListener();
     releaseContinuousRender('tracked-entity');
@@ -50,7 +52,9 @@ export function createApplicationTools({
     }
   };
   document.addEventListener('visibilitychange', syncVisibilitySuspension);
-  defer(() => document.removeEventListener('visibilitychange', syncVisibilitySuspension));
+  defer(() =>
+    document.removeEventListener('visibilitychange', syncVisibilitySuspension),
+  );
   syncVisibilitySuspension();
 
   window.__godsEyeView = {
