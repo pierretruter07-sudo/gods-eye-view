@@ -55,6 +55,17 @@ Keep it intact.
 | San Francisco neighbourhoods | `src/data/local_data/neighborhoods/` | PDDL 1.0 (DataSF) | ✅ |
 | Director airport and stop list | `src/tour/config.js` | Coordinates from OurAirports (public domain) | ✅ |
 
+## Type reference images
+
+| Use | Provider | Terms | Flag |
+|---|---|---|---|
+| HUD "type reference" photo (aircraft, vessel and satellite **types**, never the individual airframe) | Wikipedia lead image via the MediaWiki API, served from Wikimedia Commons. Only free-licensed images are requested (`pilicense=free`). | Each image keeps its own free licence (public domain, CC BY, CC BY-SA). Author and licence are shown under the photo. | ✅ with attribution |
+| Class outlines (fallback) | Original line art in `src/intel/silhouettes.js` | MIT, part of this code base | ✅ |
+
+The catalogue in `src/intel/assetTypes.js` maps ICAO type designators, AIS
+ship families and satellite names to types. Nothing is bundled: two small API
+calls resolve the catalogue, and thumbnails load only for assets shown.
+
 ## 3D models
 
 Nine glTF models under `public/models/` are from Sketchfab creators under

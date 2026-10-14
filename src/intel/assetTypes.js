@@ -1,4 +1,5 @@
 import { isStateVessel } from '../data/stateVessel.js';
+import { shapeForAircraftClass } from './silhouettes.js';
 
 /**
  * Asset type catalogue: maps feed values to a reference type with a
@@ -10,6 +11,19 @@ import { isStateVessel } from '../data/stateVessel.js';
  * the type description. Vessels match on the AIS family or a naval hull
  * prefix. Satellites match on the catalogue name.
  */
+
+// Silhouette per catalogue id; everything else is drawn as an airliner.
+const SHAPE_IDS = {
+  transport: ['c17', 'c130', 'a400', 'c5', 'c27', 'c295', 'e2', 'an124', 'dash8', 'atr72', 'atr42', 'saab340'],
+  fighter: ['fa18', 'fa18ef', 'f35', 'f16', 'f15', 'typhoon', 'rafale', 'hawk'],
+  uav: ['rq4', 'mq9'],
+  helicopter: ['h60', 'h47', 'v22', 'aw139', 'h135', 'bell206', 'r44', 's92'],
+  light: ['pc21', 'kingair', 'pc12', 'c208', 'c172'],
+};
+function aircraftShape(id) {
+  for (const [shape, ids] of Object.entries(SHAPE_IDS)) if (ids.includes(id)) return shape;
+  return 'airliner';
+}
 
 // [id, display name, Wikipedia article, ICAO designators, description pattern]
 const AIRCRAFT = [
@@ -84,11 +98,15 @@ const AIRCRAFT = [
   ['bell206', 'Bell 206', 'Bell 206', ['B06'], /BELL 206|JETRANGER/],
   ['r44', 'Robinson R44', 'Robinson R44', ['R44'], /\bR44\b/],
   ['s92', 'Sikorsky S-92', 'Sikorsky S-92', ['S92'], /S-?92/],
-].map(([id, name, article, codes, pattern]) => Object.freeze({ id, name, article, codes: Object.freeze(codes), pattern }));
+].map(([id, name, article, codes, pattern]) =>
+  Object.freeze({ id, name, article, codes: Object.freeze(codes), pattern, shape: aircraftShape(id) }),
+);
 
 const BY_CODE = new Map();
 for (const t of AIRCRAFT) for (const code of t.codes) BY_CODE.set(code, t);
 const KC30 = AIRCRAFT.find((t) => t.id === 'kc30');
+
+const SHIP_SHAPE = { naval: 'warship', patrol: 'warship', tanker: 'cargo', cargo: 'cargo', passenger: 'cargo' };
 
 // [id, name, article, AIS family pattern]
 const VESSELS = [
@@ -104,7 +122,9 @@ const VESSELS = [
   ['sailing', 'Sailing vessel', 'Sailboat', /SAILING/],
   ['pleasure', 'Pleasure craft', 'Motor yacht', /PLEASURE/],
   ['highspeed', 'High-speed craft', 'High-speed craft', /HIGH-SPEED/],
-].map(([id, name, article, pattern]) => Object.freeze({ id: `ship-${id}`, name, article, pattern }));
+].map(([id, name, article, pattern]) =>
+  Object.freeze({ id: `ship-${id}`, name, article, pattern, shape: SHIP_SHAPE[id] || 'smallcraft' }),
+);
 
 // [id, name, article, name pattern]
 const SATELLITES = [
@@ -117,12 +137,12 @@ const SATELLITES = [
   ['galileo', 'Galileo satellite', 'Galileo (satellite navigation)', /GALILEO|GSAT0/],
   ['iridium', 'Iridium satellite', 'Iridium satellite constellation', /IRIDIUM/],
   ['goes', 'GOES weather satellite', 'Geostationary Operational Environmental Satellite', /\bGOES\b/],
-].map(([id, name, article, pattern]) => Object.freeze({ id: `sat-${id}`, name, article, pattern }));
+].map(([id, name, article, pattern]) => Object.freeze({ id: `sat-${id}`, name, article, pattern, shape: 'satellite' }));
 
 /** Every catalogue entry, for batch preloading. */
 export const ASSET_TYPES = Object.freeze([...AIRCRAFT, ...VESSELS, ...SATELLITES]);
 
-const ref = (type, basis) => ({ id: type.id, name: type.name, article: type.article, basis });
+const ref = (type, basis) => ({ id: type.id, name: type.name, article: type.article, shape: type.shape, basis });
 
 function aircraftType(o) {
   const code = String(o.typeCode || '').trim().toUpperCase();
@@ -135,6 +155,16 @@ function aircraftType(o) {
   if (desc) {
     const byDesc = AIRCRAFT.find((t) => t.pattern.test(desc));
     if (byDesc) return ref(byDesc, 'Type description');
+  }
+  // Known to the feed but not in the catalogue: name it, draw its class.
+  if (code || desc) {
+    return {
+      id: 'unlisted-aircraft',
+      name: String(o.typeName || '').trim() || `ICAO type ${code}`,
+      article: null,
+      shape: shapeForAircraftClass(o.aircraftClass),
+      basis: code ? `ICAO type ${code} · not in photo library` : 'Type description · not in photo library',
+    };
   }
   return null;
 }

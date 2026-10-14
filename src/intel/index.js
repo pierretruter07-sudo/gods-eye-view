@@ -41,6 +41,14 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   // ── Console (three glass pieces around a clear centre) ───────────────
   const view = el('div', 'gev-hud');
   view.hidden = true;
+  // A type photo that fails to load is removed, leaving the class outline.
+  view.addEventListener(
+    'error',
+    (event) => {
+      if (event.target?.tagName === 'IMG' && event.target.closest('.gev-hud__ref')) event.target.remove();
+    },
+    true,
+  );
   const header = el('div', 'gev-hud__header');
   // Four card slots around the asset: top-left, top-right, bottom-left, bottom-right.
   const SLOTS = ['tl', 'tr', 'bl', 'br'];

@@ -20,7 +20,11 @@ test('aircraft resolve by ICAO designator, military variants and description', (
   assert.equal(resolveAssetType(plane({ typeCode: 'A332' })).id, 'a330');
   assert.equal(resolveAssetType(plane({ typeName: 'Lockheed C-130J Hercules' })).id, 'c130');
   assert.equal(resolveAssetType(plane({ typeName: 'Sikorsky UH-60M Black Hawk' })).id, 'h60');
-  assert.equal(resolveAssetType(plane({ typeCode: 'ZZZZ' })), null);
+  const unlisted = resolveAssetType(plane({ typeCode: 'ZZZZ', aircraftClass: 'helicopter' }));
+  assert.equal(unlisted.id, 'unlisted-aircraft');
+  assert.equal(unlisted.article, null, 'no photo lookup for unlisted types');
+  assert.equal(unlisted.shape, 'helicopter');
+  assert.match(unlisted.basis, /not in photo library/);
   assert.equal(resolveAssetType(plane({})), null);
   assert.match(resolveAssetType(plane({ typeCode: 'C17' }, 'military')).basis, /ICAO type C17/);
 });
@@ -60,7 +64,11 @@ test('the photo sits on a feed card, labelled as a type reference with credit', 
   assert.match(html, /<img src="https:\/\/upload\.wikimedia\.org\/x\.jpg"/);
   assert.match(html, /Type reference · ICAO type C17/);
   assert.match(html, /Photo: A\. Photographer · Public domain/);
-  assert.match(hudCard(host, 0), /gev-hud__ref--pending/, 'placeholder while loading');
+  assert.match(html, /gev-hud__ref-art/, 'the outline sits under the photo');
+  const outline = hudCard(host, 0);
+  assert.match(outline, /gev-hud__ref-art/, 'outline while loading or without a photo');
+  assert.match(outline, /Class outline · ICAO type C17/);
+  assert.doesNotMatch(outline, /<img|Photo:/);
 });
 
 test('page images resolve through normalisation and redirects; credits strip HTML', () => {
@@ -103,4 +111,9 @@ test('the whole catalogue loads in a handful of batched requests', async () => {
   const c17 = resolveAssetType(plane({ typeCode: 'C17' }, 'military'));
   assert.match(refs.get(c17).src, /Boeing%20C-17/);
   assert.equal(refs.get(c17).licence, 'PD');
+});
+
+test('every catalogue entry has a drawable silhouette', async () => {
+  const { SILHOUETTE_SHAPES } = await import('./silhouettes.js');
+  for (const t of ASSET_TYPES) assert.ok(SILHOUETTE_SHAPES.includes(t.shape), `${t.id} → ${t.shape}`);
 });

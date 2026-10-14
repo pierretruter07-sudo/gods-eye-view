@@ -106,7 +106,7 @@ export function createReferenceImages({ fetchImpl = (...a) => fetch(...a), types
     load: ensure,
     /** The photo for a resolved type, or null if none / not loaded yet. */
     get(type) {
-      if (!type) return null;
+      if (!type?.article) return null; // unlisted types draw their outline only
       const entry = byArticle.get(type.article);
       if (entry === undefined) ensure();
       return entry || null;

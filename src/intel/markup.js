@@ -1,3 +1,4 @@
+import { silhouetteSvg } from './silhouettes.js';
 /**
  * Pure HTML builders for the intelligence view (no DOM, no Cesium), so the
  * layout can be rendered and checked outside the app.
@@ -60,14 +61,19 @@ export function hudHeader(h, headline = '') {
     ${headline ? `<p class="gev-hud__headline">${esc(headline)}</p>` : ''}`;
 }
 
-/** Type reference photo (never this airframe or hull). `image` may still be loading. */
+/**
+ * Type reference (never this airframe or hull): the class silhouette always
+ * fills the frame, and the free-licensed photo fades in over it when one is
+ * available. No photo, a failed load or an unlisted type leaves the outline.
+ */
 function refFigure(ref, image) {
   const credit = image
     ? [image.artist, image.licence].filter(Boolean).join(' · ') || 'Wikimedia Commons'
     : '';
-  return `<figure class="gev-hud__ref${image ? '' : ' gev-hud__ref--pending'}" data-ref="${esc(ref.id)}">
-    ${image ? `<img src="${esc(image.src)}" alt="${esc(ref.name)} (type reference)" decoding="async" referrerpolicy="no-referrer">` : '<span class="gev-hud__ref-ph" aria-hidden="true"></span>'}
-    <figcaption><b>${esc(ref.name)}</b><span>Type reference · ${esc(ref.basis)}</span>${credit ? `<span class="gev-hud__ref-credit">Photo: ${esc(credit)} · Wikimedia</span>` : ''}</figcaption></figure>`;
+  const label = image ? 'Type reference' : 'Class outline';
+  return `<figure class="gev-hud__ref" data-ref="${esc(ref.id)}">
+    <div class="gev-hud__ref-frame">${silhouetteSvg(ref.shape)}${image ? `<img src="${esc(image.src)}" alt="${esc(ref.name)} (type reference)" decoding="async" referrerpolicy="no-referrer">` : ''}</div>
+    <figcaption><b>${esc(ref.name)}</b><span>${label} · ${esc(ref.basis)}</span>${credit ? `<span class="gev-hud__ref-credit">Photo: ${esc(credit)} · Wikimedia</span>` : ''}</figcaption></figure>`;
 }
 
 export function hudCard(c, index, { image = null } = {}) {
