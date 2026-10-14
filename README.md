@@ -64,6 +64,7 @@ Production build: `npm run build && npm run preview`.
 | `?nointro` | Skip the welcome card and its 10 s countdown. |
 | `?demo` | Show the "Simulate 7700" / "Simulate quake" buttons. These are staged events marked SIMULATED. |
 | `?restore` | Restore the last camera and layer state instead of starting clean. |
+| `?fps` | Show the frame-rate readout (measure on the presentation laptop). |
 
 ## Documentation
 

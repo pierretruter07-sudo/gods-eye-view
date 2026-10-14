@@ -229,6 +229,13 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   }
 
   // ── Demo buttons (staged events) ─────────────────────────────────────
+  // ?fps shows Cesium's frame-rate readout, to measure on a real GPU.
+  try {
+    if (new URLSearchParams(window.location.search).has('fps'))
+      viewer.scene.debugShowFramesPerSecond = true;
+  } catch {
+    /* no URL access: leave it off */
+  }
   const demo = demoEnabled() ? el('div', { class: 'gev-demo' }) : null;
   if (demo) {
     const sim = el(
