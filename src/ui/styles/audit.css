@@ -692,6 +692,140 @@ details[open] > summary > .gev-chev {
   display: none;
 }
 
+/* Narrated playback card, above the timeline */
+.gev-story {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  translate: -50% 0;
+  width: min(540px, 100%);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  overflow: hidden;
+  background: rgba(8, 13, 22, 0.92);
+  animation: gev-story-in 0.35s ease;
+}
+.gev-story[hidden] {
+  display: none;
+}
+.gev-story[data-kind='projected'] {
+  border-style: dashed;
+  border-color: rgba(187, 177, 232, 0.45);
+}
+@keyframes gev-story-in {
+  from {
+    opacity: 0;
+    translate: -50% 8px;
+  }
+}
+.gev-story-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gev-story-head .gev-audit-link {
+  margin-left: auto;
+}
+.gev-story-title {
+  margin: -4px 0 0;
+  font-size: 16px;
+  line-height: 1.25;
+}
+.gev-story-score {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.gev-story-num {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--a-rule);
+}
+.gev-story-num > span {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.gev-story-num.is-saf > span {
+  color: #9cbde4;
+}
+.gev-story-num.is-sec > span {
+  color: #bbb1e8;
+}
+.gev-story-num small {
+  font: 500 12px var(--a-mono);
+  color: var(--a-ink-3);
+}
+.gev-story-num b {
+  font-size: 22px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.gev-story-num small + b {
+  color: #9fe6c4;
+}
+.gev-story-num em {
+  grid-column: 1 / -1;
+  font-style: normal;
+  font-size: 11px;
+  color: #ffb2a8;
+}
+.gev-story-num em.is-ok {
+  color: #9fe6c4;
+}
+.gev-story-num em.is-conditions,
+.gev-story-num em.is-incomplete {
+  color: #f6d08f;
+}
+.gev-story-rows {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 6px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.gev-story-rows dt {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--a-ink-3);
+  padding-top: 2px;
+}
+.gev-story-rows dd {
+  margin: 0;
+  color: #c9d4e0;
+}
+.gev-story-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: #dfe7f0;
+  transform-origin: left;
+  animation: gev-story-bar linear forwards;
+}
+@keyframes gev-story-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 /* Progress timeline: baseline → each wave (measured or projected) */
 .gev-tl {
   position: absolute;
@@ -882,6 +1016,61 @@ details[open] > summary > .gev-chev {
   font-size: 12px;
   line-height: 1.5;
   color: #b9c6d4;
+}
+.gev-impact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 140, 128, 0.32);
+  background: rgba(255, 107, 94, 0.08);
+}
+.gev-impact .gev-audit-zlabel {
+  color: #ffb2a8;
+}
+.gev-impact p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #f1e3e0;
+}
+.gev-impact[data-tone='covered'] {
+  border-color: rgba(111, 211, 166, 0.3);
+  background: rgba(111, 211, 166, 0.06);
+}
+.gev-impact[data-tone='covered'] .gev-audit-zlabel {
+  color: #9fe6c4;
+}
+.gev-impact[data-tone='covered'] p,
+.gev-impact[data-tone='na'] p,
+.gev-impact[data-tone='unrated'] p {
+  color: #c3cfdc;
+}
+.gev-impact[data-tone='na'],
+.gev-impact[data-tone='unrated'] {
+  border-color: var(--a-rule);
+  background: rgba(255, 255, 255, 0.03);
+}
+.gev-impact[data-tone='na'] .gev-audit-zlabel,
+.gev-impact[data-tone='unrated'] .gev-audit-zlabel {
+  color: var(--a-ink-2);
+}
+.gev-impact-parts {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.gev-impact-parts li {
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 232, 245, 0.18);
+  font-size: 10.5px;
+  color: #c9d4e0;
+  white-space: nowrap;
 }
 .gev-fold {
   border-top: 1px solid var(--a-rule);

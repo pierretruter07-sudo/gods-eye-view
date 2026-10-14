@@ -146,10 +146,14 @@ test('both Google 3D routes keep tiles drawing while draped imagery loads', asyn
   };
   assert.equal(await createGoogleDirectTileset(sdk, 'key'), 'direct');
   assert.equal(await createGoogleIonTileset(sdk, 'token'), 'ion');
-  assert.deepEqual(calls[0], [
-    { key: 'key', onlyUsingWithGoogleGeocoder: true },
-    { asynchronouslyLoadImagery: true },
-  ]);
+  assert.deepEqual(calls[0][0], {
+    key: 'key',
+    onlyUsingWithGoogleGeocoder: true,
+  });
+  assert.equal(calls[0][1].asynchronouslyLoadImagery, true);
+  // Tile cache sized to the device, never Cesium's 1.5 GB + 1 GB default.
+  assert.ok(calls[0][1].cacheBytes <= 1024 * 1024 * 1024);
+  assert.ok(calls[1][1].cacheBytes <= 1024 * 1024 * 1024);
   assert.equal(calls[1][0].id, 2275207);
   assert.equal(calls[1][0].accessToken, 'token');
   assert.equal(calls[1][1].asynchronouslyLoadImagery, true);

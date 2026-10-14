@@ -4,7 +4,7 @@ const WINDOW_MS = 1500;
 
 /**
  * Keeps the globe crisp AND smooth: renders at the display's native pixel
- * density with multisample anti-aliasing plus FXAA, and walks a quality
+ * density with multisample anti-aliasing (FXAA only once MSAA is off), and walks a quality
  * ladder (see qualityPolicy.js) when the measured frame rate sags. Only
  * measures while the scene renders continuously — idle request-render frames
  * are sparse by design and say nothing about smoothness.
@@ -20,7 +20,7 @@ export function installAdaptiveQuality(viewer) {
   };
 
   function apply() {
-    const { ratio, msaa } = levels[state.level];
+    const { ratio, msaa, sse } = levels[state.level];
     try {
       // With browser-recommended resolution OFF, Cesium renders at
       // devicePixelRatio × resolutionScale — so divide the DPR back out.
@@ -34,12 +34,19 @@ export function installAdaptiveQuality(viewer) {
     } catch {
       /* MSAA unsupported (WebGL1) */
     }
-  }
-  try {
-    const fxaa = scene.postProcessStages?.fxaa;
-    if (fxaa) fxaa.enabled = true;
-  } catch {
-    /* no FXAA */
+    try {
+      // FXAA only when multisampling is off: doing both blurs and costs a pass.
+      const fxaa = scene.postProcessStages?.fxaa;
+      if (fxaa) fxaa.enabled = msaa <= 1;
+    } catch {
+      /* no FXAA */
+    }
+    // Photorealistic 3D tiles: coarser detail on the bottom rungs.
+    const primitives = scene.primitives;
+    for (let i = 0; i < (primitives?.length || 0); i += 1) {
+      const p = primitives.get(i);
+      if (p?.isCesium3DTileset && sse) p.maximumScreenSpaceError = sse;
+    }
   }
   apply();
 

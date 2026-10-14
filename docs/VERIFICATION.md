@@ -92,6 +92,10 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-PRF-004 | `src/shell/flightPrefetchPolicy.js` | T: `shellPolicies.test.mjs` "flight refresh on arrival: new place, stale data, not from space" |
 | GEV-PRF-005 | `src/shell/flightPrefetch.js` `preload`, `src/layers/flights/controller.js` `setQueryAnchor` | D: `scripts/bench/director-stops.mjs` (`flightsFreshAtArrival`) |
 | GEV-PRF-006 | `src/shell/index.js` `MODEL_URLS` | T: `shellPolicies.test.mjs` "the model warm list matches the shipped glTF files exactly" |
+| GEV-PRF-007 | `src/renderGovernor.js` `holdRenderCadence`, `src/layers/*/lifecycle.js` | T: `src/renderGovernor.test.mjs` "a cadence hold keeps render-on-demand and requests frames at the fastest cadence" |
+| GEV-PRF-008 | `src/data/lifecycle.js` `pausePolling`, `src/shell/index.js` | T: `src/data/pollPause.test.mjs` "paused polling skips periodic updates and catches up once on resume" |
+| GEV-PRF-009 | `build/cacheHeaders.js`, `build/vite.js` | T: `src/tooling/cacheHeaders.test.mjs` "hashed assets are cached for a year, the page always revalidates, APIs are left alone" "injected classic scripts are deferred; module scripts and other tags are untouched" |
+| GEV-PRF-010 | `src/maps/google3d.js` `tileCacheBudget`, `src/shell/qualityPolicy.js` | T: `src/maps/google3dBudget.test.mjs` "the 3D tile cache is sized to the device memory"; `src/shell/shellPolicies.test.mjs` "quality ladder holds native resolution and never drops below CSS pixels" |
 | GEV-CM-001 | whole tree | A: `scripts/audit/import-graph.mjs` |
 | GEV-CM-002 | `.github/workflows/ci.yml` | I |
 | GEV-CM-003 | `package-lock.json` | I |
@@ -105,6 +109,8 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-AUD-008 | `src/audit/progress.js`, `src/audit/cockpit.js` `setStop` | T: `src/audit/audit.test.mjs` "a recorded re-audit becomes a measured stop and later stops build on it" |
 | GEV-AUD-009 | `src/audit/progress.js`, `docs/evidence/ledger.json` | T: `src/audit/audit.test.mjs` "projected stops reproduce the plan’s readiness journey, wave by wave" |
 | GEV-AUD-010 | `src/audit/cameraMath.js` `interpolateRig`, `src/audit/runtime.js` `flyRig` | T: `src/audit/audit.test.mjs` "the tour camera rig reproduces the home framing and keeps its target in view" |
+| GEV-AUD-011 | `src/audit/impact.js`, `src/audit/cockpit.js` `setDetail` | T: `src/audit/audit.test.mjs` "every item says how it affects God’s Eye View; must-fix items in their own words" |
+| GEV-AUD-012 | `src/audit/progress.js` `stopStory`, `src/audit/runtime.js` `playStep` | T: `src/audit/audit.test.mjs` "the narrated playback explains each stop: what it fixes, what it closes, what it unlocks" |
 
 ## 3. Coverage of code by requirements
 

@@ -119,7 +119,9 @@ export function createApplicationViewer({ container, creditContainer }) {
     infoBox: false,
     baseLayer: false,
     creditContainer,
-    msaaSamples: 4,
+    // The quality ladder starts at 2× (START_LEVEL); creating at 2× avoids
+    // reallocating the framebuffer on the first frame.
+    msaaSamples: 2,
     // No preserveDrawingBuffer: nothing reads the WebGL canvas back, and
     // keeping the buffer costs a copy every frame on many GPUs.
   });

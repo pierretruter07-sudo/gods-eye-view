@@ -295,5 +295,10 @@
   "src/data/aisStreamSentinels.test.mjs",
   "src/data/modelEligibility.test.mjs",
   "src/audit/audit.test.mjs",
-  "src/ui/styles/audit.css"
+  "src/ui/styles/audit.css",
+  "build/cacheHeaders.js",
+  "src/tooling/cacheHeaders.test.mjs",
+  "src/audit/impact.js",
+  "src/maps/google3dBudget.test.mjs",
+  "src/data/pollPause.test.mjs"
 ]

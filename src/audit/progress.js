@@ -144,3 +144,39 @@ export function itemsAt(ledger, items, stopIndex) {
     };
   });
 }
+
+/**
+ * What one stop of the remediation does, in plain words, for the narrated
+ * playback: what the wave fixes, which gaps it closes (compared with the
+ * previous stop) and why that lets the next stage start.
+ * @param {object[]} before - items at the previous stop (null for the first).
+ * @param {object[]} after - items at this stop.
+ * @param {Set<string>} mustIds - the baseline must-fix item ids.
+ */
+export function stopStory(ledger, index, before, after, mustIds) {
+  const stops = timelineStops(ledger);
+  const stop = stops[Math.max(0, Math.min(stops.length - 1, index))];
+  const prev = new Map((before || []).map((i) => [i.id, i]));
+  const closed = after.filter(
+    (i) => CLOSED.has(i.status) && OPEN.has(prev.get(i.id)?.status),
+  );
+  const wave = stop.final
+    ? ledger.signoff || {}
+    : stop.wave
+      ? ledger.waves[stop.wave - 1]
+      : null;
+  const gaps = ledger.findings.length;
+  const must = mustIds.size;
+  return {
+    stop,
+    who: wave?.who || 'CrossCheck',
+    fixes: wave
+      ? wave.fixes || wave.exit || ''
+      : `CrossCheck rated every applicable objective and requirement against the code and documents: ${gaps} gaps, ${must} of them must-fix before any safe-and-secure claim.`,
+    unlocks: wave
+      ? wave.unlocks || ''
+      : `The plan gives every gap one owner and one wave, so the work can start with the quickest risk reduction.`,
+    closed: closed.length,
+    mustClosed: closed.filter((i) => mustIds.has(i.id)).map((i) => i.id),
+  };
+}

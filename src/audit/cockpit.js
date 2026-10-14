@@ -16,6 +16,7 @@ import {
   severityOf,
 } from './model.js';
 import { cardFor, shorten } from './plain.js';
+import { PARTS, impactFor } from './impact.js';
 
 const MARK =
   '<svg width="26" height="17" viewBox="0 0 34 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#7aa7dc" stroke-width="2"/><circle cx="22" cy="12" r="9.5" fill="none" stroke="#a294dc" stroke-width="2"/></svg>';
@@ -65,7 +66,8 @@ function section(id, title, open) {
  *   must: object[], layers: object, onLayer: Function, onSelect: Function,
  *   onClear: Function, onTour: Function, onEvidence: Function,
  *   onReset: Function, onExit: Function, stops: object[],
- *   onStop: (index: number) => void, onPlay: Function}} o
+ *   onStop: (index: number) => void, onPlay: Function,
+ *   onStoryNext: Function, onStoryClose: Function}} o
  */
 export function createCockpit(o) {
   const root = h('div', 'gev-audit-ui');
@@ -271,7 +273,12 @@ export function createCockpit(o) {
     return b;
   });
   tl.append(play, stopsEl);
-  stage.append(banner, tl, hint);
+  // Narrated playback: one short card per stop, above the timeline.
+  const story = h('section', 'gev-story gev-audit-glass');
+  story.hidden = true;
+  story.setAttribute('aria-live', 'polite');
+  story.dataset.zone = 'story';
+  stage.append(banner, story, tl, hint);
 
   // ── Detail (right; only while something is selected) ─────────────────
   const detailZone = h('aside', 'gev-audit-detail gev-audit-glass');
@@ -330,6 +337,21 @@ export function createCockpit(o) {
         `${item.lens === 'sec' ? 'ASVS' : 'ED-153'} ${item.id} · ${item.lens === 'sec' ? `${item.group} ${item.groupName}` : item.groupName}`,
       ),
     ];
+    // First: what this gap does to God's Eye View itself.
+    const impact = impactFor(item);
+    const box = h('div', 'gev-impact');
+    box.dataset.tone = impact.tone;
+    box.append(
+      h('span', 'gev-audit-zlabel', impact.heading),
+      h('p', null, impact.text),
+    );
+    if (impact.parts.length) {
+      const chips = h('ul', 'gev-impact-parts');
+      chips.setAttribute('aria-label', 'Parts affected');
+      for (const id of impact.parts) chips.append(h('li', null, PARTS[id]));
+      box.append(chips);
+    }
+    parts.push(box);
     const para = (label, text) => {
       if (!text) return;
       const s = h('div', 'gev-audit-sec');
@@ -418,6 +440,90 @@ export function createCockpit(o) {
     );
   }
 
+  /** Show what one stop of the remediation does, for `ms` milliseconds. */
+  function showStory({
+    story: st,
+    saf,
+    sec,
+    prevSaf,
+    prevSec,
+    step,
+    total,
+    ms,
+    last,
+  }) {
+    const { stop } = st;
+    story.hidden = false;
+    story.dataset.kind = stop.kind;
+    const head = h('div', 'gev-story-head');
+    head.append(
+      h(
+        'span',
+        'gev-audit-zlabel',
+        `${step} of ${total} · ${stop.kind === 'measured' ? 'Measured' : 'Projected'}`,
+      ),
+    );
+    const next = button('gev-audit-link', last ? 'Close' : 'Next ›');
+    next.addEventListener('click', () =>
+      last ? o.onStoryClose() : o.onStoryNext(),
+    );
+    const close = button('gev-audit-x', '×', 'Stop the walkthrough');
+    close.addEventListener('click', () => o.onStoryClose());
+    head.append(next, close);
+    const title = h(
+      'h3',
+      'gev-story-title',
+      stop.index === 0
+        ? 'Where God’s Eye View starts'
+        : `${stop.label} · ${stop.name}`,
+    );
+    const score = h('div', 'gev-story-score');
+    for (const [name, now, was, cls] of [
+      ['Safety', saf, prevSaf, 'is-saf'],
+      ['Security', sec, prevSec, 'is-sec'],
+    ]) {
+      const c = h('div', `gev-story-num ${cls}`);
+      const big = h('b', null, pct(now.readiness));
+      c.append(h('span', null, name));
+      if (
+        was &&
+        Math.round(was.readiness * 100) !== Math.round(now.readiness * 100)
+      )
+        c.append(h('small', null, `${pct(was.readiness)} →`));
+      c.append(big, h('em', `is-${now.state}`, now.verdict));
+      score.append(c);
+    }
+    const rows = h('dl', 'gev-story-rows');
+    const row = (k, v) => {
+      if (!v) return;
+      rows.append(h('dt', null, k), h('dd', null, v));
+    };
+    row(stop.index === 0 ? 'Found' : 'Fixes', st.fixes);
+    if (st.closed) {
+      const titles = st.mustClosed.map(
+        (id) =>
+          cardFor(
+            o.must.find((m) => m.id === id) || { id, lens: 'saf', title: id },
+          ).title,
+      );
+      const shown = titles.slice(0, 2).map((t) => shorten(t, 48));
+      const more = titles.length - shown.length;
+      row(
+        'Closes',
+        `${st.closed} gap${st.closed === 1 ? '' : 's'}${titles.length ? `, ${titles.length} must-fix: ${shown.join('; ')}${more > 0 ? ` and ${more} more` : ''}` : ''}.`,
+      );
+    }
+    row(last ? 'Result' : 'Unlocks', st.unlocks);
+    row('Who', st.who);
+    const bar = h('i', 'gev-story-bar');
+    bar.style.animationDuration = `${ms}ms`;
+    story.replaceChildren(head, title, score, rows, bar);
+  }
+  function hideStory() {
+    story.hidden = true;
+    story.replaceChildren();
+  }
+
   function setPlaying(on) {
     play.setAttribute('aria-pressed', String(on));
     play.innerHTML = on
@@ -457,6 +563,7 @@ export function createCockpit(o) {
       rail,
       stage,
       timeline: tl,
+      story,
       ...sections,
       detail: detailZone,
       evidence: evidenceBtn,
@@ -482,6 +589,8 @@ export function createCockpit(o) {
     setLayers,
     setStop,
     setPlaying,
+    showStory,
+    hideStory,
     destroy() {
       root.remove();
     },

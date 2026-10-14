@@ -84,6 +84,33 @@ export class LayerLifecycle {
     this._registrationDispositions = null;
     this._allowQaRegistration = allowQaRegistration === true;
     this._qaLayerIds = new Set();
+    this._pollPauses = new Set();
+  }
+
+  /**
+   * Pause the periodic feed polls (e.g. the tab is hidden, or the AUDIT view
+   * covers the globe). Layers stay enabled; each missed poll runs once on
+   * resume, so the picture is fresh the moment it is visible again.
+   * @param {string} reason
+   */
+  pausePolling(reason) {
+    if (reason) this._pollPauses.add(reason);
+  }
+
+  /** Lift one pause reason; catch up layers that missed a poll. */
+  resumePolling(reason) {
+    this._pollPauses.delete(reason);
+    if (this._pollPauses.size) return;
+    for (const [layerId, entry] of this.layers) {
+      if (!entry.pollMissed) continue;
+      entry.pollMissed = false;
+      if (entry.enabled) void this._runPeriodicUpdate(layerId, entry);
+    }
+  }
+
+  /** Whether periodic polls are paused, and why. */
+  pollingPausedFor() {
+    return [...this._pollPauses];
   }
 
   register(layerModule) {
@@ -525,6 +552,10 @@ export class LayerLifecycle {
           : 0;
     if (refreshInterval > 0) {
       entry.intervalId = setInterval(() => {
+        if (this._pollPauses.size) {
+          entry.pollMissed = true;
+          return;
+        }
         void this._runPeriodicUpdate(layerId, entry);
       }, refreshInterval);
     } else if (updateInterval === 0) {

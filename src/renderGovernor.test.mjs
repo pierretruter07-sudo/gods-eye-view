@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   installRenderGovernor,
   holdContinuousRender,
+  holdRenderCadence,
   releaseContinuousRender,
   governorRequestRender,
   getRenderGovernorDiagnostics,
@@ -97,4 +98,33 @@ test('holds registered before install apply at install time', () => {
   assert.equal(scene.requestRenderMode, false, 'pre-install hold keeps continuous mode');
   releaseContinuousRender('flights');
   assert.equal(scene.requestRenderMode, true);
+});
+
+test('a cadence hold keeps render-on-demand and requests frames at the fastest cadence', async (t) => {
+  t.mock.timers.enable({ apis: ['setInterval'] });
+  const { viewer, scene, calls } = makeViewer();
+  installRenderGovernor(viewer);
+  holdRenderCadence('ais-vessels', 160);
+  holdRenderCadence('flights', 80);
+  assert.equal(scene.requestRenderMode, true);
+  const d = getRenderGovernorDiagnostics();
+  assert.equal(d.mode, 'cadence');
+  assert.equal(d.cadenceMs, 80);
+  const before = calls.requestRender;
+  t.mock.timers.tick(800);
+  assert.equal(calls.requestRender - before, 10);
+  // A continuous hold takes over; the cadence timer stops.
+  holdContinuousRender('tracked-entity');
+  assert.equal(scene.requestRenderMode, false);
+  assert.equal(getRenderGovernorDiagnostics().cadenceMs, 0);
+  releaseContinuousRender('tracked-entity');
+  assert.equal(getRenderGovernorDiagnostics().cadenceMs, 80);
+  // Releasing the owners ends the cadence.
+  releaseContinuousRender('flights');
+  assert.equal(getRenderGovernorDiagnostics().cadenceMs, 160);
+  releaseContinuousRender('ais-vessels');
+  assert.equal(getRenderGovernorDiagnostics().mode, 'idle');
+  const idle = calls.requestRender;
+  t.mock.timers.tick(1000);
+  assert.equal(calls.requestRender, idle);
 });

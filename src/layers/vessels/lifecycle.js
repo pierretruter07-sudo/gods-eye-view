@@ -15,6 +15,11 @@ export function createLifecycle({
   const { state } = vesselState;
   const { restoreSpriteOrder, restoreSpriteOrderOnEnable } = services.sprites;
   const { holdContinuousRender, releaseContinuousRender } = services.render;
+  // Frames at the layer's own pace, not 60 fps (perf wave 3).
+  const holdCadence = (id, ms) =>
+    services.render.holdRenderCadence
+      ? services.render.holdRenderCadence(id, ms)
+      : holdContinuousRender(id);
   const { ensureGeoidReady } = services.geoid;
   const { registerPickOwner, unregisterPickOwner } = services.picking;
 
@@ -167,7 +172,7 @@ export function createLifecycle({
       const wasEnabled = state.feed.enabled;
       state.feed.enabled = true;
       if (!wasEnabled) beginAisSession();
-      holdContinuousRender('ais-vessels'); // per-frame animator (perf wave 2)
+      holdCadence('ais-vessels', 160); // ship icons refresh at most every 80–800 ms; focus has its own tracked-entity hold
       const activeViewer = viewer || state.viewer;
       components.rendering.ensureCollections(activeViewer);
       components.selection.installInteraction(activeViewer);

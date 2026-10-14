@@ -6,6 +6,28 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **AUDIT view, round 3.**
+  - Every item now says what it means for God's Eye View: the feeds,
+    services or people it touches and what would go wrong. Must-fix items
+    have their own wording.
+  - Play on the timeline is narrated. Each stop explains what the wave
+    fixes, which gaps it closes, how readiness moves, and what that
+    unlocks next.
+  - Entering AUDIT is quicker. The code and data are fetched in advance
+    (on hover, or after start-up), the morph overlaps the flight, and
+    shaders compile during the flight.
+- **Performance pass (wave 3).**
+  - Aircraft, ships and satellites redraw at their data pace (80–200 ms)
+    instead of 60 fps.
+  - Feed polling pauses while the tab is hidden or AUDIT is open, then
+    catches up once.
+  - Hashed assets are cached for a year, and the page always revalidates.
+  - The Cesium script no longer blocks the first paint, and Google tiles
+    are preconnected.
+  - The 3D tile cache is sized to the device.
+  - The last quality steps coarsen 3D tile detail.
+  - FXAA runs only when MSAA is off, and the viewer starts at 2× MSAA.
+  - GEV-PRF-007…010 and GEV-AUD-011…012 are traced.
 - **AUDIT view, round 2.**
   - Cleaner layout: a three-column grid with no overlaps, smaller type,
     and a left rail of collapsible sections (Readiness, Must fix grouped by
