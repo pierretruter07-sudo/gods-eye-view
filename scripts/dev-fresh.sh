@@ -1,0 +1,328 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOURCE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "${GEV_PROJECT_ROOT:-$SOURCE_ROOT}" && pwd)"
+cd "$ROOT_DIR"
+
+PORT="${PORT:-4173}"
+# Local-only by default: the dev server brokers configured API keys, so it
+# should not be reachable from the network unless explicitly requested.
+# Set HOST=0.0.0.0 to opt in to LAN exposure (a warning is printed).
+HOST="${HOST:-localhost}"
+
+if command -v npm >/dev/null 2>&1; then
+  DEV_COMMAND=(npm run dev --)
+elif command -v pnpm >/dev/null 2>&1; then
+  DEV_COMMAND=(pnpm run dev)
+else
+  echo "error: neither npm nor pnpm found"
+  exit 1
+fi
+
+read_dotenv_value() {
+  local variable_name="$1"
+  if ! command -v node >/dev/null 2>&1; then
+    echo "warning: node not found; cannot parse dotenv files" >&2
+    return
+  fi
+  node "$SOURCE_ROOT/scripts/read-dotenv-value.mjs" "${variable_name}"
+}
+
+# Vite loads .env for browser build-time configuration, but this launcher needs
+# the Maps key before Vite starts. Preserve a shell-provided value; otherwise
+# read Vite's project-local dotenv ladder without executing it as shell code.
+GOOGLE_MAPS_API_KEY_ENV="${GOOGLE_MAPS_API_KEY:-}"
+GOOGLE_MAPS_API_KEY_ENV_SOURCE="env"
+if [[ -z "${GOOGLE_MAPS_API_KEY_ENV}" ]]; then
+  GOOGLE_MAPS_API_KEY_ENV="$(read_dotenv_value "GOOGLE_MAPS_API_KEY")"
+  GOOGLE_MAPS_API_KEY_ENV_SOURCE="dotenv"
+fi
+GOOGLE_MAPS_API_KEY_KEYCHAIN=""
+GOOGLE_MAPS_API_KEY_SOURCE=""
+if command -v security >/dev/null 2>&1; then
+  for acct in "api-key" "default" "key"; do
+    GOOGLE_MAPS_API_KEY_KEYCHAIN="$(security find-generic-password -s "google-maps-api" -a "${acct}" -w 2>/dev/null || true)"
+    if [[ -n "${GOOGLE_MAPS_API_KEY_KEYCHAIN}" ]]; then
+      GOOGLE_MAPS_API_KEY_SOURCE="keychain:${acct}"
+      break
+    fi
+  done
+fi
+
+if [[ -n "${GOOGLE_MAPS_API_KEY_ENV}" ]]; then
+  GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY_ENV}"
+  GOOGLE_MAPS_API_KEY_SOURCE="${GOOGLE_MAPS_API_KEY_ENV_SOURCE}"
+elif [[ -n "${GOOGLE_MAPS_API_KEY_KEYCHAIN}" ]]; then
+  GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY_KEYCHAIN}"
+else
+  GOOGLE_MAPS_API_KEY=""
+fi
+if [[ -z "${GOOGLE_MAPS_API_KEY}" ]]; then
+  GOOGLE_MAPS_API_KEY_SOURCE="not configured"
+fi
+
+read_keychain_secret() {
+  local service="$1"
+  local account="$2"
+  security find-generic-password -s "$service" -a "$account" -w 2>/dev/null || true
+}
+
+load_opensky_oauth_from_file() {
+  local file_path="$1"
+  if [[ -z "${file_path}" || ! -f "${file_path}" ]]; then
+    return
+  fi
+  if ! command -v node >/dev/null 2>&1; then
+    echo "warning: node not found; cannot parse OPENSKY_CREDENTIALS_FILE"
+    return
+  fi
+
+  local parsed
+  parsed="$(node -e "const fs=require('fs');const p=process.argv[1];try{const raw=JSON.parse(fs.readFileSync(p,'utf8'));const id=String(raw.clientId??raw.client_id??'').trim();const secret=String(raw.clientSecret??raw.client_secret??'').trim();process.stdout.write(id+'\\t'+secret);}catch{process.exit(1)}" -- "${file_path}" 2>/dev/null || true)"
+  if [[ "${parsed}" != *$'\t'* ]]; then
+    return
+  fi
+  local parsed_client_id="${parsed%%$'\t'*}"
+  local parsed_client_secret="${parsed#*$'\t'}"
+
+  if [[ -z "${OPENSKY_CLIENT_ID}" && -n "${parsed_client_id}" ]]; then
+    OPENSKY_CLIENT_ID="${parsed_client_id}"
+  fi
+  if [[ -z "${OPENSKY_CLIENT_SECRET}" && -n "${parsed_client_secret}" ]]; then
+    OPENSKY_CLIENT_SECRET="${parsed_client_secret}"
+  fi
+}
+
+resolve_opensky_credentials() {
+  OPENSKY_AUTH_MODE="${OPENSKY_AUTH_MODE:-$(read_dotenv_value "OPENSKY_AUTH_MODE")}"
+  OPENSKY_AUTH_MODE="$(printf '%s' "${OPENSKY_AUTH_MODE:-oauth}" | tr '[:upper:]' '[:lower:]')"
+  OPENSKY_CREDENTIALS_FILE="${OPENSKY_CREDENTIALS_FILE:-$(read_dotenv_value "OPENSKY_CREDENTIALS_FILE")}"
+  case "${OPENSKY_AUTH_MODE}" in
+    basic|oauth|auto|anon) ;;
+    *)
+      echo "warning: invalid OPENSKY_AUTH_MODE='${OPENSKY_AUTH_MODE}', defaulting to 'oauth'"
+      OPENSKY_AUTH_MODE="oauth"
+      ;;
+  esac
+
+  # Explicit env wins, then .env, then the credentials file / Keychain below.
+  OPENSKY_CLIENT_ID="${OPENSKY_CLIENT_ID:-$(read_dotenv_value "OPENSKY_CLIENT_ID")}"
+  OPENSKY_CLIENT_SECRET="${OPENSKY_CLIENT_SECRET:-$(read_dotenv_value "OPENSKY_CLIENT_SECRET")}"
+  OPENSKY_USERNAME="${OPENSKY_USERNAME:-$(read_dotenv_value "OPENSKY_USERNAME")}"
+  OPENSKY_PASSWORD="${OPENSKY_PASSWORD:-$(read_dotenv_value "OPENSKY_PASSWORD")}"
+
+  if [[ "${OPENSKY_AUTH_MODE}" == "basic" || "${OPENSKY_AUTH_MODE}" == "auto" ]] && [[ -z "${OPENSKY_USERNAME}" ]]; then
+    for svc in "opensky-network" "opensky"; do
+      for acct in "username" "user" "login" "email" "default"; do
+        OPENSKY_USERNAME="$(read_keychain_secret "${svc}" "${acct}")"
+        if [[ -n "${OPENSKY_USERNAME}" ]]; then
+          break 2
+        fi
+      done
+    done
+  fi
+  if [[ "${OPENSKY_AUTH_MODE}" == "basic" || "${OPENSKY_AUTH_MODE}" == "auto" ]] && [[ -z "${OPENSKY_PASSWORD}" ]]; then
+    for svc in "opensky-network" "opensky"; do
+      for acct in "password" "pass" "token" "secret" "default"; do
+        OPENSKY_PASSWORD="$(read_keychain_secret "${svc}" "${acct}")"
+        if [[ -n "${OPENSKY_PASSWORD}" ]]; then
+          break 2
+        fi
+      done
+    done
+  fi
+  if [[ "${OPENSKY_AUTH_MODE}" == "oauth" || "${OPENSKY_AUTH_MODE}" == "auto" ]] && [[ -n "${OPENSKY_CREDENTIALS_FILE}" ]]; then
+    load_opensky_oauth_from_file "${OPENSKY_CREDENTIALS_FILE}"
+  fi
+  if [[ "${OPENSKY_AUTH_MODE}" == "oauth" || "${OPENSKY_AUTH_MODE}" == "auto" ]] && [[ -z "${OPENSKY_CLIENT_ID}" ]]; then
+    for svc in "opensky-network" "opensky"; do
+      for acct in "client_id" "client-id" "client" "api-key"; do
+        OPENSKY_CLIENT_ID="$(read_keychain_secret "${svc}" "${acct}")"
+        if [[ -n "${OPENSKY_CLIENT_ID}" ]]; then
+          break 2
+        fi
+      done
+    done
+  fi
+  if [[ "${OPENSKY_AUTH_MODE}" == "oauth" || "${OPENSKY_AUTH_MODE}" == "auto" ]] && [[ -z "${OPENSKY_CLIENT_SECRET}" ]]; then
+    for svc in "opensky-network" "opensky"; do
+      for acct in "client_secret" "client-secret" "secret"; do
+        OPENSKY_CLIENT_SECRET="$(read_keychain_secret "${svc}" "${acct}")"
+        if [[ -n "${OPENSKY_CLIENT_SECRET}" ]]; then
+          break 2
+        fi
+      done
+    done
+  fi
+
+  case "${OPENSKY_AUTH_MODE}" in
+    basic)
+      OPENSKY_CLIENT_ID=""
+      OPENSKY_CLIENT_SECRET=""
+      ;;
+    oauth)
+      OPENSKY_USERNAME=""
+      OPENSKY_PASSWORD=""
+      ;;
+    anon)
+      OPENSKY_CLIENT_ID=""
+      OPENSKY_CLIENT_SECRET=""
+      OPENSKY_USERNAME=""
+      OPENSKY_PASSWORD=""
+      ;;
+  esac
+}
+
+resolve_opensky_credentials
+
+# Optional keys: explicit env wins, followed by .env and Keychain fallback.
+# Add to Keychain with e.g.:
+#   security add-generic-password -U -s "aisstream-api" -a "api-key" -w
+AISSTREAM_API_KEY="${AISSTREAM_API_KEY:-$(read_dotenv_value "AISSTREAM_API_KEY")}"
+CESIUM_ION_TOKEN="${CESIUM_ION_TOKEN:-$(read_dotenv_value "CESIUM_ION_TOKEN")}"
+FIRMS_MAP_KEY="${FIRMS_MAP_KEY:-$(read_dotenv_value "FIRMS_MAP_KEY")}"
+AISSTREAM_API_KEY="${AISSTREAM_API_KEY:-$(read_keychain_secret "aisstream-api" "api-key")}"
+CESIUM_ION_TOKEN="${CESIUM_ION_TOKEN:-$(read_keychain_secret "cesium-ion" "token")}"
+FIRMS_MAP_KEY="${FIRMS_MAP_KEY:-$(read_keychain_secret "firms-map" "map-key")}"
+
+if ! grep -q "return createApplicationCatalog(" "$SOURCE_ROOT/src/standalone/catalog.js" || \
+   ! grep -q "APPLICATION_LAYER_IDS" "$SOURCE_ROOT/src/app/constructCatalog.js"; then
+  echo "error: application layer catalog not wired in src/standalone/catalog.js"
+  exit 1
+fi
+
+echo "Stopping all existing God's Eye View dev servers..."
+pkill -f "${ROOT_DIR}/node_modules/.bin/vite" >/dev/null 2>&1 || true
+pkill -f "${ROOT_DIR}/node_modules/vite/bin/vite.js" >/dev/null 2>&1 || true
+
+# Also clear the requested port in case it is held by a stale wrapper or a
+# server started through a different package-manager command.
+if command -v lsof >/dev/null 2>&1; then
+  PIDS="$(lsof -tiTCP:${PORT} -sTCP:LISTEN 2>/dev/null || true)"
+  if [[ -n "${PIDS}" ]]; then
+    echo "${PIDS}" | xargs kill -9 >/dev/null 2>&1 || true
+  fi
+fi
+
+echo "Clearing Vite cache..."
+rm -rf node_modules/.vite
+
+echo "Starting fresh God's Eye View dev server..."
+case "${HOST}" in
+  localhost|127.0.0.1|::1)
+    echo "Local-only mode: reachable at http://localhost:${PORT}/ (set HOST=0.0.0.0 for LAN)"
+    ;;
+  *)
+    LAN_IP=""
+    if command -v ipconfig >/dev/null 2>&1; then
+      # macOS: first active interface wins
+      for iface in en0 en1; do
+        LAN_IP="$(ipconfig getifaddr "${iface}" 2>/dev/null || true)"
+        [[ -n "${LAN_IP}" ]] && break
+      done
+    elif command -v hostname >/dev/null 2>&1; then
+      # Linux: hostname -I lists addresses; take the first
+      LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}' || true)"
+    fi
+    echo ""
+    echo "!! =============================================================="
+    echo "!! WARNING: HOST=${HOST} — network-exposed mode."
+    echo "!! This dev server brokers your configured API keys"
+    echo "!! (OpenSky, AISStream, FIRMS, Google) to ANYONE who can"
+    echo "!! reach it on the network. Use only on networks you trust."
+    echo "!! Consider the opt-in per-IP throttles"
+    echo "!! and GEV_RATELIMIT_GOOGLE_PER_MIN (see .env.example) — and note"
+    echo "!! they are NOT billing caps; set provider-side budget alerts too."
+    if [[ -n "${LAN_IP}" ]]; then
+      echo "!! LAN URL: http://${LAN_IP}:${PORT}/"
+    else
+      echo "!! LAN URL: http://<this-machine-ip>:${PORT}/"
+    fi
+    echo "!! =============================================================="
+    echo ""
+    echo "URL (this machine): http://localhost:${PORT}/"
+    ;;
+esac
+echo "Google Maps key source: ${GOOGLE_MAPS_API_KEY_SOURCE}"
+echo "Tip: after server starts, hard refresh browser (Cmd+Shift+R)."
+echo "OpenSky auth mode: ${OPENSKY_AUTH_MODE}"
+if [[ -n "${OPENSKY_CREDENTIALS_FILE}" ]]; then
+  if [[ -f "${OPENSKY_CREDENTIALS_FILE}" ]]; then
+    echo "OpenSky credentials file: ${OPENSKY_CREDENTIALS_FILE}"
+  else
+    echo "OpenSky credentials file: ${OPENSKY_CREDENTIALS_FILE} (missing)"
+  fi
+fi
+case "${OPENSKY_AUTH_MODE}" in
+  basic)
+    if [[ -n "${OPENSKY_USERNAME}" && -n "${OPENSKY_PASSWORD}" ]]; then
+      echo "OpenSky basic auth: configured"
+    else
+      echo "OpenSky basic auth: missing credentials"
+    fi
+    ;;
+  oauth)
+    if [[ -n "${OPENSKY_CLIENT_ID}" && -n "${OPENSKY_CLIENT_SECRET}" ]]; then
+      echo "OpenSky OAuth: configured"
+    else
+      echo "OpenSky OAuth: missing client credentials"
+    fi
+    ;;
+  auto)
+    if [[ -n "${OPENSKY_CLIENT_ID}" && -n "${OPENSKY_CLIENT_SECRET}" ]]; then
+      echo "OpenSky auto auth: OAuth configured"
+    elif [[ -n "${OPENSKY_USERNAME}" && -n "${OPENSKY_PASSWORD}" ]]; then
+      echo "OpenSky auto auth: basic configured"
+    else
+      echo "OpenSky auto auth: no credentials found"
+    fi
+    ;;
+  anon)
+    echo "OpenSky auth: disabled (anonymous mode)"
+    ;;
+esac
+[[ -n "${AISSTREAM_API_KEY}" ]] && echo "AISStream key (live vessels): configured" || echo "AISStream key (live vessels): not set — ships layer empty"
+if [[ -n "${GOOGLE_MAPS_API_KEY}" ]]; then
+  echo "Startup map: Google Photorealistic 3D Tiles (direct)"
+elif [[ -n "${CESIUM_ION_TOKEN}" ]]; then
+  echo "Startup map: Google Photorealistic 3D Tiles (Cesium ion)"
+else
+  echo "Startup map: Esri World Imagery with keyless terrain (OpenStreetMap fallback)"
+fi
+[[ -n "${CESIUM_ION_TOKEN}" ]] && echo "Cesium ion token: configured — Google 3D, Bing, and world-terrain stacks available" || echo "Cesium ion token: not set"
+[[ -n "${FIRMS_MAP_KEY}" ]] && echo "NASA FIRMS key (live fires): configured" || echo "NASA FIRMS key (live fires): not set — fires layer requires a key"
+
+# Build the dev server environment explicitly. A value that resolved to
+# nothing is left UNSET instead of being exported empty: Vite backfills its
+# own .env values only for variables it finds undefined, so an empty export
+# would shadow a key the user did configure in .env.
+DEV_ENV=()
+DEV_UNSET=()
+put_env() {
+  DEV_ENV+=("$1=$2")
+}
+put_env_if_set() {
+  if [[ -n "$2" ]]; then
+    DEV_ENV+=("$1=$2")
+  else
+    # Leaving it out is not enough: the child inherits this shell's
+    # environment, so an empty export made in the PARENT would pass straight
+    # through and shadow .env just the same. Remove it from the child outright.
+    DEV_UNSET+=(-u "$1")
+  fi
+}
+
+put_env_if_set GOOGLE_MAPS_API_KEY "${GOOGLE_MAPS_API_KEY}"
+put_env OPENSKY_AUTH_MODE "${OPENSKY_AUTH_MODE}"
+put_env_if_set OPENSKY_CREDENTIALS_FILE "${OPENSKY_CREDENTIALS_FILE}"
+put_env_if_set OPENSKY_CLIENT_ID "${OPENSKY_CLIENT_ID}"
+put_env_if_set OPENSKY_CLIENT_SECRET "${OPENSKY_CLIENT_SECRET}"
+put_env_if_set OPENSKY_USERNAME "${OPENSKY_USERNAME}"
+put_env_if_set OPENSKY_PASSWORD "${OPENSKY_PASSWORD}"
+put_env_if_set AISSTREAM_API_KEY "${AISSTREAM_API_KEY}"
+put_env_if_set CESIUM_ION_TOKEN "${CESIUM_ION_TOKEN}"
+put_env_if_set FIRMS_MAP_KEY "${FIRMS_MAP_KEY}"
+put_env GEV_LAUNCHER "dev-fresh"
+
+env ${DEV_UNSET[@]+"${DEV_UNSET[@]}"} "${DEV_ENV[@]}" "${DEV_COMMAND[@]}" --host "${HOST}" --port "${PORT}" --force

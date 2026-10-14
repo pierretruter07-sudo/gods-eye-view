@@ -1,0 +1,5 @@
+/* God's Eye View stylesheet entry: base, loading screen, then the shell. */
+@import './src/ui/styles/foundation.css';
+@import './src/ui/styles/loading.css';
+@import './src/ui/styles/shell.css';
+@import './src/ui/styles/audit.css';

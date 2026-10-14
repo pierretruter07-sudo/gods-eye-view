@@ -1,0 +1,136 @@
+{
+  "name": "gods-eye-view",
+  "private": true,
+  "version": "0.1.1",
+  "description": "A real-time intelligence console for planet Earth — photorealistic 3D globe, live aircraft/ships/satellites/earthquakes/CCTV, and hands-free voice control. Runs in a browser.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Bilawal Sidhu",
+  "homepage": "https://github.com/bilawalsidhu/gods-eye-view#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bilawalsidhu/gods-eye-view.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bilawalsidhu/gods-eye-view/issues"
+  },
+  "engines": {
+    "node": ">=24.13.0 <25 || >=26 <27"
+  },
+  "keywords": [
+    "cesium",
+    "3d-globe",
+    "geospatial",
+    "osint",
+    "spatial-intelligence",
+    "photorealistic-3d-tiles",
+    "adsb",
+    "ais",
+    "satellites",
+    "voice-control",
+    "openai-realtime",
+    "visualization"
+  ],
+  "scripts": {
+    "doctor": "node scripts/setup-doctor.mjs",
+    "format": "node scripts/format.mjs --write",
+    "format:check": "node scripts/format.mjs --check",
+    "dev": "vite",
+    "dev:secure": "./scripts/dev-secure.sh",
+    "opensky:import": "./scripts/opensky-import-client.sh",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node scripts/run-unit-tests.mjs",
+    "check:boundaries": "node scripts/check-import-directions.mjs && node scripts/check-package-boundaries.mjs"
+  },
+  "dependencies": {
+    "cesium": "^1.124.0",
+    "egm96-universal": "^1.1.1",
+    "satellite.js": "^6.0.2"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6",
+    "vite": "^6.0.0",
+    "vite-plugin-cesium": "^1.2.23",
+    "ws": "^8.21.0"
+  },
+  "exports": {
+    "./application": "./src/app/application.js",
+    "./application/viewer": "./src/app/viewer.js",
+    "./build/vite": {
+      "node": "./build/vite.js"
+    },
+    "./sources/adsb-lol": "./src/data/adsbLolFallback.js",
+    "./server/providers/places": {
+      "node": "./server/providers/places.js"
+    },
+    "./sources/places": "./src/data/placeProviderPayloads.js",
+    "./server/providers/space": {
+      "node": "./server/providers/space.js"
+    },
+    "./sources/space": "./src/data/spaceProviderRequests.js",
+    "./server/providers/terrain": {
+      "node": "./server/providers/terrain.js"
+    },
+    "./sources/terrain": "./src/data/terrainHeightsProxy.js",
+    "./server/providers/firms": {
+      "node": "./server/providers/firms.js"
+    },
+    "./server/providers/overpass": {
+      "node": "./server/providers/overpass.js"
+    },
+    "./server/providers/military-installations": {
+      "node": "./server/providers/military-installations.js"
+    },
+    "./layers/flights": "./src/layers/flights/index.js",
+    "./layers/military": "./src/layers/military/index.js",
+    "./layers/vessels": "./src/layers/vessels/index.js",
+    "./layers/earthquakes": "./src/layers/earthquakes/index.js",
+    "./sources/firms-csv": "./src/data/firmsCsv.js",
+    "./layers/firms": "./src/layers/firms/index.js",
+    "./layers/satellites": "./src/layers/satellites/index.js",
+    "./layers/installations": "./src/layers/installations/index.js",
+    "./layers/submarine-cables": "./src/layers/submarineCables/index.js",
+    "./sources/bundled-cables": "./src/layers/submarineCables/bundledSource.js",
+    "./geography/natural-earth": "./src/data/naturalEarthRegions.js",
+    "./geography/neighborhoods": "./src/data/neighborhoodPolygons.js",
+    "./maps/controller": "./src/maps/controller.js",
+    "./maps/catalog": "./src/maps/catalog.js",
+    "./maps/imagery": "./src/maps/imagery.js",
+    "./maps/terrain": "./src/maps/terrain.js",
+    "./maps/3d": "./src/maps/google3d.js",
+    "./maps/defaults": "./src/maps/defaultSources.js",
+    "./application/scene": "./src/app/scene.js",
+    "./application/controls": "./src/app/controls.js",
+    "./application/data": "./src/app/data.js",
+    "./application/tools": "./src/app/tools.js",
+    "./application/chrome": "./src/app/startupChrome.js",
+    "./application/services": "./src/services/application.js",
+    "./application/requests": "./src/services/requests.js",
+    "./application/errors": "./src/app/errors.js",
+    "./context": "./src/data/contextStore.js",
+    "./application/catalog": "./src/app/catalog.js",
+    "./standalone/catalog": "./src/standalone/catalog.js",
+    "./application/layers": "./src/app/constructCatalog.js",
+    "./application/operations": "./src/app/operations.js",
+    "./data/lifecycle": "./src/data/lifecycle.js",
+    "./layers/flights/records": "./src/layers/flights/records.js",
+    "./layers/flights/ingestion": "./src/layers/flights/ingestion.js",
+    "./layers/military/records": "./src/layers/military/records.js",
+    "./layers/military/ingestion": "./src/layers/military/ingestion.js",
+    "./layers/vessels/records": "./src/layers/vessels/records.js",
+    "./layers/vessels/ingestion": "./src/layers/vessels/ingestion.js",
+    "./sources/regional": "./src/data/regionalModel.js",
+    "./layers/earthquakes/source": "./src/layers/earthquakes/source.js",
+    "./layers/firms/source": "./src/layers/firms/source.js",
+    "./layers/installations/source": "./src/layers/installations/source.js",
+    "./layers/satellites/source": "./src/layers/satellites/source.js",
+    "./sources/reference": "./src/sources/reference.js",
+    "./layers/submarine-cables/source": "./src/layers/submarineCables/bundledSource.js",
+    "./sources/http-body": "./src/sources/httpBody.js",
+    "./sources/overpass": "./src/sources/overpass.js",
+    "./search/nominatim": "./src/search/nominatim.js",
+    "./sources/nominatim": "./src/sources/nominatim.js",
+    "./sources/map-features": "./src/sources/overpassFeatures.js"
+  }
+}

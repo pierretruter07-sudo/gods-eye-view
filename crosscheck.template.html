@@ -1,0 +1,1040 @@
+<title>CrossCheck Dual Assessor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: an assessor's desk. Header strip, working tabs, objectives and requirements as flight-progress strips.
+   Two lenses share one item: safety (ED-153, blue) and security (OWASP ASVS, violet). */
+:root {
+  --paper: #f4f6f7; --sheet: #ffffff; --ink: #142233; --ink-2: #4a5a6c; --rule: #d9e0e6; --rule-2: #eef2f5;
+  --accent: #2a5f8f; --accent-ink: #ffffff; --accent-soft: #e4eef7;
+  --sec: #6b4fa0; --sec-soft: #eee8f7;
+  --c: #2c7a57; --l: #7fb06c; --p: #d99a2b; --n: #c0503a; --na: #b9c2cc; --un: #e6eaee;
+  --s1: #9c2f22; --s2: #c0503a; --s3: #d99a2b; --s4: #7c8a99;
+  --sc: #7d1d3f; --sh: #c0503a; --sm: #d99a2b; --sl: #7c8a99;
+  --display: 'IBM Plex Sans Condensed', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --body: 'IBM Plex Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0f1720; --sheet: #16212c; --ink: #e6edf3; --ink-2: #9fb0c0; --rule: #2a3846; --rule-2: #1d2935;
+  --accent: #7fb2e0; --accent-ink: #0f1720; --accent-soft: #1d3247;
+  --sec: #b59be6; --sec-soft: #2a2340;
+  --c: #49a77d; --l: #93c27e; --p: #e2ab4a; --n: #e0705a; --na: #4d5b69; --un: #26323e;
+  --s1: #ef7c6a; --s2: #e0705a; --s3: #e2ab4a; --s4: #8d9cab;
+  --sc: #e46b95; --sh: #e0705a; --sm: #e2ab4a; --sl: #8d9cab; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0f1720; --sheet: #16212c; --ink: #e6edf3; --ink-2: #9fb0c0; --rule: #2a3846; --rule-2: #1d2935;
+  --accent: #7fb2e0; --accent-ink: #0f1720; --accent-soft: #1d3247;
+  --sec: #b59be6; --sec-soft: #2a2340;
+  --c: #49a77d; --l: #93c27e; --p: #e2ab4a; --n: #e0705a; --na: #4d5b69; --un: #26323e;
+  --s1: #ef7c6a; --s2: #e0705a; --s3: #e2ab4a; --s4: #8d9cab;
+  --sc: #e46b95; --sh: #e0705a; --sm: #e2ab4a; --sl: #8d9cab; color-scheme: dark }
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.5 var(--body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 48px; }
+h1, h2, h3 { font-family: var(--display); letter-spacing: 0.005em; text-wrap: balance; margin: 0; }
+h1 { font-size: 1.55rem; font-weight: 700; }
+h2 { font-size: 1.2rem; font-weight: 600; }
+h3 { font-size: 0.98rem; font-weight: 600; }
+.eyebrow { font: 600 0.7rem/1 var(--display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.eyebrow.sec { color: var(--sec); }
+.muted { color: var(--ink-2); }
+.mono { font-family: var(--mono); font-size: 0.82rem; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Header */
+.top { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; justify-content: space-between; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+.top .id { display: grid; gap: 6px; min-width: 0; }
+.mark { display: flex; align-items: center; gap: 10px; }
+.mark svg { flex: none; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--rule); background: var(--sheet); border-radius: 6px; padding: 7px 12px; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.small { padding: 4px 9px; font-size: 0.8rem; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+select.pick { border: 1px solid var(--rule); background: var(--sheet); border-radius: 6px; padding: 7px 10px; max-width: 100%; min-width: 0; }
+.notice { margin-top: 12px; padding: 8px 12px; border: 1px dashed var(--rule); border-radius: 6px; color: var(--ink-2); font-size: 0.86rem; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; margin: 18px 0 14px; border-bottom: 1px solid var(--rule); overflow-x: auto; }
+.tab { border: 0; background: none; padding: 10px 14px; font: 600 0.92rem var(--display); color: var(--ink-2); border-bottom: 3px solid transparent; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab.sec[aria-selected="true"] { border-bottom-color: var(--sec); }
+.tab .ct { font: 500 0.75rem var(--mono); color: var(--ink-2); margin-left: 6px; }
+
+/* Summary strip */
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.stat { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.stat.safety { border-top: 3px solid var(--accent); }
+.stat.security { border-top: 3px solid var(--sec); }
+.stat.both { border-top: 3px solid var(--ink); }
+.stat .lens { font: 600 0.7rem/1.2 var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+.stat b { display: block; font: 600 1.45rem/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.stat .sub { font-size: 0.78rem; color: var(--ink-2); }
+.vchip { justify-self: start; display: inline-block; font: 700 0.7rem/1.3 var(--display); letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 8px; border-radius: 4px; color: #fff; }
+.vchip.dark { color: #10202e; }
+
+/* Intake */
+.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 16px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.field { display: grid; gap: 5px; min-width: 0; align-content: start; }
+.field label { font: 600 0.8rem var(--display); letter-spacing: 0.02em; }
+.field small { color: var(--ink-2); font-size: 0.76rem; }
+.field input, .field textarea, .field select { width: 100%; border: 1px solid var(--rule); border-radius: 6px; padding: 7px 9px; background: var(--paper); }
+.field textarea { min-height: 72px; resize: vertical; }
+.matrix { border-collapse: collapse; font-size: 0.82rem; margin-top: 6px; }
+.matrix th, .matrix td { border: 1px solid var(--rule); padding: 5px 8px; text-align: center; }
+.matrix th { font: 600 0.75rem var(--display); color: var(--ink-2); }
+.matrix td.cell { cursor: pointer; font-family: var(--mono); }
+.matrix td.cell[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.swalpick { display: flex; gap: 6px; flex-wrap: wrap; }
+.swalpick button { border: 1px solid var(--rule); background: var(--paper); border-radius: 6px; padding: 7px 12px; font: 600 0.9rem var(--display); }
+.swalpick button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.lvlpick { display: grid; gap: 6px; }
+.lvlpick button { text-align: left; border: 1px solid var(--rule); background: var(--paper); border-radius: 6px; padding: 8px 12px; display: grid; gap: 2px; }
+.lvlpick button b { font: 600 0.92rem var(--display); }
+.lvlpick button span { font-size: 0.78rem; color: var(--ink-2); }
+.lvlpick button[aria-pressed="true"] { border-color: var(--sec); background: var(--sec-soft); box-shadow: inset 3px 0 0 var(--sec); }
+.scroll { overflow-x: auto; }
+
+/* Strips */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.filters input[type=search] { flex: 1 1 220px; min-width: 0; border: 1px solid var(--rule); border-radius: 6px; padding: 7px 10px; background: var(--sheet); }
+.area { margin: 18px 0 6px; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.strip { display: grid; grid-template-columns: 6px 74px minmax(0, 1fr) auto; background: var(--sheet); border: 1px solid var(--rule); border-radius: 3px; margin-bottom: 4px; }
+.strip .band { background: var(--un); border-radius: 3px 0 0 3px; }
+.strip .sid { padding: 9px 8px; font-family: var(--mono); font-size: 0.8rem; border-right: 1px dashed var(--rule); overflow-wrap: anywhere; }
+.strip .sid .app { display: inline-block; margin-top: 4px; font: 600 0.68rem var(--mono); padding: 1px 5px; border-radius: 3px; background: var(--rule-2); color: var(--ink-2); }
+.strip .sid .app.req { background: var(--accent-soft); color: var(--accent); }
+.strip .sid .app.lvl { background: var(--sec-soft); color: var(--sec); }
+.strip .body { padding: 8px 10px; min-width: 0; display: grid; gap: 6px; }
+.strip .t { font-weight: 600; }
+.strip.secr .t { font-weight: 400; }
+.strip .t .ph { font-weight: 400; color: var(--ink-2); font-style: italic; }
+.strip .hint { font-size: 0.78rem; color: var(--ink-2); }
+.strip .edit { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) 160px; gap: 6px; }
+.strip .edit input, .strip .edit select { width: 100%; min-width: 0; border: 1px solid var(--rule); border-radius: 5px; padding: 5px 7px; background: var(--paper); font-size: 0.82rem; }
+.strip .side { padding: 8px 10px; display: grid; gap: 6px; align-content: start; justify-items: end; border-left: 1px dashed var(--rule); }
+.strip.dim { opacity: 0.62; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; }
+.seg button { border: 0; border-right: 1px solid var(--rule); background: var(--paper); padding: 4px 7px; font: 600 0.72rem var(--mono); min-width: 30px; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"][data-s="C"] { background: var(--c); color: #fff; }
+.seg button[aria-pressed="true"][data-s="L"] { background: var(--l); color: #10202e; }
+.seg button[aria-pressed="true"][data-s="P"] { background: var(--p); color: #10202e; }
+.seg button[aria-pressed="true"][data-s="N"] { background: var(--n); color: #fff; }
+.seg button[aria-pressed="true"][data-s="NA"] { background: var(--na); color: #10202e; }
+.indep { font-size: 0.75rem; display: flex; gap: 5px; align-items: center; color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.78rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+
+/* ASVS chapters */
+details.ch { margin-top: 8px; border: 1px solid var(--rule); border-radius: 6px; background: var(--sheet); }
+details.ch > summary { list-style: none; cursor: pointer; padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 220px) auto; gap: 12px; align-items: center; }
+details.ch > summary::-webkit-details-marker { display: none; }
+details.ch > summary h3::before { content: '▸'; display: inline-block; width: 1em; color: var(--sec); transition: transform .15s; }
+details.ch[open] > summary h3::before { transform: rotate(90deg); }
+details.ch > .inner { padding: 0 10px 10px; }
+.minibar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--un); }
+.minibar i { display: block; height: 100%; }
+.chtools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 4px 2px 8px; font-size: 0.8rem; }
+.sechead { margin: 10px 0 4px; font: 600 0.78rem var(--display); letter-spacing: 0.04em; color: var(--ink-2); }
+
+/* Cross-check */
+.xc { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.xc th { text-align: left; font: 600 0.75rem var(--display); letter-spacing: 0.04em; color: var(--ink-2); border-bottom: 2px solid var(--ink); padding: 6px; }
+.xc td { border-bottom: 1px solid var(--rule); padding: 8px 6px; vertical-align: top; }
+.xc td:first-child { font-weight: 600; min-width: 170px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font: 500 0.74rem var(--mono); padding: 2px 6px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); white-space: nowrap; }
+.chip i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
+.chip.theme { font-family: var(--body); white-space: normal; }
+.xc .vchip { white-space: nowrap; }
+
+/* Report */
+.report { display: grid; gap: 14px; }
+.twin { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.chart text { fill: var(--ink); font: 12px var(--body); }
+.chart .lab { fill: var(--ink-2); font-size: 11px; }
+.reg { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.reg th { text-align: left; font: 600 0.75rem var(--display); letter-spacing: 0.04em; color: var(--ink-2); border-bottom: 2px solid var(--ink); padding: 6px; }
+.reg td { border-bottom: 1px solid var(--rule); padding: 6px; vertical-align: top; }
+.sev { font: 700 0.7rem var(--mono); padding: 2px 6px; border-radius: 3px; color: #fff; white-space: nowrap; }
+.fw { font: 600 0.68rem var(--mono); padding: 1px 5px; border-radius: 3px; white-space: nowrap; }
+.fw.saf { background: var(--accent-soft); color: var(--accent); }
+.fw.sec { background: var(--sec-soft); color: var(--sec); }
+.bucket { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.bucket .sheet ol { margin: 6px 0 0; padding-left: 18px; }
+.bucket .sheet li { margin: 4px 0; }
+.empty { text-align: center; padding: 48px 16px; }
+.empty .bar { justify-content: center; margin-top: 14px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--sheet); padding: 9px 14px; border-radius: 6px; font-size: 0.86rem; max-width: calc(100% - 32px); }
+.foot { margin-top: 28px; font-size: 0.78rem; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 10px; display: grid; gap: 6px; }
+.foot p { margin: 0; max-width: 110ch; }
+/* Remediation and evidence */
+.lvl { display: flex; align-items: baseline; gap: 10px; margin: 18px 0 8px; }
+.lvl .tag { font: 600 0.68rem var(--mono); padding: 2px 7px; border-radius: 3px; background: var(--ink); color: var(--sheet); white-space: nowrap; }
+.pipe { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 6px; }
+.stg { display: grid; gap: 3px; padding: 9px 10px; border-radius: 6px; border: 1px solid var(--rule); background: var(--sheet); min-width: 0; }
+.stg .n { font: 500 0.7rem var(--mono); color: var(--ink-2); }
+.stg b { font: 600 0.86rem/1.2 var(--display); }
+.stg .d { font: 400 0.72rem var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+.stg.done { border-color: var(--c); box-shadow: inset 0 3px 0 var(--c); }
+.stg.now { border-color: var(--p); box-shadow: inset 0 3px 0 var(--p); }
+.stg .mk { display: grid; gap: 4px; margin-top: 4px; }
+.stg .mk input { width: 100%; min-width: 0; border: 1px solid var(--rule); border-radius: 4px; padding: 4px 6px; background: var(--paper); font-size: 0.76rem; }
+.ba { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.ba .sheet { display: grid; gap: 8px; }
+.delta { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 6px 10px; align-items: baseline; font-size: 0.86rem; }
+.delta b { font: 600 1.25rem var(--display); font-variant-numeric: tabular-nums; }
+.prog { height: 8px; border-radius: 4px; background: var(--un); overflow: hidden; display: flex; }
+.prog i { display: block; height: 100%; background: var(--c); }
+details.wv, details.wsx, details.fx { border: 1px solid var(--rule); border-radius: 6px; background: var(--sheet); margin-top: 6px; }
+details.wv > summary, details.wsx > summary, details.fx > summary { list-style: none; cursor: pointer; padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(80px, 200px) auto; gap: 12px; align-items: center; }
+details.wv > summary::-webkit-details-marker, details.wsx > summary::-webkit-details-marker, details.fx > summary::-webkit-details-marker { display: none; }
+details.wv > summary h3::before, details.wsx > summary b::before { content: '▸'; display: inline-block; width: 1em; color: var(--accent); transition: transform .15s; }
+details.wv[open] > summary h3::before, details.wsx[open] > summary b::before { transform: rotate(90deg); }
+details.wv > .in, details.wsx > .in { padding: 0 12px 12px; }
+details.wsx { background: var(--paper); }
+details.fx { background: var(--sheet); }
+details.fx > summary { grid-template-columns: 92px minmax(0, 1fr) auto auto; padding: 8px 10px; font-size: 0.84rem; }
+.hist { margin: 0; padding: 4px 12px 12px 30px; list-style: none; position: relative; }
+.hist::before { content: ''; position: absolute; left: 17px; top: 6px; bottom: 14px; width: 1px; background: var(--rule); }
+.hist li { position: relative; padding: 4px 0; font-size: 0.82rem; }
+.hist li::before { content: ''; position: absolute; left: -17px; top: 10px; width: 9px; height: 9px; border-radius: 50%; background: var(--sheet); border: 2px solid var(--ink-2); }
+.hist li.ok::before { border-color: var(--c); background: var(--c); }
+.hist .when { font: 400 0.74rem var(--mono); color: var(--ink-2); margin-right: 6px; }
+.chipst { display: inline-block; padding: 1px 6px; border-radius: 3px; font: 600 0.68rem var(--mono); color: #fff; }
+.deliv { margin: 6px 0; padding-left: 18px; font-size: 0.84rem; }
+.deliv li { margin: 2px 0; }
+.form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.form input { border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px; background: var(--paper); min-width: 0; flex: 1 1 160px; }
+@media (max-width: 720px) {
+  details.wv > summary, details.wsx > summary { grid-template-columns: minmax(0, 1fr) auto; }
+  details.wv > summary .prog, details.wsx > summary .prog { display: none; }
+  details.fx > summary { grid-template-columns: 80px minmax(0, 1fr); }
+  .strip { grid-template-columns: 6px 64px minmax(0, 1fr); }
+  .strip .side { grid-column: 2 / -1; border-left: 0; border-top: 1px dashed var(--rule); justify-items: start; }
+  .strip .edit { grid-template-columns: 1fr; }
+  details.ch > summary { grid-template-columns: minmax(0, 1fr) auto; }
+  details.ch > summary .minibar { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="id">
+      <div class="mark">
+        <svg width="34" height="24" viewBox="0 0 34 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="var(--accent)" stroke-width="2.2"/><circle cx="22" cy="12" r="9.5" fill="none" stroke="var(--sec)" stroke-width="2.2"/><path d="M13.4 12.4l2.6 2.6 4.6-5.4" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="eyebrow">Dual assessor · EUROCAE ED-153 × OWASP ASVS 5.0</span>
+      </div>
+      <h1 id="title">CrossCheck</h1>
+      <span class="muted" id="subtitle">One software item, two lenses: safety assurance and application security. Rate both, close shared gaps once.</span>
+    </div>
+    <div class="bar">
+      <label for="pick" class="muted" style="font-size:.8rem">Assessment</label>
+      <select id="pick" class="pick"></select>
+      <button class="btn primary" id="new">New assessment</button>
+      <button class="btn" id="dup">Duplicate</button>
+      <button class="btn" id="del">Delete</button>
+    </div>
+  </header>
+  <div class="notice" id="notice" hidden></div>
+  <div id="confirm" class="notice" hidden></div>
+
+  <main id="main"></main>
+
+  <footer class="foot">
+    <p><b>Safety lens.</b> Objective catalogue reconstructed from public predecessors of ED-153 (EUROCONTROL <i>Recommendations for ANS Software</i>, 2005), the Czech CAA ED-153 guide and EASA AMC/GM to Regulation (EU) 2017/373. Per-SWAL applicability is inferred, and placeholder rows stand for areas whose titles were not recovered. Confirm against a purchased copy of ED-153 before any formal claim.</p>
+    <p><b>Security lens.</b> Requirements are the OWASP Application Security Verification Standard 5.0.0, © OWASP Foundation, licensed CC BY-SA 4.0, reproduced unmodified from github.com/OWASP/ASVS. A level is met only when every requirement at or below it passes.</p>
+    <p>Status scale after Automotive SPICE; safety finding severity after EASA AMC 20-189; review stages after FAA Order 8110.49. Cross-check themes are CrossCheck's own mapping, not part of either standard.</p>
+  </footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const CATALOGUE = __CATALOGUE__;
+const ASVS = __ASVS__;
+const AREAS = [...new Set(CATALOGUE.map((o) => o.area))];
+const CHAPTERS = [...new Map(ASVS.map((x) => [x.ch, x.chName])).entries()].map(([id, name]) => ({ id, name }));
+const STATUSES = ['C', 'L', 'P', 'N', 'NA'];
+const STATUS_NAME = { C: 'Compliant', L: 'Largely', P: 'Partially', N: 'Non-compliant', NA: 'Not applicable' };
+const SEC_STATUS_NAME = { C: 'Pass', L: 'Pass with note', P: 'Partial', N: 'Fail', NA: 'Not applicable' };
+const SCORE = { C: 1, L: 0.75, P: 0.4, N: 0 };
+const SEV = { S1: 'S1 Safety-significant', S2: 'S2 Functional', S3: 'S3 Process', S4: 'S4 Life-cycle data' };
+const SECSEV = { SC: 'Critical', SH: 'High', SM: 'Medium', SL: 'Low' };
+const SEVLABEL = { S1: 'S1', S2: 'S2', S3: 'S3', S4: 'S4', SC: 'Critical', SH: 'High', SM: 'Medium', SL: 'Low' };
+const RANK = { S1: 0, SC: 0, S2: 1, SH: 1, S3: 2, SM: 2, S4: 3, SL: 3 };
+const LIKELIHOOD = ['Very possible', 'Possible', 'Very unlikely', 'Extremely unlikely'];
+const MATRIX = [[1, 2, 3, 4], [2, 3, 3, 4], [3, 3, 4, 4], [4, 4, 4, 4]];
+const LEVELS = [
+  [1, 'Level 1 · baseline', 'First steps. Mostly testable from outside; the minimum for any application.'],
+  [2, 'Level 2 · standard', 'Most applications with business functions or data worth protecting.'],
+  [3, 'Level 3 · critical', 'High-value, high-assurance or safety-related applications.'],
+];
+const SUGGEST = { 1: 3, 2: 3, 3: 2, 4: 1 };
+const INTAKE = [
+  ['item', 'Item and baseline', 'Name, version or commit, configuration. Acquired from a supplier or developed in-house?'],
+  ['function', 'Operational function and environment', 'What the software does, for whom, where it runs, what it connects to.'],
+  ['hazards', 'Hazards and SWAL rationale', 'Each hazard with severity and likelihood justification; who allocated the SWAL, and when.'],
+  ['isolation', 'Isolation claim', 'Which parts are isolated so they can take a lower SWAL; otherwise everything takes the highest.'],
+  ['composition', 'Software composition', 'Developed code, COTS, open-source libraries, previously developed software, tools (including AI assistants).'],
+  ['phase', 'Lifecycle phase', 'Planning, development, verification, final, or in service.'],
+  ['route', 'Regulatory route', 'Voluntary, ANSP functional system under 2017/373, declaration or statement of compliance under 2023/1768–1769, other.'],
+  ['novelty', 'Novelty and complexity', 'New technology, new methods, team experience, open issues.'],
+  ['evidence', 'Existing evidence inventory', 'Plans, requirements, design, tests, CM records, problem reports, safety studies.'],
+  ['history', 'Change history and in-service data', 'Releases, incidents, service experience, monitoring.'],
+  ['surface', 'Attack surface (security)', 'Entry points, users and roles, authentication, secrets, third-party services, hosting and network exposure.'],
+];
+/* Where the two standards ask for the same evidence. This mapping is CrossCheck's own. */
+const THEMES = [
+  ['Requirements and documented rules', 'One specification can carry safety requirements and validation, access and data rules.', ['3.0.2', '3.3.4'], ['V2.1.1', 'V8.1.1', 'V14.1.1']],
+  ['Operational environment and exposure', 'Who can reach the system, and through what.', ['3.1.2', '4.4.2'], ['V8.2.1', 'V3.4.3', 'V13.1.1']],
+  ['Third-party and COTS components', 'Know what you ship, and patch it on a clock.', ['3.0.13', '7.x COTS'], ['V15.1.1', 'V15.1.2', 'V15.2.1']],
+  ['Configuration and release integrity', 'Baselines, what is deployed, and nothing extra.', ['3.0.7', '5.2.2', '5.2.3'], ['V13.4.1', 'V15.1.2']],
+  ['Unintended functions and attack surface', 'Functions nobody asked for are hazards and entry points.', ['3.0.4'], ['V15.2.3', 'V13.4.2', 'V13.4.5']],
+  ['Resource use and availability', 'Load, memory, time response and abuse resistance.', ['4.3.13'], ['V15.1.3', 'V15.2.2', 'V2.4.1']],
+  ['Input data integrity', 'Data entering the system is checked before anyone relies on it.', ['5.4.9'], ['V2.2.1', 'V1.2.1', 'V16.5.2']],
+  ['In-service monitoring and logging', 'Detect degradation and attack in operation.', ['4.4.5', '3.0.11'], ['V16.1.1', 'V16.3.3', 'V16.4.3']],
+  ['Problem reporting and remediation', 'Defects and vulnerabilities enter one tracked process.', ['5.8.x'], ['V15.1.1']],
+  ['Development environment and secrets', 'Tools, build environment and the keys they hold.', ['7.x DE', '7.x TQ'], ['V13.3.1', 'V13.3.2']],
+];
+
+/* ── State ───────────────────────────────────────────────────────── */
+const S = { list: new Map(), id: null, tab: 'objectives', q: '', fStatus: 'all', fApp: 'scope', sq: '', sStatus: 'all', sApp: 'scope', open: new Set(), ev: new Set(), mode: 'loading', dirty: new Set() };
+const LS = 'ed153-assessor-local';
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const cur = () => { const a = S.list.get(S.id) || null; if (a) norm(a); return a; };
+const newId = () => 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const OBJ = new Map(CATALOGUE.map((o) => [o.id, o]));
+const REQ = new Map(ASVS.map((x) => [x.id, x]));
+const DARK_TEXT = new Set(['L', 'P', 'NA', null]);
+
+function blank(name) {
+  return { name: name || 'Untitled software item', swal: 3, severity: null, likelihood: null, swalNote: '', asvsLevel: 2, secNote: '', intake: {}, ratings: {}, sec: {}, assessor: '', independence: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+}
+function norm(a) { if (!a.sec) a.sec = {}; if (!a.ratings) a.ratings = {}; if (!a.intake) a.intake = {}; if (![1, 2, 3].includes(a.asvsLevel)) a.asvsLevel = 2; }
+function appOf(o, swal) { return o.swal[String(swal)] || '–'; }
+function inScope(code) { return code === 'R' || code === 'I' || code === 'R (I?)'; }
+function needsIndep(code) { return code === 'I'; }
+function statusOf(a, o) {
+  const r = a.ratings[o.id] || {};
+  if (r.status) return r.status;
+  return inScope(appOf(o, a.swal)) ? null : 'NA';
+}
+function secScope(a, x) { return x.L <= a.asvsLevel; }
+function secStatus(a, x) { const r = a.sec[x.id] || {}; if (r.status) return r.status; return secScope(a, x) ? null : 'NA'; }
+
+/* ── Roll-ups ────────────────────────────────────────────────────── */
+function stateOf(tone, counts) { return tone === 'var(--n)' ? 'blocked' : counts.un ? 'incomplete' : counts.P ? 'conditions' : 'ok'; }
+function rollup(a) {
+  const scope = CATALOGUE.filter((o) => inScope(appOf(o, a.swal)));
+  const counts = { C: 0, L: 0, P: 0, N: 0, NA: 0, un: 0 };
+  let score = 0, scored = 0, indepMissing = 0;
+  const findings = [];
+  for (const o of scope) {
+    const s = statusOf(a, o);
+    const r = a.ratings[o.id] || {};
+    if (!s) { counts.un++; continue; }
+    counts[s]++;
+    if (s in SCORE) { score += SCORE[s]; scored++; }
+    if (s === 'P' || s === 'N') findings.push({ fw: 'saf', id: o.id, title: o.title, s, r, sev: r.severity || (s === 'N' ? 'S2' : 'S3'), order: CATALOGUE.indexOf(o) });
+    if (needsIndep(appOf(o, a.swal)) && s !== 'NA' && !r.indep) indepMissing++;
+  }
+  const blocking = findings.filter((f) => RANK[f.sev] <= 1).length;
+  let verdict, tone;
+  if (counts.N || blocking || indepMissing) { verdict = `SWAL ${a.swal} claim not supported`; tone = 'var(--n)'; }
+  else if (counts.un) { verdict = `Incomplete · ${scope.length - counts.un} of ${scope.length} rated`; tone = 'var(--s4)'; }
+  else if (counts.P) { verdict = 'Supported with conditions'; tone = 'var(--p)'; }
+  else { verdict = `SWAL ${a.swal} claim supported`; tone = 'var(--c)'; }
+  return { scope, counts, readiness: scored ? score / scored : 0, findings, blocking, indepMissing, verdict, tone, state: stateOf(tone, counts) };
+}
+function secRollup(a) {
+  const scope = ASVS.filter((x) => secScope(a, x));
+  const counts = { C: 0, L: 0, P: 0, N: 0, NA: 0, un: 0 };
+  let score = 0, scored = 0;
+  const findings = [];
+  for (const x of scope) {
+    const s = secStatus(a, x);
+    const r = a.sec[x.id] || {};
+    if (!s) { counts.un++; continue; }
+    counts[s]++;
+    if (s in SCORE) { score += SCORE[s]; scored++; }
+    if (s === 'P' || s === 'N') findings.push({ fw: 'sec', id: x.id, title: x.text, s, r, sev: r.severity || (s === 'N' ? 'SH' : 'SM'), order: ASVS.indexOf(x) });
+  }
+  const blocking = findings.filter((f) => RANK[f.sev] <= 1).length;
+  let verdict, tone;
+  if (counts.N || blocking) { verdict = `ASVS L${a.asvsLevel} not met`; tone = 'var(--n)'; }
+  else if (counts.un) { verdict = `Incomplete · ${scope.length - counts.un} of ${scope.length} rated`; tone = 'var(--s4)'; }
+  else if (counts.P) { verdict = `L${a.asvsLevel} met with conditions`; tone = 'var(--p)'; }
+  else { verdict = `ASVS L${a.asvsLevel} met`; tone = 'var(--c)'; }
+  return { scope, counts, readiness: scored ? score / scored : 0, findings, blocking, verdict, tone, state: stateOf(tone, counts) };
+}
+function unified(a) {
+  const A = rollup(a), B = secRollup(a);
+  const findings = [...A.findings, ...B.findings].sort((x, y) => RANK[x.sev] - RANK[y.sev] || (x.fw === y.fw ? x.order - y.order : x.fw === 'saf' ? -1 : 1));
+  let verdict, tone;
+  if (A.state === 'blocked' && B.state === 'blocked') { verdict = 'Blocked on safety and security'; tone = 'var(--n)'; }
+  else if (A.state === 'blocked') { verdict = 'Blocked on safety'; tone = 'var(--n)'; }
+  else if (B.state === 'blocked') { verdict = 'Blocked on security'; tone = 'var(--n)'; }
+  else if (A.state === 'incomplete' || B.state === 'incomplete') { verdict = 'Cross-check incomplete'; tone = 'var(--s4)'; }
+  else if (A.state === 'conditions' || B.state === 'conditions') { verdict = 'Cleared with conditions'; tone = 'var(--p)'; }
+  else { verdict = 'Cleared on both lenses'; tone = 'var(--c)'; }
+  return { A, B, findings, verdict, tone };
+}
+const WORST = ['N', 'P', null, 'L', 'C', 'NA'];
+function worst(list) { let w = 'NA'; for (const s of list) if (WORST.indexOf(s) < WORST.indexOf(w)) w = s; return w; }
+
+/* ── Rendering ───────────────────────────────────────────────────── */
+function renderPicker() {
+  const sel = $('#pick');
+  const items = [...S.list.entries()].sort((x, y) => String(y[1].updatedAt).localeCompare(String(x[1].updatedAt)));
+  sel.innerHTML = items.length ? items.map(([id, a]) => `<option value="${esc(id)}"${id === S.id ? ' selected' : ''}>${esc(a.name)} · SWAL ${esc(a.swal)} · L${esc(a.asvsLevel || 2)}</option>`).join('') : '<option>No assessments yet</option>';
+  sel.disabled = !items.length;
+  $('#dup').disabled = !items.length;
+  $('#del').disabled = !items.length;
+}
+const pct = (x) => Math.round(x * 100) + '%';
+function summaryHtml(a, U = unified(a)) {
+  const block = U.findings.filter((f) => RANK[f.sev] <= 1).length;
+  return `<section class="summary" aria-label="Summary">
+    <div class="stat safety"><span class="lens">Safety · ED-153 · SWAL ${a.swal}</span><b>${pct(U.A.readiness)}</b><span class="sub">readiness · ${U.A.scope.length - U.A.counts.un}/${U.A.scope.length} objectives rated</span><span class="vchip" style="background:${U.A.tone}">${esc(U.A.verdict)}</span></div>
+    <div class="stat security"><span class="lens">Security · OWASP ASVS · L${a.asvsLevel}</span><b>${pct(U.B.readiness)}</b><span class="sub">readiness · ${U.B.scope.length - U.B.counts.un}/${U.B.scope.length} requirements rated</span><span class="vchip" style="background:${U.B.tone}">${esc(U.B.verdict)}</span></div>
+    <div class="stat"><span class="lens">Open findings</span><b>${U.findings.length}</b><span class="sub">${block} at S1–S2 or Critical–High · ${U.A.counts.N + U.B.counts.N} non-compliant</span></div>
+    <div class="stat both"><span class="lens">Cross-check</span><span class="vchip" style="background:${U.tone};font-size:.8rem">${esc(U.verdict)}</span><span class="sub">Both lenses must clear before the item is presented as assured.</span></div>
+  </section>`;
+}
+function render() {
+  renderPicker();
+  const a = cur();
+  const main = $('#main');
+  if (!a) {
+    main.innerHTML = `<div class="empty sheet" style="margin-top:18px"><span class="eyebrow">No assessment open</span><h2 style="margin-top:8px">Name the software item you want to cross-check</h2><p class="muted" style="max-width:60ch;margin:8px auto 0">Each assessment walks ${CATALOGUE.length} ED-153 safety objectives at the SWAL you choose and the ${ASVS.length} OWASP ASVS 5.0 security requirements up to the level you choose. Both roll up into one report.</p><div class="bar"><button class="btn primary" data-act="new">New assessment</button></div></div>`;
+    return;
+  }
+  const U = unified(a);
+  const tab = (k, label, ct, cls = '') => `<button class="tab ${cls}" role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${label}${ct != null ? `<span class="ct">${ct}</span>` : ''}</button>`;
+  main.innerHTML = `${summaryHtml(a, U)}
+    <nav class="tabs" role="tablist">${tab('intake', 'Intake & levels')}${tab('objectives', 'Safety · ED-153', U.A.scope.length)}${tab('security', 'Security · ASVS', U.B.scope.length, 'sec')}${tab('cross', 'Cross-check', THEMES.length)}${tab('report', 'Unified report', U.findings.length)}${tab('evidence', 'Remediation & evidence', a.remediation ? `${remStats(a).closed}/${remStats(a).total}` : null)}</nav>
+    <section id="panel"></section>`;
+  renderPanel(a, U);
+}
+function renderPanel(a, U = unified(a)) {
+  const panel = $('#panel');
+  if (S.tab === 'intake') panel.innerHTML = intakeView(a);
+  else if (S.tab === 'report') panel.innerHTML = reportView(a, U);
+  else if (S.tab === 'security') panel.innerHTML = securityView(a);
+  else if (S.tab === 'cross') panel.innerHTML = crossView(a);
+  else if (S.tab === 'evidence') panel.innerHTML = evidenceView(a, U);
+  else panel.innerHTML = objectivesView(a);
+}
+function refreshSummary() {
+  const a = cur(); if (!a) return;
+  const U = unified(a);
+  const sum = document.querySelector('.summary');
+  if (sum) sum.outerHTML = summaryHtml(a, U);
+  const cts = document.querySelectorAll('.tab .ct');
+  if (cts[3]) cts[3].textContent = U.findings.length;
+  if (cts[4] && a.remediation) { const st = remStats(a); cts[4].textContent = `${st.closed}/${st.total}`; }
+}
+
+function intakeView(a) {
+  const rows = LIKELIHOOD.map((l, i) => `<tr><th scope="row">${l}</th>${[1, 2, 3, 4].map((sv) => `<td class="cell" data-sev="${sv}" data-lik="${i + 1}" aria-pressed="${a.severity === sv && a.likelihood === i + 1}" tabindex="0" role="button">${MATRIX[i][sv - 1]}</td>`).join('')}</tr>`).join('');
+  const sug = SUGGEST[a.swal];
+  return `<div class="grid2">
+    <div class="sheet field"><span class="eyebrow">Item</span>
+      <label for="f-name">Software item name</label><input id="f-name" data-field="name" value="${esc(a.name)}">
+      <label for="f-assessor">Assessor(s) and role</label><input id="f-assessor" data-field="assessor" value="${esc(a.assessor)}" placeholder="Name, role, organisation">
+      <label for="f-indep">Independence statement</label><textarea id="f-indep" data-field="independence" placeholder="How the assessor is independent of the developers (required at SWAL 1–2)">${esc(a.independence)}</textarea>
+    </div>
+    <div class="sheet field"><span class="eyebrow">Safety lens · SWAL</span>
+      <label>Allocation helper: pick severity × likelihood</label>
+      <div class="scroll"><table class="matrix"><thead><tr><th>Likelihood ↓ / Severity →</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <small>Severity 1 is most severe. Likelihood = P(software failure → hazard) × P(hazard → effect). The most stringent result across all hazards governs. EUROCONTROL 2005 matrix; record any tailored matrix below.</small>
+      <label>SWAL used for this assessment</label>
+      <div class="swalpick">${[1, 2, 3, 4].map((n) => `<button data-swal="${n}" aria-pressed="${a.swal === n}">SWAL ${n}</button>`).join('')}</div>
+      <label for="f-swalnote">Rationale or deviation</label><textarea id="f-swalnote" data-field="swalNote" placeholder="e.g. SWAL 3 rigour adopted voluntarily; allocated SWAL pending hazard assessment">${esc(a.swalNote)}</textarea>
+    </div>
+    <div class="sheet field"><span class="eyebrow sec">Security lens · ASVS level</span>
+      <label>Verification level</label>
+      <div class="lvlpick">${LEVELS.map(([n, t, d]) => `<button data-lvl="${n}" aria-pressed="${a.asvsLevel === n}"><b>${t}${n === sug ? ` · suggested for SWAL ${a.swal}` : ''}</b><span>${d} ${ASVS.filter((x) => x.L <= n).length} requirements.</span></button>`).join('')}</div>
+      <small>Levels are cumulative: Level 2 includes every Level 1 requirement. CrossCheck suggests L3 for SWAL 1–2, L2 for SWAL 3 and L1 for SWAL 4; an internet-facing or defence item may warrant more.</small>
+      <label for="f-secnote">Level rationale</label><textarea id="f-secnote" data-field="secNote" placeholder="e.g. L2 chosen: internet-reachable, operational data, defence audience">${esc(a.secNote || '')}</textarea>
+    </div>
+  </div>
+  <div class="sheet" style="margin-top:14px"><span class="eyebrow">Scope intake · before any objective or requirement is rated</span>
+    <div class="grid2" style="margin-top:10px">${INTAKE.map(([k, l, h], i) => `<div class="field"><label for="i-${k}">${i + 1}. ${l}</label><textarea id="i-${k}" data-intake="${k}" placeholder="${esc(h)}">${esc(a.intake[k] || '')}</textarea></div>`).join('')}</div>
+  </div>`;
+}
+
+const LEGEND = (names) => `<div class="legend">${STATUSES.map((s) => `<span><i style="background:var(--${s.toLowerCase()})"></i>${s} ${names[s].toLowerCase()}</span>`).join('')}</div>`;
+const selBox = (id, opts, val) => `<select id="${id}" class="pick">${opts.map(([v, l]) => `<option value="${v}"${v === val ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+function passes(s, f) {
+  if (f === 'un') return !s;
+  if (f === 'gap') return s === 'P' || s === 'N';
+  if (STATUSES.includes(f)) return s === f;
+  return true;
+}
+
+function objectivesView(a) {
+  const q = S.q.toLowerCase();
+  let html = `<div class="filters">
+    <input type="search" id="q" placeholder="Search objectives, evidence or notes" value="${esc(S.q)}">
+    ${selBox('fapp', [['scope', `In scope at SWAL ${a.swal}`], ['all', 'All objectives']], S.fApp)}
+    ${selBox('fstatus', [['all', 'Any status'], ['un', 'Not rated'], ['gap', 'Partially or non-compliant'], ...STATUSES.map((s) => [s, STATUS_NAME[s]])], S.fStatus)}
+  </div>${LEGEND(STATUS_NAME)}<p class="legend mono" style="margin:6px 0 0">R required · I with independence · D discretionary · – not applied</p>`;
+  let shown = 0;
+  for (const area of AREAS) {
+    const objs = CATALOGUE.filter((o) => o.area === area).filter((o) => {
+      if (S.fApp === 'scope' && !inScope(appOf(o, a.swal))) return false;
+      if (!passes(statusOf(a, o), S.fStatus)) return false;
+      if (q) { const r = a.ratings[o.id] || {}; if (!`${o.id} ${o.title} ${o.evidence} ${r.evidence || ''} ${r.note || ''}`.toLowerCase().includes(q)) return false; }
+      return true;
+    });
+    if (!objs.length) continue;
+    shown += objs.length;
+    html += `<div class="area"><h3>${esc(area)}</h3><span class="muted mono">${objs.length}</span></div>` + objs.map((o) => strip(a, o)).join('');
+  }
+  if (!shown) html += `<p class="muted" style="margin-top:20px">No objectives match these filters.</p>`;
+  return html;
+}
+function strip(a, o) {
+  const code = appOf(o, a.swal);
+  const r = a.ratings[o.id] || {};
+  const s = statusOf(a, o);
+  const band = s ? `var(--${s.toLowerCase()})` : 'var(--un)';
+  const gap = s === 'P' || s === 'N';
+  return `<article class="strip${inScope(code) ? '' : ' dim'}" data-kind="saf" data-id="${esc(o.id)}">
+    <div class="band" style="background:${band}"></div>
+    <div class="sid">${esc(o.id)}<br><span class="app${inScope(code) ? ' req' : ''}" title="Applicability at SWAL ${a.swal}">${esc(code)}</span></div>
+    <div class="body">
+      <div class="t">${esc(o.title)}${o.placeholder ? ' <span class="ph">(placeholder: title not recovered)</span>' : ''}</div>
+      <div class="hint">Typical evidence: ${esc(o.evidence)}${o.independence && o.independence !== '–' ? ` · Independence: ${esc(o.independence)}` : ''}</div>
+      <div class="edit">
+        <input aria-label="Evidence reference for ${esc(o.id)}" data-r="evidence" value="${esc(r.evidence || '')}" placeholder="Evidence: document, version, baseline">
+        <input aria-label="Gap or action for ${esc(o.id)}" data-r="note" value="${esc(r.note || '')}" placeholder="${gap ? 'Gap and action to close it' : 'Note'}">
+        <select aria-label="Finding severity for ${esc(o.id)}" data-r="severity"${gap ? '' : ' disabled'}><option value="">Severity</option>${Object.entries(SEV).map(([k, v]) => `<option value="${k}"${r.severity === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="side">
+      <div class="seg" role="group" aria-label="Status for ${esc(o.id)}">${STATUSES.map((x) => `<button data-s="${x}" aria-pressed="${s === x}" title="${STATUS_NAME[x]}">${x}</button>`).join('')}</div>
+      ${needsIndep(code) ? `<label class="indep"><input type="checkbox" data-r="indep"${r.indep ? ' checked' : ''}> independence evidenced</label>` : code === 'R (I?)' ? '<span class="indep">independence contested: plan for it</span>' : ''}
+    </div>
+  </article>`;
+}
+
+function minibar(c, total) {
+  return `<span class="minibar" aria-hidden="true">${STATUSES.map((k) => c[k] ? `<i style="width:${(100 * c[k] / total).toFixed(1)}%;background:var(--${k.toLowerCase()})"></i>` : '').join('')}</span>`;
+}
+function chapterHtml(a, ch, q, filtering) {
+  const all = ASVS.filter((x) => x.ch === ch.id && (S.sApp === 'all' || secScope(a, x)));
+  const reqs = all.filter((x) => {
+    if (!passes(secStatus(a, x), S.sStatus)) return false;
+    if (q) { const r = a.sec[x.id] || {}; if (!`${x.id} ${x.text} ${x.secName} ${r.evidence || ''} ${r.note || ''}`.toLowerCase().includes(q)) return false; }
+    return true;
+  });
+  if (!reqs.length) return { html: '', n: 0 };
+  const c = { C: 0, L: 0, P: 0, N: 0, NA: 0 }; let un = 0;
+  for (const x of all) { const s = secStatus(a, x); if (s) c[s]++; else un++; }
+  const gaps = c.P + c.N;
+  const open = filtering || S.open.has(ch.id);
+  let body = '', lastSec = '';
+  if (open) for (const x of reqs) {
+    if (x.sec !== lastSec) { body += `<div class="sechead">${esc(x.sec)} ${esc(x.secName)}</div>`; lastSec = x.sec; }
+    body += secStrip(a, x);
+  }
+  const unrated = all.filter((x) => secScope(a, x) && !secStatus(a, x)).length;
+  const html = `<details class="ch" data-ch="${esc(ch.id)}"${open ? ' open' : ''}>
+      <summary><h3>${esc(ch.id)} ${esc(ch.name)}</h3>${minibar(c, all.length || 1)}<span class="muted mono">${all.length} · ${gaps ? `<b style="color:var(--n)">${gaps} gap${gaps > 1 ? 's' : ''}</b>` : un ? `${un} unrated` : 'clear'}</span></summary>
+      <div class="inner">${unrated ? `<div class="chtools"><span class="muted">${unrated} in-scope requirement${unrated > 1 ? 's' : ''} not rated.</span><button class="btn small" data-bulk="${esc(ch.id)}">Mark unrated as not applicable</button></div>` : ''}${body}</div>
+    </details>`;
+  return { html, n: reqs.length };
+}
+function securityView(a) {
+  const q = S.sq.toLowerCase();
+  const filtering = !!q || S.sStatus !== 'all';
+  let html = `<div class="filters">
+    <input type="search" id="sq" placeholder="Search requirements, evidence or notes (e.g. V3.4, CSP, secrets)" value="${esc(S.sq)}">
+    ${selBox('sapp', [['scope', `Up to Level ${a.asvsLevel}`], ['all', 'All levels']], S.sApp)}
+    ${selBox('sstatus', [['all', 'Any status'], ['un', 'Not rated'], ['gap', 'Partial or fail'], ...STATUSES.map((s) => [s, SEC_STATUS_NAME[s]])], S.sStatus)}
+    <button class="btn small" data-act="expand">Expand all</button><button class="btn small" data-act="collapse">Collapse all</button>
+  </div>${LEGEND(SEC_STATUS_NAME)}`;
+  let shown = 0;
+  for (const ch of CHAPTERS) { const r = chapterHtml(a, ch, q, filtering); html += r.html; shown += r.n; }
+  if (!shown) html += `<p class="muted" style="margin-top:20px">No requirements match these filters.</p>`;
+  return html;
+}
+function secStrip(a, x) {
+  const r = a.sec[x.id] || {};
+  const s = secStatus(a, x);
+  const band = s ? `var(--${s.toLowerCase()})` : 'var(--un)';
+  const gap = s === 'P' || s === 'N';
+  return `<article class="strip secr${secScope(a, x) ? '' : ' dim'}" data-kind="sec" data-id="${esc(x.id)}">
+    <div class="band" style="background:${band}"></div>
+    <div class="sid">${esc(x.id)}<br><span class="app lvl" title="ASVS level">L${x.L}</span></div>
+    <div class="body">
+      <div class="t">${esc(x.text)}</div>
+      <div class="edit">
+        <input aria-label="Evidence for ${esc(x.id)}" data-r="evidence" value="${esc(r.evidence || '')}" placeholder="Evidence: file, test, scan, config">
+        <input aria-label="Gap or action for ${esc(x.id)}" data-r="note" value="${esc(r.note || '')}" placeholder="${gap ? 'Gap and action to close it' : 'Note'}">
+        <select aria-label="Finding severity for ${esc(x.id)}" data-r="severity"${gap ? '' : ' disabled'}><option value="">Severity</option>${Object.entries(SECSEV).map(([k, v]) => `<option value="${k}"${r.severity === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="side">
+      <div class="seg" role="group" aria-label="Status for ${esc(x.id)}">${STATUSES.map((v) => `<button data-s="${v}" aria-pressed="${s === v}" title="${SEC_STATUS_NAME[v]}">${v}</button>`).join('')}</div>
+    </div>
+  </article>`;
+}
+
+function chip(id, s, fw) {
+  const title = fw === 'saf' ? (OBJ.get(id)?.title || '') : (REQ.get(id)?.text || '');
+  return `<span class="chip" title="${esc(title)}"><i style="background:var(--${s ? s.toLowerCase() : 'un'})"></i>${esc(id)} ${s || '—'}</span>`;
+}
+function themeRows(a) {
+  return THEMES.map(([t, why, eds, reqs]) => {
+    const es = eds.filter((id) => OBJ.has(id)).map((id) => [id, statusOf(a, OBJ.get(id))]);
+    const ss = reqs.filter((id) => REQ.has(id)).map((id) => [id, secStatus(a, REQ.get(id))]);
+    return { t, why, es, ss, w: worst([...es, ...ss].map((x) => x[1])) };
+  });
+}
+function wchip(w) { return `<span class="vchip${DARK_TEXT.has(w) ? ' dark' : ''}" style="background:var(--${w ? w.toLowerCase() : 'un'})">${w ? STATUS_NAME[w] : 'Not rated'}</span>`; }
+function crossView(a) {
+  const rows = themeRows(a);
+  const open = rows.filter((r) => r.w === 'N' || r.w === 'P').length;
+  return `<div class="sheet"><span class="eyebrow">Where the two standards meet</span><h2 style="margin:6px 0">${open} of ${THEMES.length} shared themes have open gaps</h2><p class="muted" style="margin:0;max-width:75ch">Each theme pairs ED-153 objectives with ASVS requirements that ask for the same underlying evidence. The weakest link sets the theme status, so closing one gap often clears both lenses. Hover a chip for its full text.</p>
+    <div class="scroll" style="margin-top:12px"><table class="xc"><thead><tr><th>Theme</th><th>Safety · ED-153</th><th>Security · ASVS</th><th>Weakest link</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr><td>${esc(r.t)}<div class="muted" style="font-weight:400;font-size:.78rem">${esc(r.why)}</div></td><td><div class="chips">${r.es.map(([id, s]) => chip(id, s, 'saf')).join('')}</div></td><td><div class="chips">${r.ss.map(([id, s]) => chip(id, s, 'sec')).join('')}</div></td><td>${wchip(r.w)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+
+function barChart(rows, label) {
+  if (!rows.length) return '<p class="muted">Nothing in scope.</p>';
+  const W = 560, left = 180, bw = 300, rh = 24, max = Math.max(...rows.map((x) => x.total));
+  const bars = rows.map((x, i) => {
+    let xx = left; const y = 8 + i * rh;
+    const segs = ['C', 'L', 'P', 'N', 'un'].map((k) => { const w = (bw * x.c[k]) / max; const out = x.c[k] ? `<rect x="${xx.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="15" rx="2" style="fill:var(--${k === 'un' ? 'un' : k.toLowerCase()})"><title>${k === 'un' ? 'Not rated' : STATUS_NAME[k]}: ${x.c[k]}</title></rect>` : ''; xx += w; return out; }).join('');
+    const lab = x.label.length > 30 ? x.label.slice(0, 29) + '…' : x.label;
+    return `<text x="${left - 8}" y="${y + 11}" text-anchor="end" class="lab"><title>${esc(x.label)}</title>${esc(lab)}</text>${segs}<text x="${xx + 6}" y="${y + 11}">${x.pct == null ? '—' : Math.round(x.pct * 100) + '%'}</text>`;
+  }).join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${rows.length * rh + 12}" role="img" aria-label="${esc(label)}" style="width:100%;height:auto">${bars}</svg>`;
+}
+function groupRows(items, keyOf, labelOf, stat) {
+  const m = new Map();
+  for (const it of items) {
+    const k = keyOf(it);
+    if (!m.has(k)) m.set(k, { label: labelOf(it), c: { C: 0, L: 0, P: 0, N: 0, un: 0 }, total: 0, sc: 0, n: 0 });
+    const g = m.get(k); const s = stat(it);
+    if (s === 'NA') continue;
+    g.total++;
+    if (!s) g.c.un++; else { g.c[s]++; g.sc += SCORE[s]; g.n++; }
+  }
+  return [...m.values()].filter((g) => g.total).map((g) => ({ ...g, pct: g.n ? g.sc / g.n : null }));
+}
+const sevChip = (sev) => `<span class="sev" style="background:var(--${sev.toLowerCase()})">${SEVLABEL[sev]}</span>`;
+const lensTag = (fw) => `<span class="fw ${fw}">${fw === 'saf' ? 'ED-153' : 'ASVS'}</span>`;
+const shortReq = (t) => { let s = t.replace(/^Verify that /, ''); s = s.charAt(0).toUpperCase() + s.slice(1); return s.length > 150 ? s.slice(0, 149).replace(/\s+\S*$/, '') + '…' : s; };
+function reportView(a, U) {
+  const safRows = groupRows(U.A.scope, (o) => o.area, (o) => o.area, (o) => statusOf(a, o));
+  const secRows = groupRows(U.B.scope, (x) => x.ch, (x) => `${x.ch} ${x.chName}`, (x) => secStatus(a, x));
+  const reg = U.findings.length ? `<div class="scroll"><table class="reg"><thead><tr><th>Lens</th><th>Severity</th><th>Item</th><th>Status</th><th>Gap and action</th><th>Evidence today</th></tr></thead><tbody>${U.findings.map((f) => `<tr><td>${lensTag(f.fw)}</td><td>${sevChip(f.sev)}</td><td><span class="mono">${esc(f.id)}</span> ${esc(f.fw === 'sec' ? shortReq(f.title) : f.title)}</td><td>${f.fw === 'saf' ? STATUS_NAME[f.s] : SEC_STATUS_NAME[f.s]}</td><td>${esc(f.r.note || '—')}</td><td>${esc(f.r.evidence || '—')}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No open findings among rated items.</p>';
+  const bucket = (title, ranks, sub) => {
+    const items = U.findings.filter((f) => ranks.includes(RANK[f.sev]));
+    return `<div class="sheet"><h3>${title}</h3><span class="muted" style="font-size:.8rem">${sub} · ${items.length}</span>${items.length ? `<ol>${items.map((f) => `<li>${lensTag(f.fw)} <span class="mono">${esc(f.id)}</span> ${esc(f.r.note || f.title)}</li>`).join('')}</ol>` : '<p class="muted">Nothing here.</p>'}</div>`;
+  };
+  const why = (R, lens) => {
+    const w = [];
+    if (R.counts.N) w.push(`${R.counts.N} ${lens === 'saf' ? 'objectives are non-compliant' : 'requirements fail'}.`);
+    if (R.blocking) w.push(`${R.blocking} findings are at ${lens === 'saf' ? 'S1–S2' : 'Critical–High'}.`);
+    if (R.indepMissing) w.push(`${R.indepMissing} objectives need independence that is not evidenced.`);
+    if (R.counts.un) w.push(`${R.counts.un} in scope not rated yet.`);
+    if (!w.length && R.counts.P) w.push(`${R.counts.P} partially met with lower-severity findings: conditions apply.`);
+    return w.length ? w.join(' ') : 'Everything in scope passes or largely passes.';
+  };
+  const xr = themeRows(a);
+  return `<div class="report">
+    <div class="sheet"><span class="eyebrow">Cross-check verdict</span><h2 style="margin:6px 0">${esc(U.verdict)}</h2>
+      <div class="twin" style="margin-top:10px">
+        <div><span class="fw saf">Safety · ED-153 · SWAL ${a.swal}</span><p style="margin:6px 0 2px;font-weight:600">${esc(U.A.verdict)} · ${pct(U.A.readiness)}</p><p class="muted" style="margin:0;font-size:.86rem">${esc(why(U.A, 'saf'))}</p></div>
+        <div><span class="fw sec">Security · ASVS 5.0 · L${a.asvsLevel}</span><p style="margin:6px 0 2px;font-weight:600">${esc(U.B.verdict)} · ${pct(U.B.readiness)}</p><p class="muted" style="margin:0;font-size:.86rem">${esc(why(U.B, 'sec'))}</p></div>
+      </div>
+      <p class="muted" style="margin:10px 0 0;font-size:.8rem">Rules: a SWAL claim is supported only if every required objective is at least Largely, no S1–S2 finding is open, and independence is evidenced where required. An ASVS level is met only if every requirement up to it passes or largely passes and no Critical or High finding is open.</p></div>
+    <div class="twin">
+      <div class="sheet"><h3>Safety readiness by process area</h3>${barChart(safRows, 'Safety readiness by process area')}</div>
+      <div class="sheet"><h3>Security readiness by ASVS chapter</h3>${barChart(secRows, 'Security readiness by ASVS chapter')}<p class="muted" style="margin:4px 0 0;font-size:.76rem">Chapters that are entirely not applicable are omitted.</p></div>
+    </div>
+    <div class="legend"><span><i style="background:var(--c)"></i>Compliant / pass</span><span><i style="background:var(--l)"></i>Largely</span><span><i style="background:var(--p)"></i>Partially</span><span><i style="background:var(--n)"></i>Non-compliant / fail</span><span><i style="background:var(--un)"></i>Not rated</span><span>% = weighted readiness (C 1 · L 0.75 · P 0.4 · N 0)</span></div>
+    <div class="sheet"><h3>Shared themes</h3><p class="muted" style="margin:4px 0 8px;font-size:.84rem">${xr.filter((r) => r.w === 'N' || r.w === 'P').length} of ${xr.length} themes have an open gap on at least one lens. Detail on the Cross-check tab.</p><div class="chips">${xr.map((r) => `<span class="chip theme"><i style="background:var(--${r.w ? r.w.toLowerCase() : 'un'})"></i>${esc(r.t)}</span>`).join('')}</div></div>
+    <div class="sheet"><h3>Findings register · both lenses</h3>${reg}</div>
+    <div class="bucket">${bucket('Before any claim', [0, 1], 'S1–S2 and Critical–High block a claim')}${bucket('Before operational use', [2], 'S3 and Medium')}${bucket('Continuous', [3], 'S4 and Low')}</div>
+    <div class="bar"><button class="btn primary" data-export="md">Export report (.md)</button><button class="btn" data-export="csv">Export matrix (.csv)</button><button class="btn" data-export="json">Export data (.json)</button><button class="btn" data-export="copy">Copy report</button></div>
+  </div>`;
+}
+
+/* ── Remediation and evidence ────────────────────────────────────── */
+const CLOSED = new Set(['C', 'L', 'NA']);
+const today = () => new Date().toISOString().slice(0, 10);
+const fmtDate = (d) => (d ? new Date(d + 'T00:00:00Z').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '');
+const STAGES = [['baseline', 'Baseline frozen'], ['audit', 'Audit'], ['plan', 'Plan issued'], ['approve', 'Plan approved'], ['wave1', 'Wave 1'], ['wave2', 'Wave 2'], ['wave3', 'Wave 3'], ['wave4', 'Wave 4'], ['evidence', 'Evidence pack issued']];
+function fCur(a, id) { if (OBJ.has(id)) return statusOf(a, OBJ.get(id)); if (REQ.has(id)) return secStatus(a, REQ.get(id)); return null; }
+function fTitle(id) { if (OBJ.has(id)) return OBJ.get(id).title; const x = REQ.get(id); return x ? shortReq(x.text) : id; }
+function fLens(id) { return OBJ.has(id) ? 'saf' : 'sec'; }
+function planIds(R) { return R.workstreams.flatMap((w) => w.findings); }
+function remStats(a) {
+  const R = a.remediation; const ids = planIds(R); const blk = new Set(R.blocking || []);
+  const closed = ids.filter((id) => CLOSED.has(fCur(a, id)));
+  return { total: ids.length, closed: closed.length, blockTotal: blk.size, blockClosed: closed.filter((id) => blk.has(id)).length };
+}
+function snapshot(a, label, commit) {
+  const U = unified(a);
+  const side = (R) => ({ readiness: +R.readiness.toFixed(4), verdict: R.verdict, open: R.findings.length, blocking: R.blocking });
+  return { id: 'A' + (a.remediation?.audits?.length || 0), label, date: today(), commit: commit || '', safety: side(U.A), security: side(U.B) };
+}
+function startPlan(a) {
+  const U = unified(a);
+  const ids = U.findings.map((f) => f.id);
+  a.remediation = {
+    stages: STAGES.map(([id, name], i) => ({ id, name, status: i < 2 ? 'done' : 'pending', date: i < 2 ? today() : null, ref: null })),
+    audits: [], waves: [{ id: 1, name: 'Wave 1', who: '', effort: '', exit: '' }],
+    workstreams: [{ id: 'W1', name: 'All findings', wave: 1, deliverables: [], evidence: '', findings: ids }],
+    blocking: U.findings.filter((f) => RANK[f.sev] <= 1).map((f) => f.id),
+    log: Object.fromEntries(U.findings.map((f) => [f.id, [{ date: today(), event: 'rated', status: f.s, severity: f.sev, ref: 'baseline', note: f.r.evidence || '' }]])),
+  };
+  a.remediation.audits.push(snapshot(a, 'Baseline audit', ''));
+}
+function logChange(a, id, from, to, r) {
+  const R = a.remediation; if (!R || !planIds(R).includes(id) || from === to) return;
+  (R.log[id] ||= []).push({ date: today(), event: 're-rated', from: from || null, status: to || null, ref: r.evidence || '', note: r.note || '' });
+}
+const stChip = (s, fw) => s ? `<span class="chipst" style="background:var(--${s.toLowerCase()});${DARK_TEXT.has(s) ? 'color:#10202e' : ''}">${fw === 'sec' ? SEC_STATUS_NAME[s] : STATUS_NAME[s]}</span>` : '<span class="chipst" style="background:var(--un);color:var(--ink)">Not rated</span>';
+const prog = (n, d) => `<span class="prog" role="img" aria-label="${n} of ${d} closed"><i style="width:${d ? (100 * n / d).toFixed(1) : 0}%"></i></span>`;
+const isOpen = (k) => S.ev.has(k) ? ' open' : '';
+
+function journeySvg(R) {
+  const J = R.projections?.journey; if (!J?.length) return '';
+  const B = R.projections.scenarios?.[1];
+  const W = 280, H = 150, l = 30, r = 38, t = 10, b = 22;
+  const xs = J.map((_, i) => l + (i * (W - l - r)) / (J.length - 1));
+  const y = (v) => t + (1 - v) * (H - t - b);
+  let o = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="Readiness journey: measured points and targets">`;
+  for (const v of [0, 0.5, 1]) o += `<line x1="${l}" x2="${W - r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${l - 4}" y="${y(v) + 3}" text-anchor="end" style="font:9px var(--mono);fill:var(--ink-2)">${v * 100}%</text>`;
+  J.forEach((j, i) => { o += `<text x="${xs[i]}" y="${H - 6}" text-anchor="middle" style="font:9px var(--body);fill:var(--ink-2)">${esc(j.label.replace('After Wave ', 'W'))}</text>`; });
+  for (const [k, col] of [['safety', 'var(--accent)'], ['security', 'var(--sec)']]) {
+    o += `<polyline points="${J.map((j, i) => `${xs[i]},${y(j[k])}`).join(' ')}" fill="none" stroke="${col}" stroke-width="1.6" stroke-dasharray="4 3"/>`;
+    R.audits.forEach((a, i) => { if (i < xs.length) o += `<circle cx="${xs[i]}" cy="${y(a[k].readiness)}" r="3.5" fill="${col}"><title>${esc(a.label)}: ${pct(a[k].readiness)}</title></circle>`; });
+    const last = J[J.length - 1][k];
+    o += `<text x="${xs[xs.length - 1] + 6}" y="${y(last) + (k === 'security' ? -3 : 10)}" style="font:600 10px var(--display);fill:${col}">${pct(last)}</text>`;
+    if (B) o += `<circle cx="${xs[xs.length - 1]}" cy="${y(B[k])}" r="3" fill="var(--sheet)" stroke="${col}" stroke-width="1.3"><title>With customer and independent reviewer: ${pct(B[k])}</title></circle>`;
+  }
+  return o + '</svg>';
+}
+
+function evidenceView(a, U) {
+  if (!a.remediation) return `<div class="empty sheet"><span class="eyebrow">No remediation plan yet</span><h2 style="margin-top:8px">Turn these findings into a plan, then prove each fix</h2><p class="muted" style="max-width:62ch;margin:8px auto 0">CrossCheck records the baseline, groups every open finding into workstreams and waves, and logs each re-rating with its evidence so a reviewer can follow the trail line by line.</p><div class="bar"><button class="btn primary" data-act="startplan">Start a remediation plan</button></div></div>`;
+  const R = a.remediation; const st = remStats(a);
+  const base = R.audits[0]; const last = R.audits[R.audits.length - 1];
+  const cur = R.stages.find((s) => s.status !== 'done');
+  const pipe = R.stages.map((s, i) => {
+    const cls = s.status === 'done' ? 'done' : s === cur ? 'now' : '';
+    const form = s === cur ? `<div class="mk"><input id="stage-ref" placeholder="Reference: approver, commit, document" aria-label="Reference for ${esc(s.name)}"><button class="btn small" data-stage="${esc(s.id)}">Mark done</button></div>` : '';
+    return `<div class="stg ${cls}"><span class="n">${i + 1}${s.status === 'done' ? ' · done' : s === cur ? ' · next' : ''}</span><b>${esc(s.name)}</b><span class="d">${esc(s.date ? fmtDate(s.date) : s === cur ? 'awaiting' : 'planned')}${s.ref ? ' · ' + esc(s.ref) : ''}</span>${form}</div>`;
+  }).join('');
+  const side = (title, sa, se, note) => `<div class="sheet"><span class="eyebrow">${title}</span>
+    <div class="delta"><span class="fw saf">Safety</span><b>${pct(sa.readiness)}</b><span class="muted">${esc(sa.verdict)}</span>
+    <span class="fw sec">Security</span><b>${pct(se.readiness)}</b><span class="muted">${esc(se.verdict)}</span></div>
+    <span class="muted" style="font-size:.8rem">${note}</span></div>`;
+  const nowS = { readiness: U.A.readiness, verdict: U.A.verdict }, nowC = { readiness: U.B.readiness, verdict: U.B.verdict };
+  const audits = R.audits.map((x) => `<tr><td>${esc(x.label)}</td><td>${esc(fmtDate(x.date))}</td><td class="mono">${esc(x.commit || '—')}</td><td>${pct(x.safety.readiness)} · ${esc(x.safety.verdict)}</td><td>${pct(x.security.readiness)} · ${esc(x.security.verdict)}</td><td>${x.safety.open + x.security.open} (${x.safety.blocking + x.security.blocking} blocking)</td></tr>`).join('');
+  const findingRow = (id) => {
+    const s = fCur(a, id), fw = fLens(id), log = R.log[id] || [];
+    const hist = log.map((h) => `<li class="${CLOSED.has(h.status) ? 'ok' : ''}"><span class="when">${esc(fmtDate(h.date))}</span>${h.event === 'rated' ? 'Baseline rating' : 'Re-rated'} ${h.from ? stChip(h.from, fw) + ' → ' : ''}${stChip(h.status, fw)}${h.ref ? ` · <span class="mono">${esc(h.ref)}</span>` : ''}${h.note ? `<div class="muted" style="font-size:.78rem;margin-top:2px">${esc(h.note)}</div>` : ''}</li>`).join('');
+    return `<details class="fx" data-ev="f:${esc(id)}"${isOpen('f:' + id)}><summary><span class="mono">${esc(id)} <span class="fw ${fw}">${fw === 'saf' ? 'ED-153' : 'ASVS'}</span></span><span style="min-width:0">${esc(fTitle(id))}</span>${(R.blocking || []).includes(id) ? '<span class="sev" style="background:var(--s2)">Must fix</span>' : '<span></span>'}${stChip(s, fw)}</summary>
+      <ol class="hist">${hist || '<li>No history recorded.</li>'}</ol>
+      <div style="padding:0 12px 12px"><button class="btn small" data-goto="${esc(id)}">Open in ${fw === 'saf' ? 'Safety' : 'Security'} tab</button></div></details>`;
+  };
+  const waves = R.waves.map((w) => {
+    const ws = R.workstreams.filter((x) => x.wave === w.id);
+    const ids = ws.flatMap((x) => x.findings); const c = ids.filter((id) => CLOSED.has(fCur(a, id))).length;
+    const wsHtml = ws.map((x) => {
+      const cc = x.findings.filter((id) => CLOSED.has(fCur(a, id))).length;
+      return `<details class="wsx" data-ev="w:${esc(x.id)}"${isOpen('w:' + x.id)}><summary><span style="min-width:0"><b>${esc(x.id)} ${esc(x.name)}</b></span>${prog(cc, x.findings.length)}<span class="muted mono">${cc}/${x.findings.length}</span></summary>
+        <div class="in">${x.deliverables?.length ? `<ul class="deliv">${x.deliverables.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}${x.evidence ? `<p class="muted" style="margin:4px 0 8px;font-size:.84rem"><b>Evidence:</b> ${esc(x.evidence)}</p>` : ''}
+        <span class="lvl" style="margin:8px 0 4px"><span class="tag">LEVEL 3</span><span class="muted" style="font-size:.8rem">Line by line</span></span>${x.findings.map(findingRow).join('')}</div></details>`;
+    }).join('');
+    return `<details class="wv" data-ev="v:${w.id}"${isOpen('v:' + w.id)}><summary><h3>Wave ${w.id} · ${esc(w.name)}</h3>${prog(c, ids.length)}<span class="muted mono">${c}/${ids.length} closed</span></summary>
+      <div class="in"><p class="muted" style="margin:0 0 6px;font-size:.84rem">${esc([w.who, w.effort].filter(Boolean).join(' · '))}${w.exit ? ` · <b>Exit:</b> ${esc(w.exit)}` : ''}</p>
+      <span class="lvl" style="margin:6px 0 4px"><span class="tag">LEVEL 2</span><span class="muted" style="font-size:.8rem">Workstreams</span></span>${wsHtml}</div></details>`;
+  }).join('');
+  return `<div class="lvl"><span class="tag">LEVEL 0 · 40,000 FT</span><h2>From audit to compliance</h2></div>
+    <div class="pipe">${pipe}</div>
+    <div class="ba" style="margin-top:10px">
+      ${side('Baseline' + (base ? ' · ' + esc(fmtDate(base.date)) : ''), base.safety, base.security, base.commit ? `Frozen at <span class="mono">${esc(base.commit)}</span>` : 'Frozen baseline')}
+      ${side('Now', nowS, nowC, `Latest recorded audit: ${esc(last.label)}, ${esc(fmtDate(last.date))}`)}
+      <div class="sheet"><span class="eyebrow">Progress</span>
+        <div style="display:grid;gap:4px"><span style="font-size:.86rem"><b style="font:600 1.25rem var(--display)">${st.closed}</b> of ${st.total} findings closed</span>${prog(st.closed, st.total)}</div>
+        <div style="display:grid;gap:4px"><span style="font-size:.86rem"><b style="font:600 1.25rem var(--display)">${st.blockClosed}</b> of ${st.blockTotal} must-fix closed</span>${prog(st.blockClosed, st.blockTotal)}</div>
+        <span class="muted" style="font-size:.78rem">Closed means Compliant, Largely or Not applicable, with the change logged below.</span></div>
+      ${R.projections ? `<div class="sheet"><span class="eyebrow">Readiness journey</span>${journeySvg(R)}<span class="muted" style="font-size:.76rem"><span style="color:var(--accent)">●</span> safety <span style="color:var(--sec)">●</span> security · dots measured · dashed target (Claude + Replit) · ○ with customer and independent reviewer</span></div>` : ''}
+    </div>
+    <div class="lvl"><span class="tag">LEVEL 1</span><h2>Waves and re-audits</h2></div>
+    <div class="sheet"><div class="scroll"><table class="reg"><thead><tr><th>Audit</th><th>Date</th><th>Commit</th><th>Safety</th><th>Security</th><th>Open findings</th></tr></thead><tbody>${audits}</tbody></table></div>
+      <div class="form" style="margin-top:10px"><input id="ra-label" placeholder="Re-audit label, e.g. After Wave 1" aria-label="Re-audit label"><input id="ra-commit" placeholder="Commit audited" aria-label="Commit audited"><button class="btn" data-act="reaudit">Record re-audit</button></div>
+      <p class="muted" style="font-size:.78rem;margin:6px 0 0">Tip: type the evidence reference on a finding first, then change its status. The change is logged with that reference, permanently.</p></div>
+    ${waves}`;
+}
+
+/* ── Persistence ─────────────────────────────────────────────────── */
+let db = null;
+const timers = new Map();
+const edits = new Map();
+function touch(id) {
+  const a = S.list.get(id); if (!a) return;
+  a.updatedAt = new Date().toISOString();
+  edits.set(id, (edits.get(id) || 0) + 1);
+  S.dirty.add(id);
+  clearTimeout(timers.get(id));
+  timers.set(id, setTimeout(() => save(id), 700));
+}
+const writing = new Map();
+async function save(id) {
+  const a = S.list.get(id); if (!a) return;
+  if (S.mode !== 'db') { saveLocal(); return; }
+  if (writing.get(id)) { writing.set(id, 'again'); return; }
+  writing.set(id, true);
+  const n = edits.get(id);
+  try {
+    await db.collection('assessments').doc(id).set(JSON.parse(JSON.stringify(a)));
+    if (edits.get(id) === n) S.dirty.delete(id);
+  }
+  catch (e) { toast(e?.code === 'quota_exceeded' ? 'Storage is full. Delete an old assessment, then try again.' : e?.code === 'invalid_argument' ? 'You can view these assessments but not change them.' : 'Could not save. Your change is kept on this screen; try again shortly.'); }
+  const again = writing.get(id) === 'again';
+  writing.delete(id);
+  if (again) save(id);
+}
+function saveLocal() { try { localStorage.setItem(LS, JSON.stringify([...S.list.entries()])); } catch { /* storage blocked */ } }
+function loadLocal() { try { const v = JSON.parse(localStorage.getItem(LS) || '[]'); S.list = new Map(v); } catch { S.list = new Map(); } }
+
+function editing() { const el = document.activeElement; return el && el.closest && el.closest('#main') && /INPUT|TEXTAREA|SELECT/.test(el.tagName); }
+let deferred = false;
+function remoteRender() { if (editing()) { deferred = true; return; } deferred = false; render(); }
+document.addEventListener('focusout', () => setTimeout(() => { if (deferred && !editing()) remoteRender(); }, 0));
+
+async function boot() {
+  render();
+  const capable = window.claude && typeof window.claude.use === 'function';
+  db = capable ? await window.claude.use('db').catch(() => null) : null;
+  if (db) {
+    S.mode = 'db';
+    db.collection('assessments').onSnapshot((snap) => {
+      for (const ch of snap.docChanges()) {
+        if (ch.type === 'removed') S.list.delete(ch.doc.id);
+        else if (!S.dirty.has(ch.doc.id) && !ch.doc.metadata.hasPendingWrites) S.list.set(ch.doc.id, structuredClone(ch.doc.data()));
+      }
+      if (!S.id || !S.list.has(S.id)) S.id = [...S.list.entries()].sort((x, y) => String(y[1].updatedAt).localeCompare(String(x[1].updatedAt)))[0]?.[0] || null;
+      remoteRender();
+    }, () => { S.mode = 'local'; note('Shared saving stopped. Changes now stay in this browser; export to keep a copy.'); });
+  } else {
+    S.mode = 'local';
+    loadLocal();
+    S.id = [...S.list.keys()][0] || null;
+    note('Shared saving is not available in this view. Assessments stay in this browser; export to keep a copy.');
+    render();
+  }
+}
+function note(t) { const n = $('#notice'); n.textContent = t; n.hidden = false; }
+let toastT;
+function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (el.hidden = true), 3200); }
+
+/* ── Events ──────────────────────────────────────────────────────── */
+function create(src) {
+  const id = newId();
+  const a = src ? Object.assign(structuredClone(src), { name: src.name + ' (copy)', createdAt: new Date().toISOString() }) : blank();
+  S.list.set(id, a); S.id = id; S.tab = src ? S.tab : 'intake';
+  touch(id); render();
+  if (!src) setTimeout(() => $('#f-name')?.select(), 0);
+}
+$('#new').addEventListener('click', () => create());
+$('#dup').addEventListener('click', () => cur() && create(cur()));
+$('#del').addEventListener('click', () => {
+  const a = cur(); if (!a) return;
+  const box = $('#confirm');
+  box.innerHTML = `Delete “${esc(a.name)}” for everyone who uses CrossCheck? <button class="btn" id="yes">Delete</button> <button class="btn" id="no">Keep</button>`;
+  box.hidden = false;
+  $('#no').onclick = () => (box.hidden = true);
+  $('#yes').onclick = async () => {
+    const id = S.id; box.hidden = true; clearTimeout(timers.get(id)); timers.delete(id); S.dirty.delete(id);
+    S.list.delete(id); S.id = [...S.list.keys()][0] || null; render();
+    if (S.mode === 'db') { try { await db.collection('assessments').doc(id).delete(); toast('Deleted'); } catch { toast('Could not delete. Try again shortly.'); } } else { saveLocal(); toast('Deleted'); }
+  };
+});
+$('#pick').addEventListener('change', (e) => { S.id = e.target.value; render(); });
+
+const main = $('#main');
+function ratingFor(a, el) {
+  const art = el.closest('.strip');
+  const id = art.dataset.id, kind = art.dataset.kind;
+  const bag = kind === 'sec' ? a.sec : a.ratings;
+  return { art, id, kind, r: (bag[id] ||= {}) };
+}
+function redrawStrip(a, art, kind, id) { art.outerHTML = kind === 'sec' ? secStrip(a, REQ.get(id)) : strip(a, OBJ.get(id)); }
+function redrawChapter(a, chId) {
+  const d = main.querySelector(`details[data-ch="${CSS.escape(chId)}"]`);
+  const ch = CHAPTERS.find((c) => c.id === chId);
+  if (!d || !ch) return;
+  const r = chapterHtml(a, ch, S.sq.toLowerCase(), !!S.sq || S.sStatus !== 'all');
+  if (r.html) d.outerHTML = r.html; else d.remove();
+}
+main.addEventListener('click', (e) => {
+  const a = cur();
+  const t = e.target.closest('button, td.cell');
+  if (!t) return;
+  if (t.dataset.act === 'new') return create();
+  if (t.dataset.tab) { S.tab = t.dataset.tab; return render(); }
+  if (!a) return;
+  if (t.dataset.act === 'expand') { CHAPTERS.forEach((c) => S.open.add(c.id)); return renderPanel(a); }
+  if (t.dataset.act === 'collapse') { S.open.clear(); return renderPanel(a); }
+  if (t.dataset.swal) { a.swal = Number(t.dataset.swal); touch(S.id); return render(); }
+  if (t.dataset.lvl) { a.asvsLevel = Number(t.dataset.lvl); touch(S.id); return render(); }
+  if (t.classList.contains('cell')) { a.severity = Number(t.dataset.sev); a.likelihood = Number(t.dataset.lik); a.swal = MATRIX[a.likelihood - 1][a.severity - 1]; touch(S.id); return render(); }
+  if (t.dataset.bulk) {
+    let n = 0;
+    for (const x of ASVS) if (x.ch === t.dataset.bulk && secScope(a, x) && !secStatus(a, x)) { a.sec[x.id] = { status: 'NA', evidence: 'Chapter not applicable to this item (bulk decision).' }; n++; }
+    touch(S.id); S.open.add(t.dataset.bulk); redrawChapter(a, t.dataset.bulk); refreshSummary();
+    return toast(`${n} requirement${n === 1 ? '' : 's'} marked not applicable`);
+  }
+  if (t.dataset.act === 'startplan') { startPlan(a); touch(S.id); return render(); }
+  if (t.dataset.act === 'reaudit') {
+    const label = ($('#ra-label')?.value || '').trim() || `Re-audit ${a.remediation.audits.length}`;
+    a.remediation.audits.push(snapshot(a, label, ($('#ra-commit')?.value || '').trim()));
+    touch(S.id); render(); return toast('Re-audit recorded');
+  }
+  if (t.dataset.stage) {
+    const s = a.remediation.stages.find((x) => x.id === t.dataset.stage);
+    if (s) { s.status = 'done'; s.date = today(); s.ref = ($('#stage-ref')?.value || '').trim() || null; touch(S.id); render(); toast(`${s.name}: done`); }
+    return;
+  }
+  if (t.dataset.goto) {
+    const id = t.dataset.goto;
+    if (OBJ.has(id)) { S.tab = 'objectives'; S.q = id; S.fApp = 'all'; S.fStatus = 'all'; }
+    else { S.tab = 'security'; S.sq = id; S.sApp = 'all'; S.sStatus = 'all'; }
+    return render();
+  }
+  if (t.dataset.s) {
+    const { art, id, kind, r } = ratingFor(a, t);
+    const before = kind === 'sec' ? secStatus(a, REQ.get(id)) : statusOf(a, OBJ.get(id));
+    r.status = r.status === t.dataset.s ? null : t.dataset.s;
+    logChange(a, id, before, kind === 'sec' ? secStatus(a, REQ.get(id)) : statusOf(a, OBJ.get(id)), r);
+    if (!(r.status === 'P' || r.status === 'N')) delete r.severity;
+    touch(S.id);
+    redrawStrip(a, art, kind, id);
+    refreshSummary();
+    return;
+  }
+  if (t.dataset.export) return exportAs(t.dataset.export);
+});
+main.addEventListener('toggle', (e) => {
+  const d = e.target;
+  if (d instanceof HTMLDetailsElement && d.dataset.ev) { if (d.open) S.ev.add(d.dataset.ev); else S.ev.delete(d.dataset.ev); return; }
+  if (!(d instanceof HTMLDetailsElement) || !d.dataset.ch) return;
+  const id = d.dataset.ch;
+  if (d.open && !S.open.has(id)) { S.open.add(id); const a = cur(); if (a && !d.querySelector('.strip')) redrawChapter(a, id); }
+  else if (!d.open) S.open.delete(id);
+}, true);
+main.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('cell')) { e.preventDefault(); e.target.click(); } });
+main.addEventListener('input', (e) => {
+  const a = cur(); if (!a) return;
+  const el = e.target;
+  const live = (prop, view, sel) => { S[prop] = el.value; const pos = el.selectionStart; $('#panel').innerHTML = view(a); const q = $(sel); q.focus(); q.setSelectionRange(pos, pos); };
+  if (el.id === 'q') return live('q', objectivesView, '#q');
+  if (el.id === 'sq') return live('sq', securityView, '#sq');
+  if (el.dataset.field) { a[el.dataset.field] = el.value; touch(S.id); if (el.dataset.field === 'name') renderPicker(); return; }
+  if (el.dataset.intake) { a.intake[el.dataset.intake] = el.value; touch(S.id); return; }
+  if (el.dataset.r) {
+    const { r } = ratingFor(a, el);
+    r[el.dataset.r] = el.type === 'checkbox' ? el.checked : el.value;
+    touch(S.id);
+    if (el.dataset.r === 'severity' || el.dataset.r === 'indep') refreshSummary();
+  }
+});
+main.addEventListener('change', (e) => {
+  const a = cur(); if (!a) return;
+  const map = { fapp: ['fApp', objectivesView], fstatus: ['fStatus', objectivesView], sapp: ['sApp', securityView], sstatus: ['sStatus', securityView] };
+  const m = map[e.target.id];
+  if (m) { S[m[0]] = e.target.value; $('#panel').innerHTML = m[1](a); }
+});
+
+/* ── Export ──────────────────────────────────────────────────────── */
+const cell = (v) => String(v ?? '').replace(/\|/g, '/').replace(/\n+/g, ' ');
+function reportMd(a) {
+  const U = unified(a);
+  const L = [];
+  L.push(`# CrossCheck: ${a.name}`, '', `Safety: ED-153 SWAL ${a.swal}${a.severity && a.likelihood ? ` (allocated from severity ${a.severity} × ${LIKELIHOOD[a.likelihood - 1].toLowerCase()})` : ''} · Security: OWASP ASVS 5.0 Level ${a.asvsLevel} · Updated ${new Date(a.updatedAt).toISOString().slice(0, 10)}`, '');
+  if (a.swalNote) L.push(`SWAL rationale: ${a.swalNote}`, '');
+  if (a.secNote) L.push(`ASVS level rationale: ${a.secNote}`, '');
+  L.push(`Assessor: ${a.assessor || 'not recorded'}`, '', `Independence: ${a.independence || 'not recorded'}`, '');
+  L.push('## Verdict', '', `**${U.verdict}.**`, '', `- Safety (ED-153): ${U.A.verdict}. Weighted readiness ${pct(U.A.readiness)}; ${U.A.findings.length} open findings (${U.A.blocking} at S1–S2).`, `- Security (ASVS L${a.asvsLevel}): ${U.B.verdict}. Weighted readiness ${pct(U.B.readiness)}; ${U.B.findings.length} open findings (${U.B.blocking} at Critical–High).`, '');
+  L.push('## Intake', '');
+  INTAKE.forEach(([k, l], i) => L.push(`${i + 1}. **${l}:** ${cell(a.intake[k] || 'not recorded')}`));
+  L.push('', '## Shared themes', '', '| Theme | ED-153 | ASVS | Weakest link |', '|---|---|---|---|');
+  for (const r of themeRows(a)) L.push(`| ${r.t} | ${r.es.map(([id, s]) => `${id} ${s || '—'}`).join(', ')} | ${r.ss.map(([id, s]) => `${id} ${s || '—'}`).join(', ')} | ${r.w ? STATUS_NAME[r.w] : 'Not rated'} |`);
+  L.push('', '## Findings register', '', '| Lens | Severity | Item | Status | Gap and action | Evidence today |', '|---|---|---|---|---|---|');
+  for (const f of U.findings) L.push(`| ${f.fw === 'saf' ? 'ED-153' : 'ASVS'} | ${SEVLABEL[f.sev]} | ${f.id} ${cell(f.fw === 'sec' ? shortReq(f.title) : f.title)} | ${f.fw === 'saf' ? STATUS_NAME[f.s] : SEC_STATUS_NAME[f.s]} | ${cell(f.r.note)} | ${cell(f.r.evidence)} |`);
+  for (const [title, ranks] of [['Before any claim (S1–S2, Critical–High)', [0, 1]], ['Before operational use (S3, Medium)', [2]], ['Continuous (S4, Low)', [3]]]) {
+    L.push('', `## Remediation: ${title}`, '');
+    const items = U.findings.filter((f) => ranks.includes(RANK[f.sev]));
+    if (!items.length) L.push('- Nothing here.');
+    for (const f of items) L.push(`- [${f.fw === 'saf' ? 'ED-153' : 'ASVS'}] ${f.id}: ${cell(f.r.note || f.title)}`);
+  }
+  if (a.remediation) {
+    const R = a.remediation, st = remStats(a);
+    L.push('', '## Remediation and evidence', '', '### Level 0 · 40,000 ft', '', `${st.closed} of ${st.total} findings closed; ${st.blockClosed} of ${st.blockTotal} must-fix closed.`, '');
+    R.stages.forEach((s, i) => L.push(`${i + 1}. ${s.name}: ${s.status === 'done' ? `done ${s.date}${s.ref ? ` (${cell(s.ref)})` : ''}` : 'pending'}`));
+    L.push('', '### Level 1 · Audits', '', '| Audit | Date | Commit | Safety | Security | Open (blocking) |', '|---|---|---|---|---|---|');
+    for (const x of R.audits) L.push(`| ${cell(x.label)} | ${x.date} | ${cell(x.commit)} | ${pct(x.safety.readiness)} ${x.safety.verdict} | ${pct(x.security.readiness)} ${x.security.verdict} | ${x.safety.open + x.security.open} (${x.safety.blocking + x.security.blocking}) |`);
+    for (const w of R.waves) {
+      L.push('', `### Level 2 · Wave ${w.id}: ${w.name}`, '');
+      for (const x of R.workstreams.filter((y) => y.wave === w.id)) {
+        L.push(`#### ${x.id} ${x.name}`, '');
+        for (const d of x.deliverables || []) L.push(`- ${cell(d)}`);
+        L.push('', '| Finding | Now | History |', '|---|---|---|');
+        for (const id of x.findings) L.push(`| ${id} ${cell(fTitle(id))} | ${fCur(a, id) || 'Not rated'} | ${(R.log[id] || []).map((h) => `${h.date} ${h.from ? h.from + '→' : ''}${h.status || '—'}${h.ref ? ' [' + cell(h.ref) + ']' : ''}`).join('; ')} |`);
+        L.push('');
+      }
+    }
+  }
+  L.push('', '## ED-153 objectives', '', '| ID | Objective | Area | Applicability | Status | Evidence | Note |', '|---|---|---|---|---|---|---|');
+  for (const o of CATALOGUE) { const r = a.ratings[o.id] || {}; const s = statusOf(a, o); L.push(`| ${o.id} | ${o.title} | ${o.area} | ${appOf(o, a.swal)} | ${s ? STATUS_NAME[s] : 'Not rated'} | ${cell(r.evidence)} | ${cell(r.note)} |`); }
+  L.push('', `## ASVS 5.0 requirements up to Level ${a.asvsLevel}`, '', '| ID | Level | Status | Evidence | Note |', '|---|---|---|---|---|');
+  for (const x of ASVS) { if (!secScope(a, x)) continue; const r = a.sec[x.id] || {}; const s = secStatus(a, x); L.push(`| ${x.id} | L${x.L} | ${s ? SEC_STATUS_NAME[s] : 'Not rated'} | ${cell(r.evidence)} | ${cell(r.note)} |`); }
+  L.push('', "_ED-153 catalogue reconstructed from public predecessors; per-SWAL applicability inferred: confirm against ED-153 before any formal claim. OWASP ASVS 5.0.0 © OWASP Foundation, CC BY-SA 4.0. Cross-check themes are CrossCheck's own mapping._");
+  return L.join('\n');
+}
+function csv(a) {
+  const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = [['Lens', 'ID', 'Title or requirement', 'Area or chapter', 'Applicability', 'Status', 'Evidence', 'Gap / action', 'Severity', 'Independence evidenced', 'Basis']];
+  for (const o of CATALOGUE) { const r = a.ratings[o.id] || {}; const s = statusOf(a, o); rows.push(['ED-153', o.id, o.title, o.area, `SWAL ${a.swal}: ${appOf(o, a.swal)}`, s ? STATUS_NAME[s] : 'Not rated', r.evidence, r.note, r.severity ? SEVLABEL[r.severity] : '', r.indep ? 'yes' : '', o.basis]); }
+  for (const x of ASVS) { const r = a.sec[x.id] || {}; const s = secStatus(a, x); rows.push(['ASVS 5.0', x.id, x.text, `${x.ch} ${x.chName}`, `L${x.L}${secScope(a, x) ? '' : ' (above target)'}`, s ? SEC_STATUS_NAME[s] : 'Not rated', r.evidence, r.note, r.severity ? SEVLABEL[r.severity] : '', '', 'OWASP ASVS 5.0.0 (CC BY-SA 4.0)']); }
+  return rows.map((r) => r.map(q).join(',')).join('\r\n');
+}
+async function exportAs(kind) {
+  const a = cur(); if (!a) return;
+  const slug = a.name.replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-').slice(0, 60) || 'assessment';
+  const md = reportMd(a);
+  if (kind === 'copy') {
+    try { await navigator.clipboard.writeText(md); toast('Report copied'); } catch { toast('Copy is blocked here. Use Export report instead.'); }
+    return;
+  }
+  const dl = window.claude?.use ? await window.claude.use('downloads').catch(() => null) : null;
+  if (!dl) { toast('Saving files is not available in this view. Use Copy report.'); return; }
+  const file = kind === 'md' ? { filename: `CrossCheck ${slug}.md`, data: md } : kind === 'csv' ? { filename: `CrossCheck ${slug}.csv`, data: csv(a) } : { filename: `CrossCheck ${slug}.json`, data: JSON.stringify({ ...a, catalogues: { safety: 'ED-153 reconstructed v0.1', security: 'OWASP ASVS 5.0.0' } }, null, 2) };
+  try { const r = await dl.save(file); if (r.status === 'saved') toast('Saved'); }
+  catch (e) { if (e?.code !== 'declined') toast(e?.code === 'rate_limited' ? 'A save prompt is already open.' : 'Could not save the file here. Use Copy report.'); }
+}
+
+boot();
+</script>

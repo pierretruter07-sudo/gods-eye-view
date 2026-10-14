@@ -1,0 +1,3779 @@
+{
+ "schema": 1,
+ "item": "God's Eye View",
+ "repository": "github.com/pierretruter07-sudo/gods-eye-view",
+ "baseline": {
+  "branch": "baseline/crosscheck-2026-10-14",
+  "commit": "1518ea8",
+  "date": "2026-10-14"
+ },
+ "standards": {
+  "safety": "EUROCAE ED-153 (CrossCheck reconstructed catalogue v0.1), SWAL 3",
+  "security": "OWASP ASVS 5.0.0, Level 2"
+ },
+ "stages": [
+  {
+   "id": "baseline",
+   "name": "Baseline frozen",
+   "status": "done",
+   "date": "2026-10-14",
+   "ref": "baseline/crosscheck-2026-10-14"
+  },
+  {
+   "id": "audit",
+   "name": "Audit",
+   "status": "done",
+   "date": "2026-10-14",
+   "ref": "CrossCheck assessment gev-example"
+  },
+  {
+   "id": "plan",
+   "name": "Plan issued",
+   "status": "done",
+   "date": "2026-10-14",
+   "ref": "docs/REMEDIATION-PLAN.md v0.1"
+  },
+  {
+   "id": "approve",
+   "name": "Plan approved",
+   "status": "done",
+   "date": "2026-10-14",
+   "ref": "Owner approval, Pierre Truter (Digital Dynamics Group), 14 Oct 2026 21:08 AEST"
+  },
+  {
+   "id": "wave1",
+   "name": "Wave 1 · Harden",
+   "status": "pending",
+   "date": null,
+   "ref": null
+  },
+  {
+   "id": "wave2",
+   "name": "Wave 2 · Control access",
+   "status": "pending",
+   "date": null,
+   "ref": null
+  },
+  {
+   "id": "wave3",
+   "name": "Wave 3 · Prove safety",
+   "status": "pending",
+   "date": null,
+   "ref": null
+  },
+  {
+   "id": "wave4",
+   "name": "Wave 4 · Assure and hand over",
+   "status": "pending",
+   "date": null,
+   "ref": null
+  },
+  {
+   "id": "evidence",
+   "name": "Evidence pack issued",
+   "status": "pending",
+   "date": null,
+   "ref": null
+  }
+ ],
+ "audits": [
+  {
+   "id": "A0",
+   "wave": 0,
+   "label": "Baseline audit",
+   "date": "2026-10-14",
+   "commit": "1518ea8",
+   "safety": {
+    "readiness": 0.3817,
+    "counts": {
+     "C": 5,
+     "L": 13,
+     "P": 49,
+     "N": 23,
+     "NA": 14
+    },
+    "open": 72,
+    "blocking": 15,
+    "verdict": "SWAL 3 claim not supported"
+   },
+   "security": {
+    "readiness": 0.6185,
+    "counts": {
+     "C": 20,
+     "L": 33,
+     "P": 18,
+     "N": 13,
+     "NA": 166
+    },
+    "open": 31,
+    "blocking": 5,
+    "verdict": "ASVS L2 not met"
+   }
+  }
+ ],
+ "projections": {
+  "journey": [
+   {
+    "label": "Baseline",
+    "safety": 0.3817,
+    "security": 0.6185,
+    "kind": "actual"
+   },
+   {
+    "label": "After Wave 1",
+    "safety": 0.4393,
+    "security": 0.8592,
+    "kind": "target"
+   },
+   {
+    "label": "After Wave 2",
+    "safety": 0.4393,
+    "security": 0.8822,
+    "kind": "target"
+   },
+   {
+    "label": "After Wave 3",
+    "safety": 0.8354,
+    "security": 0.8822,
+    "kind": "target"
+   },
+   {
+    "label": "After Wave 4",
+    "safety": 0.8708,
+    "security": 0.8822,
+    "kind": "target"
+   }
+  ],
+  "scenarios": [
+   {
+    "id": "A",
+    "label": "Claude + Replit + owner actions",
+    "safety": 0.8708,
+    "security": 0.8822,
+    "safety_verdict": "Not yet supported: human-only steps remain open",
+    "security_verdict": "ASVS Level 2 met",
+    "human_only": [
+     {
+      "id": "3.4.1",
+      "why": "Validation with operational users"
+     },
+     {
+      "id": "3.4.3",
+      "why": "Process assurance by someone independent of the developers"
+     },
+     {
+      "id": "5.5.x",
+      "why": "Validation with operational users"
+     },
+     {
+      "id": "5.6.x",
+      "why": "Joint reviews with the customer"
+     },
+     {
+      "id": "5.7.2–5.7.4",
+      "why": "Independent audit"
+     }
+    ]
+   },
+   {
+    "id": "B",
+    "label": "Plus customer and independent reviewer",
+    "safety": 0.9635,
+    "security": 0.8966,
+    "safety_verdict": "SWAL 3 claim supported, ready for independent assessment",
+    "security_verdict": "ASVS Level 2 met"
+   }
+  ],
+  "note": "Readiness = weighted score (Compliant 1, Largely 0.75, Partial 0.4, Non-compliant 0) over rated in-scope items. Verdicts follow the CrossCheck rules, not the score. New scope from sign-in (ASVS V6, V7, V9, V10) is assessed in Wave 2 and is not in these projections."
+ },
+ "pending": [
+  {
+   "id": "V4.1.2",
+   "wave": 1,
+   "workstream": "W1",
+   "target": "L",
+   "why": "Depends on the hosting edge: rate from a redirect scan of the deployed app."
+  },
+  {
+   "id": "V12.1.1",
+   "wave": 1,
+   "workstream": "W1",
+   "target": "L",
+   "why": "Depends on the hosting edge: rate from a TLS scan of the deployed app."
+  },
+  {
+   "id": "V12.1.2",
+   "wave": 1,
+   "workstream": "W1",
+   "target": "L",
+   "why": "Depends on the hosting edge: rate from a TLS scan of the deployed app."
+  }
+ ],
+ "waves": [
+  {
+   "id": 1,
+   "name": "Harden",
+   "who": "Engineering",
+   "effort": "1 week",
+   "exit": "Every Wave 1 security finding closed except V8; re-audit"
+  },
+  {
+   "id": 2,
+   "name": "Control access",
+   "who": "Engineering + customer identity provider",
+   "effort": "1 week",
+   "exit": "ASVS Level 2 met; re-audit"
+  },
+  {
+   "id": 3,
+   "name": "Prove safety",
+   "who": "Safety lead, engineering, customer",
+   "effort": "2–3 weeks",
+   "exit": "No S1–S2 finding open"
+  },
+  {
+   "id": 4,
+   "name": "Assure and hand over",
+   "who": "Safety lead, independent reviewer",
+   "effort": "1 week",
+   "exit": "SWAL 3 claim supported; evidence pack issued"
+  }
+ ],
+ "workstreams": [
+  {
+   "id": "W1",
+   "name": "Web hardening",
+   "wave": 1,
+   "deliverables": [
+    "Security headers on every response: HSTS, nosniff, Referrer-Policy and a Content-Security-Policy with script-src.",
+    "Inline HTML templates moved so the policy can drop unsafe-inline.",
+    "Debug handle (window.__godsEyeView, ?fps) gated out of production builds."
+   ],
+   "evidence": "Header tests in the preview-serving suite; a browser-captured policy report.",
+   "findings": [
+    "V3.2.1",
+    "V3.4.1",
+    "V3.4.3",
+    "V3.4.4",
+    "V3.4.5",
+    "V13.4.5"
+   ]
+  },
+  {
+   "id": "W2",
+   "name": "Abuse resistance and availability",
+   "wave": 1,
+   "deliverables": [
+    "Rate limiting on by default for every cost-bearing proxy, with global caps.",
+    "Client IP taken from the forwarded header only when the request comes through the known proxy hop.",
+    "Heavy endpoints and resource budgets (frame time, memory, latency) documented."
+   ],
+   "evidence": "Limiter tests; a load test against the deployed app.",
+   "findings": [
+    "V2.4.1",
+    "V2.3.2",
+    "V15.3.4",
+    "V2.1.3",
+    "V15.1.3",
+    "4.3.13"
+   ]
+  },
+  {
+   "id": "W3",
+   "name": "Supply chain and secrets",
+   "wave": 1,
+   "deliverables": [
+    "npm audit and Dependabot in CI; CI fails on High or Critical.",
+    "CycloneDX software bill of materials (SBOM) for each release; patch time limits in SECURITY.md.",
+    "COTS dossiers: CesiumJS, satellite.js, Node, browsers, Replit, each data feed.",
+    "Browser keys restricted by referrer and API (owner action); secrets in a managed store with rotation."
+   ],
+   "evidence": "CI logs; SBOM file; dossiers; console screenshots.",
+   "findings": [
+    "V15.2.1",
+    "V15.1.1",
+    "V15.1.2",
+    "V13.3.1",
+    "V13.3.2",
+    "V13.2.5",
+    "3.0.13",
+    "7.x COTS",
+    "7.x SE",
+    "4.3.10"
+   ]
+  },
+  {
+   "id": "W4",
+   "name": "Logging and monitoring",
+   "wave": 1,
+   "deliverables": [
+    "Structured JSON logs with UTC timestamps and request IDs; untrusted values encoded.",
+    "Security events logged: rate-limit hits, validation rejects.",
+    "Log inventory; logs forwarded to a separate store with alerting (Wave 2).",
+    "Feed-health telemetry mapped to the SWAL monitoring objective."
+   ],
+   "evidence": "Logger tests; log inventory; an alert fired in test.",
+   "findings": [
+    "V16.1.1",
+    "V16.3.3",
+    "V16.4.3",
+    "V16.2.1",
+    "V16.2.2",
+    "V16.2.4",
+    "V16.4.1",
+    "V16.4.2",
+    "3.0.11",
+    "4.4.5",
+    "4.4.4"
+   ]
+  },
+  {
+   "id": "W5",
+   "name": "Access control",
+   "wave": 2,
+   "deliverables": [
+    "Sign-in through an external identity provider (OIDC); roles viewer, operator, admin.",
+    "Server-side checks on every function; paid proxies need operator; Exercise mode needs an explicit role.",
+    "Session timeout and logout; authorization model documented."
+   ],
+   "evidence": "Access-control test matrix (role × endpoint); CrossCheck assessment of the new V6, V7, V9 and V10 rows.",
+   "findings": [
+    "V8.1.1",
+    "V8.2.1"
+   ]
+  },
+  {
+   "id": "W6",
+   "name": "Data and validation rules",
+   "wave": 1,
+   "deliverables": [
+    "Input-validation specification per API endpoint: types, ranges, lengths, combined-field rules.",
+    "Data classification (public, aggregated-sensitive, simulated) with handling rules for caching, export and retention."
+   ],
+   "evidence": "Both documents, each validation rule traced to an existing test.",
+   "findings": [
+    "V2.1.1",
+    "V2.1.2",
+    "V14.1.1",
+    "V14.1.2"
+   ]
+  },
+  {
+   "id": "W7",
+   "name": "Safety analysis",
+   "wave": 3,
+   "deliverables": [
+    "Concept of operations: users, environment, advisory-only boundary.",
+    "Functional hazard assessment: failure modes per component, effects on the operator, justified likelihood.",
+    "SWAL allocation per failure; preliminary system safety assessment.",
+    "Safety requirements (GEV-SAF tier) traced into the SRS."
+   ],
+   "evidence": "Versioned analysis documents reviewed with the customer.",
+   "findings": [
+    "3.1.2",
+    "3.1.5",
+    "4.1.2",
+    "3.3.1",
+    "3.3.2",
+    "3.3.3",
+    "3.0.5",
+    "3.3.5",
+    "4.1.3",
+    "3.3.4"
+   ]
+  },
+  {
+   "id": "W8",
+   "name": "Safety plan, process and configuration management",
+   "wave": 3,
+   "deliverables": [
+    "Software safety assessment plan: approach, rigour per SWAL, I/R/D classification, named reviewer sign-off.",
+    "Development plan with an AI-assistance policy: no tool credit, human review of every AI change.",
+    "Configuration management plan: protected main, reviews, tagged releases, CI-built artifact with build stamp, tested rollback.",
+    "Change-impact template; requirement change control through issues; QA role and audits.",
+    "Problem-report process (known limitations logged as issues); operations and maintenance plans; training records."
+   ],
+   "evidence": "Approved plans; repository settings evidence; release records.",
+   "findings": [
+    "3.0.1",
+    "3.2.1",
+    "3.2.2",
+    "3.2.3",
+    "3.2.4",
+    "3.0.8",
+    "3.0.9",
+    "3.4.3",
+    "4.2.4",
+    "4.3.3",
+    "4.3.11",
+    "3.0.7",
+    "5.2.1",
+    "5.2.3",
+    "5.2.x",
+    "5.4.13",
+    "3.0.12",
+    "3.0.15",
+    "4.4.1",
+    "4.5.1",
+    "4.5.2",
+    "4.5.3",
+    "5.3.x",
+    "5.8.x",
+    "6.1.x",
+    "6.2.x",
+    "6.3.x",
+    "6.4.x",
+    "7.x DE"
+   ]
+  },
+  {
+   "id": "W9",
+   "name": "Requirements, verification and validation",
+   "wave": 3,
+   "deliverables": [
+    "Reviewed and approved SRS covering the inherited layer engine; traceability widened from 56 requirements.",
+    "Dead-code review (remove /api/route); isolation argument per first-level component.",
+    "Integration tests at every component boundary; feed-integrity and outage tests.",
+    "Architecture review record; verification report; validation with operational users; joint reviews; user guide."
+   ],
+   "evidence": "Review records, test reports, validation minutes.",
+   "findings": [
+    "3.0.2",
+    "3.0.3",
+    "3.0.4",
+    "3.0.14",
+    "4.3.1",
+    "4.3.4",
+    "4.3.7",
+    "4.3.14",
+    "3.4.2",
+    "5.4.3",
+    "5.4.4",
+    "5.4.5",
+    "5.4.9",
+    "5.4.12",
+    "3.4.1",
+    "5.5.x",
+    "5.6.x",
+    "4.4.3"
+   ]
+  },
+  {
+   "id": "W10",
+   "name": "Safety case and release evidence",
+   "wave": 4,
+   "deliverables": [
+    "Software safety assessment report with a GSN-style argument (direct and back-up).",
+    "Software safety folder; assessment report and distribution record per release; independent audit."
+   ],
+   "evidence": "Issued safety folder and independent audit report.",
+   "findings": [
+    "3.0.10",
+    "3.0.17",
+    "3.4.4",
+    "3.5.1",
+    "3.5.3",
+    "5.7.2–5.7.4",
+    "8"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "id": "V3.2.1",
+   "lens": "ASVS",
+   "title": "Verify that security controls are in place to prevent browsers from rendering content or functionality in HTTP responses in an incorrect context (e.g., when an API, a user-uploaded file or other resource is requested directly). Possible controls could include: not serving the content unless HTTP request header fields (such as Sec-Fetch-\\*) indicate it is the correct context, using the sandbox directive of the Content-Security-Policy header field or using the attachment disposition type in the Content-Disposition header field.",
+   "area": "V3 Web Frontend Security",
+   "workstream": "W1",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "API responses set Content-Type; no X-Content-Type-Options or CSP sandboxing."
+   },
+   "fix": "Add nosniff and a CSP (see V3.4.3, V3.4.4).",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "API responses set Content-Type; no X-Content-Type-Options or CSP sandboxing."
+    }
+   ]
+  },
+  {
+   "id": "V3.4.1",
+   "lens": "ASVS",
+   "title": "Verify that a Strict-Transport-Security header field is included on all responses to enforce an HTTP Strict Transport Security (HSTS) policy. A maximum age of at least 1 year must be defined, and for L2 and up, the policy must apply to all subdomains as well.",
+   "area": "V3 Web Frontend Security",
+   "workstream": "W1",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No Strict-Transport-Security header set by the app; edge behaviour on Replit unverified."
+   },
+   "fix": "Set HSTS (max-age >= 1 year) in server headers or at the edge.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No Strict-Transport-Security header set by the app; edge behaviour on Replit unverified."
+    }
+   ]
+  },
+  {
+   "id": "V3.4.3",
+   "lens": "ASVS",
+   "title": "Verify that HTTP responses include a Content-Security-Policy response header field which defines directives to ensure the browser only loads and executes trusted content or resources, in order to limit execution of malicious JavaScript. As a minimum, a global policy must be used which includes the directives object-src 'none' and base-uri 'none' and defines either an allowlist or uses nonces or hashes. For an L3 application, a per-response policy with nonces or hashes must be defined.",
+   "area": "V3 Web Frontend Security",
+   "workstream": "W1",
+   "wave": 1,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "CSP is frame-ancestors only; no script-src/object-src/base-uri (SECURITY.md known gap 2)."
+   },
+   "fix": "Ship a script-src CSP (nonces or hashes) after moving inline HTML templates.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "CSP is frame-ancestors only; no script-src/object-src/base-uri (SECURITY.md known gap 2)."
+    }
+   ]
+  },
+  {
+   "id": "V3.4.4",
+   "lens": "ASVS",
+   "title": "Verify that all HTTP responses contain an 'X-Content-Type-Options: nosniff' header field. This instructs browsers not to use content sniffing and MIME type guessing for the given response, and to require the response's Content-Type header field value to match the destination resource. For example, the response to a request for a style is only accepted if the response's Content-Type is 'text/css'. This also enables the use of the Cross-Origin Read Blocking (CORB) functionality by the browser.",
+   "area": "V3 Web Frontend Security",
+   "workstream": "W1",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "X-Content-Type-Options: nosniff not set."
+   },
+   "fix": "Add nosniff to server.headers.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "X-Content-Type-Options: nosniff not set."
+    }
+   ]
+  },
+  {
+   "id": "V3.4.5",
+   "lens": "ASVS",
+   "title": "Verify that the application sets a referrer policy to prevent leakage of technically sensitive data to third-party services via the 'Referer' HTTP request header field. This can be done using the Referrer-Policy HTTP response header field or via HTML element attributes. Sensitive data could include path and query data in the URL, and for internal non-public applications also the hostname.",
+   "area": "V3 Web Frontend Security",
+   "workstream": "W1",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "No explicit Referrer-Policy; browser default strict-origin-when-cross-origin applies."
+   },
+   "fix": "Set Referrer-Policy: strict-origin-when-cross-origin explicitly.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "No explicit Referrer-Policy; browser default strict-origin-when-cross-origin applies."
+    }
+   ]
+  },
+  {
+   "id": "V13.4.5",
+   "lens": "ASVS",
+   "title": "Verify that documentation (such as for internal APIs) and monitoring endpoints are not exposed unless explicitly intended.",
+   "area": "V13 Configuration",
+   "workstream": "W1",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "window.__godsEyeView debug handle exposed in production builds."
+   },
+   "fix": "Remove or gate the debug handle in production.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "window.__godsEyeView debug handle exposed in production builds."
+    }
+   ]
+  },
+  {
+   "id": "V2.4.1",
+   "lens": "ASVS",
+   "title": "Verify that anti-automation controls are in place to protect against excessive calls to application functions that could lead to data exfiltration, garbage-data creation, quota exhaustion, rate-limit breaches, denial-of-service, or overuse of costly resources.",
+   "area": "V2 Validation and Business Logic",
+   "workstream": "W2",
+   "wave": 1,
+   "blocking": true,
+   "baseline": {
+    "status": "P",
+    "severity": "SH",
+    "evidence": "Opt-in per-IP limiter (default unlimited); cost-bearing Google proxies callable by anyone with the URL."
+   },
+   "fix": "Enable limits by default; add global quota caps and alerting on provider spend.",
+   "current": {
+    "status": "P",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "Opt-in per-IP limiter (default unlimited); cost-bearing Google proxies callable by anyone with the URL."
+    }
+   ]
+  },
+  {
+   "id": "V2.3.2",
+   "lens": "ASVS",
+   "title": "Verify that business logic limits are implemented per the application's documentation to avoid business logic flaws being exploited.",
+   "area": "V2 Validation and Business Logic",
+   "workstream": "W2",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Limits exist but per-IP rate limiting is opt-in and off by default."
+   },
+   "fix": "Turn rate limiting on by default in production config.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Limits exist but per-IP rate limiting is opt-in and off by default."
+    }
+   ]
+  },
+  {
+   "id": "V15.3.4",
+   "lens": "ASVS",
+   "title": "Verify that all proxying and middleware components transfer the user's original IP address correctly using trusted data fields that cannot be manipulated by the end user, and the application and web server use this correct value for logging and security decisions such as rate limiting, taking into account that even the original IP address may not be reliable due to dynamic IPs, VPNs, or corporate firewalls.",
+   "area": "V15 Secure Coding and Architecture",
+   "workstream": "W2",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Limiter ignores X-Forwarded-For, so behind the Replit proxy every client may share one bucket."
+   },
+   "fix": "Trust the platform's forwarded header only from the known proxy hop.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Limiter ignores X-Forwarded-For, so behind the Replit proxy every client may share one bucket."
+    }
+   ]
+  },
+  {
+   "id": "V2.1.3",
+   "lens": "ASVS",
+   "title": "Verify that expectations for business logic limits and validations are documented, including both per-user and globally across the application.",
+   "area": "V2 Validation and Business Logic",
+   "workstream": "W2",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Rate limits and provider budgets described in CONFIGURATION-INDEX; no per-client/global limit policy."
+   },
+   "fix": "Document per-client and global limits for each cost-bearing proxy.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Rate limits and provider budgets described in CONFIGURATION-INDEX; no per-client/global limit policy."
+    }
+   ]
+  },
+  {
+   "id": "V15.1.3",
+   "lens": "ASVS",
+   "title": "Verify that the application documentation identifies functionality which is time-consuming or resource-demanding. This must include how to prevent a loss of availability due to overusing this functionality and how to avoid a situation where building a response takes longer than the consumer's timeout. Potential defenses may include asynchronous processing, using queues, and limiting parallel processes per user and per application.",
+   "area": "V15 Secure Coding and Architecture",
+   "workstream": "W2",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "KNOWN-LIMITATIONS and provider budgets cover upstream cost; no list of resource-heavy endpoints."
+   },
+   "fix": "Document heavy endpoints (Overpass, routes, tracks) and their limits.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "KNOWN-LIMITATIONS and provider budgets cover upstream cost; no list of resource-heavy endpoints."
+    }
+   ]
+  },
+  {
+   "id": "4.3.13",
+   "lens": "ED-153",
+   "title": "Resource management (load, memory, time response)",
+   "area": "4.3 Development",
+   "workstream": "W2",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Benchmark, adaptive quality ladder, caps."
+   },
+   "fix": "Resource budgets (frame time, memory, latency).",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Benchmark, adaptive quality ladder, caps."
+    }
+   ]
+  },
+  {
+   "id": "V15.2.1",
+   "lens": "ASVS",
+   "title": "Verify that the application only contains components which have not breached the documented update and remediation time frames.",
+   "area": "V15 Secure Coding and Architecture",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "No dependency vulnerability scanning in CI (SECURITY.md known gap 4); state cannot be shown."
+   },
+   "fix": "Add npm audit and Dependabot; fail CI on high/critical.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "No dependency vulnerability scanning in CI (SECURITY.md known gap 4); state cannot be shown."
+    }
+   ]
+  },
+  {
+   "id": "V15.1.1",
+   "lens": "ASVS",
+   "title": "Verify that application documentation defines risk based remediation time frames for 3rd party component versions with vulnerabilities and for updating libraries in general, to minimize the risk from these components.",
+   "area": "V15 Secure Coding and Architecture",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No documented remediation time frames for vulnerable components."
+   },
+   "fix": "Add a patch SLA to SECURITY.md (e.g. critical 7 days, high 30).",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No documented remediation time frames for vulnerable components."
+    }
+   ]
+  },
+  {
+   "id": "V15.1.2",
+   "lens": "ASVS",
+   "title": "Verify that an inventory catalog, such as software bill of materials (SBOM), is maintained of all third-party libraries in use, including verifying that components come from pre-defined, trusted, and continually maintained repositories.",
+   "area": "V15 Secure Coding and Architecture",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No SBOM; package-lock.json only."
+   },
+   "fix": "Generate a CycloneDX SBOM in CI and keep it with each release.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No SBOM; package-lock.json only."
+    }
+   ]
+  },
+  {
+   "id": "V13.3.1",
+   "lens": "ASVS",
+   "title": "Verify that a secrets management solution, such as a key vault, is used to securely create, store, control access to, and destroy backend secrets. These could include passwords, key material, integrations with databases and third-party systems, keys and seeds for time-based tokens, other internal secrets, and API keys. Secrets must not be included in application source code or included in build artifacts. For an L3 application, this must involve a hardware-backed solution such as an HSM.",
+   "area": "V13 Configuration",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Secrets in Replit Secrets/env; .env.example names only; no vault, rotation or expiry."
+   },
+   "fix": "Move to a managed secret store with rotation for the production deployment.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Secrets in Replit Secrets/env; .env.example names only; no vault, rotation or expiry."
+    }
+   ]
+  },
+  {
+   "id": "V13.3.2",
+   "lens": "ASVS",
+   "title": "Verify that access to secret assets adheres to the principle of least privilege.",
+   "area": "V13 Configuration",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Server keys stay server-side, but GOOGLE_MAPS_API_KEY and CESIUM_ION_TOKEN are bundled to the browser by design."
+   },
+   "fix": "Restrict browser keys by HTTP referrer and API; verify in the Google and Cesium consoles.",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Server keys stay server-side, but GOOGLE_MAPS_API_KEY and CESIUM_ION_TOKEN are bundled to the browser by design."
+    }
+   ]
+  },
+  {
+   "id": "V13.2.5",
+   "lens": "ASVS",
+   "title": "Verify that the web or application server is configured with an allowlist of resources or systems to which the server can send requests or load data or files from.",
+   "area": "V13 Configuration",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "No egress restriction at the server or platform level."
+   },
+   "fix": "Restrict outbound egress to the documented hosts where hosting allows.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "No egress restriction at the server or platform level."
+    }
+   ]
+  },
+  {
+   "id": "3.0.13",
+   "lens": "ED-153",
+   "title": "COTS",
+   "area": "3 SSAS",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Licence inventory and data-source register; no COTS dossiers."
+   },
+   "fix": "COTS dossiers: CesiumJS, satellite.js, Node, browser, host, feeds.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Licence inventory and data-source register; no COTS dossiers."
+    }
+   ]
+  },
+  {
+   "id": "7.x COTS",
+   "lens": "ED-153",
+   "title": "COTS",
+   "area": "7 Additional ANS",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Licence inventory only."
+   },
+   "fix": "COTS dossiers, SBOM, wrappers.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Licence inventory only."
+    }
+   ]
+  },
+  {
+   "id": "7.x SE",
+   "lens": "ED-153",
+   "title": "Service experience",
+   "area": "7 Additional ANS",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "S3",
+    "evidence": "No service history."
+   },
+   "fix": "Service history argument where COTS credit claimed.",
+   "current": {
+    "status": "N",
+    "severity": "S3"
+   },
+   "target": "NA",
+   "targetFull": "NA",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No service history."
+    }
+   ]
+  },
+  {
+   "id": "4.3.10",
+   "lens": "ED-153",
+   "title": "Standards/rules (incl. PDS/COTS references)",
+   "area": "4.3 Development",
+   "workstream": "W3",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Inherited code follows upstream conventions."
+   },
+   "fix": "Reference PDS/COTS standards and deviations.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Inherited code follows upstream conventions."
+    }
+   ]
+  },
+  {
+   "id": "V16.1.1",
+   "lens": "ASVS",
+   "title": "Verify that an inventory exists documenting the logging performed at each layer of the application's technology stack, what events are being logged, log formats, where that logging is stored, how it is used, how access to it is controlled, and for how long logs are kept.",
+   "area": "V16 Security Logging and Error Handling",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No log inventory."
+   },
+   "fix": "Document what each layer logs, where, and retention.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No log inventory."
+    }
+   ]
+  },
+  {
+   "id": "V16.3.3",
+   "lens": "ASVS",
+   "title": "Verify that the application logs the security events that are defined in the documentation and also logs attempts to bypass the security controls, such as input validation, business logic, and anti-automation.",
+   "area": "V16 Security Logging and Error Handling",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No security events defined or logged (rate-limit hits, validation rejects)."
+   },
+   "fix": "Log rate-limit and validation rejects as security events.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No security events defined or logged (rate-limit hits, validation rejects)."
+    }
+   ]
+  },
+  {
+   "id": "V16.4.3",
+   "lens": "ASVS",
+   "title": "Verify that logs are securely transmitted to a logically separate system for analysis, detection, alerting, and escalation. The aim is to ensure that if the application is breached, the logs are not compromised.",
+   "area": "V16 Security Logging and Error Handling",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No log shipping to a separate system."
+   },
+   "fix": "Forward logs to a SIEM or log service with alerting.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No log shipping to a separate system."
+    }
+   ]
+  },
+  {
+   "id": "V16.2.1",
+   "lens": "ASVS",
+   "title": "Verify that each log entry includes necessary metadata (such as when, where, who, what) that would allow for a detailed investigation of the timeline when an event happens.",
+   "area": "V16 Security Logging and Error Handling",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "console.warn/error lines carry provider and reason, but no structured when/where metadata."
+   },
+   "fix": "Adopt structured JSON logs with timestamp and request id.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "console.warn/error lines carry provider and reason, but no structured when/where metadata."
+    }
+   ]
+  },
+  {
+   "id": "V16.2.2",
+   "lens": "ASVS",
+   "title": "Verify that time sources for all logging components are synchronized, and that timestamps in security event metadata use UTC or include an explicit time zone offset. UTC is recommended to ensure consistency across distributed systems and to prevent confusion during daylight saving time transitions.",
+   "area": "V16 Security Logging and Error Handling",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "Relies on platform timestamps; no explicit UTC in log lines."
+   },
+   "fix": "Emit ISO-8601 UTC timestamps.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Relies on platform timestamps; no explicit UTC in log lines."
+    }
+   ]
+  },
+  {
+   "id": "V16.2.4",
+   "lens": "ASVS",
+   "title": "Verify that logs can be read and correlated by the log processor that is in use, preferably by using a common logging format.",
+   "area": "V16 Security Logging and Error Handling",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "Free-text console logs; no common format."
+   },
+   "fix": "Use JSON lines.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Free-text console logs; no common format."
+    }
+   ]
+  },
+  {
+   "id": "V16.4.1",
+   "lens": "ASVS",
+   "title": "Verify that all logging components appropriately encode data to prevent log injection.",
+   "area": "V16 Security Logging and Error Handling",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "Some feed-derived strings logged without encoding."
+   },
+   "fix": "Encode or JSON-stringify untrusted values in logs.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Some feed-derived strings logged without encoding."
+    }
+   ]
+  },
+  {
+   "id": "V16.4.2",
+   "lens": "ASVS",
+   "title": "Verify that logs are protected from unauthorized access and cannot be modified.",
+   "area": "V16 Security Logging and Error Handling",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "Logs protected only by platform access control; not tamper-evident."
+   },
+   "fix": "Ship logs to an append-only store.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Logs protected only by platform access control; not tamper-evident."
+    }
+   ]
+  },
+  {
+   "id": "3.0.11",
+   "lens": "ED-153",
+   "title": "SWAL monitoring",
+   "area": "3 SSAS",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No in-service malfunction monitoring."
+   },
+   "fix": "Telemetry and incident log mapped to SWAL.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No in-service malfunction monitoring."
+    }
+   ]
+  },
+  {
+   "id": "4.4.5",
+   "lens": "ED-153",
+   "title": "Performance monitoring",
+   "area": "4.4 Operation",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "S3",
+    "evidence": "No performance or feed-health monitoring."
+   },
+   "fix": "Telemetry and feed-health indicators.",
+   "current": {
+    "status": "N",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No performance or feed-health monitoring."
+    }
+   ]
+  },
+  {
+   "id": "4.4.4",
+   "lens": "ED-153",
+   "title": "Software operation",
+   "area": "4.4 Operation",
+   "workstream": "W4",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Server logs only."
+   },
+   "fix": "Operating procedures and logs.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Server logs only."
+    }
+   ]
+  },
+  {
+   "id": "V8.1.1",
+   "lens": "ASVS",
+   "title": "Verify that authorization documentation defines rules for restricting function-level and data-specific access based on consumer permissions and resource attributes.",
+   "area": "V8 Authorization",
+   "workstream": "W5",
+   "wave": 2,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "No authorization model documented; the app is public-by-design (SECURITY.md known gap 1)."
+   },
+   "fix": "Define roles (viewer, operator, admin) and which functions each may use.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "No authorization model documented; the app is public-by-design (SECURITY.md known gap 1)."
+    }
+   ]
+  },
+  {
+   "id": "V8.2.1",
+   "lens": "ASVS",
+   "title": "Verify that the application ensures that function-level access is restricted to consumers with explicit permissions.",
+   "area": "V8 Authorization",
+   "workstream": "W5",
+   "wave": 2,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "SH",
+    "evidence": "Every function, including cost-bearing API proxies and Exercise mode, is open to anyone with the URL."
+   },
+   "fix": "Put authentication (SSO/OIDC) in front of the app before any non-public deployment.",
+   "current": {
+    "status": "N",
+    "severity": "SH"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "Every function, including cost-bearing API proxies and Exercise mode, is open to anyone with the URL."
+    }
+   ]
+  },
+  {
+   "id": "V2.1.1",
+   "lens": "ASVS",
+   "title": "Verify that the application's documentation defines input validation rules for how to check the validity of data items against an expected structure. This could be common data formats such as credit card numbers, email addresses, telephone numbers, or it could be an internal data format.",
+   "area": "V2 Validation and Business Logic",
+   "workstream": "W6",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SM",
+    "evidence": "Validation exists in code (400 on bad hex, callsign, coordinates, cyclone query) but rules are not documented."
+   },
+   "fix": "Write an input-validation spec per API endpoint (types, ranges, lengths).",
+   "current": {
+    "status": "P",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Validation exists in code (400 on bad hex, callsign, coordinates, cyclone query) but rules are not documented."
+    }
+   ]
+  },
+  {
+   "id": "V2.1.2",
+   "lens": "ASVS",
+   "title": "Verify that the application's documentation defines how to validate the logical and contextual consistency of combined data items, such as checking that suburb and ZIP code match.",
+   "area": "V2 Validation and Business Logic",
+   "workstream": "W6",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "SL",
+    "evidence": "Combined-field checks exist in code (bbox, route coords); not documented."
+   },
+   "fix": "Add to the validation spec.",
+   "current": {
+    "status": "P",
+    "severity": "SL"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Combined-field checks exist in code (bbox, route coords); not documented."
+    }
+   ]
+  },
+  {
+   "id": "V14.1.1",
+   "lens": "ASVS",
+   "title": "Verify that all sensitive data created and processed by the application has been identified and classified into protection levels. This includes data that is only encoded and therefore easily decoded, such as Base64 strings or the plaintext payload inside a JWT. Protection levels need to take into account any data protection and privacy regulations and standards which the application is required to comply with.",
+   "area": "V14 Data Protection",
+   "workstream": "W6",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No data classification. Public OSINT, but aggregated military tracks may be sensitive to a defence customer."
+   },
+   "fix": "Classify data (public, aggregated-sensitive, simulated) and record handling rules.",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No data classification. Public OSINT, but aggregated military tracks may be sensitive to a defence customer."
+    }
+   ]
+  },
+  {
+   "id": "V14.1.2",
+   "lens": "ASVS",
+   "title": "Verify that all sensitive data protection levels have a documented set of protection requirements. This must include (but not be limited to) requirements related to general encryption, integrity verification, retention, how the data is to be logged, access controls around sensitive data in logs, database-level encryption, privacy and privacy-enhancing technologies to be used, and other confidentiality requirements.",
+   "area": "V14 Data Protection",
+   "workstream": "W6",
+   "wave": 1,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "SM",
+    "evidence": "No protection requirements per level."
+   },
+   "fix": "Define per-class requirements (retention, caching, export).",
+   "current": {
+    "status": "N",
+    "severity": "SM"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No protection requirements per level."
+    }
+   ]
+  },
+  {
+   "id": "3.1.2",
+   "lens": "ED-153",
+   "title": "Operational environment",
+   "area": "3.1 Initiation",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Demo use described; no operational concept."
+   },
+   "fix": "ConOps: users, environment, advisory-only boundary.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Demo use described; no operational concept."
+    }
+   ]
+  },
+  {
+   "id": "3.1.5",
+   "lens": "ED-153",
+   "title": "System FHA & PSSA output",
+   "area": "3.1 Initiation",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No FHA/PSSA."
+   },
+   "fix": "FHA with the customer.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No FHA/PSSA."
+    }
+   ]
+  },
+  {
+   "id": "4.1.2",
+   "lens": "ED-153",
+   "title": "Functional Hazard Assessment",
+   "area": "4.1 Acquisition",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No FHA."
+   },
+   "fix": "FHA (shared with 3.1.5).",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No FHA."
+    }
+   ]
+  },
+  {
+   "id": "3.3.1",
+   "lens": "ED-153",
+   "title": "Failures identification",
+   "area": "3.3 Requirements",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No software failure-mode list."
+   },
+   "fix": "Failure modes per component.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No software failure-mode list."
+    }
+   ]
+  },
+  {
+   "id": "3.3.2",
+   "lens": "ED-153",
+   "title": "Failure effects",
+   "area": "3.3 Requirements",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No effects analysis."
+   },
+   "fix": "Effects of each failure on users.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No effects analysis."
+    }
+   ]
+  },
+  {
+   "id": "3.3.3",
+   "lens": "ED-153",
+   "title": "Assessment of risk",
+   "area": "3.3 Requirements",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No risk assessment."
+   },
+   "fix": "Likelihood justification.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No risk assessment."
+    }
+   ]
+  },
+  {
+   "id": "3.0.5",
+   "lens": "ED-153",
+   "title": "SWAL allocation",
+   "area": "3 SSAS",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "SWAL set top-down; no hazard analysis."
+   },
+   "fix": "Hazard log and severity x likelihood allocation.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "SWAL set top-down; no hazard analysis."
+    }
+   ]
+  },
+  {
+   "id": "3.3.5",
+   "lens": "ED-153",
+   "title": "SWAL allocation",
+   "area": "3.3 Requirements",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No allocation record."
+   },
+   "fix": "Allocation per failure.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No allocation record."
+    }
+   ]
+  },
+  {
+   "id": "4.1.3",
+   "lens": "ED-153",
+   "title": "Preliminary System Safety Assessment",
+   "area": "4.1 Acquisition",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No PSSA."
+   },
+   "fix": "PSSA after the FHA.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No PSSA."
+    }
+   ]
+  },
+  {
+   "id": "3.3.4",
+   "lens": "ED-153",
+   "title": "Software requirements setting",
+   "area": "3.3 Requirements",
+   "workstream": "W7",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Functional requirements exist; no safety requirements."
+   },
+   "fix": "GEV-SAF tier traced into the SRS.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Functional requirements exist; no safety requirements."
+    }
+   ]
+  },
+  {
+   "id": "3.0.1",
+   "lens": "ED-153",
+   "title": "Implementation of the SSAS",
+   "area": "3 SSAS",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No documented software safety assurance system."
+   },
+   "fix": "Write the SSAS into a software safety assessment plan.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No documented software safety assurance system."
+    }
+   ]
+  },
+  {
+   "id": "3.2.1",
+   "lens": "ED-153",
+   "title": "Approach",
+   "area": "3.2 Planning",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Approach in VERIFICATION.md."
+   },
+   "fix": "Software safety assessment approach.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Approach in VERIFICATION.md."
+    }
+   ]
+  },
+  {
+   "id": "3.2.2",
+   "lens": "ED-153",
+   "title": "Plan",
+   "area": "3.2 Planning",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Verification plan only."
+   },
+   "fix": "Software safety assessment plan.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Verification plan only."
+    }
+   ]
+  },
+  {
+   "id": "3.2.3",
+   "lens": "ED-153",
+   "title": "Plan review",
+   "area": "3.2 Planning",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No independent plan review."
+   },
+   "fix": "Named reviewer signs off the plan.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No independent plan review."
+    }
+   ]
+  },
+  {
+   "id": "3.2.4",
+   "lens": "ED-153",
+   "title": "Plan dissemination",
+   "area": "3.2 Planning",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Plans in the repo."
+   },
+   "fix": "Distribution record.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Plans in the repo."
+    }
+   ]
+  },
+  {
+   "id": "3.0.8",
+   "lens": "ED-153",
+   "title": "Assurance rigour objective",
+   "area": "3 SSAS",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Verification plan exists; rigour not tied to SWAL."
+   },
+   "fix": "State SWAL-scaled rigour in the plan.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Verification plan exists; rigour not tied to SWAL."
+    }
+   ]
+  },
+  {
+   "id": "3.0.9",
+   "lens": "ED-153",
+   "title": "Assurance rigour criteria",
+   "area": "3 SSAS",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Verification method per requirement (T/A/I/D)."
+   },
+   "fix": "Per-objective I/R/D classification in the plan.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Verification method per requirement (T/A/I/D)."
+    }
+   ]
+  },
+  {
+   "id": "3.4.3",
+   "lens": "ED-153",
+   "title": "Process assurance",
+   "area": "3.4 V&V/PA",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No process audit."
+   },
+   "fix": "QA audit of the process.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No process audit."
+    }
+   ]
+  },
+  {
+   "id": "4.2.4",
+   "lens": "ED-153",
+   "title": "Planning",
+   "area": "4.2 Supply",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Readiness report and remediation plan."
+   },
+   "fix": "Project and development plans.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Readiness report and remediation plan."
+    }
+   ]
+  },
+  {
+   "id": "4.3.3",
+   "lens": "ED-153",
+   "title": "Process implementation",
+   "area": "4.3 Development",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "CONTRIBUTING and TESTING define the process."
+   },
+   "fix": "Development plan incl. COTS scope and AI-use policy.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "CONTRIBUTING and TESTING define the process."
+    }
+   ]
+  },
+  {
+   "id": "4.3.11",
+   "lens": "ED-153",
+   "title": "Requirement development management",
+   "area": "4.3 Development",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Requirements in git; no change control."
+   },
+   "fix": "Requirement change control via issues.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Requirements in git; no change control."
+    }
+   ]
+  },
+  {
+   "id": "3.0.7",
+   "lens": "ED-153",
+   "title": "Configuration management assurance",
+   "area": "3 SSAS",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Build stamp, lockfile, config index. Hosted demo not a clean checkout; no tags."
+   },
+   "fix": "Tag releases; deploy a CI-built artifact.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Build stamp, lockfile, config index. Hosted demo not a clean checkout; no tags."
+    }
+   ]
+  },
+  {
+   "id": "5.2.1",
+   "lens": "ED-153",
+   "title": "Process implementation",
+   "area": "5.2 CM",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Configuration index."
+   },
+   "fix": "CM plan.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Configuration index."
+    }
+   ]
+  },
+  {
+   "id": "5.2.3",
+   "lens": "ED-153",
+   "title": "Configuration control",
+   "area": "5.2 CM",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Branch workflow; main unprotected."
+   },
+   "fix": "Protected main with reviews.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Branch workflow; main unprotected."
+    }
+   ]
+  },
+  {
+   "id": "5.2.x",
+   "lens": "ED-153",
+   "title": "Further CM objectives (placeholder)",
+   "area": "5.2 CM",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Results log."
+   },
+   "fix": "Status accounting and release records.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Results log."
+    }
+   ]
+  },
+  {
+   "id": "5.4.13",
+   "lens": "ED-153",
+   "title": "Verification of retrieval and release process",
+   "area": "5.4 Verification",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Clean-clone rebuild verified; no tags."
+   },
+   "fix": "Tagged, reproducible releases.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Clean-clone rebuild verified; no tags."
+    }
+   ]
+  },
+  {
+   "id": "3.0.12",
+   "lens": "ED-153",
+   "title": "Software modifications",
+   "area": "3 SSAS",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Branch, clean-clone verify, merge, deploy. No safety impact analysis."
+   },
+   "fix": "Per-change impact analysis template.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Branch, clean-clone verify, merge, deploy. No safety impact analysis."
+    }
+   ]
+  },
+  {
+   "id": "3.0.15",
+   "lens": "ED-153",
+   "title": "All on-line aspects of SW operational changes",
+   "area": "3 SSAS",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Gated deploy procedure; rollback untested."
+   },
+   "fix": "Documented and tested rollback.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Gated deploy procedure; rollback untested."
+    }
+   ]
+  },
+  {
+   "id": "4.4.1",
+   "lens": "ED-153",
+   "title": "Process implementation",
+   "area": "4.4 Operation",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Demo runbook."
+   },
+   "fix": "Operations plan.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Demo runbook."
+    }
+   ]
+  },
+  {
+   "id": "4.5.1",
+   "lens": "ED-153",
+   "title": "Process implementation",
+   "area": "4.5 Maintenance",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Changelog and change process."
+   },
+   "fix": "Maintenance plan.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Changelog and change process."
+    }
+   ]
+  },
+  {
+   "id": "4.5.2",
+   "lens": "ED-153",
+   "title": "SWAL allocation confirmation",
+   "area": "4.5 Maintenance",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "S3",
+    "evidence": "No SWAL re-check per change."
+   },
+   "fix": "Impact analysis per release.",
+   "current": {
+    "status": "N",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No SWAL re-check per change."
+    }
+   ]
+  },
+  {
+   "id": "4.5.3",
+   "lens": "ED-153",
+   "title": "SWAL satisfaction",
+   "area": "4.5 Maintenance",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "S3",
+    "evidence": "No per-change SWAL evidence."
+   },
+   "fix": "Release evidence pack.",
+   "current": {
+    "status": "N",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No per-change SWAL evidence."
+    }
+   ]
+  },
+  {
+   "id": "5.3.x",
+   "lens": "ED-153",
+   "title": "Quality assurance (placeholder)",
+   "area": "5.3 QA",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "S3",
+    "evidence": "No QA role or audits."
+   },
+   "fix": "QA role, plan and audits.",
+   "current": {
+    "status": "N",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No QA role or audits."
+    }
+   ]
+  },
+  {
+   "id": "5.8.x",
+   "lens": "ED-153",
+   "title": "Problem resolution (placeholder)",
+   "area": "5.8 Problem resolution",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Issue template exists; no reports raised."
+   },
+   "fix": "Log all known limitations as issues.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Issue template exists; no reports raised."
+    }
+   ]
+  },
+  {
+   "id": "6.1.x",
+   "lens": "ED-153",
+   "title": "Management (6.1.5 cited)",
+   "area": "6 Organisational",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Plans and tasks tracked informally."
+   },
+   "fix": "Project management records.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Plans and tasks tracked informally."
+    }
+   ]
+  },
+  {
+   "id": "6.2.x",
+   "lens": "ED-153",
+   "title": "Infrastructure (placeholder)",
+   "area": "6 Organisational",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "CI and hosting defined in the config index."
+   },
+   "fix": "Infrastructure definition.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "CI and hosting defined in the config index."
+    }
+   ]
+  },
+  {
+   "id": "6.3.x",
+   "lens": "ED-153",
+   "title": "Improvement (6.3.2 cited)",
+   "area": "6 Organisational",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Lessons fed back into gates."
+   },
+   "fix": "Improvement records.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Lessons fed back into gates."
+    }
+   ]
+  },
+  {
+   "id": "6.4.x",
+   "lens": "ED-153",
+   "title": "Training (placeholder)",
+   "area": "6 Organisational",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "S3",
+    "evidence": "No competence records."
+   },
+   "fix": "Training and competence records.",
+   "current": {
+    "status": "N",
+    "severity": "S3"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No competence records."
+    }
+   ]
+  },
+  {
+   "id": "7.x DE",
+   "lens": "ED-153",
+   "title": "Development environment",
+   "area": "7 Additional ANS",
+   "workstream": "W8",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Lockfile; Node pinned in engines."
+   },
+   "fix": "Environment under CM, incl. AI agent configuration.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Lockfile; Node pinned in engines."
+    }
+   ]
+  },
+  {
+   "id": "3.0.2",
+   "lens": "ED-153",
+   "title": "Requirements correctness and completeness",
+   "area": "3 SSAS",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "GEV-SRS 0.1 (56 requirements), reverse-engineered, unreviewed."
+   },
+   "fix": "Review and approve the SRS; derive safety requirements.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "GEV-SRS 0.1 (56 requirements), reverse-engineered, unreviewed."
+    }
+   ]
+  },
+  {
+   "id": "3.0.3",
+   "lens": "ED-153",
+   "title": "Requirements traceability assurance",
+   "area": "3 SSAS",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "56/56 requirements traced; trace-check in CI. Inherited engine not traced."
+   },
+   "fix": "Trace or trim the inherited layer engine.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "56/56 requirements traced; trace-check in CI. Inherited engine not traced."
+    }
+   ]
+  },
+  {
+   "id": "3.0.4",
+   "lens": "ED-153",
+   "title": "Unintended functions",
+   "area": "3 SSAS",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "0 orphan files (import-graph gate). /api/route reachable but unused."
+   },
+   "fix": "Deactivated-code review; remove /api/route.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "0 orphan files (import-graph gate). /api/route reachable but unused."
+    }
+   ]
+  },
+  {
+   "id": "3.0.14",
+   "lens": "ED-153",
+   "title": "Independence (of components)",
+   "area": "3 SSAS",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Import-direction and package-boundary checks enforce structure."
+   },
+   "fix": "Isolation argument per first-level component.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Import-direction and package-boundary checks enforce structure."
+    }
+   ]
+  },
+  {
+   "id": "4.3.1",
+   "lens": "ED-153",
+   "title": "System requirements analysis",
+   "area": "4.3 Development",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "System scope in README/ARCHITECTURE."
+   },
+   "fix": "System requirements spec.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "System scope in README/ARCHITECTURE."
+    }
+   ]
+  },
+  {
+   "id": "4.3.4",
+   "lens": "ED-153",
+   "title": "SW requirements analysis",
+   "area": "4.3 Development",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "SRS 0.1, 56 requirements."
+   },
+   "fix": "Reviewed SRS covering the layer engine.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "SRS 0.1, 56 requirements."
+    }
+   ]
+  },
+  {
+   "id": "4.3.7",
+   "lens": "ED-153",
+   "title": "SW integration",
+   "area": "4.3 Development",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "CI build and test integrate all modules."
+   },
+   "fix": "Integration test plan per component boundary.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "CI build and test integrate all modules."
+    }
+   ]
+  },
+  {
+   "id": "4.3.14",
+   "lens": "ED-153",
+   "title": "Rationale for design choices (esp. real-time)",
+   "area": "4.3 Development",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Rationale in code comments and docs."
+   },
+   "fix": "Design decision records.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Rationale in code comments and docs."
+    }
+   ]
+  },
+  {
+   "id": "3.4.2",
+   "lens": "ED-153",
+   "title": "Verification",
+   "area": "3.4 V&V/PA",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Functional requirements verified by tests."
+   },
+   "fix": "Verify safety requirements.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Functional requirements verified by tests."
+    }
+   ]
+  },
+  {
+   "id": "5.4.3",
+   "lens": "ED-153",
+   "title": "Verification of software requirements",
+   "area": "5.4 Verification",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Requirement-based tests pass; independence contested at SWAL 3."
+   },
+   "fix": "Independent review of functional tests.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Requirement-based tests pass; independence contested at SWAL 3."
+    }
+   ]
+  },
+  {
+   "id": "5.4.4",
+   "lens": "ED-153",
+   "title": "Integration verification",
+   "area": "5.4 Verification",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Server proxy and fallback tests."
+   },
+   "fix": "Interface tests for every component boundary.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Server proxy and fallback tests."
+    }
+   ]
+  },
+  {
+   "id": "5.4.5",
+   "lens": "ED-153",
+   "title": "Verification of SW architectural design",
+   "area": "5.4 Verification",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Boundaries verified automatically."
+   },
+   "fix": "Architecture review record.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Boundaries verified automatically."
+    }
+   ]
+  },
+  {
+   "id": "5.4.9",
+   "lens": "ED-153",
+   "title": "Data verification",
+   "area": "5.4 Verification",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "FEED/SIMULATED tagging and injection tests; no feed integrity checks."
+   },
+   "fix": "Feed integrity and outage tests.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "FEED/SIMULATED tagging and injection tests; no feed integrity checks."
+    }
+   ]
+  },
+  {
+   "id": "5.4.12",
+   "lens": "ED-153",
+   "title": "Verification of verification process results",
+   "area": "5.4 Verification",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Results log per commit."
+   },
+   "fix": "Verification report.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Results log per commit."
+    }
+   ]
+  },
+  {
+   "id": "3.4.1",
+   "lens": "ED-153",
+   "title": "Validation",
+   "area": "3.4 V&V/PA",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "Safety requirements not validated (none exist)."
+   },
+   "fix": "Validate GEV-SAF with users.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "Safety requirements not validated (none exist)."
+    }
+   ]
+  },
+  {
+   "id": "5.5.x",
+   "lens": "ED-153",
+   "title": "Validation (placeholder)",
+   "area": "5.5 Validation",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "S3",
+    "evidence": "No operational validation."
+   },
+   "fix": "Validation with operational users.",
+   "current": {
+    "status": "N",
+    "severity": "S3"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No operational validation."
+    }
+   ]
+  },
+  {
+   "id": "5.6.x",
+   "lens": "ED-153",
+   "title": "Joint review (placeholder)",
+   "area": "5.6 Joint review",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "N",
+    "severity": "S3",
+    "evidence": "No joint reviews."
+   },
+   "fix": "Review minutes with the customer.",
+   "current": {
+    "status": "N",
+    "severity": "S3"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No joint reviews."
+    }
+   ]
+  },
+  {
+   "id": "4.4.3",
+   "lens": "ED-153",
+   "title": "User support",
+   "area": "4.4 Operation",
+   "workstream": "W9",
+   "wave": 3,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "README, runbook."
+   },
+   "fix": "User guide and support route.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "README, runbook."
+    }
+   ]
+  },
+  {
+   "id": "3.0.10",
+   "lens": "ED-153",
+   "title": "SWAL assurance",
+   "area": "3 SSAS",
+   "workstream": "W10",
+   "wave": 4,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No safety argument."
+   },
+   "fix": "Direct and back-up arguments in the SSAR.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No safety argument."
+    }
+   ]
+  },
+  {
+   "id": "3.0.17",
+   "lens": "ED-153",
+   "title": "Argument that SWAL objectives are met",
+   "area": "3 SSAS",
+   "workstream": "W10",
+   "wave": 4,
+   "blocking": true,
+   "baseline": {
+    "status": "N",
+    "severity": "S2",
+    "evidence": "No argument that SWAL objectives are met."
+   },
+   "fix": "GSN-style argument in the SSAR.",
+   "current": {
+    "status": "N",
+    "severity": "S2"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No argument that SWAL objectives are met."
+    }
+   ]
+  },
+  {
+   "id": "3.4.4",
+   "lens": "ED-153",
+   "title": "Documented outputs as proof requirements are met",
+   "area": "3.4 V&V/PA",
+   "workstream": "W10",
+   "wave": 4,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Gap analysis and readiness report."
+   },
+   "fix": "Safety assessment report.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Gap analysis and readiness report."
+    }
+   ]
+  },
+  {
+   "id": "3.5.1",
+   "lens": "ED-153",
+   "title": "Document process results",
+   "area": "3.5 Completion",
+   "workstream": "W10",
+   "wave": 4,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Results log per commit."
+   },
+   "fix": "Assessment report per release.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "C",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Results log per commit."
+    }
+   ]
+  },
+  {
+   "id": "3.5.3",
+   "lens": "ED-153",
+   "title": "Documentation dissemination",
+   "area": "3.5 Completion",
+   "workstream": "W10",
+   "wave": 4,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Docs in the repo and project."
+   },
+   "fix": "Distribution record.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Docs in the repo and project."
+    }
+   ]
+  },
+  {
+   "id": "5.7.2–5.7.4",
+   "lens": "ED-153",
+   "title": "Audit (numbers only)",
+   "area": "5.7 Audit",
+   "workstream": "W10",
+   "wave": 4,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S4",
+    "evidence": "Self-assessment only."
+   },
+   "fix": "Independent audit.",
+   "current": {
+    "status": "P",
+    "severity": "S4"
+   },
+   "target": "P",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Self-assessment only."
+    }
+   ]
+  },
+  {
+   "id": "8",
+   "lens": "ED-153",
+   "title": "Safety Folder",
+   "area": "8 Safety Folder",
+   "workstream": "W10",
+   "wave": 4,
+   "blocking": false,
+   "baseline": {
+    "status": "P",
+    "severity": "S3",
+    "evidence": "Folder index in the gap analysis."
+   },
+   "fix": "Software Safety Folder / SSAR.",
+   "current": {
+    "status": "P",
+    "severity": "S3"
+   },
+   "target": "L",
+   "targetFull": "C",
+   "history": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Folder index in the gap analysis."
+    }
+   ]
+  }
+ ]
+}
