@@ -75,6 +75,7 @@ Production build: `npm run build && npm run preview`.
 | [Configuration index](docs/CONFIGURATION-INDEX.md) | Baseline, environments, build identity |
 | [Data sources](DATA_SOURCES.md) | Every feed and dataset, licence and commercial-use flag |
 | [Known limitations](docs/KNOWN-LIMITATIONS.md) | What it does not do, and open issues |
+| [ED-153 gap analysis](docs/ED-153-GAP-ANALYSIS.md) | SWAL 3 objective-by-objective assessment and remediation plan |
 | [Demo runbook](docs/DEMO-RUNBOOK.md) | Executive demo script and fallbacks |
 | [Security](SECURITY.md) | Secrets model, exposure, reporting |
 | [Testing](TESTING.md) | How to run and extend the test suite |
