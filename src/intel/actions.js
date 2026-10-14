@@ -1,5 +1,7 @@
 import { rng, seedFrom } from './enrichment.js';
 import { distanceKm } from './objects.js';
+import { propagate } from 'satellite.js';
+import { findNextSatellitePass } from '../data/satellitePass.js';
 
 /**
  * Analyst actions that produce a result panel. Real where the data exists:
@@ -144,7 +146,6 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 
 /** Next passes overhead of a point by LEO satellites in the loaded catalog. */
 async function passesOver(lat, lon, satrecs, now, { minElevDeg = 30, hours = 3, limit = 5 } = {}) {
-  const { findNextSatellitePass } = await import('../data/satellitePass.js');
   const leo = satrecs.filter((s) => s.group === 'stations' || s.group === 'visual');
   const hits = [];
   for (let i = 0; i < leo.length; i += 1) {
@@ -216,7 +217,6 @@ export const ACTIONS = {
     passes: async (o, ctx) => {
       const sat = ctx.satrecs().find((s) => s.noradId === String(o.noradId));
       if (!sat) return { title: 'Predict passes', sources: [], blocks: [{ type: 'note', text: 'Orbit data for this object is not loaded.' }] };
-      const { findNextSatellitePass } = await import('../data/satellitePass.js');
       const rows = [];
       for (const c of PASS_CITIES) {
         const p = findNextSatellitePass({ satrec: sat.satrec, latDeg: c.lat, lonDeg: c.lon, fromMs: ctx.now, minElevDeg: 10, horizonHours: 24, coarseStepSec: 30 });
@@ -233,7 +233,6 @@ export const ACTIONS = {
       const all = ctx.satrecs();
       const target = all.find((s) => s.noradId === String(o.noradId));
       if (!target) return { title: 'Conjunction check', sources: [], blocks: [{ type: 'note', text: 'Orbit data for this object is not loaded.' }] };
-      const { propagate } = await import('satellite.js');
       const propagateEci = (satrec, when) => {
         try {
           const p = propagate(satrec, when)?.position;
@@ -256,7 +255,6 @@ export const ACTIONS = {
     downlink: async (o, ctx) => {
       const sat = ctx.satrecs().find((s) => s.noradId === String(o.noradId));
       if (!sat) return { title: 'Downlink windows', sources: [], blocks: [{ type: 'note', text: 'Orbit data for this object is not loaded.' }] };
-      const { findNextSatellitePass } = await import('../data/satellitePass.js');
       const rows = [];
       for (const g of GROUND_STATIONS) {
         const p = findNextSatellitePass({ satrec: sat.satrec, latDeg: g.lat, lonDeg: g.lon, fromMs: ctx.now, minElevDeg: 5, horizonHours: 12, coarseStepSec: 30 });
