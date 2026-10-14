@@ -2,9 +2,9 @@
  * @file AUDIT entry point for the God's Eye View shell.
  *
  * Deliberately small: three.js, the assessment data and the cockpit load in
- * a separate chunk, fetched when the browser is idle after start-up or when
+ * a separate chunk, prepared when the browser is idle after start-up or when
  * the pointer reaches the AUDIT button, so start-up is unchanged and a press
- * opens the view without waiting on the network.
+ * opens the view without waiting on the network or on scene building.
  * @module audit
  */
 
@@ -19,13 +19,16 @@ export function installAudit({ viewer, onEnter, onExit }) {
   let module = null;
   let active = false;
 
-  /** Fetch the AUDIT code and data ahead of a press (no GPU work yet). */
+  /**
+   * Get the AUDIT view ready before a press: fetch its code and data and
+   * build the (hidden) orbit, so pressing AUDIT starts the flight at once.
+   * A failure here is retried by the press itself.
+   */
   function prefetch() {
-    module ??= import('./runtime.js').catch((error) => {
+    return load().catch(() => {
+      loading = null;
       module = null;
-      throw error;
     });
-    return module.then((m) => m.preloadAuditData()).catch(() => {});
   }
 
   function load() {
