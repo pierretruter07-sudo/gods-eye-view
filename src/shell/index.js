@@ -198,6 +198,12 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     // Warm the destination's aircraft before the camera gets there, then
     // refresh the moment it arrives (instead of waiting for the 30 s poll).
     onTravel(phase, view, focus) {
+      // Timing hook for diagnostics and the stop-load benchmark (no-op otherwise).
+      window.dispatchEvent(
+        new CustomEvent('gev:tour', {
+          detail: { phase, at: performance.now(), lat: view?.lat, lon: view?.lon, rangeM: view?.rangeM, layerId: focus?.layerId || null },
+        }),
+      );
       // The subject's type photo downloads during the flight, not on arrival.
       if (phase === 'depart' && focus) intelRef?.prefetch(focus);
       if (!view || !(view.rangeM <= 1_000_000)) return;
