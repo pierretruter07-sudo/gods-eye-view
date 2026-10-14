@@ -1,4 +1,5 @@
 import { buildDossier, pick, rng, seedFrom } from './enrichment.js';
+import { resolveAssetType } from './assetTypes.js';
 
 /**
  * Constellation HUD model: at most FOUR cards around the focused contact,
@@ -45,10 +46,12 @@ function aircraftHud(o, rand, d, nearbyAll) {
   const fuel = 0.35 + rand() * 0.55;
   const anomaly = emergency ? 0.82 + rand() * 0.15 : 0.05 + rand() * 0.25;
   return [
-    card('operator', 'Operator & registry', rows(
+    card('operator', 'Type & operator', rows(
+      row('Type', o.typeName || o.typeCode),
       row('Operator', o.operator),
+      row('Registration', o.registration),
       row('Country', o.originCountry),
-      row('ICAO 24', o.icao24),
+      row('ICAO 24', o.registration ? null : o.icao24),
       row('Owner / lessor', 'Leasing entity', true),
     )),
     card('flight', 'Flight', rows(
@@ -206,6 +209,13 @@ export function buildHud(o, nearbyAll = []) {
   if (o.simulated) for (const c of cards) {
     c.source = 'sim';
     for (const r of c.rows) r.sim = true;
+  }
+  // The type reference photo sits on the first card built from feed values,
+  // never on an all-simulated card.
+  const ref = resolveAssetType(o);
+  if (ref) {
+    const host = cards.find((c) => c.source !== 'sim');
+    if (host) host.ref = ref;
   }
   const status = d.feed
     .filter((f) => /speed|altitude|course|heading|magnitude|depth/i.test(f.label))

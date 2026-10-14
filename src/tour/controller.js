@@ -273,7 +273,7 @@ export function createTourController({ viewer, dataManager, ui, narrator = creat
         ui.showStop(next);
       }
       onFocus?.(null);
-      onTravel?.('depart', next.view);
+      onTravel?.('depart', next.view, focusOf(next));
       await flyTo(next.view, signal);
       startOrbit(next.view);
       onTravel?.('arrive', next.view);

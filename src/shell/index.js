@@ -197,7 +197,9 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     dataManager,
     // Warm the destination's aircraft before the camera gets there, then
     // refresh the moment it arrives (instead of waiting for the 30 s poll).
-    onTravel(phase, view) {
+    onTravel(phase, view, focus) {
+      // The subject's type photo downloads during the flight, not on arrival.
+      if (phase === 'depart' && focus) intelRef?.prefetch(focus);
       if (!view || !(view.rangeM <= 1_000_000)) return;
       if (phase === 'depart') prefetch.warm(view.lat, view.lon);
       else prefetch.refreshHere();
@@ -258,6 +260,9 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   let mode = 'live';
   const intel = installIntel({ viewer, dataManager, isLive: () => mode === 'live' });
   intelRef = intel;
+  // Two small API calls resolve the whole type-photo catalogue; do it once
+  // the default layers have had their head start.
+  startupTimers.push(setTimeout(() => intel.warmReferenceImages(), 6000));
   const badge = triageBtn.querySelector('.gev-badge');
   function refreshBadge() {
     if (mode !== 'live') return;

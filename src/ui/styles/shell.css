@@ -1246,6 +1246,22 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
 .gev-hud__gauge div { display: flex; flex-direction: column; }
 .gev-hud__gauge b { font-size: 1.35em; font-variant-numeric: tabular-nums; }
 .gev-hud__gauge span { color: rgba(255, 255, 255, 0.66); }
+/* Type reference photo: small, crisp, fades in once decoded. */
+.gev-hud__ref { margin: 0; display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: center; }
+.gev-hud__ref img,
+.gev-hud__ref-ph {
+  width: 112px; height: 70px; border-radius: 8px; object-fit: cover; display: block;
+  background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.gev-hud__ref img { animation: gev-ref-in 0.45s ease-out both; }
+.gev-hud__ref-ph { background: linear-gradient(100deg, rgba(255,255,255,0.04) 30%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 70%) 0 0 / 300% 100%; animation: gev-ref-shimmer 1.4s linear infinite; }
+.gev-hud__ref figcaption { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gev-hud__ref figcaption b { font-size: 0.95em; line-height: 1.25; }
+.gev-hud__ref figcaption span { font-size: 0.72em; color: rgba(255, 255, 255, 0.6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gev-hud__ref .gev-hud__ref-credit { color: rgba(255, 255, 255, 0.4); }
+@keyframes gev-ref-in { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes gev-ref-shimmer { to { background-position: -300% 0; } }
+@media (prefers-reduced-motion: reduce) { .gev-hud__ref img, .gev-hud__ref-ph { animation: none; } }
 .gev-hud__route { width: 100%; height: auto; }
 .gev-hud__route text { fill: rgba(255, 255, 255, 0.85); font-size: 10px; }
 

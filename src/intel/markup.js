@@ -60,11 +60,22 @@ export function hudHeader(h, headline = '') {
     ${headline ? `<p class="gev-hud__headline">${esc(headline)}</p>` : ''}`;
 }
 
-export function hudCard(c, index) {
+/** Type reference photo (never this airframe or hull). `image` may still be loading. */
+function refFigure(ref, image) {
+  const credit = image
+    ? [image.artist, image.licence].filter(Boolean).join(' · ') || 'Wikimedia Commons'
+    : '';
+  return `<figure class="gev-hud__ref${image ? '' : ' gev-hud__ref--pending'}" data-ref="${esc(ref.id)}">
+    ${image ? `<img src="${esc(image.src)}" alt="${esc(ref.name)} (type reference)" decoding="async" referrerpolicy="no-referrer">` : '<span class="gev-hud__ref-ph" aria-hidden="true"></span>'}
+    <figcaption><b>${esc(ref.name)}</b><span>Type reference · ${esc(ref.basis)}</span>${credit ? `<span class="gev-hud__ref-credit">Photo: ${esc(credit)} · Wikimedia</span>` : ''}</figcaption></figure>`;
+}
+
+export function hudCard(c, index, { image = null } = {}) {
   const list = c.rows
     .map((r) => `<dt>${r.sim ? '<i class="gev-hud__sim" aria-label="simulated"></i>' : ''}${esc(r.label)}</dt><dd>${esc(r.value)}</dd>`)
     .join('');
   return `<header class="gev-hud__head"><span>${String(index + 1).padStart(2, '0')} · ${esc(c.title)}</span>${SRC_CHIP[c.source] || ''}</header>
+    ${c.ref ? refFigure(c.ref, image) : ''}
     ${c.route ? routeSvg(c.route) : ''}
     ${c.gauge ? gaugeSvg(c.gauge) : ''}
     ${list ? `<dl>${list}</dl>` : ''}`;

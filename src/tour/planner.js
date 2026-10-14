@@ -1,3 +1,4 @@
+import { isStateVessel } from '../data/stateVessel.js';
 import {
   EVENT_RULES,
   STOP_CAMERA,
@@ -17,7 +18,6 @@ import {
 } from './lines.js';
 
 /** AIS ship types that mark a naval or other state vessel. */
-const STATE_VESSEL = /military|naval|law enforce|search and rescue|\bsar\b|warship|coast ?guard/i;
 
 const ISS_NORAD = '25544';
 /** Satellite groups worth showing, in the order they are visited. */
@@ -87,7 +87,7 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
       );
       // Naval / state ships first (even slow ones), then moving cargo.
       const naval = placed.filter(
-        (v) => STATE_VESSEL.test(v.shipType || '') && (v.speedKts ?? 0) >= EVENT_RULES.stateVesselMinKts,
+        (v) => isStateVessel(v) && (v.speedKts ?? 0) >= EVENT_RULES.stateVesselMinKts,
       );
       const moving = placed.filter((v) => (v.speedKts ?? 0) >= EVENT_RULES.vesselMinKts);
       if (!naval.length && !moving.length) return null;

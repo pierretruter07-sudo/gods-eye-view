@@ -33,6 +33,7 @@ test('normalizes adsb.lol units into an OpenSky-compatible state vector', () => 
   assert.ok(Math.abs(state[11] - 3.048) < 0.001);
   assert.equal(state[13], 3108.96);
   assert.equal(state[17], 4);
+  assert.equal(state.length, 21, 'type, registration and description extensions');
 });
 
 test('keeps grounded fallback contacts and rejects rows without positions', () => {

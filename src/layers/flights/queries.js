@@ -254,6 +254,9 @@ export function createQueries({
       aircraftClass: tr3bAircraftClass(icao24, text(info?.klass)),
       originCountry: text(info?.originCountry),
       operator: text(info?.airline),
+      typeCode: text(info?.typeCode),
+      typeName: text(info?.typeName),
+      registration: text(info?.registration),
       routeOrigin: routeOk ? text(info?.route?.origin?.code) : null,
       routeDestination: routeOk ? text(info?.route?.destination?.code) : null,
     };

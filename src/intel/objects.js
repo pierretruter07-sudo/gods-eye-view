@@ -1,3 +1,4 @@
+import { stateVesselBasis } from '../data/stateVessel.js';
 /**
  * Normalises analyst records from the live layers into intel objects, and
  * scores them into a triage queue. Every triage reason comes from a real feed
@@ -52,7 +53,6 @@ const SQUAWKS = Object.freeze({
   7600: { severity: 'high', reason: 'Squawk 7600 · radio failure' },
   7700: { severity: 'critical', reason: 'Squawk 7700 · general emergency' },
 });
-const STATE_SHIP = /military|law enforce|search and rescue|\bsar\b|naval|warship/i;
 
 const RANK = { critical: 3, high: 2, watch: 1 };
 
@@ -73,9 +73,8 @@ export function triageReason(o) {
     };
   }
   if (o.kind === 'vessel') {
-    if (STATE_SHIP.test(String(o.shipType || '')))
-      return { severity: 'watch', reason: `AIS type · ${o.shipType}` };
-    return null;
+    const basis = stateVesselBasis(o);
+    return basis ? { severity: 'watch', reason: basis } : null;
   }
   if (o.kind === 'satellite' && /\bISS\b|ZARYA/i.test(String(o.name || '')))
     return { severity: 'watch', reason: 'Crewed station overhead pass' };

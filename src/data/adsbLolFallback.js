@@ -77,6 +77,11 @@ export function normalizeAdsbLolAircraftState(aircraft, nowSeconds) {
     aircraft?.spi === 1,
     0,
     emitterCategory(aircraft?.category),
+    // Extensions beyond OpenSky's 18 fields (readsb t / r / desc): the ICAO
+    // type designator, registration and type description.
+    String(aircraft?.t || '').trim() || null,
+    String(aircraft?.r || '').trim() || null,
+    String(aircraft?.desc || '').trim() || null,
   ];
 }
 

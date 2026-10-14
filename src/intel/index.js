@@ -11,6 +11,8 @@ import {
 import { KIND_LABEL, SEV_LABEL, ACCENT, AOI_KM, esc, chip, ICON, hudHeader, hudCard, hudActions, resultPanel } from './markup.js';
 import { runAction } from './actions.js';
 import { buildHud, MAX_CARDS } from './hud.js';
+import { resolveAssetType } from './assetTypes.js';
+import { createReferenceImages } from './referenceImages.js';
 import { reticleSprite } from '../tour/pulseGraphics.js';
 import { createNarrator } from '../tour/narrator.js';
 import { createSubjectVisual } from './subjectVisual.js';
@@ -162,20 +164,38 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   function renderActions() {
     if (hud) actions.innerHTML = hudActions(hud, state, { touring: touring() });
   }
+  // Only touch the DOM when a card's markup actually changed: rebuilding it
+  // every refresh re-lays out the page and would reload the type photo.
+  const lastHtml = new WeakMap();
+  function setHtml(node, html) {
+    if (lastHtml.get(node) === html) return false;
+    lastHtml.set(node, html);
+    node.innerHTML = html;
+    return true;
+  }
   function render() {
     if (!selected) return;
     const all = nearbyObjects(collect(), selected, { limit: Infinity });
     hud = buildHud(selected, all.items);
-    header.innerHTML = hudHeader(hud, headline);
+    setHtml(header, hudHeader(hud, headline));
+    let changed = false;
     cards.forEach((node, i) => {
       const c = hud.cards[i];
-      node.hidden = !c;
+      if (node.hidden !== !c) {
+        node.hidden = !c;
+        changed = true;
+      }
       node.dataset.source = c?.source || '';
-      node.innerHTML = c ? hudCard(c, i) : '';
+      changed = setHtml(node, c ? hudCard(c, i, { image: c.ref ? refs.get(c.ref) : null }) : '') || changed;
     });
     renderActions();
+    if (changed) measureCards();
     requestAnimationFrame(updateLeaders);
   }
+  const refs = createReferenceImages();
+  refs.onReady(() => {
+    if (selected && !view.hidden) render();
+  });
 
   // Leader lines: from the asset's screen position to each card's inner corner.
   const scratchWin = new Cesium.Cartesian2();
@@ -185,26 +205,48 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       (NATIVE_FOLLOW.has(selected?.kind) && viewer.trackedEntity?.position?.getValue(viewer.clock.currentTime, scratchPos)) ||
       trackedPosition(scratchPos);
     if (!p) return null;
-    const occluder = new Cesium.EllipsoidalOccluder(Cesium.Ellipsoid.WGS84, viewer.camera.positionWC);
+    occluder.cameraPosition = viewer.camera.positionWC;
     if (!occluder.isPointVisible(p)) return null;
     return Cesium.SceneTransforms.worldToWindowCoordinates(scene, p, scratchWin);
   }
+  const occluder = new Cesium.EllipsoidalOccluder(Cesium.Ellipsoid.WGS84, Cesium.Cartesian3.ZERO);
+  // Card anchor points, measured only when a card changes size or the window
+  // resizes — never per frame (a layout read every frame stalls rendering).
+  const anchors = cards.map(() => null);
+  function measureCards() {
+    cards.forEach((node, i) => {
+      if (node.hidden) {
+        anchors[i] = null;
+        return;
+      }
+      const r = node.getBoundingClientRect();
+      const slot = SLOTS[i];
+      anchors[i] = {
+        x: (slot.endsWith('l') ? r.right : r.left).toFixed(1),
+        y: (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1),
+      };
+    });
+  }
+  const cardObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(() => measureCards()) : null;
+  for (const node of cards) cardObserver?.observe(node);
+  const lastD = cards.map(() => '');
   function updateLeaders() {
     if (view.hidden || !selected) return;
     const at = assetScreen();
     leaderEls.forEach(({ g, grad, stopA, stopB, halo, line, pulse, dot }, i) => {
       const node = cards[i];
-      if (!at || node.hidden) {
-        g.style.display = 'none';
+      const anchor = anchors[i];
+      if (!at || node.hidden || !anchor) {
+        if (g.style.display !== 'none') g.style.display = 'none';
+        lastD[i] = '';
         return;
       }
-      const r = node.getBoundingClientRect();
-      const slot = SLOTS[i];
-      const x = (slot.endsWith('l') ? r.right : r.left).toFixed(1);
-      const y = (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1);
+      const { x, y } = anchor;
       const ax = at.x.toFixed(1);
       const ay = at.y.toFixed(1);
       const d = `M${ax} ${ay}L${x} ${y}`;
+      if (d === lastD[i]) return; // nothing moved since the last frame
+      lastD[i] = d;
       const source = node.dataset.source || 'feed';
       if (g.dataset.source !== source) {
         g.dataset.source = source;
@@ -226,7 +268,11 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     });
   }
   const removeLeaderHook = scene.postRender.addEventListener(updateLeaders);
-  window.addEventListener('resize', updateLeaders);
+  const onResize = () => {
+    measureCards();
+    updateLeaders();
+  };
+  window.addEventListener('resize', onResize);
 
   let toastTimer = null;
   function showToast(text) {
@@ -255,6 +301,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     render();
     setTriage(false);
     view.hidden = false;
+    measureCards();
     document.body.classList.add('gev-intel-open');
     onOpen?.();
     clearInterval(followTimer);
@@ -721,6 +768,14 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     open,
     close,
     showFocus,
+    /** Warm the type photo for an upcoming Director subject while the camera flies. */
+    prefetch(focus) {
+      const o = focus && toIntelObject(focus.layerId, focus.record);
+      const type = o && resolveAssetType(o);
+      if (type) refs.prefetch(type);
+    },
+    /** Start the (two-request) type-photo catalogue lookup. */
+    warmReferenceImages: () => refs.load(),
     /** Re-render the action dock (Director started/stopped). */
     refresh: renderActions,
     onOpen(fn) {
@@ -750,7 +805,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       setTriage(false);
       handler.destroy();
       removeLeaderHook();
-      window.removeEventListener('resize', updateLeaders);
+      window.removeEventListener('resize', onResize);
+      cardObserver?.disconnect();
       toast.remove();
       scene.canvas.removeEventListener('pointerdown', releaseCamera);
       scene.canvas.removeEventListener('wheel', releaseCamera);
