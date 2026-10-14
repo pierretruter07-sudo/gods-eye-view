@@ -255,7 +255,8 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
 .gev-audit-ui[data-visible='false'] {
   opacity: 0;
 }
-.gev-audit-ui[data-visible='true'] > :not(.gev-audit-stage):not(.gev-story-link) {
+.gev-audit-ui[data-visible='true']
+  > :not(.gev-audit-stage):not(.gev-story-link) {
   pointer-events: auto;
 }
 .gev-audit-ui > * {
