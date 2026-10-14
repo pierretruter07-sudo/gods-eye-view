@@ -29,6 +29,17 @@ Licence summary across all 134 resolved packages:
 None is copyleft-only. The MPL-2.0 option of `dompurify` can be avoided by
 electing Apache-2.0.
 
+## Vendored code and content
+
+| Item | Where | Licence |
+|---|---|---|
+| three.js r160 (`three.module.min.js`), used only by the AUDIT view | `vendor/three/` (licence text alongside) | MIT, © 2010–2023 three.js authors |
+| OWASP Application Security Verification Standard 5.0 requirement text | `src/audit/data/assessment.json`, `docs/evidence/` | CC BY-SA 4.0, © The OWASP Foundation |
+| EUROCAE ED-153 objective references | `src/audit/data/assessment.json` | Objective numbers with short paraphrased titles only. The standard itself is © EUROCAE and is not reproduced. |
+
+The ASVS text is shared under the same CC BY-SA 4.0 licence; changes are
+limited to trimming for display.
+
 ## Upstream project
 
 This repository is a fork of
