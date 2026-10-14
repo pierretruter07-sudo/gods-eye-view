@@ -6,7 +6,7 @@ This folder is the audit trail for taking God's Eye View from its audited baseli
 
 | Level | Read this first if you want to know… | Where |
 |---|---|---|
-| 0 · 40,000 ft | What was done and what changed | Page 1 of each PDF (for example `remediation-plan-v0.1.pdf`); `ledger.json` → `stages`, `audits` |
+| 0 · 40,000 ft | What was done and what changed | Page 1 of each PDF (latest: `remediation-plan-v0.2.pdf`, approved; v0.1 is the issued draft); `ledger.json` → `stages`, `audits` |
 | 1 · Waves | What each wave delivered and the verdict after it | `ledger.json` → `waves`, `audits` |
 | 2 · Workstreams | Which deliverables closed which findings | `../REMEDIATION-PLAN.md` §5; `ledger.json` → `workstreams` |
 | 3 · Line by line | For one finding: baseline rating, fix, commit, test, new rating, date | `ledger.json` → `findings[].history` |
@@ -27,3 +27,7 @@ This folder is the audit trail for taking God's Eye View from its audited baseli
 - History is append-only. A finding's earlier entries are never edited.
 - Every status change cites a commit, test, document or review record.
 - `baseline` on each finding never changes. `current` always equals the last history entry.
+
+## Readiness journey
+
+`ledger.json` → `projections.journey` holds the target readiness after each wave (Claude + Replit + owner actions). `projections.scenarios` holds the two end states: without and with the customer and an independent reviewer. Each re-audit adds a measured point to `audits`. The PDFs and the CrossCheck evidence view plot measured points as dots and targets as dashed lines, so the gap between plan and reality stays visible.
