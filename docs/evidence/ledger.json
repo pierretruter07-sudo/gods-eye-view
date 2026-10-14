@@ -209,34 +209,48 @@
    "why": "Depends on the hosting edge: rate from a TLS scan of the deployed app."
   }
  ],
+ "signoff": {
+  "name": "Sign-off",
+  "who": "Customer and independent reviewer",
+  "fixes": "The customer validates the system with operational users, and an independent reviewer audits the process.",
+  "unlocks": "SWAL 3 claim supported and ASVS Level 2 met: ready for formal assessment."
+ },
  "waves": [
   {
    "id": 1,
    "name": "Harden",
    "who": "Engineering",
    "effort": "1 week",
-   "exit": "Every Wave 1 security finding closed except V8; re-audit"
+   "exit": "Every Wave 1 security finding closed except V8; re-audit",
+   "fixes": "Locks down the front end and the proxies: security headers and a strict script policy, rate limits on paid services, dependency scanning, secret hygiene, structured logs and input rules.",
+   "unlocks": "A hardened base, so company sign-in can be added in Wave 2 without building on holes."
   },
   {
    "id": 2,
    "name": "Control access",
    "who": "Engineering + customer identity provider",
    "effort": "1 week",
-   "exit": "ASVS Level 2 met; re-audit"
+   "exit": "ASVS Level 2 met; re-audit",
+   "fixes": "Adds company sign-in and roles (viewer, operator, admin), so only known people reach live data, paid services and Exercise mode.",
+   "unlocks": "Every user known and every action attributable, so the Wave 3 safety work can be written against real roles and real use."
   },
   {
    "id": 3,
    "name": "Prove safety",
    "who": "Safety lead, engineering, customer",
    "effort": "2–3 weeks",
-   "exit": "No S1–S2 finding open"
+   "exit": "No S1–S2 finding open",
+   "fixes": "Writes the safety evidence: hazard log, failure modes and their effects, a safety level per failure, the safety plan, requirements and verification, and feed-health monitoring.",
+   "unlocks": "A safety argument with evidence behind it, ready for Wave 4 to review and hand over."
   },
   {
    "id": 4,
    "name": "Assure and hand over",
    "who": "Safety lead, independent reviewer",
    "effort": "1 week",
-   "exit": "SWAL 3 claim supported; evidence pack issued"
+   "exit": "SWAL 3 claim supported; evidence pack issued",
+   "fixes": "Builds the safety case and safety folder, and issues the release evidence pack.",
+   "unlocks": "Only steps that need people remain: validation with operational users and an independent process audit."
   }
  ],
  "workstreams": [

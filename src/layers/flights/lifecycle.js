@@ -16,6 +16,11 @@ export function createLifecycle({
   } = services.sprites;
   const { onMilitaryLayerActiveChange } = services.militaryRegistry;
   const { holdContinuousRender, releaseContinuousRender } = services.render;
+  // Frames at the layer's own pace, not 60 fps (perf wave 3).
+  const holdCadence = (id, ms) =>
+    services.render.holdRenderCadence
+      ? services.render.holdRenderCadence(id, ms)
+      : holdContinuousRender(id);
   const { ensureGeoidReady } = services.geoid;
   const { registerPickOwner, unregisterPickOwner } = services.picking;
 
@@ -136,7 +141,7 @@ export function createLifecycle({
     enable(viewer) {
       if (flightState._billboardCollection)
         flightState._billboardCollection.show = true;
-      holdContinuousRender('flights'); // per-frame animator (perf wave 2)
+      holdCadence('flights', 80); // the fleet steps every 80 ms (FLEET_DR_INTERVAL_MS)
       if (flightState._modelCollection)
         flightState._modelCollection.show = true;
       parts.tracking._setCockpitContactMode(

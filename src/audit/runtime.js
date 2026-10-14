@@ -39,17 +39,23 @@ import {
 import { createCockpit } from './cockpit.js';
 import { createEvidenceDrawer } from './evidence.js';
 import { createTour, tourSeen } from './tour.js';
-import { itemsAt, latestMeasured, timelineStops } from './progress.js';
+import {
+  itemsAt,
+  latestMeasured,
+  stopStory,
+  timelineStops,
+} from './progress.js';
 
 const HOLD = 'gev-audit';
 const R = EARTH_RADIUS_M;
-const FLY_IN_S = 2.6;
-const MORPH_IN_MS = 2800;
-const MORPH_OUT_MS = 1900;
+const FLY_IN_S = 2.0;
+const MORPH_IN_MS = 2200;
+const MORPH_OUT_MS = 1500;
+const FLY_OUT_S = 1.8;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const SPIN_RAD_PER_S = (0.8 * Math.PI) / 180;
 const SPIN_IDLE_MS = 5000;
 const DEG = Math.PI / 180;
-const STOP_MS = 2600;
 const DESIGN_HOME = homeRig(30 * DEG).dist;
 
 const c3 = (v) => new Cesium.Cartesian3(v[0], v[1], v[2]);
@@ -68,11 +74,13 @@ function animate(from, to, ms, step) {
   });
 }
 
+let dataPromise = null;
 /**
- * @param {{viewer: Cesium.Viewer, onExited?: () => void}} options
+ * Fetch the assessment and the evidence ledger once. Called ahead of time
+ * (idle, or when the pointer reaches the AUDIT button) so a press is instant.
  */
-export async function createAuditRuntime({ viewer, onExited }) {
-  const [data, ledger] = await Promise.all([
+export function preloadAuditData() {
+  dataPromise ??= Promise.all([
     loadBundledJson(
       new URL('./data/assessment.json', import.meta.url),
       () => import('./data/assessment.json', { with: { type: 'json' } }),
@@ -82,7 +90,18 @@ export async function createAuditRuntime({ viewer, onExited }) {
       () =>
         import('../../docs/evidence/ledger.json', { with: { type: 'json' } }),
     ),
-  ]);
+  ]).catch((error) => {
+    dataPromise = null;
+    throw error;
+  });
+  return dataPromise;
+}
+
+/**
+ * @param {{viewer: Cesium.Viewer, onExited?: () => void}} options
+ */
+export async function createAuditRuntime({ viewer, onExited }) {
+  const [data, ledger] = await preloadAuditData();
   const opts = { swal: data.swal, asvsLevel: data.asvsLevel };
   // Progress: the baseline, each measured re-audit, then the plan's targets.
   const stops = timelineStops(ledger);
@@ -493,37 +512,78 @@ export async function createAuditRuntime({ viewer, onExited }) {
     });
     if (selected) select(selected);
   }
-  let playing = null;
+  // ── Narrated playback: one short explanation per stop ───────────────
+  // Each stop shows what that wave fixes, what it closes, how readiness
+  // moves and why the next stage can start; the camera turns a little at
+  // each stop and the standard that gains most stays lit.
+  let playing = null; // { index, timer }
+  const mustIds = new Set(mustAtBaseline.map((m) => m.id));
+  const readMs = (st) => {
+    const words = `${st.fixes} ${st.unlocks}`.split(/\s+/).length + 18;
+    return Math.min(12000, Math.max(6500, (words / 3.3) * 1000));
+  };
   function stopPlaying() {
     if (!playing) return;
-    clearTimeout(playing);
+    clearTimeout(playing.timer);
     playing = null;
     cockpit.setPlaying(false);
+    cockpit.hideStory();
+    orbit.setEmphasis(null);
+  }
+  function playStep(i) {
+    const before = i ? itemsAt(ledger, data.items, i - 1) : null;
+    const prevSaf = before ? rollup(before, 'saf', opts) : null;
+    const prevSec = before ? rollup(before, 'sec', opts) : null;
+    setStop(i, { flash: true });
+    const st = stopStory(ledger, i, before, items, mustIds);
+    const last = i === stops.length - 1;
+    const ms = readMs(st);
+    // Light the standard that moves most at this stop.
+    const dSaf = prevSaf ? saf.readiness - prevSaf.readiness : 0;
+    const dSec = prevSec ? sec.readiness - prevSec.readiness : 0;
+    orbit.setEmphasis(
+      i === 0 ? 'mustfix' : Math.abs(dSaf) > Math.abs(dSec) ? 'saf' : 'sec',
+    );
+    shot({
+      az: -40 + i * 22,
+      el: 40 - i * 2,
+      dist: DESIGN_HOME * (i === 0 ? 0.9 : 0.95),
+      seconds: 2.2,
+      lift: 0.06,
+      drift: 2,
+    });
+    cockpit.showStory({
+      story: st,
+      saf,
+      sec,
+      prevSaf,
+      prevSec,
+      step: i + 1,
+      total: stops.length,
+      ms,
+      last,
+    });
+    playing = { index: i, timer: null };
+    if (!last) playing.timer = setTimeout(() => playStep(i + 1), ms);
+    else {
+      playing.timer = setTimeout(() => {
+        cockpit.setPlaying(false);
+        orbit.setEmphasis(null);
+      }, ms);
+    }
   }
   function play() {
     if (playing) return stopPlaying();
+    tour.close();
+    closeDrawer();
     select(null);
-    setStop(0, { flash: false });
     cockpit.setPlaying(true);
-    if (!cine)
-      shot({
-        az: -20,
-        el: 38,
-        dist: DESIGN_HOME * 0.95,
-        seconds: 1.6,
-        drift: 3,
-      });
-    const next = (i) => {
-      playing = setTimeout(() => {
-        setStop(i);
-        if (i < stops.length - 1) next(i + 1);
-        else {
-          playing = null;
-          cockpit.setPlaying(false);
-        }
-      }, STOP_MS);
-    };
-    next(1);
+    playStep(0);
+  }
+  function playNext() {
+    if (!playing) return;
+    clearTimeout(playing.timer);
+    if (playing.index < stops.length - 1) playStep(playing.index + 1);
   }
 
   function setLayer(id, on) {
@@ -603,6 +663,8 @@ export async function createAuditRuntime({ viewer, onExited }) {
       setStop(i);
     },
     onPlay: () => play(),
+    onStoryNext: () => playNext(),
+    onStoryClose: () => stopPlaying(),
     onReset: () => resetView(),
     layers,
     onLayer: (id) => setLayer(id, !layers[id]),
@@ -686,9 +748,13 @@ export async function createAuditRuntime({ viewer, onExited }) {
     orbit.setLongitude(lon);
     orbit.setLayers(layers);
     setStop(latestMeasured(stops).index, { flash: false });
+    // Compile the orbit's shaders while the camera flies (no stutter later).
+    renderer.compileAsync?.(orbit.scene, cam3)?.catch?.(() => {});
     const pose = auditPose(lon, camera.frustum.fovy);
-    await flyTo(pose.destination, pose.direction, pose.up, FLY_IN_S);
-    await animate(0, 1, MORPH_IN_MS, setMorph);
+    // The morph starts half-way through the flight: one continuous move.
+    const fly = flyTo(pose.destination, pose.direction, pose.up, FLY_IN_S);
+    await wait(FLY_IN_S * 500);
+    await Promise.all([fly, animate(0, 1, MORPH_IN_MS, setMorph)]);
     controller.minimumZoomDistance = 0.9 * R;
     controller.maximumZoomDistance = 60 * R;
     cockpit.setVisible(true);
@@ -710,11 +776,14 @@ export async function createAuditRuntime({ viewer, onExited }) {
     cockpit.setVisible(false);
     controller.minimumZoomDistance = saved.minZoom;
     controller.maximumZoomDistance = saved.maxZoom;
-    await animate(1, 0, MORPH_OUT_MS, setMorph);
+    const morph = animate(1, 0, MORPH_OUT_MS, setMorph);
+    await wait(MORPH_OUT_MS * 0.55);
+    const fly = flyTo(saved.position, saved.direction, saved.up, FLY_OUT_S);
+    await morph;
     restoreScene();
     layer.hidden = true;
     document.body.classList.remove('gev-audit');
-    await flyTo(saved.position, saved.direction, saved.up, 2.0);
+    await fly;
     releaseContinuousRender(HOLD);
     active = false;
     busy = false;

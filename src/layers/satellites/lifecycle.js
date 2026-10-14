@@ -9,6 +9,11 @@ export function createLifecycle({
 }) {
   const { clearFocusTarget } = services.focus;
   const { holdContinuousRender, releaseContinuousRender } = services.render;
+  // Frames at the layer's own pace, not 60 fps (perf wave 3).
+  const holdCadence = (id, ms) =>
+    services.render.holdRenderCadence
+      ? services.render.holdRenderCadence(id, ms)
+      : holdContinuousRender(id);
   const { registerPickOwner, unregisterPickOwner } = services.picking;
 
   const methods = {
@@ -62,7 +67,7 @@ export function createLifecycle({
 
     enable(viewer) {
       layerState._enabled = true;
-      holdContinuousRender('satellites'); // per-frame animator (perf wave 2)
+      holdCadence('satellites', 200); // core positions refresh every 1 s (200 ms when one is tracked)
       if (layerState._pointCollection)
         layerState._pointCollection.show =
           parts.controls.satelliteVisualsVisible(

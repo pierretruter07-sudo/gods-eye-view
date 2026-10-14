@@ -3,7 +3,7 @@
  * resolution keeps text, icons and edges crisp, so it is held as long as
  * possible: the ladder first trades away multisample anti-aliasing, and only
  * drops below native resolution when the frame rate is really suffering —
- * and never below CSS resolution. Pure: no Cesium, no DOM.
+ * and never below CSS resolution. The last rungs also coarsen 3D tile detail. Pure: no Cesium, no DOM.
  */
 export const QUALITY = Object.freeze({
   /** Step down after this many windows below lowFps in a row. */
@@ -27,7 +27,13 @@ export function qualityLevels(devicePixelRatio = 1) {
   if (native > 1.15)
     levels.push({ ratio: +Math.max(1, native * 0.85).toFixed(2), msaa: 1 });
   if (native > 1) levels.push({ ratio: 1, msaa: 1 });
-  return levels;
+  // 3D tile detail (maximumScreenSpaceError; Cesium's default is 16). Lower
+  // resolution barely reduces tile loading, because Cesium scales the error
+  // by the pixel ratio, so the bottom rungs also ask for coarser tiles.
+  return levels.map((l, i) => ({
+    ...l,
+    sse: i === levels.length - 1 ? 24 : i >= 3 ? 20 : 16,
+  }));
 }
 
 /** Start one step below the best: crisp, anti-aliased, with headroom. */

@@ -111,6 +111,10 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-PRF-004 | On arrival at a place, flights shall refresh only for a new place or stale data, and never from space. | T |
 | GEV-PRF-005 | When the Director departs for a stop within regional range, aircraft for the destination shall be requested during the camera flight. | D |
 | GEV-PRF-006 | All shipped 3D models shall be pre-warmed at low priority after startup. | T |
+| GEV-PRF-007 | A layer whose picture changes only every N ms shall be redrawn at that pace (render on demand plus a timer), not at the display rate, unless something needs continuous frames. | T |
+| GEV-PRF-008 | Live feeds shall not be polled while the tab is hidden or the AUDIT view covers the globe; each layer shall catch up once when visible again. | T |
+| GEV-PRF-009 | Content-hashed build output shall be cached by browsers for a year and the page shall always revalidate; the Cesium runtime script shall not block the first paint. | T |
+| GEV-PRF-010 | The 3D tile cache shall be sized to the device's memory, and the adaptive-quality ladder's last steps shall coarsen 3D tile detail. | T |
 
 ## 9. Configuration management (CM)
 
@@ -134,3 +138,5 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-AUD-008 | The AUDIT view shall step from the baseline audit through each wave to sign-off. Stops backed by a recorded audit shall be shown as measured; all others shall be labelled projected wherever their figures appear. | T |
 | GEV-AUD-009 | Projected stops shall reproduce the remediation plan's readiness journey and end states exactly. | T |
 | GEV-AUD-010 | Guided-tour, focus and Reset view camera moves shall keep their subject on the view axis throughout, and any input on the globe shall hand the camera back to the user. | T |
+| GEV-AUD-011 | Every item shall say how it affects God’s Eye View (which feeds, services or people, and what would go wrong); every must-fix item in its own words. | T |
+| GEV-AUD-012 | Playing the timeline shall explain each stop in turn: what the wave fixes, which gaps it closes, how readiness moves, and what it makes possible next. | T |

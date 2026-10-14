@@ -27,7 +27,9 @@ import {
   interpolateRig,
 } from './cameraMath.js';
 import { readinessJourney, ledgerProgress } from './evidenceModel.js';
+import { IMPACT_AREAS, IMPACT_ITEMS, PARTS, impactFor } from './impact.js';
 import {
+  stopStory,
   findingStatesAt,
   itemsAt,
   latestMeasured,
@@ -287,4 +289,48 @@ test('a recorded re-audit becomes a measured stop and later stops build on it', 
   );
   // The real ledger is untouched.
   assert.equal(ledger.audits.length, 1);
+});
+
+test('every item says how it affects God’s Eye View; must-fix items in their own words', () => {
+  const base = itemsAt(ledger, data.items, 0);
+  const must = mustFix(base).map((i) => i.id);
+  assert.deepEqual([...IMPACT_ITEMS].sort(), [...must].sort());
+  for (const g of new Set(data.items.map((i) => i.group)))
+    assert.ok(IMPACT_AREAS.includes(g), `no impact statement for ${g}`);
+  for (const item of base) {
+    const imp = impactFor(item);
+    assert.ok(imp.text.length > 20, `${item.id} has no impact text`);
+    for (const p of imp.parts)
+      assert.ok(PARTS[p], `${item.id}: unknown part ${p}`);
+    if (item.status === 'P' || item.status === 'N')
+      assert.equal(imp.tone, 'risk');
+  }
+  const v8 = impactFor(base.find((i) => i.id === 'V8.2.1'));
+  assert.match(v8.text, /AIS and OpenSky/);
+  assert.ok(v8.parts.includes('maps'));
+  const fixed = impactFor({
+    ...base.find((i) => i.id === 'V8.2.1'),
+    status: 'C',
+  });
+  assert.equal(fixed.tone, 'covered');
+});
+
+test('the narrated playback explains each stop: what it fixes, what it closes, what it unlocks', () => {
+  const stops = timelineStops(ledger);
+  const mustIds = new Set(
+    mustFix(itemsAt(ledger, data.items, 0)).map((i) => i.id),
+  );
+  let before = null;
+  let closedTotal = 0;
+  for (const s of stops) {
+    const after = itemsAt(ledger, data.items, s.index);
+    const st = stopStory(ledger, s.index, before, after, mustIds);
+    assert.ok(st.fixes.length > 30, `stop ${s.index}: no explanation`);
+    assert.ok(st.unlocks.length > 20, `stop ${s.index}: no unlock`);
+    if (s.index === 0) assert.equal(st.closed, 0);
+    else assert.ok(st.closed > 0, `stop ${s.index} closes nothing`);
+    closedTotal += st.mustClosed.length;
+    before = after;
+  }
+  assert.equal(closedTotal, mustIds.size, 'every must-fix closes at some stop');
 });

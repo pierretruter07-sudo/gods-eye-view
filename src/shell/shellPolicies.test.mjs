@@ -10,6 +10,9 @@ test('quality ladder holds native resolution and never drops below CSS pixels', 
   assert.ok(l.every((x) => x.ratio >= 1));
   assert.equal(qualityLevels(3)[0].ratio, QUALITY.maxRatio);
   assert.equal(qualityLevels(1).length, 3);
+  // Tile detail stays at Cesium's default until the last rungs.
+  assert.deepEqual(l.map((x) => x.sse), [16, 16, 16, 20, 24]);
+  assert.equal(qualityLevels(1).at(-1).sse, 24);
 });
 
 test('one slow window does not drop quality; sustained slowness does; recovery needs headroom', () => {

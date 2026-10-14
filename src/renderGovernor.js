@@ -28,18 +28,44 @@
  * short stable strings ('flights', 'traffic', 'style-anim', …) so the
  * diagnostics read like a story.
  *
- * The governor is O(1) passive: no per-frame work of its own, ever.
+ * - **Cadence holds** (`holdRenderCadence(owner, ms)`): an animator whose
+ *   picture only changes every N ms (the aircraft fleet steps every 80 ms,
+ *   ships and satellites slower) does not need 60 fps. While no continuous
+ *   hold exists, one timer requests a frame at the fastest active cadence
+ *   and Cesium still renders at once on camera input and tile loads. The
+ *   owner's preRender work runs on exactly those frames, so what is drawn is
+ *   unchanged; the GPU stops redrawing identical frames in between.
+ *
+ * The governor does no per-frame work of its own.
  */
 
 let _viewer = null;
 let _installed = false;
 const _holds = new Set();
+/** Cadence holds: owner → milliseconds between required frames. */
+const _cadences = new Map();
+let _cadenceTimer = null;
+let _cadenceMs = 0;
+
+function applyCadence() {
+  const want =
+    _installed && _holds.size === 0 && _cadences.size
+      ? Math.min(..._cadences.values())
+      : 0;
+  if (want === _cadenceMs) return;
+  if (_cadenceTimer) clearInterval(_cadenceTimer);
+  _cadenceTimer = null;
+  _cadenceMs = want;
+  if (want)
+    _cadenceTimer = setInterval(() => _viewer?.scene?.requestRender?.(), want);
+}
 
 /** Debug trail of the most recent one-shot render requests (idle mode only). */
 const _recentRequests = [];
 const RECENT_REQUEST_CAP = 16;
 
 function applyMode() {
+  applyCadence();
   if (!_installed || !_viewer?.scene) return;
   const continuous = _holds.size > 0;
   const scene = _viewer.scene;
@@ -86,7 +112,22 @@ export function holdContinuousRender(ownerId) {
 }
 
 /**
- * Release a hold. Safe when never held.
+ * Register a cadence hold: the owner's picture changes every `ms` ms, so a
+ * frame at that pace is enough (see the module notes). Idempotent per owner;
+ * the latest `ms` wins. Released by `releaseContinuousRender(ownerId)`.
+ * @param {string} ownerId
+ * @param {number} ms
+ * @returns {void}
+ */
+export function holdRenderCadence(ownerId, ms) {
+  if (!ownerId || !(ms > 0)) return;
+  _cadences.set(ownerId, ms);
+  applyMode();
+  _viewer?.scene?.requestRender?.();
+}
+
+/**
+ * Release a hold (continuous or cadence). Safe when never held.
  * Call where the owner's per-frame work ENDS (listener removed, animation
  * settled, tracking stopped, layer disabled).
  * @param {string} ownerId
@@ -95,6 +136,7 @@ export function holdContinuousRender(ownerId) {
 export function releaseContinuousRender(ownerId) {
   if (!ownerId) return;
   _holds.delete(ownerId);
+  _cadences.delete(ownerId);
   applyMode();
 }
 
@@ -117,14 +159,17 @@ export function governorRequestRender(reason = 'unspecified') {
 }
 
 /**
- * @returns {{installed: boolean, mode: 'continuous'|'idle', holds: string[],
+ * @returns {{installed: boolean, mode: 'continuous'|'cadence'|'idle', holds: string[],
+ *   cadences: Record<string, number>, cadenceMs: number,
  *   recentRequests: Array<{reason: string, at: number}>}}
  */
 export function getRenderGovernorDiagnostics() {
   return {
     installed: _installed,
-    mode: _holds.size > 0 ? 'continuous' : 'idle',
+    mode: _holds.size > 0 ? 'continuous' : _cadenceMs ? 'cadence' : 'idle',
     holds: [..._holds].sort(),
+    cadences: Object.fromEntries([..._cadences].sort()),
+    cadenceMs: _cadenceMs,
     recentRequests: [..._recentRequests],
   };
 }
@@ -135,6 +180,8 @@ export function uninstallRenderGovernor(viewer) {
   _viewer = null;
   _installed = false;
   _holds.clear();
+  _cadences.clear();
+  applyCadence();
   _recentRequests.length = 0;
 }
 
@@ -143,5 +190,7 @@ export function _resetRenderGovernorForTest() {
   _viewer = null;
   _installed = false;
   _holds.clear();
+  _cadences.clear();
+  applyCadence();
   _recentRequests.length = 0;
 }

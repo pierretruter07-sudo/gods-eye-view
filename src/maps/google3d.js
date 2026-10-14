@@ -49,6 +49,22 @@ export async function loadPhotorealisticTileset(
   return { tileset: null, route: 'osm', errors };
 }
 
+/**
+ * Tile cache budget for this device (bytes). Cesium's Google helper keeps up
+ * to 1.5 GB plus 1 GB overflow, which is more than a laptop GPU has; size it
+ * to the device's memory (navigator.deviceMemory, in GB, capped at 8).
+ * @param {number} [deviceMemoryGb]
+ */
+export function tileCacheBudget(deviceMemoryGb) {
+  const mb = 1024 * 1024;
+  if (deviceMemoryGb && deviceMemoryGb <= 4)
+    return { cacheBytes: 384 * mb, maximumCacheOverflowBytes: 192 * mb };
+  if (deviceMemoryGb && deviceMemoryGb < 8)
+    return { cacheBytes: 768 * mb, maximumCacheOverflowBytes: 384 * mb };
+  return { cacheBytes: 1024 * mb, maximumCacheOverflowBytes: 512 * mb };
+}
+const deviceBudget = () => tileCacheBudget(globalThis.navigator?.deviceMemory);
+
 /** Pass credentials to the source instead of changing SDK-wide defaults. */
 export function createGoogleDirectTileset(Cesium, key) {
   key = clean(key);
@@ -56,7 +72,7 @@ export function createGoogleDirectTileset(Cesium, key) {
   // Tiles keep drawing their own texture while draped weather loads.
   return Cesium.createGooglePhotorealistic3DTileset(
     { key, onlyUsingWithGoogleGeocoder: true },
-    { asynchronouslyLoadImagery: true },
+    { asynchronouslyLoadImagery: true, ...deviceBudget() },
   );
 }
 
@@ -75,8 +91,7 @@ export async function createGoogleIonTileset(
   signal?.throwIfAborted();
   // Match the installed SDK's Google helper rendering/cache defaults.
   return Cesium.Cesium3DTileset.fromUrl(resource, {
-    cacheBytes: 1536 * 1024 * 1024,
-    maximumCacheOverflowBytes: 1024 * 1024 * 1024,
+    ...deviceBudget(),
     enableCollision: true,
     // Tiles keep drawing their own texture while draped weather loads.
     asynchronouslyLoadImagery: true,

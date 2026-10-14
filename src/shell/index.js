@@ -498,6 +498,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const audit = installAudit({
     viewer,
     onEnter() {
+      // The globe is covered: stop polling the live feeds until exit.
+      dataManager?.pausePolling?.('audit');
       closeWelcome?.();
       tour.controller.exit('audit');
       if (exercise.isLaunching()) exercise.cancelLaunch();
@@ -507,12 +509,31 @@ export function installShell({ viewer, dataManager, placeSearch }) {
       auditBtn.disabled = true;
     },
     onExit() {
+      dataManager?.resumePolling?.('audit');
       auditBtn.disabled = false;
       refreshRows();
     },
   });
   auditRef = audit;
+  // A hidden tab needs no fresh feeds; catch up the moment it is visible.
+  const onVisibility = () => {
+    if (document.hidden) dataManager?.pausePolling?.('hidden');
+    else dataManager?.resumePolling?.('hidden');
+  };
+  document.addEventListener('visibilitychange', onVisibility);
   auditBtn.addEventListener('click', () => audit.enter());
+  // Fetch the AUDIT code and data before the press: on intent, or once the
+  // start-up work has settled.
+  auditBtn.addEventListener('pointerenter', () => audit.prefetch(), {
+    once: true,
+  });
+  auditBtn.addEventListener('focus', () => audit.prefetch(), { once: true });
+  startupTimers.push(
+    setTimeout(() => {
+      const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1));
+      idle(() => audit.prefetch(), { timeout: 5000 });
+    }, 15000),
+  );
 
   async function setMode(next) {
     mode = next;
@@ -571,6 +592,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     setTourWarming(false);
     prefetch.destroy();
     startupTimers.forEach(clearTimeout);
+    document.removeEventListener('visibilitychange', onVisibility);
     audit.destroy();
     intel.destroy();
     exercise.exit();
