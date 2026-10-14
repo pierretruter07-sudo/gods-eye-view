@@ -12,6 +12,7 @@ demonstration or an audit.
 | L3 | Ships appear only with an `AISSTREAM_API_KEY`. Fires appear only with a `FIRMS_MAP_KEY`. | Without keys those layers are empty. | Confirm both keys on the hosted demo before presenting (`npm run doctor`). |
 | L4 | AIS coverage is terrestrial: dense near coasts, sparse mid-ocean. Military aircraft are only those broadcasting ADS-B. | The picture is incomplete by nature. | State this up front in the demo. |
 | L5 | The free keyless terrain host (terrain.reearth.land) returns HTTP 429 under bursts. | Some terrain tiles load late. Console shows 429 errors. | Requests are throttled to 6 in parallel. Configure a Cesium ion token for world terrain. |
+| L7 | Measured on the hosted demo (2026-10-14): airplanes.live answers HTTP 403 to the Replit server, adsb.lol rate-limits with HTTP 429, and anonymous OpenSky requests time out. | Aircraft at a new stop can take 5–17 s to appear. | Server caching and stale data cover most gaps. OpenSky credentials, or a licensed ADS-B feed, fix it properly. |
 | L6 | Cyclone advisories cover the Atlantic and the east/central Pacific (NOAA) only. | No western Pacific or Indian Ocean storms. | Add JTWC/BoM feeds. |
 
 ## Functional scope

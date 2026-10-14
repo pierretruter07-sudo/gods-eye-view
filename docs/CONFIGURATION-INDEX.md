@@ -37,7 +37,7 @@ uncommitted changes and is **not** a baseline build.
 | Environment | Purpose | Source of truth | Notes |
 |---|---|---|---|
 | GitHub | Baseline and CI | `main` | Branch work merges via `--no-ff` merge commits |
-| Replit (hosted demo) | Executive demo | Pulled from GitHub `main` | Runs `vite preview` on port 23876, Node 24.13 |
+| Replit (hosted demo) | Executive demo | Pulled from GitHub `main` | Runs `vite preview` on port 23876, Node 24.13. Keys set (2026-10-14): `AISSTREAM_API_KEY` only. |
 | Developer machine | Development | Any branch | `npm run dev` on port 4173 |
 
 ### Known configuration-management findings
