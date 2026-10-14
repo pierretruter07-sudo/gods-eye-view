@@ -6,6 +6,20 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **AUDIT view (CrossCheck).** An AUDIT button on the main panel flies the
+  camera out to the whole Earth, fades the live globe and lays the
+  CrossCheck orbit exactly over it. Inner ring: 115 ED-153 objectives
+  (SWAL 3). Outer ring: 345 OWASP ASVS 5.0 requirements (L2). Must-fix gaps
+  are raised pins; other layers stay at 15% until switched on.
+  - Same navigation as the globe (Cesium's camera drives the overlay).
+  - Guided tour (11 steps) behind a "First time here?" prompt.
+  - Evidence drawer: pipeline, baseline vs latest audit, progress and
+    readiness journey, then waves, workstreams and per-finding history,
+    read from `docs/evidence/ledger.json`.
+  - Requirements GEV-AUD-001…007 with 10 unit tests.
+  - three.js r160 vendored under `vendor/three/` (MIT).
+- Remediation plan v0.1 (approved) and v0.2 with the readiness journey;
+  evidence ledger and frozen baseline branch `baseline/crosscheck-2026-10-14`.
 - Requirements baseline (GEV-SRS 0.1, 56 requirements) and a verification
   plan with a traceability matrix.
 - Configuration index, known limitations, demo runbook and architecture

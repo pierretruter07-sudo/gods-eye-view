@@ -119,3 +119,15 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-CM-001 | Every non-test source file shall be reachable from a shipped entry point (no orphan code). | A |
 | GEV-CM-002 | Continuous integration shall run setup checks, formatting, package boundaries, unit tests and a production build on Node 24 and 26 for every push to `main`. | I |
 | GEV-CM-003 | All dependencies shall be pinned by `package-lock.json`. | I |
+
+## 10. Compliance audit view (AUD)
+
+| ID | Requirement | V |
+|---|---|---|
+| GEV-AUD-001 | The AUDIT view shall show the CrossCheck assessment of this software, and its readiness and verdicts shall match the evidence ledger's latest audit. | T |
+| GEV-AUD-002 | Every must-fix (blocking) item shall carry a plain-English card: what the gap is, why it matters, and the fix. | T |
+| GEV-AUD-003 | On entry only must-fix items shall show at full strength; every other layer shall stay at 15% until the viewer switches it on. | T |
+| GEV-AUD-004 | The orbit shall be drawn in the Earth's frame and its camera copied from the globe camera each frame, so the orbit sits exactly on the Earth and keeps the globe's pan, rotate, zoom and focus controls. | T |
+| GEV-AUD-005 | The evidence drawer shall read the ledger top down: pipeline, baseline against latest audit, progress and readiness journey first, then waves, workstreams and each finding's dated history. | T |
+| GEV-AUD-006 | Links between safety and security items shall come only from the shared evidence themes. | T |
+| GEV-AUD-007 | Entering and leaving the AUDIT view shall restore the globe, its layers and the viewer's camera exactly as they were. | D |

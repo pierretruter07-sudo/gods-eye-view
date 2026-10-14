@@ -7,6 +7,7 @@ import { installIdleSpin } from './idleSpin.js';
 import { showWelcome, welcomeEnabled } from './welcome.js';
 import { installAdaptiveQuality } from './quality.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
+import { installAudit } from '../audit/index.js';
 import { TOUR_AIRPORTS, TOUR_STOPS } from '../tour/config.js';
 
 /** Layers offered in the Layers panel, in display order. */
@@ -55,6 +56,8 @@ const ICONS = {
   list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
   target:
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>',
+  audit:
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12.2 2.3 2.3 4.3-4.6"/></svg>',
 };
 
 function el(tag, attrs = {}, html) {
@@ -170,6 +173,15 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     { type: 'button', class: 'gev-btn gev-btn--primary' },
     `${ICONS.play}<span>Director</span>`,
   );
+  const auditBtn = el(
+    'button',
+    {
+      type: 'button',
+      class: 'gev-btn gev-btn--audit',
+      title: 'Audit this platform with CrossCheck (ED-153 and OWASP ASVS)',
+    },
+    `${ICONS.audit}<span>Audit</span>`,
+  );
   const generateBtn = el(
     'button',
     { type: 'button', class: 'gev-btn gev-btn--exercise' },
@@ -184,6 +196,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     layersBtn,
     triageBtn,
     directorBtn,
+    auditBtn,
     generateBtn,
   );
 
@@ -303,6 +316,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   collapse.addEventListener('click', () => setPanel(false));
 
   let intelRef = null; // set once the intel view exists (the tour can start first)
+  let auditRef = null; // set once AUDIT is installed (idle spin starts first)
   const prefetch = installFlightPrefetch({ viewer, dataManager });
   // While the Director runs, keep every airport/city stop's aircraft warm on
   // the server (it serves recent snapshots instantly), one request every
@@ -438,6 +452,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const stopSpin = installIdleSpin({
     viewer,
     isBlocked: () =>
+      auditRef?.isActive() === true ||
       mode !== 'live' ||
       tour.controller.isRunning() ||
       intel.isOpen() ||
@@ -476,6 +491,28 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     if (exercise.isLaunching()) exercise.cancelLaunch();
     else intel.close();
   });
+
+  // ── CrossCheck AUDIT (the platform audits itself) ────────────────────
+  // Pauses the live platform, flies out to the whole globe and morphs it into
+  // the CrossCheck orbit. The runtime loads on first press.
+  const audit = installAudit({
+    viewer,
+    onEnter() {
+      closeWelcome?.();
+      tour.controller.exit('audit');
+      if (exercise.isLaunching()) exercise.cancelLaunch();
+      intel.setTriage(false);
+      intel.close();
+      setPanel(false);
+      auditBtn.disabled = true;
+    },
+    onExit() {
+      auditBtn.disabled = false;
+      refreshRows();
+    },
+  });
+  auditRef = audit;
+  auditBtn.addEventListener('click', () => audit.enter());
 
   async function setMode(next) {
     mode = next;
@@ -534,6 +571,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     setTourWarming(false);
     prefetch.destroy();
     startupTimers.forEach(clearTimeout);
+    audit.destroy();
     intel.destroy();
     exercise.exit();
     exercise.destroy();
@@ -548,6 +586,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
       'gev-exercise',
       'gev-touring',
       'gev-intel-open',
+      'gev-audit',
     );
   };
 }

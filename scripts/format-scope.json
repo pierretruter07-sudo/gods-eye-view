@@ -293,5 +293,7 @@
   "src/layers/cyclones/index.test.mjs",
   "src/layers/cyclones/source.test.mjs",
   "src/data/aisStreamSentinels.test.mjs",
-  "src/data/modelEligibility.test.mjs"
+  "src/data/modelEligibility.test.mjs",
+  "src/audit/audit.test.mjs",
+  "src/ui/styles/audit.css"
 ]

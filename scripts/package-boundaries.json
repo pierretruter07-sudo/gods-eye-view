@@ -656,7 +656,20 @@
       "src/tour/planner.js",
       "src/tour/pulseGraphics.js",
       "src/tour/simulate.js",
-      "src/tour/ui.js"
+      "src/tour/ui.js",
+      "src/audit/index.js",
+      "src/audit/runtime.js",
+      "src/audit/model.js",
+      "src/audit/cameraMath.js",
+      "src/audit/plain.js",
+      "src/audit/scene.js",
+      "src/audit/cockpit.js",
+      "src/audit/evidence.js",
+      "src/audit/evidenceModel.js",
+      "src/audit/tour.js",
+      "src/audit/data/assessment.json",
+      "docs/evidence/ledger.json",
+      "vendor/three/three.module.min.js"
     ],
     "external": ["cesium", "egm96-universal", "satellite.js"]
   },

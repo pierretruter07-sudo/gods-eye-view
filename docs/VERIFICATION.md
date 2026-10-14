@@ -95,11 +95,18 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-CM-001 | whole tree | A: `scripts/audit/import-graph.mjs` |
 | GEV-CM-002 | `.github/workflows/ci.yml` | I |
 | GEV-CM-003 | `package-lock.json` | I |
+| GEV-AUD-001 | `src/audit/model.js` `rollup`, `src/audit/data/assessment.json` | T: `src/audit/audit.test.mjs` "the audit snapshot rolls up to the ledger baseline readiness and verdicts" |
+| GEV-AUD-002 | `src/audit/plain.js` | T: `src/audit/audit.test.mjs` "every must-fix item has a plain-English card, and no card is stale" |
+| GEV-AUD-003 | `src/audit/model.js` `LAYERS`, `nodeOpacity` | T: `src/audit/audit.test.mjs` "layers start dark: only must-fix items show at full strength" "every item sits once on its ring, with the must-fix pins raised" |
+| GEV-AUD-004 | `src/audit/cameraMath.js`, `src/audit/runtime.js` | T: `src/audit/audit.test.mjs` "orbit-local axes are right-handed and fixed to the Earth" "the audit pose looks down on the orbit from above the ring plane" "the overlay camera copies Cesium’s camera in Earth radii" |
+| GEV-AUD-005 | `src/audit/evidenceModel.js`, `src/audit/evidence.js` | T: `src/audit/audit.test.mjs` "the evidence view reads the ledger top down: progress and journey" |
+| GEV-AUD-006 | `src/audit/model.js` `linkedIds` | T: `src/audit/audit.test.mjs` "linked items come from the shared evidence themes" |
+| GEV-AUD-007 | `src/audit/runtime.js` `enter`, `exit` | D: browser run, enter → tour → select → zoom → evidence → exit; globe, primitives and camera restored, 0 page errors |
 
 ## 3. Coverage of code by requirements
 
 The fork's own modules are fully traced: `src/tour`, `src/intel`,
-`src/shell`, `src/exercise`, and the server fallback chain. The inherited
+`src/shell`, `src/audit`, `src/exercise`, and the server fallback chain. The inherited
 layer engine (`src/layers`, `src/data`, `src/maps`, ~45k lines) is covered by
 about 1,000 inherited unit tests. These tests are **not yet traced** to
 requirements. Raising that to full bidirectional traceability is the main
