@@ -69,7 +69,7 @@ bashTest(
       await mkdir(bin);
       await writeFile(
         path.join(root, '.env'),
-        'GOOGLE_MAPS_API_KEY=fixture-browser\nGOOGLE_MAPS_SERVER_API_KEY=fixture-server\nOPENAI_API_KEY=fixture-voice\n',
+        'GOOGLE_MAPS_API_KEY=fixture-browser\nGOOGLE_MAPS_SERVER_API_KEY=fixture-server\n',
       );
       for (const command of ['security', 'pkill', 'lsof']) {
         await writeFile(path.join(bin, command), '#!/bin/sh\nexit 1\n', {
@@ -80,7 +80,7 @@ bashTest(
       await writeFile(
         path.join(bin, 'npm'),
         `#!/usr/bin/env node
-require('node:fs').writeFileSync(process.env.TEST_CAPTURE, JSON.stringify({ cwd: process.cwd(), args: process.argv.slice(2), browser: process.env.GOOGLE_MAPS_API_KEY, server: process.env.GOOGLE_MAPS_SERVER_API_KEY, voice: process.env.OPENAI_API_KEY, provenance: process.env.GEV_KEY_SETUP_EXTERNAL_KEYS }));
+require('node:fs').writeFileSync(process.env.TEST_CAPTURE, JSON.stringify({ cwd: process.cwd(), args: process.argv.slice(2), browser: process.env.GOOGLE_MAPS_API_KEY, server: process.env.GOOGLE_MAPS_SERVER_API_KEY, launcher: process.env.GEV_LAUNCHER }));
 `,
         { mode: 0o755 },
       );
@@ -112,11 +112,10 @@ require('node:fs').writeFileSync(process.env.TEST_CAPTURE, JSON.stringify({ cwd:
       ]);
       assert.equal(result.browser, 'fixture-browser');
       assert.equal(result.server, 'fixture-exported-server');
-      assert.equal(result.voice, 'fixture-voice');
-      assert.equal(result.provenance, 'GOOGLE_MAPS_SERVER_API_KEY');
+      assert.equal(result.launcher, 'dev-fresh');
       assert.doesNotMatch(
         stdout + stderr,
-        /fixture-browser|fixture-exported-server|fixture-voice/,
+        /fixture-browser|fixture-exported-server/,
       );
     } finally {
       await rm(root, { recursive: true, force: true });

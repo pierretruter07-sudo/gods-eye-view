@@ -10,59 +10,6 @@ PORT="${PORT:-4173}"
 # should not be reachable from the network unless explicitly requested.
 # Set HOST=0.0.0.0 to opt in to LAN exposure (a warning is printed).
 HOST="${HOST:-localhost}"
-# CCTV source packs (all keyless): Austin (~815 live upstream), Caltrans
-# districts 4,7,11,3 = SF/LA/San Diego/Sacramento (~1,860 live upstream),
-# TfL London JamCams (~870 live upstream), Ontario 511 (~944 live upstream,
-# including Kitchener-area highways), and Fintraffic Finland weathercams
-# (~2,260 live presets). Caps keep the densest cores per pack; override
-# per-run for lighter/heavier loads. Kill switches: CCTV_CALTRANS_DISTRICTS='',
-# CCTV_TFL_ENABLED=0, CCTV_ONTARIO_ENABLED=0, CCTV_FINTRAFFIC_ENABLED=0 and
-# CCTV_CALGARY_ENABLED=0 (Open Calgary, ~215 live upstream).
-CCTV_AUSTIN_MAX_SOURCES="${CCTV_AUSTIN_MAX_SOURCES:-250}"
-# Use `-` not `:-` so an explicit empty string (the documented kill switch)
-# is preserved rather than replaced by the default. Still set-u-safe when unset.
-CCTV_CALTRANS_DISTRICTS="${CCTV_CALTRANS_DISTRICTS-4,7,11,3}"
-CCTV_CALTRANS_MAX_SOURCES="${CCTV_CALTRANS_MAX_SOURCES:-300}"
-CCTV_TFL_ENABLED="${CCTV_TFL_ENABLED:-1}"
-CCTV_TFL_MAX_SOURCES="${CCTV_TFL_MAX_SOURCES:-250}"
-CCTV_ONTARIO_ENABLED="${CCTV_ONTARIO_ENABLED:-1}"
-CCTV_ONTARIO_MAX_SOURCES="${CCTV_ONTARIO_MAX_SOURCES:-1000}"
-CCTV_FINTRAFFIC_ENABLED="${CCTV_FINTRAFFIC_ENABLED:-1}"
-CCTV_FINTRAFFIC_MAX_SOURCES="${CCTV_FINTRAFFIC_MAX_SOURCES:-300}"
-CCTV_DRIVEBC_ENABLED="${CCTV_DRIVEBC_ENABLED:-1}"
-CCTV_DRIVEBC_MAX_SOURCES="${CCTV_DRIVEBC_MAX_SOURCES:-250}"
-CCTV_TXDOT_ENABLED="${CCTV_TXDOT_ENABLED:-1}"
-# Use `-` so an explicit empty string (the documented kill switch) is preserved.
-CCTV_TXDOT_DISTRICTS="${CCTV_TXDOT_DISTRICTS-AUS,SAT}"
-CCTV_TXDOT_MAX_SOURCES="${CCTV_TXDOT_MAX_SOURCES:-500}"
-CCTV_TALLINN_ENABLED="${CCTV_TALLINN_ENABLED:-1}"
-CCTV_TALLINN_MAX_SOURCES="${CCTV_TALLINN_MAX_SOURCES:-255}"
-CCTV_TARKTEE_ENABLED="${CCTV_TARKTEE_ENABLED:-1}"
-CCTV_TARKTEE_MAX_SOURCES="${CCTV_TARKTEE_MAX_SOURCES:-179}"
-CCTV_WARENDORF_ENABLED="${CCTV_WARENDORF_ENABLED:-1}"
-CCTV_NSW_ENABLED="${CCTV_NSW_ENABLED:-1}"
-CCTV_NSW_MAX_SOURCES="${CCTV_NSW_MAX_SOURCES:-250}"
-CCTV_CALGARY_ENABLED="${CCTV_CALGARY_ENABLED:-1}"
-CCTV_CALGARY_MAX_SOURCES="${CCTV_CALGARY_MAX_SOURCES:-220}"
-CCTV_MAX_SOURCES="${CCTV_MAX_SOURCES:-4000}"
-
-# Capture which provider credentials genuinely came from the parent shell
-# before this launcher resolves dotenv and Keychain fallbacks. Only names are
-# passed to Vite; values never enter the provenance marker. This lets Provider
-# Settings keep an exported credential read-only even when .env happens to hold
-# the same value, without misclassifying values that dev-fresh loaded from .env.
-KEY_SETUP_EXTERNAL_KEYS=()
-[[ -n "${GOOGLE_MAPS_API_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(GOOGLE_MAPS_API_KEY)
-[[ -n "${GOOGLE_MAPS_SERVER_API_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(GOOGLE_MAPS_SERVER_API_KEY)
-[[ -n "${CESIUM_ION_TOKEN:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(CESIUM_ION_TOKEN)
-[[ -n "${OPENAI_API_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(OPENAI_API_KEY)
-[[ -n "${AISSTREAM_API_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(AISSTREAM_API_KEY)
-[[ -n "${FIRMS_MAP_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(FIRMS_MAP_KEY)
-[[ -n "${TOMTOM_API_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(TOMTOM_API_KEY)
-[[ -n "${OPENSKY_CLIENT_ID:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(OPENSKY_CLIENT_ID)
-[[ -n "${OPENSKY_CLIENT_SECRET:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(OPENSKY_CLIENT_SECRET)
-[[ -n "${LL2_API_TOKEN:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(LL2_API_TOKEN)
-KEY_SETUP_EXTERNAL_KEYS_CSV="$(IFS=,; printf '%s' "${KEY_SETUP_EXTERNAL_KEYS[*]:-}")"
 
 if command -v npm >/dev/null 2>&1; then
   DEV_COMMAND=(npm run dev --)
@@ -231,27 +178,17 @@ resolve_opensky_credentials
 
 # Optional keys: explicit env wins, followed by .env and Keychain fallback.
 # Add to Keychain with e.g.:
-#   security add-generic-password -U -s "openai-api" -a "api-key" -w
-OPENAI_API_KEY="${OPENAI_API_KEY:-$(read_dotenv_value "OPENAI_API_KEY")}"
+#   security add-generic-password -U -s "aisstream-api" -a "api-key" -w
 AISSTREAM_API_KEY="${AISSTREAM_API_KEY:-$(read_dotenv_value "AISSTREAM_API_KEY")}"
 CESIUM_ION_TOKEN="${CESIUM_ION_TOKEN:-$(read_dotenv_value "CESIUM_ION_TOKEN")}"
-LL2_API_TOKEN="${LL2_API_TOKEN:-$(read_dotenv_value "LL2_API_TOKEN")}"
-TOMTOM_API_KEY="${TOMTOM_API_KEY:-$(read_dotenv_value "TOMTOM_API_KEY")}"
 FIRMS_MAP_KEY="${FIRMS_MAP_KEY:-$(read_dotenv_value "FIRMS_MAP_KEY")}"
-OPENAI_API_KEY="${OPENAI_API_KEY:-$(read_keychain_secret "openai-api" "api-key")}"
 AISSTREAM_API_KEY="${AISSTREAM_API_KEY:-$(read_keychain_secret "aisstream-api" "api-key")}"
 CESIUM_ION_TOKEN="${CESIUM_ION_TOKEN:-$(read_keychain_secret "cesium-ion" "token")}"
-TOMTOM_API_KEY="${TOMTOM_API_KEY:-$(read_keychain_secret "tomtom-api" "api-key")}"
 FIRMS_MAP_KEY="${FIRMS_MAP_KEY:-$(read_keychain_secret "firms-map" "map-key")}"
 
-if [[ ! -f "$SOURCE_ROOT/src/data/cctv.js" ]]; then
-  echo "error: expected CCTV layer file missing: src/data/cctv.js"
-  exit 1
-fi
-
 if ! grep -q "return createApplicationCatalog(" "$SOURCE_ROOT/src/standalone/catalog.js" || \
-   ! grep -q "^[[:space:]]*createApplicationCctv({" "$SOURCE_ROOT/src/app/constructCatalog.js"; then
-  echo "error: CCTV layer not wired in src/standalone/catalog.js"
+   ! grep -q "APPLICATION_LAYER_IDS" "$SOURCE_ROOT/src/app/constructCatalog.js"; then
+  echo "error: application layer catalog not wired in src/standalone/catalog.js"
   exit 1
 fi
 
@@ -291,10 +228,10 @@ case "${HOST}" in
     echo ""
     echo "!! =============================================================="
     echo "!! WARNING: HOST=${HOST} — network-exposed mode."
-    echo "!! This dev server brokers your configured API keys (OpenAI,"
-    echo "!! OpenSky, AISStream, TomTom, FIRMS, LL2, Google) to ANYONE who can"
+    echo "!! This dev server brokers your configured API keys"
+    echo "!! (OpenSky, AISStream, FIRMS, Google) to ANYONE who can"
     echo "!! reach it on the network. Use only on networks you trust."
-    echo "!! Consider the opt-in per-IP throttles GEV_RATELIMIT_OPENAI_PER_MIN"
+    echo "!! Consider the opt-in per-IP throttles"
     echo "!! and GEV_RATELIMIT_GOOGLE_PER_MIN (see .env.example) — and note"
     echo "!! they are NOT billing caps; set provider-side budget alerts too."
     if [[ -n "${LAN_IP}" ]]; then
@@ -309,8 +246,6 @@ case "${HOST}" in
 esac
 echo "Google Maps key source: ${GOOGLE_MAPS_API_KEY_SOURCE}"
 echo "Tip: after server starts, hard refresh browser (Cmd+Shift+R)."
-echo "The CCTV panel starts collapsed; open it from its header, or in browser console:"
-echo "localStorage.setItem('godsEyeView.v6.panelCollapsed.cctv-panel', '0'); location.reload();"
 echo "OpenSky auth mode: ${OPENSKY_AUTH_MODE}"
 if [[ -n "${OPENSKY_CREDENTIALS_FILE}" ]]; then
   if [[ -f "${OPENSKY_CREDENTIALS_FILE}" ]]; then
@@ -347,7 +282,6 @@ case "${OPENSKY_AUTH_MODE}" in
     echo "OpenSky auth: disabled (anonymous mode)"
     ;;
 esac
-[[ -n "${OPENAI_API_KEY}" ]] && echo "OpenAI key (voice + HUD summary): configured" || echo "OpenAI key (voice + HUD summary): not set — GEV MIC disabled"
 [[ -n "${AISSTREAM_API_KEY}" ]] && echo "AISStream key (live vessels): configured" || echo "AISStream key (live vessels): not set — ships layer empty"
 if [[ -n "${GOOGLE_MAPS_API_KEY}" ]]; then
   echo "Startup map: Google Photorealistic 3D Tiles (direct)"
@@ -357,9 +291,7 @@ else
   echo "Startup map: Esri World Imagery with keyless terrain (OpenStreetMap fallback)"
 fi
 [[ -n "${CESIUM_ION_TOKEN}" ]] && echo "Cesium ion token: configured — Google 3D, Bing, and world-terrain stacks available" || echo "Cesium ion token: not set"
-[[ -n "${TOMTOM_API_KEY}" ]] && echo "TomTom key (live traffic flow): configured" || echo "TomTom key (live traffic flow): not set — simulated traffic"
 [[ -n "${FIRMS_MAP_KEY}" ]] && echo "NASA FIRMS key (live fires): configured" || echo "NASA FIRMS key (live fires): not set — fires layer requires a key"
-[[ -n "${LL2_API_TOKEN}" ]] && echo "Launch Library 2 token: configured" || echo "Launch Library 2 token: not set — using public access"
 
 # Build the dev server environment explicitly. A value that resolved to
 # nothing is left UNSET instead of being exported empty: Vite backfills its
@@ -382,45 +314,15 @@ put_env_if_set() {
 }
 
 put_env_if_set GOOGLE_MAPS_API_KEY "${GOOGLE_MAPS_API_KEY}"
-put_env CCTV_AUSTIN_MAX_SOURCES "${CCTV_AUSTIN_MAX_SOURCES}"
-# Empty is the documented Caltrans kill switch, so this one is passed as-is.
-put_env CCTV_CALTRANS_DISTRICTS "${CCTV_CALTRANS_DISTRICTS}"
-put_env CCTV_CALTRANS_MAX_SOURCES "${CCTV_CALTRANS_MAX_SOURCES}"
-put_env CCTV_TFL_ENABLED "${CCTV_TFL_ENABLED}"
-put_env CCTV_TFL_MAX_SOURCES "${CCTV_TFL_MAX_SOURCES}"
-put_env CCTV_ONTARIO_ENABLED "${CCTV_ONTARIO_ENABLED}"
-put_env CCTV_ONTARIO_MAX_SOURCES "${CCTV_ONTARIO_MAX_SOURCES}"
-put_env_if_set TFL_APP_KEY "${TFL_APP_KEY:-}"
-put_env CCTV_FINTRAFFIC_ENABLED "${CCTV_FINTRAFFIC_ENABLED}"
-put_env CCTV_FINTRAFFIC_MAX_SOURCES "${CCTV_FINTRAFFIC_MAX_SOURCES}"
-put_env CCTV_DRIVEBC_ENABLED "${CCTV_DRIVEBC_ENABLED}"
-put_env CCTV_DRIVEBC_MAX_SOURCES "${CCTV_DRIVEBC_MAX_SOURCES}"
-put_env CCTV_TXDOT_ENABLED "${CCTV_TXDOT_ENABLED}"
-put_env CCTV_TXDOT_DISTRICTS "${CCTV_TXDOT_DISTRICTS}"
-put_env CCTV_TXDOT_MAX_SOURCES "${CCTV_TXDOT_MAX_SOURCES}"
-put_env CCTV_TALLINN_ENABLED "${CCTV_TALLINN_ENABLED}"
-put_env CCTV_TALLINN_MAX_SOURCES "${CCTV_TALLINN_MAX_SOURCES}"
-put_env CCTV_TARKTEE_ENABLED "${CCTV_TARKTEE_ENABLED}"
-put_env CCTV_TARKTEE_MAX_SOURCES "${CCTV_TARKTEE_MAX_SOURCES}"
-put_env CCTV_WARENDORF_ENABLED "${CCTV_WARENDORF_ENABLED}"
-put_env CCTV_NSW_ENABLED "${CCTV_NSW_ENABLED}"
-put_env CCTV_NSW_MAX_SOURCES "${CCTV_NSW_MAX_SOURCES}"
-put_env CCTV_CALGARY_ENABLED "${CCTV_CALGARY_ENABLED}"
-put_env CCTV_CALGARY_MAX_SOURCES "${CCTV_CALGARY_MAX_SOURCES}"
-put_env CCTV_MAX_SOURCES "${CCTV_MAX_SOURCES}"
 put_env OPENSKY_AUTH_MODE "${OPENSKY_AUTH_MODE}"
 put_env_if_set OPENSKY_CREDENTIALS_FILE "${OPENSKY_CREDENTIALS_FILE}"
 put_env_if_set OPENSKY_CLIENT_ID "${OPENSKY_CLIENT_ID}"
 put_env_if_set OPENSKY_CLIENT_SECRET "${OPENSKY_CLIENT_SECRET}"
 put_env_if_set OPENSKY_USERNAME "${OPENSKY_USERNAME}"
 put_env_if_set OPENSKY_PASSWORD "${OPENSKY_PASSWORD}"
-put_env_if_set OPENAI_API_KEY "${OPENAI_API_KEY}"
 put_env_if_set AISSTREAM_API_KEY "${AISSTREAM_API_KEY}"
 put_env_if_set CESIUM_ION_TOKEN "${CESIUM_ION_TOKEN}"
-put_env_if_set TOMTOM_API_KEY "${TOMTOM_API_KEY}"
 put_env_if_set FIRMS_MAP_KEY "${FIRMS_MAP_KEY}"
-put_env_if_set LL2_API_TOKEN "${LL2_API_TOKEN}"
 put_env GEV_LAUNCHER "dev-fresh"
-put_env GEV_KEY_SETUP_EXTERNAL_KEYS "${KEY_SETUP_EXTERNAL_KEYS_CSV}"
 
 env ${DEV_UNSET[@]+"${DEV_UNSET[@]}"} "${DEV_ENV[@]}" "${DEV_COMMAND[@]}" --host "${HOST}" --port "${PORT}" --force

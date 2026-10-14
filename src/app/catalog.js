@@ -1,19 +1,3 @@
-const CONTROL_LAYER_IDS = Object.freeze({
-  trafficLayer: 'traffic',
-  flightsLayer: 'flights',
-  militaryFlightsLayer: 'military',
-  satellitesLayer: 'satellites',
-  cctvLayer: 'cctv',
-  radioLayer: 'radio',
-  bikeshareLayer: 'bikeshare',
-  transitLayer: 'transit',
-  aisLiveVesselsLayer: 'ais-live-vessels',
-  militaryAwarenessLayer: 'military-awareness',
-  militaryInstallationsLayer: 'military-installations',
-  rocketLaunchesLayer: 'rocket-launches',
-  localAdsbLayer: 'local-adsb',
-});
-
 /** Capture the ordered application instances and their serialization metadata. */
 export function createLayerCatalog(layers, metadata) {
   if (!Array.isArray(layers) || !Array.isArray(metadata))
@@ -43,18 +27,4 @@ export function createLayerCatalog(layers, metadata) {
     ),
     get: (id) => byId.get(id),
   });
-}
-
-/** Bind the current control surface to the exact instances registered by the app. */
-export function catalogControlServices(catalog) {
-  if (!catalog?.get)
-    throw new TypeError('An application layer catalog is required');
-  return Object.fromEntries(
-    Object.entries(CONTROL_LAYER_IDS).map(([role, id]) => {
-      const layer = catalog.get(id);
-      if (!layer)
-        throw new TypeError(`Control layer missing from catalog: ${id}`);
-      return [role, layer];
-    }),
-  );
 }
