@@ -515,6 +515,11 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   }
   function trackedPosition(result = new Cesium.Cartesian3()) {
     if (!track.fix) return undefined;
+    // An aircraft the layer is drawing: use exactly where its icon is, so the
+    // leader lines, reticle and camera meet it (the HUD's own extrapolation
+    // can drift from the layer's by kilometres between fixes).
+    const drawn = track.drawn?.();
+    if (drawn) return Cesium.Cartesian3.clone(drawn, result);
     const now = performance.now();
     const dt = (now - track.at) / 1000;
     Cesium.Cartesian3.multiplyByScalar(track.vel, dt, scratch);
@@ -534,6 +539,13 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     const prevAt = track.at;
     track.fix = cartesianOf(o);
     track.at = performance.now();
+    track.drawn =
+      o.kind === 'aircraft' && o.icao24
+        ? () =>
+            dataManager
+              .getLayerModule?.(o.layerId)
+              ?.getDisplayPosition?.(o.icao24) ?? null
+        : null;
     // Satellites have no heading/speed fields: derive velocity from fixes.
     if (
       o.kind === 'satellite' &&

@@ -51,6 +51,15 @@ export function createMilitaryFlightLayer({
     parts.lifecycle.methods,
     parts.ingestion.methods,
   );
+  /**
+   * Where this aircraft is DRAWN right now (the fleet icon's per-frame
+   * position, or the tracked entity's display position), so overlays such as
+   * the intel HUD's leader lines meet the icon exactly. Null when not drawn.
+   */
+  layer.getDisplayPosition = (icao24) =>
+    icao24 === flightState._trackedIcao
+      ? parts.motion._trackedDisplayPosition(icao24)
+      : (flightState._billboards.get(icao24)?.position ?? null);
   Object.defineProperty(layer, 'testing', { value: parts.testing });
   return layer;
 }
