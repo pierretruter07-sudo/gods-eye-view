@@ -155,3 +155,34 @@ export function hudActions(h, state, { touring = false } = {}) {
     `<button type="button" class="gev-act gev-act--close" data-act="close" aria-label="Close">${ICON.close}</button>`,
   ].join('');
 }
+
+// ── Action result panel ────────────────────────────────────────────────
+function resultBlock(b) {
+  if (b.type === 'rows')
+    return `<dl class="gev-res__rows">${b.rows
+      .map((r) => `<dt>${r.sim ? '<i class="gev-hud__sim" aria-label="simulated"></i>' : ''}${esc(r.label)}</dt><dd>${esc(r.value)}</dd>`)
+      .join('')}</dl>`;
+  if (b.type === 'table')
+    return `${b.title ? `<p class="gev-res__sub">${esc(b.title)}</p>` : ''}<table class="gev-res__table"><thead><tr>${b.head
+      .map((h) => `<th scope="col">${esc(h)}</th>`)
+      .join('')}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  if (b.type === 'message')
+    return `<p class="gev-res__sub">${esc(b.label || 'Message')}</p><blockquote class="gev-res__msg">${esc(b.text)}</blockquote>`;
+  if (b.type === 'imagery')
+    return `<figure class="gev-res__img"><div class="gev-res__mosaic">${b.tiles
+      .map((u) => `<img src="${esc(u)}" alt="" decoding="async">`)
+      .join('')}<span class="gev-res__mark" style="left:${(b.markX * 100).toFixed(1)}%;top:${(b.markY * 100).toFixed(1)}%" aria-hidden="true"></span></div><figcaption>${esc(b.caption)}</figcaption></figure>`;
+  if (b.type === 'note') return `<p class="gev-res__note">${esc(b.text)}</p>`;
+  return '';
+}
+
+export function resultPanel(r, { busy = false } = {}) {
+  const chips = (r.sources || [])
+    .map((s) => `<span class="gev-prov ${s.feed ? 'gev-prov--feed' : 'gev-prov--sim'}">${esc(s.label)}${s.feed ? '' : ' · SIM'}</span>`)
+    .join('');
+  return `<header class="gev-res__head"><h3>${esc(r.title)}</h3>
+      <button type="button" class="gev-icon-btn" data-res="close" aria-label="Close result">${ICON.close}</button></header>
+    ${chips ? `<div class="gev-res__chips">${chips}</div>` : ''}
+    ${busy ? '<p class="gev-res__busy"><span class="gev-res__spin" aria-hidden="true"></span>Computing from live data…</p>' : (r.blocks || []).map(resultBlock).join('')}
+    ${r.send && !busy ? `<div class="gev-res__foot"><button type="button" class="gev-act gev-act--sim" data-res="send">${esc(r.send.label)}</button><span>Sending is simulated.</span></div>` : ''}`;
+}

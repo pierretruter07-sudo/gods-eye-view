@@ -108,5 +108,19 @@ export function createRecords({ state, parts }) {
     }
     return result;
   }
-  return { getAnalystRecords };
+  /**
+   * Orbit elements for the loaded core catalog (no dense extras), for
+   * on-demand analysis such as pass and conjunction screening. Read-only.
+   * @returns {Array<{noradId:string,name:string,group:string,satrec:Object}>}
+   */
+  function getCatalogSatrecs() {
+    if (!state._catalog?.size) return [];
+    const out = [];
+    for (const [noradId, sat] of state._catalog) {
+      if (!sat?.satrec || sat.group === 'dense') continue;
+      out.push({ noradId: String(noradId), name: sat.name, group: sat.group, satrec: sat.satrec });
+    }
+    return out;
+  }
+  return { getAnalystRecords, getCatalogSatrecs };
 }

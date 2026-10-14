@@ -8,7 +8,8 @@ import {
   nearbyObjects,
   insideArea,
 } from './objects.js';
-import { KIND_LABEL, SEV_LABEL, ACCENT, AOI_KM, esc, chip, ICON, hudHeader, hudCard, hudActions } from './markup.js';
+import { KIND_LABEL, SEV_LABEL, ACCENT, AOI_KM, esc, chip, ICON, hudHeader, hudCard, hudActions, resultPanel } from './markup.js';
+import { runAction } from './actions.js';
 import { buildHud, MAX_CARDS } from './hud.js';
 import { reticleSprite } from '../tour/pulseGraphics.js';
 import { createNarrator } from '../tour/narrator.js';
@@ -47,7 +48,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   brief.hidden = true;
   const actions = el('nav', 'gev-iv__actions gev-glass');
   actions.setAttribute('aria-label', 'Analyst actions');
-  bottom.append(brief, actions);
+  // Result of an analyst action (passes, imagery, manifest…), above the dock.
+  const result = el('section', 'gev-res gev-glass');
+  result.setAttribute('aria-label', 'Action result');
+  result.setAttribute('aria-live', 'polite');
+  result.hidden = true;
+  bottom.append(result, brief, actions);
   // Leader lines from the asset to each card (decorative).
   const svgNS = 'http://www.w3.org/2000/svg';
   const leaders = document.createElementNS(svgNS, 'svg');
@@ -298,7 +304,54 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       }, CACHE_MS);
     }
   }
+  // ── Action results ───────────────────────────────────────────────────
+  let resultToken = 0;
+  let lastResult = null;
+  function hideResult() {
+    resultToken += 1;
+    result.hidden = true;
+    result.innerHTML = '';
+    lastResult = null;
+  }
+  async function runResult(action, o) {
+    const token = ++resultToken;
+    result.innerHTML = resultPanel({ title: action.label, sources: [] }, { busy: true });
+    result.hidden = false;
+    const ctx = {
+      now: Date.now(),
+      objects: collect(),
+      satrecs: () => {
+        try {
+          return layerModule('satellites')?.getCatalogSatrecs?.() || [];
+        } catch {
+          return [];
+        }
+      },
+      installations: () => {
+        if (!layerOn('military-installations')) return [];
+        try {
+          return layerModule('military-installations')?.getAnalystRecords?.(20000) || [];
+        } catch {
+          return [];
+        }
+      },
+    };
+    const r = await runAction(action.id, o, ctx);
+    if (token !== resultToken || selected?.key !== o.key) return;
+    lastResult = r;
+    result.innerHTML = resultPanel(r);
+  }
+  result.addEventListener('click', (event) => {
+    const act = event.target.closest('[data-res]')?.dataset.res;
+    if (act === 'close') hideResult();
+    if (act === 'send' && lastResult?.send) {
+      showToast(lastResult.send.toast);
+      hideResult();
+    }
+  });
+
   function close() {
+    hideResult();
     stopFollow();
     stopOrbit();
     stopBrief();
@@ -513,7 +566,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     if (act === 'close') return close();
     if (act.startsWith('sim:')) {
       const a = hud?.actions.find((x) => `sim:${x.id}` === act);
-      if (a) showToast(a.toast);
+      if (a) runResult(a, o);
       return;
     }
     if (act === 'fly') flyTo(o);
