@@ -45,6 +45,8 @@ export function createVesselState({ source, services }) {
   /** @type {Map<string, string>} `${cssColor}:${variant}` -> chevron SVG data URL */
 
   vesselState.shipIconCache = new Map();
+  /** MMSI whose flat icon is hidden while the intel view draws it in 3D. */
+  vesselState._suppressedMmsi = null;
 
   vesselState.state = {
     feed: createVesselFeed(),

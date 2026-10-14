@@ -470,7 +470,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     }
   }
   marker.position = new Cesium.CallbackProperty((time, result) => trackedPosition(result), false);
-  const visual = createSubjectVisual(viewer, { position: (result) => trackedPosition(result) });
+  const visual = createSubjectVisual(viewer, { position: (result) => trackedPosition(result), dataManager });
 
   const ORBIT = {
     aircraft: { rangeM: 22_000, pitchDeg: -25 },

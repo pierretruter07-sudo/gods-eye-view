@@ -61,7 +61,9 @@ function satelliteGlyph() {
   return c.toDataURL();
 }
 
-export function createSubjectVisual(viewer, { position }) {
+export function createSubjectVisual(viewer, { position, dataManager = null }) {
+  // The vessels layer's flat icon would sit on top of the 3D ship; hide it.
+  const vesselIcons = () => dataManager?.getLayerModule?.('ais-live-vessels');
   let headingDeg = 0;
   const pos = new Cesium.CallbackProperty((time, result) => position(result), false);
 
@@ -99,12 +101,14 @@ export function createSubjectVisual(viewer, { position }) {
       headingDeg = Number.isFinite(o.courseDeg) ? o.courseDeg : Number.isFinite(o.heading) ? o.heading : 0;
       ship.show = o.kind === 'vessel';
       sat.show = o.kind === 'satellite';
+      vesselIcons()?.suppressIcon?.(o.kind === 'vessel' ? o.mmsi : null);
       viewer.scene.requestRender();
     },
     update(o) {
       if (Number.isFinite(o.courseDeg)) headingDeg = o.courseDeg;
     },
     hide() {
+      vesselIcons()?.suppressIcon?.(null);
       ship.show = false;
       sat.show = false;
       viewer.scene.requestRender();

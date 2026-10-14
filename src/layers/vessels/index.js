@@ -58,6 +58,7 @@ export function createVesselLayer({ source, services, options = {} } = {}) {
   layer.source = source?.label || 'Vessels';
   Object.assign(layer, {
     applyVesselFocusDeemphasis: parts.rendering.applyVesselFocusDeemphasis,
+    suppressIcon: parts.rendering.suppressIcon,
     buildVesselCard: parts.cards.buildVesselCard,
     buildSelectedVesselCard: parts.cards.buildSelectedVesselCard,
     cardScreenSeparated: parts.cards.cardScreenSeparated,

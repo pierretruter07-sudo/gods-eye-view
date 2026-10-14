@@ -242,7 +242,9 @@ export function createRendering({
         const visual = getVisual(record);
         const visible = isVisible(visual.surfacePosition, occluder);
         if (visual.billboard) {
-          visual.billboard.show = visible;
+          // The focused ship is drawn as a 3D model by the intel view.
+          visual.billboard.show =
+            visible && String(record.mmsi) !== vesselState._suppressedMmsi;
           if (visible && doRotations && scene) {
             const rot = screenProjectedRotation(
               scene,
@@ -493,6 +495,18 @@ export function createRendering({
     );
   }
 
+  /** Hide one ship's flat icon (it is shown as a 3D model), or null to restore. */
+  function suppressIcon(mmsi) {
+    const previous = vesselState._suppressedMmsi;
+    vesselState._suppressedMmsi = mmsi == null ? null : String(mmsi);
+    for (const key of [previous, vesselState._suppressedMmsi]) {
+      const record = key == null ? null : state.records.byMmsi.get(key);
+      const billboard = record && getVisual(record).billboard;
+      if (billboard) billboard.show = key !== vesselState._suppressedMmsi;
+    }
+    state.viewer?.scene?.requestRender();
+  }
+
   function setVisible(show) {
     if (state.billboardCollection) {
       state.billboardCollection.show = show;
@@ -521,5 +535,6 @@ export function createRendering({
     labelPriority,
     hasUsefulName,
     setVisible,
+    suppressIcon,
   };
 }
