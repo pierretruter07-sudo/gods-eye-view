@@ -17,11 +17,15 @@ import { createOrbitScene, THREE } from './scene.js';
 import {
   EARTH_RADIUS_M,
   auditPose,
+  basisForLongitude,
   ease,
+  homeRig,
   interpolatePose,
-  norm,
+  interpolateRig,
   overlayCamera,
   phase,
+  rigFromPosition,
+  rigPose,
 } from './cameraMath.js';
 import {
   LAYERS,
@@ -35,6 +39,7 @@ import {
 import { createCockpit } from './cockpit.js';
 import { createEvidenceDrawer } from './evidence.js';
 import { createTour, tourSeen } from './tour.js';
+import { itemsAt, latestMeasured, timelineStops } from './progress.js';
 
 const HOLD = 'gev-audit';
 const R = EARTH_RADIUS_M;
@@ -43,6 +48,9 @@ const MORPH_IN_MS = 2800;
 const MORPH_OUT_MS = 1900;
 const SPIN_RAD_PER_S = (0.8 * Math.PI) / 180;
 const SPIN_IDLE_MS = 5000;
+const DEG = Math.PI / 180;
+const STOP_MS = 2600;
+const DESIGN_HOME = homeRig(30 * DEG).dist;
 
 const c3 = (v) => new Cesium.Cartesian3(v[0], v[1], v[2]);
 const arr = (c) => [c.x, c.y, c.z];
@@ -76,10 +84,18 @@ export async function createAuditRuntime({ viewer, onExited }) {
     ),
   ]);
   const opts = { swal: data.swal, asvsLevel: data.asvsLevel };
-  const saf = rollup(data.items, 'saf', opts);
-  const sec = rollup(data.items, 'sec', opts);
-  const { nodes, groups } = layout(data.items);
-  const itemById = new Map(data.items.map((i) => [i.id, i]));
+  // Progress: the baseline, each measured re-audit, then the plan's targets.
+  const stops = timelineStops(ledger);
+  const baseItems = itemsAt(ledger, data.items, 0);
+  const baseSaf = rollup(baseItems, 'saf', opts);
+  const baseSec = rollup(baseItems, 'sec', opts);
+  const mustAtBaseline = mustFix(baseItems);
+  let stopIndex = latestMeasured(stops).index;
+  let items = itemsAt(ledger, data.items, stopIndex);
+  let saf = rollup(items, 'saf', opts);
+  let sec = rollup(items, 'sec', opts);
+  const { nodes, groups } = layout(items);
+  let itemById = new Map(items.map((i) => [i.id, i]));
   const historyById = new Map(ledger.findings.map((f) => [f.id, f]));
   const scene = viewer.scene;
   const camera = viewer.camera;
@@ -219,6 +235,7 @@ export async function createAuditRuntime({ viewer, onExited }) {
     const now = performance.now();
     const dt = lastSpin == null ? 0 : (now - lastSpin) / 1000;
     lastSpin = now;
+    if (cine) return runCine(now);
     if (!active || busy || tour.isOpen() || now - lastInput < SPIN_IDLE_MS)
       return;
     camera.rotate(
@@ -227,9 +244,14 @@ export async function createAuditRuntime({ viewer, onExited }) {
     );
   };
   scene.preRender.addEventListener(onPreRender);
+  // Only input on the globe itself takes the camera back from a flight.
   const poke = (e) => {
     lastInput = performance.now();
-    if (e && !busy && e.type !== 'keydown') flight?.cancel();
+    if (!e || busy || e.type === 'keydown') return;
+    if (e.target === viewer.canvas || viewer.canvas.contains(e.target)) {
+      flight?.cancel();
+      stopCine();
+    }
   };
   for (const e of ['pointerdown', 'wheel', 'keydown', 'touchstart'])
     window.addEventListener(e, poke, { capture: true, passive: true });
@@ -302,6 +324,98 @@ export async function createAuditRuntime({ viewer, onExited }) {
     });
   }
 
+  // ── Camera rig: cinematic moves around the orbit (tour, focus, reset) ──
+  // The rig orbits a point of the orbit; flights interpolate the rig, so the
+  // subject stays in frame the whole way. `drift` keeps the camera turning
+  // slowly once it arrives. Input on the globe hands control straight back.
+  let orbitLon = 0;
+  let cine = null;
+  function currentRig(target) {
+    return rigFromPosition(arr(camera.positionWC), orbitLon, target);
+  }
+  function stopCine() {
+    if (!cine) return;
+    const c = cine;
+    cine = null;
+    c.resolve(false);
+  }
+  /**
+   * Fly the camera rig to `to` ({target, az, el, dist}; radians, Earth radii).
+   * @returns {Promise<boolean>} true on arrival, false if interrupted.
+   */
+  function flyRig(to, { seconds = 2.4, lift = 0, drift = 0, from } = {}) {
+    stopCine();
+    flight?.cancel();
+    const start = from || currentRig(to.target);
+    return new Promise((resolve) => {
+      cine = {
+        from: start,
+        to,
+        t0: performance.now(),
+        ms: seconds * 1000,
+        lift,
+        drift,
+        arrived: false,
+        resolve,
+      };
+    });
+  }
+  function runCine(now) {
+    const c = cine;
+    const k = c.ms ? (now - c.t0) / c.ms : 1;
+    let rig;
+    if (k < 1) rig = interpolateRig(c.from, c.to, ease(k), { lift: c.lift });
+    else {
+      const extra = (now - c.t0 - c.ms) / 1000;
+      rig = { ...c.to, az: c.to.az + c.drift * extra };
+      if (!c.arrived) {
+        c.arrived = true;
+        c.resolve(true);
+        if (!c.drift) cine = null;
+      }
+    }
+    setPose(rigPose(rig, orbitLon));
+  }
+  /** Orbit-local position (Earth radii) of an item, as currently drawn. */
+  function localOf(id) {
+    const w = orbit.worldOf(id);
+    if (!w) return null;
+    const b = basisForLongitude(orbitLon);
+    const p = [w.x, w.y, w.z];
+    const d = (u) => u[0] * p[0] + u[1] * p[1] + u[2] * p[2];
+    return [d(b.x), d(b.y), d(b.z)];
+  }
+  const home = () => homeRig(camera.frustum.fovy);
+  // Shot distances are written for a 30° field of view, like the home pose.
+  const fovScale = () => Math.tan(15 * DEG) / Math.tan(camera.frustum.fovy / 2);
+  function resetView() {
+    if (!active || busy) return;
+    lastInput = performance.now();
+    return flyRig(home(), { seconds: 1.8, lift: 0.12 });
+  }
+  /**
+   * A tour shot: `target` is a point (orbit-local) or an item id; angles in
+   * degrees; `az` is relative to the viewer's side of the orbit.
+   */
+  function shot({
+    target = [0, 0, 0],
+    az = 0,
+    el = 30,
+    dist = 16,
+    seconds = 2.6,
+    lift = 0,
+    drift = 0,
+  }) {
+    const t = typeof target === 'string' ? localOf(target) : target;
+    if (!t) return Promise.resolve(false);
+    let a = az * DEG;
+    if (typeof target === 'string') a += Math.atan2(t[0], t[2]);
+    return flyRig(
+      { target: t, az: a, el: el * DEG, dist: dist * fovScale() },
+      { seconds, lift, drift: drift * DEG },
+    );
+  }
+
   function setMorph(t) {
     orbit.setMorph(t);
     veil.style.opacity = String(ease(phase(t, 0, 0.5)));
@@ -335,18 +449,81 @@ export async function createAuditRuntime({ viewer, onExited }) {
   }
 
   function focus(id) {
-    const w = orbit.worldOf(id);
-    if (!w) return;
-    const node = [w.x * R, w.y * R, w.z * R];
-    const eye = arr(camera.positionWC);
-    const away = norm([eye[0] - node[0], eye[1] - node[1], eye[2] - node[2]]);
-    const destination = node.map((n, i) => n + away[i] * 5 * R);
-    const direction = away.map((x) => -x);
-    const north = [0, 0, 1];
-    const d = north.reduce((s, x, i) => s + x * direction[i], 0);
-    const up = norm(north.map((x, i) => x - d * direction[i]));
-    poke();
-    flyTo(destination, direction, up, 1.4);
+    const t = localOf(id);
+    if (!t) return;
+    // Look at the item from outside the ring, a little above it.
+    const now = currentRig(t);
+    const outward = Math.atan2(t[0], t[2]);
+    const az =
+      Math.abs(
+        Math.atan2(Math.sin(now.az - outward), Math.cos(now.az - outward)),
+      ) < 1.2
+        ? now.az
+        : outward;
+    lastInput = performance.now();
+    flyRig(
+      {
+        target: t,
+        az,
+        el: Math.min(Math.max(now.el, 22 * DEG), 50 * DEG),
+        dist: 10 * fovScale(),
+      },
+      { seconds: 1.5 },
+    );
+  }
+
+  // ── Progress timeline: baseline → measured re-audits → plan targets ───
+  function setStop(index, { flash = true } = {}) {
+    stopIndex = Math.max(0, Math.min(stops.length - 1, index));
+    items = itemsAt(ledger, data.items, stopIndex);
+    itemById = new Map(items.map((i) => [i.id, i]));
+    saf = rollup(items, 'saf', opts);
+    sec = rollup(items, 'sec', opts);
+    orbit.setItems(items, { flash });
+    const closed = new Set(
+      mustAtBaseline.filter((m) => itemById.get(m.id)?.fixed).map((m) => m.id),
+    );
+    cockpit.setStop({
+      stop: stops[stopIndex],
+      saf,
+      sec,
+      baseSaf,
+      baseSec,
+      closed,
+    });
+    if (selected) select(selected);
+  }
+  let playing = null;
+  function stopPlaying() {
+    if (!playing) return;
+    clearTimeout(playing);
+    playing = null;
+    cockpit.setPlaying(false);
+  }
+  function play() {
+    if (playing) return stopPlaying();
+    select(null);
+    setStop(0, { flash: false });
+    cockpit.setPlaying(true);
+    if (!cine)
+      shot({
+        az: -20,
+        el: 38,
+        dist: DESIGN_HOME * 0.95,
+        seconds: 1.6,
+        drift: 3,
+      });
+    const next = (i) => {
+      playing = setTimeout(() => {
+        setStop(i);
+        if (i < stops.length - 1) next(i + 1);
+        else {
+          playing = null;
+          cockpit.setPlaying(false);
+        }
+      }, STOP_MS);
+    };
+    next(1);
   }
 
   function setLayer(id, on) {
@@ -407,7 +584,7 @@ export async function createAuditRuntime({ viewer, onExited }) {
     if (!active || busy || e.key !== 'Escape') return;
     if (tour.isOpen()) return; // the tour handles its own keys
     e.stopImmediatePropagation();
-    if (drawer.isOpen()) drawer.close();
+    if (drawer.isOpen()) closeDrawer();
     else if (selected) select(null);
     else exit();
   };
@@ -419,7 +596,14 @@ export async function createAuditRuntime({ viewer, onExited }) {
     data,
     saf,
     sec,
-    must: mustFix(data.items),
+    must: mustAtBaseline,
+    stops,
+    onStop: (i) => {
+      stopPlaying();
+      setStop(i);
+    },
+    onPlay: () => play(),
+    onReset: () => resetView(),
     layers,
     onLayer: (id) => setLayer(id, !layers[id]),
     onSelect: (id) => {
@@ -428,29 +612,50 @@ export async function createAuditRuntime({ viewer, onExited }) {
     },
     onClear: () => select(null),
     onTour: () => tour.start(),
-    onEvidence: () => drawer.open(),
+    onEvidence: () => openDrawer(),
     onExit: () => exit(),
   });
+  const openDrawer = () => {
+    drawer.open();
+    layer.dataset.drawer = 'open';
+  };
+  const closeDrawer = () => {
+    drawer.close();
+    delete layer.dataset.drawer;
+  };
   const drawer = createEvidenceDrawer({
     container: layer,
     ledger,
-    items: data.items,
+    items: itemsAt(ledger, data.items, latestMeasured(stops).index),
+    onClose: () => delete layer.dataset.drawer,
     onShow: (id) => {
-      drawer.close();
+      closeDrawer();
       select(id);
       focus(id);
     },
   });
   const tour = createTour({
     container: layer,
+    shadeBefore: cockpit.el,
     zones: cockpit.zones,
     actions: {
+      shot,
+      home: () => flyRig(home(), { seconds: 2, lift: 0.15 }),
+      stopCamera: () => stopCine(),
+      emphasis: (key) => orbit.setEmphasis(key),
       pulse: (key, ms) => orbit.pulse(key, ms),
       select: (id) => select(id),
       layer: (id, on) => setLayer(id, on),
       layerState: (id) => !!layers[id],
-      evidence: () => drawer.open(),
-      closeEvidence: () => drawer.close(),
+      openSection: (id) => cockpit.openSection(id),
+      sectionOpen: (id) => cockpit.sectionOpen(id),
+      closeSection: (id) => cockpit.closeSection(id),
+      evidence: () => openDrawer(),
+      closeEvidence: () => closeDrawer(),
+      stop: (i) => setStop(i),
+      stopIndex: () => stopIndex,
+      lastStop: () => stops.length - 1,
+      homeDist: () => DESIGN_HOME,
     },
   });
 
@@ -477,8 +682,10 @@ export async function createAuditRuntime({ viewer, onExited }) {
     setMorph(0);
     const lon =
       Cesium.Cartographic.fromCartesian(camera.positionWC)?.longitude ?? 0;
+    orbitLon = lon;
     orbit.setLongitude(lon);
     orbit.setLayers(layers);
+    setStop(latestMeasured(stops).index, { flash: false });
     const pose = auditPose(lon, camera.frustum.fovy);
     await flyTo(pose.destination, pose.direction, pose.up, FLY_IN_S);
     await animate(0, 1, MORPH_IN_MS, setMorph);
@@ -493,8 +700,10 @@ export async function createAuditRuntime({ viewer, onExited }) {
   async function exit() {
     if (!active || busy) return;
     busy = true;
+    stopPlaying();
+    stopCine();
     tour.close();
-    drawer.close();
+    closeDrawer();
     select(null);
     hovered = null;
     target.style.cursor = '';
@@ -520,6 +729,8 @@ export async function createAuditRuntime({ viewer, onExited }) {
     }
     scene.postRender.removeEventListener(onPostRender);
     scene.preRender.removeEventListener(onPreRender);
+    stopPlaying();
+    stopCine();
     window.removeEventListener('resize', resize);
     window.removeEventListener('keydown', onKey, { capture: true });
     for (const e of ['pointerdown', 'wheel', 'keydown', 'touchstart'])
@@ -543,6 +754,23 @@ export async function createAuditRuntime({ viewer, onExited }) {
     isActive: () => active,
     isBusy: () => busy,
     // Diagnostics for tests and the harness.
-    debug: { select, focus, setLayer, orbit, layers, saf, sec },
+    debug: {
+      select,
+      focus,
+      setLayer,
+      setStop,
+      play,
+      resetView,
+      shot,
+      orbit,
+      layers,
+      stops,
+      get saf() {
+        return saf;
+      },
+      get sec() {
+        return sec;
+      },
+    },
   };
 }

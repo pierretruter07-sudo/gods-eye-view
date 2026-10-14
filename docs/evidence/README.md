@@ -6,7 +6,7 @@ This folder is the audit trail for taking God's Eye View from its audited baseli
 
 | Level | Read this first if you want to know… | Where |
 |---|---|---|
-| 0 · 40,000 ft | What was done and what changed | Page 1 of each PDF (latest: `remediation-plan-v0.2.pdf`, approved; v0.1 is the issued draft); `ledger.json` → `stages`, `audits` |
+| 0 · 40,000 ft | What was done and what changed | Page 1 of each PDF (latest: `remediation-plan-v0.3.pdf`; v0.2 added the readiness journey; v0.1 is the first issue); `ledger.json` → `stages`, `audits` |
 | 1 · Waves | What each wave delivered and the verdict after it | `ledger.json` → `waves`, `audits` |
 | 2 · Workstreams | Which deliverables closed which findings | `../REMEDIATION-PLAN.md` §5; `ledger.json` → `workstreams` |
 | 3 · Line by line | For one finding: baseline rating, fix, commit, test, new rating, date | `ledger.json` → `findings[].history` |
@@ -31,3 +31,32 @@ This folder is the audit trail for taking God's Eye View from its audited baseli
 ## Readiness journey
 
 `ledger.json` → `projections.journey` holds the target readiness after each wave (Claude + Replit + owner actions). `projections.scenarios` holds the two end states: without and with the customer and an independent reviewer. Each re-audit adds a measured point to `audits`. The PDFs and the CrossCheck evidence view plot measured points as dots and targets as dashed lines, so the gap between plan and reality stays visible.
+
+## Recording a re-audit
+
+After each wave, the changed findings are re-rated and recorded with the CrossCheck kit:
+
+```
+python3 record_audit.py <repo-root> reaudit.json
+```
+
+`reaudit.json` names the audit (`id`, `wave`, `label`, `date`, `commit`), gives each re-rating a status and its evidence (`ref`, `note`), and can mark the wave's stage done. The tool:
+
+1. appends one dated history entry per finding (from → to, the audit id, the evidence);
+2. refreshes the shipped snapshot (`src/audit/data/assessment.json`), so the app shows the latest measured audit;
+3. scores the audit with the AUDIT view's own rules (`src/audit/model.js`), so the record and the display can't disagree;
+4. refuses an audit id that is already recorded, a status it doesn't know, and a re-rating without evidence.
+
+A rehearsal on a scratch copy (all Wave 1 fixes landing as planned) gave 43.9% safety and 85.9% security. That is exactly the plan's Wave 1 target.
+
+## Measured versus projected
+
+The AUDIT view's timeline runs Baseline → Wave 1 → … → Wave 4 → Sign-off.
+
+- **Measured** stops (solid) come from a recorded audit.
+- **Projected** stops (dashed, labelled *Projected* on screen) apply each finding's planned `target` on top of the latest measured state.
+- Sign-off applies `targetFull`, the end state with the customer and an independent reviewer.
+
+Unit tests check that every projected stop reproduces `projections.journey` and the Sign-off stop reproduces scenario B. A projected stop is the plan, never evidence.
+
+Three ASVS items (V4.1.2, V12.1.1, V12.1.2) depend on the hosting edge and were not rated at the baseline. They are listed in `pending`: rated in Wave 1 from a scan of the deployed app, and projected conservatively as *Pass with note* until then. Counting them is why plan v0.3 shows security at 88% after Wave 2, not v0.2's 89%.

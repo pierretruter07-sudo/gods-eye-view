@@ -6,6 +6,25 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **AUDIT view, round 2.**
+  - Cleaner layout: a three-column grid with no overlaps, smaller type,
+    and a left rail of collapsible sections (Readiness, Must fix grouped by
+    standard, Layers, Key & sources). Detail appears only on selection,
+    with folding sections.
+  - Progress timeline: Baseline → Waves 1–4 → Sign-off, with play. The
+    orbit recolours, pins settle as gaps close, and the dials and must-fix
+    list update. Measured stops come from recorded re-audits; projected
+    stops are labelled as such everywhere.
+  - A cinematic guided tour (13 steps). The camera flies around the
+    orbit, rotating, zooming, tilting and focusing while hint chips name
+    each movement. The rest of the orbit and screen dims around the
+    subject, and a hands-on "Now you try" step follows.
+  - **Reset view** in the top bar.
+  - Requirements GEV-AUD-008…010 with tests (13 audit tests).
+- Evidence ledger: each finding now records its planned `target` and
+  `targetFull`. Re-ratings name their audit. Host-dependent items are
+  listed under `pending`. A re-audit recorder lives in the CrossCheck kit.
+  Remediation plan v0.3.
 - **AUDIT view (CrossCheck).** An AUDIT button on the main panel flies the
   camera out to the whole Earth, fades the live globe and lays the
   CrossCheck orbit exactly over it. Inner ring: 115 ED-153 objectives

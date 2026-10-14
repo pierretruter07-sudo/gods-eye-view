@@ -131,3 +131,6 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-AUD-005 | The evidence drawer shall read the ledger top down: pipeline, baseline against latest audit, progress and readiness journey first, then waves, workstreams and each finding's dated history. | T |
 | GEV-AUD-006 | Links between safety and security items shall come only from the shared evidence themes. | T |
 | GEV-AUD-007 | Entering and leaving the AUDIT view shall restore the globe, its layers and the viewer's camera exactly as they were. | D |
+| GEV-AUD-008 | The AUDIT view shall step from the baseline audit through each wave to sign-off. Stops backed by a recorded audit shall be shown as measured; all others shall be labelled projected wherever their figures appear. | T |
+| GEV-AUD-009 | Projected stops shall reproduce the remediation plan's readiness journey and end states exactly. | T |
+| GEV-AUD-010 | Guided-tour, focus and Reset view camera moves shall keep their subject on the view axis throughout, and any input on the globe shall hand the camera back to the user. | T |

@@ -10,7 +10,7 @@
  */
 import * as THREE from '../../vendor/three/three.module.min.js';
 import { basisForLongitude, ease, phase } from './cameraMath.js';
-import { RINGS, nodeOpacity } from './model.js';
+import { RINGS, isBlocking, nodeKind, nodeOpacity } from './model.js';
 
 const COLOR = {
   C: 0x6fd3a6,
@@ -24,7 +24,36 @@ const COLOR = {
   sec: 0xa294dc,
   link: 0x9fb6d4,
   linkHot: 0xffd0c8,
+  FIXED: 0x6fe3b0,
 };
+
+const FLASH_MS = 1600;
+const BASE = Object.freeze({
+  core: 1,
+  saf: 1,
+  sec: 1,
+  tube: 1,
+  floor: 1,
+  links: 1,
+  must: 1,
+  other: 1,
+});
+/** Tour emphasis: multipliers on each part's opacity. */
+const EMPHASIS = Object.freeze({
+  none: BASE,
+  core: { ...BASE, core: 1.6, saf: 0.22, sec: 0.22, floor: 0.4, links: 0.2 },
+  saf: { ...BASE, saf: 1.7, sec: 0.1, core: 0.35, links: 0.2, floor: 0.6 },
+  sec: { ...BASE, sec: 1.7, saf: 0.1, core: 0.35, links: 0.2, floor: 0.6 },
+  mustfix: {
+    ...BASE,
+    must: 1.3,
+    other: 0.12,
+    tube: 0.35,
+    core: 0.4,
+    links: 0.2,
+  },
+  links: { ...BASE, links: 2.3, tube: 0.5, other: 0.4, core: 0.4 },
+});
 
 function nodeColor(item) {
   if (item.out) return COLOR.OUT;
@@ -105,7 +134,7 @@ export function createOrbitScene({ nodes, groups, themes }) {
   const shell = fresnelMaterial(0x9cc6ef);
   core.add(new THREE.Mesh(new THREE.SphereGeometry(1.0, 96, 64), shell));
   const grid = lineMaterial(0x8fbbe6, 0);
-  fadeables.push({ material: grid, base: 0.24, key: 'core' });
+  fadeables.push({ material: grid, base: 0.24, key: 'core', part: 'core' });
   for (let lat = -60; lat <= 60; lat += 30) {
     const r = Math.cos((lat * Math.PI) / 180);
     const z = Math.sin((lat * Math.PI) / 180);
@@ -144,7 +173,12 @@ export function createOrbitScene({ nodes, groups, themes }) {
   root.add(rings);
 
   const floorMat = lineMaterial(0x2c4566, 0);
-  fadeables.push({ material: floorMat, base: 0.12, key: 'rings' });
+  fadeables.push({
+    material: floorMat,
+    base: 0.12,
+    key: 'rings',
+    part: 'floor',
+  });
   for (const r of [2.6, 4.3, 5.9, 7.5])
     rings.add(new THREE.Line(circle(r, -1.47), floorMat));
 
@@ -167,7 +201,13 @@ export function createOrbitScene({ nodes, groups, themes }) {
       opacity: 0,
       depthWrite: false,
     });
-    fadeables.push({ material: m, base: 0.45, key: 'rings' });
+    fadeables.push({
+      material: m,
+      base: 0.45,
+      key: 'rings',
+      part: g.lens,
+      tube: true,
+    });
     rings.add(
       new THREE.Mesh(
         new THREE.TubeGeometry(
@@ -184,46 +224,74 @@ export function createOrbitScene({ nodes, groups, themes }) {
 
   const dot = new THREE.SphereGeometry(1, 14, 10);
   const byId = new Map();
+
+  /** Colour of a node from its current item. */
+  function colorOf(n) {
+    if (n.blocking) return n.item.status === 'N' ? COLOR.N : COLOR.P;
+    if (n.item.fixed) return COLOR.FIXED;
+    return nodeColor(n.item);
+  }
+
+  /** A raised pin's stem and footprint, made on first need. */
+  function ensurePin(e) {
+    if (e.stem) return;
+    const n = e.node;
+    e.stem = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(...n.base),
+        new THREE.Vector3(...n.base),
+      ]),
+      lineMaterial(e.material.color.getHex(), 0),
+    );
+    rings.add(e.stem);
+    e.foot = new THREE.Mesh(
+      new THREE.RingGeometry(n.size * 1.6, n.size * 2.2, 24),
+      new THREE.MeshBasicMaterial({
+        color: e.material.color.getHex(),
+        transparent: true,
+        opacity: 0,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    e.foot.rotation.x = -Math.PI / 2;
+    e.foot.position.set(n.base[0], n.base[1] + 0.005, n.base[2]);
+    rings.add(e.foot);
+  }
+
+  function styleNode(e) {
+    const n = e.node;
+    const c = colorOf(n);
+    e.material.color.setHex(c);
+    e.stem?.material.color.setHex(c);
+    e.foot?.material.color.setHex(c);
+    e.mesh.scale.setScalar(
+      n.size * (n.blocking ? 1.5 : n.item.fixed ? 1.25 : 0.8),
+    );
+    e.liftGoal = n.blocking ? 1 : 0;
+    if (n.blocking) ensurePin(e);
+  }
+
   for (const n of nodes) {
-    const color = n.blocking
-      ? n.item.status === 'N'
-        ? COLOR.N
-        : COLOR.P
-      : nodeColor(n.item);
     const material = new THREE.MeshBasicMaterial({
-      color,
       transparent: true,
       opacity: 0,
       depthWrite: false,
     });
     const mesh = new THREE.Mesh(dot, material);
-    mesh.scale.setScalar(n.size * (n.blocking ? 1.5 : 0.8));
     mesh.position.set(...n.base);
     rings.add(mesh);
-    const entry = { node: n, mesh, material, stem: null, foot: null };
-    if (n.blocking) {
-      const stemMat = lineMaterial(color, 0);
-      const stemGeo = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(...n.base),
-        new THREE.Vector3(...n.base),
-      ]);
-      entry.stem = new THREE.Line(stemGeo, stemMat);
-      rings.add(entry.stem);
-      const footMat = new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity: 0,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      });
-      entry.foot = new THREE.Mesh(
-        new THREE.RingGeometry(n.size * 1.6, n.size * 2.2, 24),
-        footMat,
-      );
-      entry.foot.rotation.x = -Math.PI / 2;
-      entry.foot.position.set(n.base[0], n.base[1] + 0.005, n.base[2]);
-      rings.add(entry.foot);
-    }
+    const entry = {
+      node: { ...n },
+      mesh,
+      material,
+      stem: null,
+      foot: null,
+      lift: n.blocking ? 1 : 0,
+      liftGoal: 0,
+      flashUntil: 0,
+    };
+    styleNode(entry);
     byId.set(n.id, entry);
   }
 
@@ -269,7 +337,11 @@ export function createOrbitScene({ nodes, groups, themes }) {
     selected: null,
     linked: new Set(),
     pulse: null, // { key: 'saf'|'sec'|'core'|'mustfix', until }
+    emphasis: null, // the tour's focus: 'core'|'saf'|'sec'|'mustfix'|'links'
   };
+  // Emphasis factors, eased towards their targets each frame.
+  const ef = { ...EMPHASIS.none };
+  let lastFrame = 0;
   const tmp = new THREE.Vector3();
 
   function factor(key, t) {
@@ -282,42 +354,37 @@ export function createOrbitScene({ nodes, groups, themes }) {
     return ease(phase(t, 0.7, 1));
   }
 
-  function rebuildLink(l, lift) {
-    if (l.built === lift) return;
-    const A = byId.get(l.a).node;
-    const B = byId.get(l.b).node;
-    const pa = new THREE.Vector3(
-      A.base[0],
-      A.base[1] + (A.position[1] - A.base[1]) * lift,
-      A.base[2],
-    );
-    const pb = new THREE.Vector3(
-      B.base[0],
-      B.base[1] + (B.position[1] - B.base[1]) * lift,
-      B.base[2],
-    );
+  function rebuildLink(l) {
+    const pa = byId.get(l.a).mesh.position;
+    const pb = byId.get(l.b).mesh.position;
+    const key = `${pa.y.toFixed(3)},${pb.y.toFixed(3)}`;
+    if (l.built === key) return;
     const mid = pa.clone().add(pb).multiplyScalar(0.5);
     mid.y += 0.7 + pa.distanceTo(pb) * 0.1;
     l.mesh.geometry.dispose();
     l.mesh.geometry = new THREE.TubeGeometry(
-      new THREE.QuadraticBezierCurve3(pa, mid, pb),
+      new THREE.QuadraticBezierCurve3(pa.clone(), mid, pb.clone()),
       48,
       0.0045,
       5,
       false,
     );
-    l.built = lift;
+    l.built = key;
   }
 
   /** Re-apply every opacity, position and scale from the current state. */
   function apply(now = performance.now()) {
     const t = state.morph;
     shell.uniforms.alpha.value = factor('core', t);
-    for (const f of fadeables) f.material.opacity = f.base * factor(f.key, t);
+    for (const f of fadeables) {
+      const e = f.part ? ef[f.part] * (f.tube ? ef.tube : 1) : 1;
+      f.material.opacity = Math.min(1, f.base * factor(f.key, t) * e);
+    }
+    shell.uniforms.alpha.value *= ef.core;
     const ringFactor = factor('rings', t);
     const s = 0.22 + 0.78 * ease(phase(t, 0.3, 0.8));
     rings.scale.set(s, 1, s);
-    const lift = Math.round(liftFactor(t) * 20) / 20;
+    const lift = liftFactor(t);
     const pulseOn = state.pulse && now < state.pulse.until;
     const pulse = pulseOn ? 0.5 + 0.5 * Math.sin(now / 160) : 0;
     for (const e of byId.values()) {
@@ -332,8 +399,17 @@ export function createOrbitScene({ nodes, groups, themes }) {
           (state.pulse.key === 'mustfix' && n.blocking))
       )
         o = Math.max(o, 0.35 + 0.65 * pulse);
+      o = Math.min(
+        1,
+        o * ef[n.lens] * (n.blocking || n.item.fixed ? ef.must : ef.other),
+      );
+      if (now < e.flashUntil) {
+        const k = (e.flashUntil - now) / FLASH_MS;
+        o = Math.max(o, 0.6 + 0.4 * k);
+        e.mesh.scale.setScalar(n.size * (1.25 + 1.4 * k));
+      }
       e.material.opacity = o * ringFactor;
-      const y = n.base[1] + (n.position[1] - n.base[1]) * lift;
+      const y = n.base[1] + RINGS[n.lens].lift * e.lift * lift;
       e.mesh.position.y = y;
       if (e.stem) {
         const pos = e.stem.geometry.attributes.position;
@@ -347,9 +423,13 @@ export function createOrbitScene({ nodes, groups, themes }) {
     for (const l of links) {
       const hot =
         state.selected && (l.a === state.selected || l.b === state.selected);
-      rebuildLink(l, lift);
+      rebuildLink(l);
       l.material.color.setHex(hot ? COLOR.linkHot : COLOR.link);
-      l.material.opacity = (hot ? 0.95 : linksOn ? 0.4 : 0.035) * ringFactor;
+      l.material.opacity =
+        Math.min(
+          1,
+          (hot ? 0.95 : linksOn ? 0.4 : 0.035) * (hot ? 1 : ef.links),
+        ) * ringFactor;
     }
     if (pulseOn && state.pulse.key === 'core')
       shell.uniforms.alpha.value *= 1 + 0.6 * pulse;
@@ -424,8 +504,60 @@ export function createOrbitScene({ nodes, groups, themes }) {
     state.pulse = { key, until: performance.now() + ms };
   }
 
+  /**
+   * Show the items as they stand at a point of the remediation: colours,
+   * raised pins and layers follow each item's status. Newly fixed items
+   * flash once and their pins settle onto the ring.
+   */
+  function setItems(items, { flash = true } = {}) {
+    const now = performance.now();
+    for (const item of items) {
+      const e = byId.get(item.id);
+      if (!e) continue;
+      const wasFixed = !!e.node.item.fixed;
+      e.node.item = item;
+      e.node.blocking = isBlocking(item);
+      e.node.kind = nodeKind(item);
+      styleNode(e);
+      if (flash && item.fixed && !wasFixed) e.flashUntil = now + FLASH_MS;
+    }
+    apply(now);
+  }
+
+  /** Dim everything but one part of the orbit (null: back to normal). */
+  function setEmphasis(key) {
+    state.emphasis = EMPHASIS[key] ? key : null;
+  }
+
   /** Per-frame: face marks at the camera and animate pulses. */
   function frame(camera, now) {
+    const dt = Math.min(0.1, lastFrame ? (now - lastFrame) / 1000 : 0);
+    lastFrame = now;
+    const goal = EMPHASIS[state.emphasis || 'none'];
+    let moving = false;
+    for (const k of Object.keys(ef)) {
+      const d = goal[k] - ef[k];
+      if (Math.abs(d) < 0.002) ef[k] = goal[k];
+      else {
+        ef[k] += d * Math.min(1, dt * 4.5);
+        moving = true;
+      }
+    }
+    for (const e of byId.values()) {
+      const d = e.liftGoal - e.lift;
+      if (Math.abs(d) < 0.002) e.lift = e.liftGoal;
+      else {
+        e.lift += d * Math.min(1, dt * 2.6);
+        moving = true;
+      }
+      if (e.flashUntil && now < e.flashUntil + 50) moving = true;
+      else if (e.flashUntil) {
+        e.flashUntil = 0;
+        styleNode(e);
+        moving = true;
+      }
+    }
+    if (moving) apply(now);
     if (state.selected) {
       const e = byId.get(state.selected);
       if (e) halo.position.copy(e.mesh.position);
@@ -491,6 +623,8 @@ export function createOrbitScene({ nodes, groups, themes }) {
     setLayers,
     select,
     pulse,
+    setEmphasis,
+    setItems,
     frame,
     worldOf,
     pick,

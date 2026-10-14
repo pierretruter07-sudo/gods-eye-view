@@ -21,15 +21,26 @@ import {
   ease,
   localToEcef,
   overlayCamera,
+  homeRig,
+  rigPose,
+  rigFromPosition,
+  interpolateRig,
 } from './cameraMath.js';
 import { readinessJourney, ledgerProgress } from './evidenceModel.js';
+import {
+  findingStatesAt,
+  itemsAt,
+  latestMeasured,
+  timelineStops,
+} from './progress.js';
 
 const near = (a, b, eps = 1e-6) => Math.abs(a - b) <= eps;
 
 test('the audit snapshot rolls up to the ledger baseline readiness and verdicts', () => {
   const opts = { swal: data.swal, asvsLevel: data.asvsLevel };
-  const saf = rollup(data.items, 'saf', opts);
-  const sec = rollup(data.items, 'sec', opts);
+  const atBase = itemsAt(ledger, data.items, 0);
+  const saf = rollup(atBase, 'saf', opts);
+  const sec = rollup(atBase, 'sec', opts);
   const base = ledger.audits[0];
   assert.ok(near(saf.readiness, base.safety.readiness, 1e-4));
   assert.ok(near(sec.readiness, base.security.readiness, 1e-4));
@@ -38,10 +49,26 @@ test('the audit snapshot rolls up to the ledger baseline readiness and verdicts'
   assert.equal(saf.open, base.safety.open);
   assert.equal(sec.open, base.security.open);
   assert.equal(saf.blocking + sec.blocking, 20);
+  // The shipped snapshot is the latest measured audit.
+  const last = ledger.audits[ledger.audits.length - 1];
+  assert.ok(
+    near(
+      rollup(data.items, 'saf', opts).readiness,
+      last.safety.readiness,
+      1e-4,
+    ),
+  );
+  assert.ok(
+    near(
+      rollup(data.items, 'sec', opts).readiness,
+      last.security.readiness,
+      1e-4,
+    ),
+  );
 });
 
 test('every must-fix item has a plain-English card, and no card is stale', () => {
-  const ids = mustFix(data.items).map((i) => i.id);
+  const ids = mustFix(itemsAt(ledger, data.items, 0)).map((i) => i.id);
   assert.equal(ids.length, 20);
   for (const id of ids) assert.ok(PLAIN[id], `missing plain card for ${id}`);
   for (const id of Object.keys(PLAIN))
@@ -152,4 +179,112 @@ test('the evidence view reads the ledger top down: progress and journey', () => 
   assert.equal(j.points[0].label, 'Baseline');
   assert.equal(j.points[0].kind, 'actual');
   assert.equal(j.points.length, 5);
+});
+
+test('the tour camera rig reproduces the home framing and keeps its target in view', () => {
+  const fovy = (40 * Math.PI) / 180;
+  const lon = 0.9;
+  const home = homeRig(fovy);
+  const a = rigPose(home, lon, { radiusM: 1 });
+  const b = auditPose(lon, fovy, { radiusM: 1 });
+  a.position.forEach((x, i) => assert.ok(near(x, b.destination[i], 1e-9)));
+  a.direction.forEach((x, i) => assert.ok(near(x, b.direction[i], 1e-9)));
+  const back = rigFromPosition(a.position, lon, home.target, { radiusM: 1 });
+  assert.ok(near(back.dist, home.dist, 1e-9) && near(back.el, home.el, 1e-9));
+  const close = { target: [3, 0.4, 1], az: 2.9, el: 0.4, dist: 3 };
+  for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+    const r = interpolateRig(home, close, t, { lift: 0.2 });
+    const p = rigPose(r, lon, { radiusM: 1 });
+    const tgt = rigPose({ ...r, dist: 0 }, lon, { radiusM: 1 }).position;
+    const to = tgt.map((x, i) => x - p.position[i]);
+    const len = Math.hypot(...to);
+    const cos = to.reduce((s, x, i) => s + (x / len) * p.direction[i], 0);
+    assert.ok(cos > 0.999999, `target off-axis at t=${t}`);
+  }
+  const mid = interpolateRig(home, close, 0.5);
+  assert.ok(Math.abs(mid.az - (home.az + (2.9 - home.az) / 2)) < 1e-9);
+});
+
+test('projected stops reproduce the plan’s readiness journey, wave by wave', () => {
+  const opts = { swal: data.swal, asvsLevel: data.asvsLevel };
+  const stops = timelineStops(ledger);
+  assert.equal(stops.length, ledger.waves.length + 2);
+  assert.equal(stops.at(-1).label, 'Sign-off');
+  assert.equal(stops[0].kind, 'measured');
+  ledger.projections.journey.forEach((j, w) => {
+    const at = itemsAt(ledger, data.items, w);
+    const saf = rollup(at, 'saf', opts);
+    const sec = rollup(at, 'sec', opts);
+    assert.ok(
+      near(saf.readiness, j.safety, 1e-3),
+      `safety at stop ${w}: ${saf.readiness} vs ${j.safety}`,
+    );
+    assert.ok(
+      near(sec.readiness, j.security, 1e-3),
+      `security at stop ${w}: ${sec.readiness} vs ${j.security}`,
+    );
+    if (w) assert.equal(stops[w].kind, 'projected');
+  });
+  // Sign-off: the end state with the customer and an independent reviewer.
+  const full = ledger.projections.scenarios.find((x) => x.id === 'B');
+  const end = itemsAt(ledger, data.items, stops.length - 1);
+  const endSaf = rollup(end, 'saf', opts);
+  const endSec = rollup(end, 'sec', opts);
+  assert.ok(near(endSaf.readiness, full.safety, 1e-3));
+  assert.ok(near(endSec.readiness, full.security, 1e-3));
+  assert.equal(endSaf.verdict, 'SWAL 3 claim supported');
+  assert.equal(endSec.verdict, 'ASVS L2 met');
+  // Projected fixes are marked; nothing is marked at the baseline.
+  assert.ok(
+    [...findingStatesAt(ledger, 0).values()].every((s) => !s.projected),
+  );
+  assert.ok([...findingStatesAt(ledger, 1).values()].some((s) => s.projected));
+});
+
+test('a recorded re-audit becomes a measured stop and later stops build on it', () => {
+  const opts = { swal: data.swal, asvsLevel: data.asvsLevel };
+  // A test ledger only: close every Wave 1 finding except one in audit A1.
+  const demo = structuredClone(ledger);
+  const w1 = demo.findings.filter((f) => f.wave === 1);
+  const keep = w1[0];
+  for (const f of w1.slice(1)) {
+    f.history.push({
+      date: '2026-10-20',
+      event: 'rerated',
+      audit: 'A1',
+      from: f.baseline.status,
+      status: 'C',
+      severity: null,
+      ref: 'test',
+    });
+  }
+  demo.audits.push({
+    id: 'A1',
+    wave: 1,
+    label: 'Wave 1 re-audit',
+    date: '2026-10-20',
+    commit: 'test',
+    safety: {},
+    security: {},
+  });
+  const stops = timelineStops(demo);
+  assert.equal(stops[1].kind, 'measured');
+  assert.equal(latestMeasured(stops).index, 1);
+  const at0 = itemsAt(demo, data.items, 0);
+  const at1 = itemsAt(demo, data.items, 1);
+  const at2 = itemsAt(demo, data.items, 2);
+  const byId = (list, id) => list.find((i) => i.id === id);
+  const closed = w1[1].id;
+  assert.equal(byId(at0, closed).status, w1[1].baseline.status);
+  assert.equal(byId(at1, closed).status, 'C');
+  assert.equal(byId(at1, closed).fixed, true);
+  assert.equal(byId(at1, closed).projected, false);
+  // The finding left open is measured open at stop 1, projected closed only later.
+  assert.equal(byId(at1, keep.id).status, keep.baseline.status);
+  assert.equal(byId(at2, keep.id).projected, true);
+  assert.ok(
+    rollup(at1, 'sec', opts).readiness > rollup(at0, 'sec', opts).readiness,
+  );
+  // The real ledger is untouched.
+  assert.equal(ledger.audits.length, 1);
 });

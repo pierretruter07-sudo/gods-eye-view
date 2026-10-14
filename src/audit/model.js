@@ -60,6 +60,7 @@ export const RINGS = Object.freeze({
 /** Layers in the order the cockpit lists them; `on` is the first-load state. */
 export const LAYERS = Object.freeze([
   Object.freeze({ id: 'mustfix', name: 'Must fix', on: true }),
+  Object.freeze({ id: 'fixed', name: 'Fixed since baseline', on: true }),
   Object.freeze({ id: 'gaps', name: 'Other gaps', on: false }),
   Object.freeze({ id: 'links', name: 'Links', on: false }),
   Object.freeze({ id: 'passing', name: 'Passing', on: false }),
@@ -240,6 +241,7 @@ export function layout(items) {
 
 /** Which layer a node belongs to. */
 export function nodeKind(item) {
+  if (item.fixed) return 'fixed';
   if (isBlocking(item)) return 'mustfix';
   if (item.status === 'P' || item.status === 'N') return 'gaps';
   if (item.status === 'C' || item.status === 'L') return 'passing';

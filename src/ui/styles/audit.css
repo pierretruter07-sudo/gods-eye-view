@@ -1,6 +1,7 @@
 /* CrossCheck AUDIT view: cockpit layout, dark-first, calm.
-   Fixed zones: top bar, status (left), detail (right), must-fix list
-   (bottom left), layers (bottom right). Everything sits in one layer above
+   A grid frame: top bar, a left rail of collapsible sections, the open
+   centre for the orbit (progress timeline at its foot) and a detail column
+   that appears only when something is selected. Everything sits in one layer above
    the globe; the live platform's chrome fades out while it is open. */
 
 body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
@@ -237,123 +238,207 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
   color: #bbb1e8;
 }
 
-/* ── Cockpit zones ──────────────────────────────────────────────────── */
+/* ── Cockpit frame: top bar, left rail, open centre, detail column ──── */
 .gev-audit-ui {
+  --rail-w: 268px;
+  --detail-w: 304px;
   position: absolute;
   inset: 0;
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--detail-w);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px 16px;
+  padding: 12px 16px 16px;
+  box-sizing: border-box;
   transition: opacity 0.5s ease;
 }
 .gev-audit-ui[data-visible='false'] {
   opacity: 0;
 }
-.gev-audit-ui[data-visible='true'] > * {
+.gev-audit-ui[data-visible='true'] > :not(.gev-audit-stage) {
   pointer-events: auto;
+}
+.gev-audit-ui > * {
+  transition: opacity 0.35s ease;
 }
 
 .gev-audit-top {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  top: 16px;
-  min-height: 48px;
+  grid-column: 1 / -1;
+  min-height: 44px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 16px;
-  padding: 6px 14px;
+  gap: 20px;
+  padding: 5px 8px 5px 14px;
   box-sizing: border-box;
 }
 .gev-audit-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
 }
 .gev-audit-brand b {
-  font-size: 15px;
+  font-size: 14px;
   letter-spacing: 0.02em;
 }
 .gev-audit-brand span {
   color: var(--a-ink-2);
+  font-size: 12px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .gev-audit-status {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 14px;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
   color: #e8eef5;
+}
+.gev-audit-status span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gev-audit-status[data-projected='true'] span {
+  color: #cfc6f2;
 }
 .gev-audit-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+}
+.gev-audit-btn.is-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.gev-audit-zone {
-  position: absolute;
+/* Left rail: collapsible sections, scrolls on its own. */
+.gev-audit-rail {
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  box-sizing: border-box;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 175, 205, 0.25) transparent;
+  padding-right: 2px;
 }
-.gev-audit-zone.is-status {
-  left: 24px;
-  top: 80px;
-  width: 248px;
+.gev-rail-sec {
+  flex: none;
+  background: var(--a-glass);
+  border: 1px solid var(--a-rule);
+  border-radius: 10px;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
-.gev-audit-zone.is-detail {
-  right: 24px;
-  top: 80px;
-  width: 300px;
-  max-height: calc(100vh - 80px - 170px);
-}
-.gev-audit-zone.is-detail .gev-audit-card {
-  overflow: auto;
-}
-.gev-audit-zone .gev-audit-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-}
-.gev-audit-lens {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.gev-audit-card.is-saf .gev-audit-lens {
-  color: #9cbde4;
-}
-.gev-audit-card.is-sec .gev-audit-lens {
-  color: #bbb1e8;
-}
-.gev-audit-gauge {
+.gev-rail-sec > summary,
+.gev-must-group > summary,
+.gev-fold > summary {
+  list-style: none;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
 }
-.gev-audit-num {
+.gev-rail-sec > summary {
+  padding: 10px 12px;
+}
+.gev-rail-sec > summary::-webkit-details-marker,
+.gev-must-group > summary::-webkit-details-marker,
+.gev-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.gev-rail-meta {
+  margin-left: auto;
+  font: 500 11px var(--a-mono);
+  color: var(--a-ink-2);
+  white-space: nowrap;
+}
+.gev-chev {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-right: 1.5px solid var(--a-ink-3);
+  border-bottom: 1.5px solid var(--a-ink-3);
+  rotate: -45deg;
+  translate: 0 -1px;
+  transition: rotate 0.2s ease;
+}
+details[open] > summary > .gev-chev {
+  rotate: 45deg;
+  translate: 0 -3px;
+}
+.gev-rail-sec > summary:hover .gev-audit-zlabel,
+.gev-fold > summary:hover .gev-audit-zlabel {
+  color: var(--a-ink-2);
+}
+.gev-rail-body {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 0 12px 12px;
 }
-.gev-audit-num b {
-  font-size: 26px;
+.gev-rail-note {
+  font-size: 11px;
+}
+
+/* Readiness rows */
+.gev-ready {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+.gev-ready-dial svg {
+  display: block;
+}
+.gev-ready-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.gev-ready-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.gev-ready-line b {
+  font-size: 18px;
   line-height: 1;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.gev-audit-num span {
-  font-size: 11px;
-  color: var(--a-ink-2);
+.gev-ready-gain {
+  font: 500 10px var(--a-mono);
+  color: var(--a-ok);
+}
+.gev-ready-gain[hidden] {
+  display: none;
+}
+.gev-audit-lens {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.gev-ready.is-saf .gev-audit-lens {
+  color: #9cbde4;
+}
+.gev-ready.is-sec .gev-audit-lens {
+  color: #bbb1e8;
 }
 .gev-audit-verdict {
-  font-size: 12px;
+  font-size: 11px;
   color: #ffb2a8;
 }
 .gev-audit-verdict.is-ok {
@@ -363,31 +448,393 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
 .gev-audit-verdict.is-incomplete {
   color: #f6d08f;
 }
-.gev-audit-card.is-key {
+
+/* Must-fix list, grouped by standard */
+.gev-must-group > summary {
+  padding: 2px 0 4px;
+}
+.gev-must-name {
+  font-size: 11px;
+  font-weight: 600;
+}
+.gev-must-name.is-saf {
+  color: #9cbde4;
+}
+.gev-must-name.is-sec {
+  color: #bbb1e8;
+}
+.gev-audit-alerts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.gev-audit-alert {
+  display: grid;
+  grid-template-columns: 8px 46px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: #c9d4e0;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.gev-audit-alert:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--a-ink);
+}
+.gev-audit-alert[aria-current='true'] {
+  background: rgba(255, 107, 94, 0.13);
+  color: var(--a-ink);
+}
+.gev-audit-alert[data-closed='true'] {
+  color: var(--a-ink-3);
+}
+.gev-audit-alert[data-closed='true'] .gev-audit-alert-text {
+  text-decoration: line-through;
+  text-decoration-color: rgba(111, 211, 166, 0.6);
+}
+.gev-audit-alert[data-closed='true'] .gev-audit-sq {
+  background: var(--a-ok);
+}
+.gev-audit-alert-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Layers: one row per layer */
+.gev-audit-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.gev-audit-layerbtn {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #7d8ea3;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.gev-audit-layerbtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.gev-audit-layerbtn em {
+  font: normal 500 10px var(--a-mono);
+  color: #56667a;
+}
+.gev-audit-layerbtn[aria-pressed='true'] {
+  border-color: rgba(220, 232, 245, 0.2);
+  background: rgba(220, 232, 245, 0.06);
+  color: var(--a-ink);
+}
+.gev-audit-layerbtn[aria-pressed='true'] em {
+  color: var(--a-ok);
+}
+.gev-audit-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: rgba(150, 175, 205, 0.4);
+}
+[data-layer='mustfix'] .gev-audit-swatch {
+  background: var(--a-bad);
+}
+[data-layer='fixed'] .gev-audit-swatch {
+  background: var(--a-ok);
+  border-radius: 50%;
+}
+[data-layer='gaps'] .gev-audit-swatch {
+  background: var(--a-warn);
+}
+[data-layer='links'] .gev-audit-swatch {
+  height: 2px;
+  background: #e6d6d2;
+}
+[data-layer='passing'] .gev-audit-swatch {
+  background: #4f9e7d;
+}
+[data-layer='na'] .gev-audit-swatch {
+  background: #4a5a70;
+}
+[data-layer='labels'] .gev-audit-swatch {
+  background: none;
+  border: 1px solid #8b9cb0;
+  width: 7px;
+  height: 7px;
+}
+.gev-audit-layerbtn[aria-pressed='false'] .gev-audit-swatch {
+  opacity: 0.45;
+}
+
+/* Key & sources */
+.gev-key {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   font-size: 12px;
   color: #9fafc2;
-  background: rgba(10, 16, 26, 0.6);
+}
+.gev-key li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.gev-key-mark {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.gev-key-mark.is-core {
+  border: 1.5px solid #9cc6ef;
+}
+.gev-key-mark.is-saf {
+  border: 2px solid var(--a-saf);
+  border-color: var(--a-saf) transparent var(--a-saf) transparent;
+}
+.gev-key-mark.is-sec {
+  border: 2px solid var(--a-sec);
+  border-color: var(--a-sec) transparent var(--a-sec) transparent;
+}
+.gev-key-mark.is-pin {
+  width: 8px;
+  height: 8px;
+  margin: 0 3px;
+  background: var(--a-bad);
+  box-shadow: 0 6px 0 -3px var(--a-bad);
+}
+.gev-audit-attrib {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.45;
+  color: #5d6c80;
+}
+
+/* Centre stage: progress timeline and hint sit at the bottom */
+.gev-audit-stage {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  min-width: 0;
+  pointer-events: none;
+}
+.gev-audit-stage > * {
+  pointer-events: auto;
+}
+.gev-audit-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  translate: -50% 0;
+  margin: 0;
+  max-width: 100%;
+  font-size: 11px;
+  color: #6d7d91;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.gev-audit-projected {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px dashed rgba(187, 177, 232, 0.6);
+  background: rgba(20, 16, 40, 0.75);
+  color: #d9d2f5;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.gev-audit-projected b {
+  font: 600 10px var(--a-mono);
+  letter-spacing: 0.12em;
+  color: #bbb1e8;
+}
+.gev-audit-projected[hidden] {
+  display: none;
+}
+
+/* Progress timeline: baseline → each wave (measured or projected) */
+.gev-tl {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  translate: -50% 0;
+  width: min(660px, 100%);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 8px;
+}
+.gev-tl-play {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(150, 175, 205, 0.3);
+  background: transparent;
+  color: var(--a-ink);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.gev-tl-play:hover {
+  border-color: rgba(220, 232, 245, 0.6);
+}
+.gev-tl-stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  position: relative;
+}
+.gev-tl-stops::before {
+  content: '';
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  top: 7px;
+  border-top: 1px dashed rgba(150, 175, 205, 0.3);
+}
+.gev-tl-stop {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  color: var(--a-ink-2);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  min-width: 0;
+}
+.gev-tl-stop i {
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: #0b121d;
+  border: 2px solid var(--a-ink-2);
+}
+.gev-tl-stop[data-kind='projected'] i {
+  border-style: dashed;
+  border-color: #8d82c4;
+}
+.gev-tl-stop[data-final='true'] i {
+  border-radius: 3px;
+}
+.gev-tl-stop[data-kind='measured'] i {
+  border-color: var(--a-ok);
+}
+.gev-tl-stop span {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gev-tl-stop small {
+  font: 400 10px var(--a-mono);
+  color: var(--a-ink-3);
+}
+.gev-tl-stop[aria-current='true'] {
+  color: var(--a-ink);
+}
+.gev-tl-stop[aria-current='true'] i {
+  background: var(--a-ink);
+  border-color: var(--a-ink);
+  box-shadow: 0 0 0 4px rgba(223, 231, 240, 0.15);
+}
+.gev-tl-stop[data-kind='projected'][aria-current='true'] i {
+  background: #bbb1e8;
+  border-color: #bbb1e8;
+}
+
+/* Detail column: only while something is selected */
+.gev-audit-detail {
+  grid-column: 3;
+  grid-row: 2;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.gev-audit-detail[hidden] {
+  display: none;
+}
+.gev-audit-detail[data-tone='bad'] {
+  border-color: rgba(255, 140, 128, 0.35);
+}
+.gev-audit-detail[data-tone='warn'] {
+  border-color: rgba(240, 180, 76, 0.35);
 }
 .gev-audit-zhead {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  padding: 0 2px;
+  padding: 8px 8px 0 14px;
 }
-.gev-audit-card[data-tone='bad'] {
-  border-color: rgba(255, 140, 128, 0.35);
+.gev-audit-x {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--a-ink-2);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
 }
-.gev-audit-card[data-tone='warn'] {
-  border-color: rgba(240, 180, 76, 0.35);
+.gev-audit-x:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--a-ink);
 }
-.gev-audit-card[data-tone='empty'] {
-  border-style: dashed;
-  background: rgba(10, 16, 26, 0.5);
-}
-.gev-audit-empty-title {
-  font-weight: 500;
-  color: #b9c6d4;
+.gev-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px 14px 14px;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 175, 205, 0.25) transparent;
 }
 .gev-audit-tag {
   font-size: 10px;
@@ -396,29 +843,44 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
   text-transform: uppercase;
   color: #ffb2a8;
 }
-.gev-audit-card[data-tone='ok'] .gev-audit-tag {
+.gev-audit-detail[data-tone='ok'] .gev-audit-tag {
   color: #9fe6c4;
 }
-.gev-audit-card[data-tone='warn'] .gev-audit-tag {
+.gev-audit-detail[data-tone='warn'] .gev-audit-tag {
   color: #f6d08f;
 }
 .gev-audit-title {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.25;
+  margin: -6px 0 0;
+  font-size: 16px;
+  line-height: 1.3;
   font-weight: 600;
   text-wrap: balance;
 }
 .gev-audit-ref {
+  margin-top: -8px;
   font: 400 11px var(--a-mono);
   color: var(--a-ink-3);
 }
 .gev-audit-sec {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
+}
+.gev-audit-sec p {
+  margin: 0;
   font-size: 12px;
+  line-height: 1.5;
   color: #b9c6d4;
+}
+.gev-fold {
+  border-top: 1px solid var(--a-rule);
+  padding-top: 10px;
+}
+.gev-fold > summary {
+  padding-bottom: 2px;
+}
+.gev-fold[open] > summary {
+  margin-bottom: 8px;
 }
 .gev-audit-linked {
   list-style: none;
@@ -430,29 +892,31 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
 }
 .gev-audit-linkrow {
   display: grid;
-  grid-template-columns: 62px minmax(0, 1fr);
+  grid-template-columns: 52px minmax(0, 1fr);
   gap: 8px;
   width: 100%;
   text-align: left;
   border: 0;
+  border-radius: 5px;
   background: none;
-  padding: 3px 0;
+  padding: 4px 4px;
   color: #9fafc2;
   font: inherit;
   font-size: 11px;
   cursor: pointer;
 }
 .gev-audit-linkrow:hover {
+  background: rgba(255, 255, 255, 0.04);
   color: var(--a-ink);
 }
 .gev-audit-hist {
   list-style: none;
-  margin: 2px 0 0;
+  margin: 2px 0 0 4px;
   padding: 0 0 0 14px;
   border-left: 1px solid var(--a-rule);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font-size: 11px;
   color: #9fafc2;
 }
@@ -463,7 +927,7 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
   content: '';
   position: absolute;
   left: -19px;
-  top: 5px;
+  top: 4px;
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -480,135 +944,22 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
   margin-right: 6px;
 }
 
-.gev-audit-zone.is-alerts {
-  left: 24px;
-  bottom: 22px;
-  width: min(560px, 42vw);
-  padding: 12px 14px;
-}
-.gev-audit-alerts {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 152px;
-  overflow: auto;
-}
-.gev-audit-alert {
-  display: grid;
-  grid-template-columns: 10px 60px minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
-  padding: 5px 4px;
-  border: 0;
-  border-radius: 5px;
-  background: none;
-  color: var(--a-ink);
-  font: inherit;
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
-}
-.gev-audit-alert:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-.gev-audit-alert[aria-current='true'] {
-  background: rgba(255, 107, 94, 0.12);
-}
-.gev-audit-alert-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gev-audit-zone.is-layers {
-  right: 24px;
-  bottom: 22px;
-  width: min(760px, calc(100vw - 48px - min(560px, 42vw) - 24px));
-  padding: 12px 14px;
-}
-.gev-audit-layers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.gev-audit-layerbtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 7px;
-  border: 1px solid rgba(150, 175, 205, 0.16);
-  background: transparent;
-  color: #7d8ea3;
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-}
-.gev-audit-layerbtn em {
-  font: normal 400 10px var(--a-mono);
-  color: #56667a;
-}
-.gev-audit-layerbtn em:empty {
-  display: none;
-}
-.gev-audit-layerbtn[aria-pressed='true'] {
-  border-color: rgba(220, 232, 245, 0.45);
-  background: rgba(220, 232, 245, 0.08);
-  color: var(--a-ink);
-}
-.gev-audit-swatch {
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  background: rgba(150, 175, 205, 0.4);
-}
-[data-layer='mustfix'] .gev-audit-swatch {
-  background: var(--a-bad);
-}
-[data-layer='gaps'] .gev-audit-swatch {
-  background: var(--a-warn);
-}
-[data-layer='links'] .gev-audit-swatch {
-  height: 2px;
-  background: #e6d6d2;
-}
-[data-layer='passing'] .gev-audit-swatch {
-  background: var(--a-ok);
-}
-[data-layer='na'] .gev-audit-swatch {
-  background: #4a5a70;
-}
-[data-layer='labels'] .gev-audit-swatch {
-  background: none;
-  border: 1px solid #8b9cb0;
-  width: 7px;
-  height: 7px;
-}
-.gev-audit-layerbtn[aria-pressed='false'] .gev-audit-swatch {
-  opacity: 0.45;
-}
-
-.gev-audit-attrib {
-  position: absolute;
-  left: 50%;
-  bottom: 4px;
-  translate: -50% 0;
-  margin: 0;
-  max-width: 60vw;
-  font-size: 9px;
-  color: #4f5e70;
-  text-align: center;
+/* While the evidence drawer is open the detail column steps aside. */
+.gev-audit-layer[data-drawer='open'] .gev-audit-detail,
+.gev-audit-layer[data-drawer='open'] .gev-tl,
+.gev-audit-layer[data-drawer='open'] .gev-audit-projected,
+.gev-audit-layer[data-drawer='open'] .gev-audit-hint {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ── Evidence drawer ────────────────────────────────────────────────── */
 .gev-ev {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  bottom: 12px;
-  width: min(620px, calc(100vw - 24px));
+  top: 70px;
+  right: 16px;
+  bottom: 16px;
+  width: min(640px, calc(100vw - 268px - 48px));
   display: flex;
   flex-direction: column;
   pointer-events: auto;
@@ -843,82 +1194,144 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
   color: #a9cdf2;
 }
 
-/* ── Guided tour ────────────────────────────────────────────────────── */
+/* ── Guided tour: the camera leads, the screen dims around the subject ─ */
 .gev-tour {
   position: absolute;
   inset: 0;
   z-index: 3;
+  pointer-events: none;
 }
 .gev-tour[hidden] {
   display: none;
 }
-.gev-tour[data-mode='prompt'] {
-  background: rgba(2, 5, 11, 0.55);
-  pointer-events: auto;
+.gev-tour-shade {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.6s ease,
+    background 0.6s ease;
+  background: radial-gradient(
+    ellipse 60% 62% at 50% 50%,
+    rgba(2, 5, 11, 0) 35%,
+    rgba(2, 5, 11, 0.7) 100%
+  );
 }
-.gev-tour[data-mode='prompt'] .gev-tour-card {
-  padding: 30px 34px;
-  gap: 14px;
+.gev-tour-shade[data-mode='ui'] {
+  background: rgba(2, 5, 11, 0.66);
 }
-.gev-tour[data-mode='prompt'] .gev-tour-card p {
-  font-size: 16px;
+.gev-tour-shade[data-mode='prompt'] {
+  background: rgba(2, 5, 11, 0.6);
+}
+.gev-audit-layer[data-tour='on'] .gev-tour-shade {
+  opacity: 1;
+}
+.gev-audit-layer[data-tour='on'] [data-dim='true'] {
+  opacity: 0.12;
+  pointer-events: none;
 }
 .gev-tour-spot {
   position: fixed;
   border-radius: 12px;
-  border: 1px solid rgba(220, 232, 245, 0.5);
-  box-shadow: 0 0 0 9999px rgba(2, 5, 11, 0.5);
+  border: 1.5px solid rgba(223, 231, 240, 0.85);
+  box-shadow:
+    0 0 0 4px rgba(223, 231, 240, 0.1),
+    0 0 28px rgba(150, 190, 235, 0.3);
+  pointer-events: none;
   transition:
-    left 0.35s ease,
-    top 0.35s ease,
-    width 0.35s ease,
-    height 0.35s ease;
+    left 0.45s ease,
+    top 0.45s ease,
+    width 0.45s ease,
+    height 0.45s ease,
+    opacity 0.3s ease;
+  animation: gev-spot 2.4s ease-in-out infinite;
 }
 .gev-tour-spot[hidden] {
   display: none;
+}
+@keyframes gev-spot {
+  50% {
+    box-shadow:
+      0 0 0 7px rgba(223, 231, 240, 0.06),
+      0 0 34px rgba(150, 190, 235, 0.42);
+  }
 }
 .gev-tour-card {
   position: fixed;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 18px 20px;
+  padding: 16px 18px 14px;
   pointer-events: auto;
   box-sizing: border-box;
-  background: rgba(8, 13, 22, 0.94);
+  background: rgba(8, 13, 22, 0.95);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  transition:
+    left 0.45s ease,
+    top 0.45s ease;
 }
 .gev-tour-card p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.55;
   color: #c3cfdc;
 }
+.gev-tour-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 12px;
+  font-size: 12px;
+  color: #c3cfdc;
+}
+.gev-tour-card kbd {
+  font: 500 11px var(--a-mono);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(150, 175, 205, 0.3);
+  color: var(--a-ink);
+  white-space: nowrap;
+}
 .gev-tour-title {
   margin: 0;
-  font-size: 19px;
-  line-height: 1.25;
+  font-size: 17px;
+  line-height: 1.3;
+  text-wrap: balance;
 }
 .gev-tour-big {
   margin: 0;
-  font-size: 46px;
+  font-size: 42px;
   line-height: 1.1;
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+.gev-tour[data-mode='prompt'] {
+  pointer-events: auto;
+}
+.gev-tour[data-mode='prompt'] .gev-tour-card {
+  padding: 28px 32px;
+  gap: 14px;
+}
+.gev-tour[data-mode='prompt'] .gev-tour-card p {
+  font-size: 15px;
 }
 .gev-tour-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 .gev-tour-dots {
   display: inline-flex;
-  gap: 4px;
+  gap: 3px;
   margin-left: auto;
 }
 .gev-tour-dots i {
-  width: 14px;
+  width: 10px;
   height: 3px;
   border-radius: 2px;
   background: rgba(150, 175, 205, 0.25);
@@ -926,39 +1339,90 @@ body.gev-audit > :not(#cesiumContainer):not(.gev-audit-layer) {
 .gev-tour-dots i[data-on='true'] {
   background: #dfe7f0;
 }
+.gev-tour-move {
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px 7px 10px;
+  border-radius: 999px;
+  background: rgba(8, 13, 22, 0.88);
+  border: 1px solid rgba(150, 175, 205, 0.3);
+  font-size: 12px;
+  color: #dfe7f0;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.gev-tour-move[data-on='true'] {
+  opacity: 1;
+}
+.gev-tour-move b {
+  font-weight: 600;
+}
+.gev-tour-move span {
+  color: var(--a-ink-2);
+}
+.gev-tour-move svg {
+  flex: none;
+}
 
-/* ── Narrow screens: stack the zones ────────────────────────────────── */
-@media (max-width: 900px) {
+/* ── Smaller screens ─────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .gev-audit-brand span {
+    display: none;
+  }
+}
+@media (max-width: 980px) {
+  .gev-audit-ui {
+    --rail-w: 236px;
+    grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  }
+  .gev-audit-detail {
+    grid-column: 2;
+    justify-self: end;
+    width: min(300px, 100%);
+    z-index: 1;
+  }
+  .gev-audit-btn.is-icon span {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .gev-audit-ui {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: 8px 10px 10px;
+    gap: 8px;
+  }
   .gev-audit-top {
     grid-template-columns: minmax(0, 1fr) auto;
   }
-  .gev-audit-status {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    font-size: 12px;
-  }
-  .gev-audit-zone.is-status {
-    top: 110px;
-    width: 200px;
-  }
-  .gev-audit-card.is-key {
+  .gev-audit-status,
+  .gev-audit-hint {
     display: none;
   }
-  .gev-audit-zone.is-detail {
-    top: 110px;
-    width: min(300px, calc(100vw - 248px));
+  .gev-audit-rail {
+    grid-column: 1;
+    grid-row: 3;
+    max-height: 34vh;
   }
-  .gev-audit-zone.is-alerts,
-  .gev-audit-zone.is-layers {
-    left: 12px;
-    right: 12px;
+  .gev-audit-stage,
+  .gev-audit-detail {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .gev-tl {
+    width: 100%;
+    bottom: 0;
+  }
+  .gev-ev {
+    left: 8px;
     width: auto;
-  }
-  .gev-audit-zone.is-alerts {
-    bottom: 150px;
-  }
-  .gev-audit-alerts {
-    max-height: 96px;
   }
 }
 
