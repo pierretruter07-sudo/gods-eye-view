@@ -53,7 +53,11 @@ test('build helper does not discover environment values or construct local provi
       config.define['import.meta.env.GOOGLE_MAPS_API_KEY'],
       undefined,
     );
-    assert.equal(config.plugins.length, 1);
+    // Cesium plus the static-cache policy; no local providers.
+    assert.deepEqual(
+      config.plugins.slice(1).map((plugin) => plugin.name),
+      ['gev-static-cache'],
+    );
   } finally {
     if (before === undefined) delete process.env.GOOGLE_MAPS_API_KEY;
     else process.env.GOOGLE_MAPS_API_KEY = before;
@@ -65,11 +69,12 @@ test('root config retains existing named exports and standalone provider order',
     assert.equal(compatibility[name], value, name);
   const config = standaloneConfig({ mode: 'test' });
   assert.deepEqual(
-    config.plugins.slice(1, -1).map((plugin) => plugin.name),
+    config.plugins.slice(1, -2).map((plugin) => plugin.name),
     providers.localProviderPlugins().map((plugin) => plugin.name),
   );
   assert.ok(config.plugins.every((plugin) => plugin.name !== 'gev-key-setup'));
-  assert.equal(config.plugins.at(-1).name, 'api-not-found');
+  assert.equal(config.plugins.at(-2).name, 'api-not-found');
+  assert.equal(config.plugins.at(-1).name, 'gev-static-cache');
 });
 
 test('build export resolves in Node and has no browser fallback', async () => {
