@@ -2,3 +2,6 @@
 # Mechanical runtime formatting; executable syntax is unchanged.
 2aca7aecbb38c8554d40ddbc415fec37b3a65ec4
 b7c2c47b4154c3904337fd86d71caca5d1c602bb
+
+# Prettier pass over the fork's runtime code (2026-10-14).
+f9ce55b47f746d970a614182457f2ea8a6ddf85e

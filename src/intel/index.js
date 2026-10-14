@@ -8,13 +8,30 @@ import {
   nearbyObjects,
   insideArea,
 } from './objects.js';
-import { KIND_LABEL, SEV_LABEL, ACCENT, AOI_KM, esc, chip, ICON, hudHeader, hudCard, hudActions, resultPanel } from './markup.js';
+import {
+  KIND_LABEL,
+  SEV_LABEL,
+  ACCENT,
+  AOI_KM,
+  esc,
+  chip,
+  ICON,
+  hudHeader,
+  hudCard,
+  hudActions,
+  resultPanel,
+} from './markup.js';
 import { runAction } from './actions.js';
 import { buildHud, MAX_CARDS } from './hud.js';
+import { resolveAssetType } from './assetTypes.js';
+import { createReferenceImages } from './referenceImages.js';
 import { reticleSprite } from '../tour/pulseGraphics.js';
 import { createNarrator } from '../tour/narrator.js';
 import { createSubjectVisual } from './subjectVisual.js';
-import { holdContinuousRender, releaseContinuousRender } from '../renderGovernor.js';
+import {
+  holdContinuousRender,
+  releaseContinuousRender,
+} from '../renderGovernor.js';
 
 /**
  * Live-mode intelligence view — the Constellation HUD. Click any aircraft,
@@ -39,10 +56,24 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   // ── Console (three glass pieces around a clear centre) ───────────────
   const view = el('div', 'gev-hud');
   view.hidden = true;
+  // A type photo that fails to load is removed, leaving the class outline.
+  view.addEventListener(
+    'error',
+    (event) => {
+      if (
+        event.target?.tagName === 'IMG' &&
+        event.target.closest('.gev-hud__ref')
+      )
+        event.target.remove();
+    },
+    true,
+  );
   const header = el('div', 'gev-hud__header');
   // Four card slots around the asset: top-left, top-right, bottom-left, bottom-right.
   const SLOTS = ['tl', 'tr', 'bl', 'br'];
-  const cards = SLOTS.slice(0, MAX_CARDS).map((slot) => el('section', `gev-hud__card gev-hud__card--${slot} gev-glass`));
+  const cards = SLOTS.slice(0, MAX_CARDS).map((slot) =>
+    el('section', `gev-hud__card gev-hud__card--${slot} gev-glass`),
+  );
   const bottom = el('div', 'gev-hud__bottom');
   const brief = el('p', 'gev-iv__brief gev-glass');
   brief.hidden = true;
@@ -72,14 +103,20 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   };
   const leaderEls = cards.map((_, i) => {
     const gradId = `gev-lead-grad-${i}`;
-    const grad = mk('linearGradient', { id: gradId, gradientUnits: 'userSpaceOnUse' });
+    const grad = mk('linearGradient', {
+      id: gradId,
+      gradientUnits: 'userSpaceOnUse',
+    });
     const stopA = mk('stop', { offset: '0', 'stop-opacity': '0.1' });
     const stopB = mk('stop', { offset: '1', 'stop-opacity': '0.6' });
     grad.append(stopA, stopB);
     defs.append(grad);
     const g = mk('g', { style: `--gev-delay:${(i * 0.65).toFixed(2)}s` });
     const halo = mk('path', { class: 'gev-lead__halo' });
-    const line = mk('path', { class: 'gev-lead__line', stroke: `url(#${gradId})` });
+    const line = mk('path', {
+      class: 'gev-lead__line',
+      stroke: `url(#${gradId})`,
+    });
     const pulse = mk('path', { class: 'gev-lead__pulse', pathLength: '100' });
     const dot = mk('circle', { class: 'gev-lead__dot', r: '2.25' });
     g.append(halo, line, pulse, dot);
@@ -101,7 +138,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const marker = viewer.entities.add({
     show: false,
     position: Cesium.Cartesian3.fromDegrees(0, 0),
-    billboard: { image: reticleSprite(ACCENT), width: 46, height: 46, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+    billboard: {
+      image: reticleSprite(ACCENT),
+      width: 46,
+      height: 46,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
   });
   const areas = []; // { key, title, lat, lon, radiusKm, entity }
   const watchlist = new Map(); // key -> object snapshot
@@ -142,7 +184,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     cache = { at: now, objects: out };
     return out;
   }
-  const cartesianOf = (o) => Cesium.Cartesian3.fromDegrees(o.lon, o.lat, o.heightM || 0);
+  const cartesianOf = (o) =>
+    Cesium.Cartesian3.fromDegrees(o.lon, o.lat, o.heightM || 0);
 
   // ── Selection state ──────────────────────────────────────────────────
   let selected = null;
@@ -162,71 +205,135 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   function renderActions() {
     if (hud) actions.innerHTML = hudActions(hud, state, { touring: touring() });
   }
+  // Only touch the DOM when a card's markup actually changed: rebuilding it
+  // every refresh re-lays out the page and would reload the type photo.
+  const lastHtml = new WeakMap();
+  function setHtml(node, html) {
+    if (lastHtml.get(node) === html) return false;
+    lastHtml.set(node, html);
+    node.innerHTML = html;
+    return true;
+  }
   function render() {
     if (!selected) return;
     const all = nearbyObjects(collect(), selected, { limit: Infinity });
     hud = buildHud(selected, all.items);
-    header.innerHTML = hudHeader(hud, headline);
+    setHtml(header, hudHeader(hud, headline));
+    let changed = false;
     cards.forEach((node, i) => {
       const c = hud.cards[i];
-      node.hidden = !c;
+      if (node.hidden !== !c) {
+        node.hidden = !c;
+        changed = true;
+      }
       node.dataset.source = c?.source || '';
-      node.innerHTML = c ? hudCard(c, i) : '';
+      changed =
+        setHtml(
+          node,
+          c ? hudCard(c, i, { image: c.ref ? refs.get(c.ref) : null }) : '',
+        ) || changed;
     });
     renderActions();
+    if (changed) measureCards();
     requestAnimationFrame(updateLeaders);
   }
+  const refs = createReferenceImages();
+  refs.onReady(() => {
+    if (selected && !view.hidden) render();
+  });
 
   // Leader lines: from the asset's screen position to each card's inner corner.
   const scratchWin = new Cesium.Cartesian2();
   const scratchPos = new Cesium.Cartesian3();
   function assetScreen() {
     const p =
-      (NATIVE_FOLLOW.has(selected?.kind) && viewer.trackedEntity?.position?.getValue(viewer.clock.currentTime, scratchPos)) ||
+      (NATIVE_FOLLOW.has(selected?.kind) &&
+        viewer.trackedEntity?.position?.getValue(
+          viewer.clock.currentTime,
+          scratchPos,
+        )) ||
       trackedPosition(scratchPos);
     if (!p) return null;
-    const occluder = new Cesium.EllipsoidalOccluder(Cesium.Ellipsoid.WGS84, viewer.camera.positionWC);
+    occluder.cameraPosition = viewer.camera.positionWC;
     if (!occluder.isPointVisible(p)) return null;
-    return Cesium.SceneTransforms.worldToWindowCoordinates(scene, p, scratchWin);
+    return Cesium.SceneTransforms.worldToWindowCoordinates(
+      scene,
+      p,
+      scratchWin,
+    );
   }
-  function updateLeaders() {
-    if (view.hidden || !selected) return;
-    const at = assetScreen();
-    leaderEls.forEach(({ g, grad, stopA, stopB, halo, line, pulse, dot }, i) => {
-      const node = cards[i];
-      if (!at || node.hidden) {
-        g.style.display = 'none';
+  const occluder = new Cesium.EllipsoidalOccluder(
+    Cesium.Ellipsoid.WGS84,
+    Cesium.Cartesian3.ZERO,
+  );
+  // Card anchor points, measured only when a card changes size or the window
+  // resizes — never per frame (a layout read every frame stalls rendering).
+  const anchors = cards.map(() => null);
+  function measureCards() {
+    cards.forEach((node, i) => {
+      if (node.hidden) {
+        anchors[i] = null;
         return;
       }
       const r = node.getBoundingClientRect();
       const slot = SLOTS[i];
-      const x = (slot.endsWith('l') ? r.right : r.left).toFixed(1);
-      const y = (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1);
-      const ax = at.x.toFixed(1);
-      const ay = at.y.toFixed(1);
-      const d = `M${ax} ${ay}L${x} ${y}`;
-      const source = node.dataset.source || 'feed';
-      if (g.dataset.source !== source) {
-        g.dataset.source = source;
-        g.setAttribute('class', `gev-lead gev-lead--${source}`);
-        const color = source === 'feed' ? '#64d2ff' : '#ffbe55';
-        stopA.setAttribute('stop-color', color);
-        stopB.setAttribute('stop-color', color);
-      }
-      g.style.display = '';
-      grad.setAttribute('x1', ax);
-      grad.setAttribute('y1', ay);
-      grad.setAttribute('x2', x);
-      grad.setAttribute('y2', y);
-      halo.setAttribute('d', d);
-      line.setAttribute('d', d);
-      pulse.setAttribute('d', d);
-      dot.setAttribute('cx', x);
-      dot.setAttribute('cy', y);
+      anchors[i] = {
+        x: (slot.endsWith('l') ? r.right : r.left).toFixed(1),
+        y: (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1),
+      };
     });
   }
+  const cardObserver =
+    typeof ResizeObserver === 'function'
+      ? new ResizeObserver(() => measureCards())
+      : null;
+  for (const node of cards) cardObserver?.observe(node);
+  const lastD = cards.map(() => '');
+  function updateLeaders() {
+    if (view.hidden || !selected) return;
+    const at = assetScreen();
+    leaderEls.forEach(
+      ({ g, grad, stopA, stopB, halo, line, pulse, dot }, i) => {
+        const node = cards[i];
+        const anchor = anchors[i];
+        if (!at || node.hidden || !anchor) {
+          if (g.style.display !== 'none') g.style.display = 'none';
+          lastD[i] = '';
+          return;
+        }
+        const { x, y } = anchor;
+        const ax = at.x.toFixed(1);
+        const ay = at.y.toFixed(1);
+        const d = `M${ax} ${ay}L${x} ${y}`;
+        if (d === lastD[i]) return; // nothing moved since the last frame
+        lastD[i] = d;
+        const source = node.dataset.source || 'feed';
+        if (g.dataset.source !== source) {
+          g.dataset.source = source;
+          g.setAttribute('class', `gev-lead gev-lead--${source}`);
+          const color = source === 'feed' ? '#64d2ff' : '#ffbe55';
+          stopA.setAttribute('stop-color', color);
+          stopB.setAttribute('stop-color', color);
+        }
+        g.style.display = '';
+        grad.setAttribute('x1', ax);
+        grad.setAttribute('y1', ay);
+        grad.setAttribute('x2', x);
+        grad.setAttribute('y2', y);
+        halo.setAttribute('d', d);
+        line.setAttribute('d', d);
+        pulse.setAttribute('d', d);
+        dot.setAttribute('cx', x);
+        dot.setAttribute('cy', y);
+      },
+    );
+  }
   const removeLeaderHook = scene.postRender.addEventListener(updateLeaders);
-  window.addEventListener('resize', updateLeaders);
+  const onResize = () => {
+    measureCards();
+    updateLeaders();
+  };
+  window.addEventListener('resize', onResize);
 
   let toastTimer = null;
   function showToast(text) {
@@ -249,12 +356,16 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     selected = o;
     headline = line;
     nearby = nearbyObjects(collect(), o);
-    state = { watched: watchlist.has(o.key), aoi: areas.some((a) => a.key === o.key) };
+    state = {
+      watched: watchlist.has(o.key),
+      aoi: areas.some((a) => a.key === o.key),
+    };
     brief.hidden = true;
     stopBrief();
     render();
     setTriage(false);
     view.hidden = false;
+    measureCards();
     document.body.classList.add('gev-intel-open');
     onOpen?.();
     clearInterval(followTimer);
@@ -315,7 +426,10 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   }
   async function runResult(action, o) {
     const token = ++resultToken;
-    result.innerHTML = resultPanel({ title: action.label, sources: [] }, { busy: true });
+    result.innerHTML = resultPanel(
+      { title: action.label, sources: [] },
+      { busy: true },
+    );
     result.hidden = false;
     const ctx = {
       now: Date.now(),
@@ -330,7 +444,10 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       installations: () => {
         if (!layerOn('military-installations')) return [];
         try {
-          return layerModule('military-installations')?.getAnalystRecords?.(20000) || [];
+          return (
+            layerModule('military-installations')?.getAnalystRecords?.(20000) ||
+            []
+          );
         } catch {
           return [];
         }
@@ -369,17 +486,32 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   // Feed fixes arrive every few seconds; the camera and reticle move every
   // frame along the contact's reported heading and speed, and blend out any
   // correction over a second when the next fix lands — smooth, never a jump.
-  const track = { fix: null, vel: new Cesium.Cartesian3(), at: 0, err: new Cesium.Cartesian3(), errAt: 0 };
+  const track = {
+    fix: null,
+    vel: new Cesium.Cartesian3(),
+    at: 0,
+    err: new Cesium.Cartesian3(),
+    errAt: 0,
+  };
   const scratch = new Cesium.Cartesian3();
   function velocityOf(o, at) {
     const mps =
-      o.kind === 'aircraft' ? Number(o.speedMps) : o.kind === 'vessel' ? Number(o.speedKts) / 1.943844 : 0;
+      o.kind === 'aircraft'
+        ? Number(o.speedMps)
+        : o.kind === 'vessel'
+          ? Number(o.speedKts) / 1.943844
+          : 0;
     const hdg = o.kind === 'aircraft' ? Number(o.heading) : Number(o.courseDeg);
-    if (!(mps > 0) || !Number.isFinite(hdg) || o.onGround) return new Cesium.Cartesian3();
+    if (!(mps > 0) || !Number.isFinite(hdg) || o.onGround)
+      return new Cesium.Cartesian3();
     const h = Cesium.Math.toRadians(hdg);
     const enu = new Cesium.Cartesian3(Math.sin(h) * mps, Math.cos(h) * mps, 0);
     const frame = Cesium.Transforms.eastNorthUpToFixedFrame(at);
-    return Cesium.Matrix4.multiplyByPointAsVector(frame, enu, new Cesium.Cartesian3());
+    return Cesium.Matrix4.multiplyByPointAsVector(
+      frame,
+      enu,
+      new Cesium.Cartesian3(),
+    );
   }
   function trackedPosition(result = new Cesium.Cartesian3()) {
     if (!track.fix) return undefined;
@@ -388,7 +520,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     Cesium.Cartesian3.multiplyByScalar(track.vel, dt, scratch);
     Cesium.Cartesian3.add(track.fix, scratch, result);
     const blend = Math.max(0, 1 - (now - track.errAt) / 1000);
-    if (blend > 0) Cesium.Cartesian3.add(result, Cesium.Cartesian3.multiplyByScalar(track.err, blend, scratch), result);
+    if (blend > 0)
+      Cesium.Cartesian3.add(
+        result,
+        Cesium.Cartesian3.multiplyByScalar(track.err, blend, scratch),
+        result,
+      );
     return result;
   }
   function setFix(o) {
@@ -398,7 +535,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     track.fix = cartesianOf(o);
     track.at = performance.now();
     // Satellites have no heading/speed fields: derive velocity from fixes.
-    if (o.kind === 'satellite' && prevFix && track.key === o.key && track.at > prevAt) {
+    if (
+      o.kind === 'satellite' &&
+      prevFix &&
+      track.key === o.key &&
+      track.at > prevAt
+    ) {
       track.vel = Cesium.Cartesian3.multiplyByScalar(
         Cesium.Cartesian3.subtract(track.fix, prevFix, new Cesium.Cartesian3()),
         1000 / (track.at - prevAt),
@@ -414,8 +556,14 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       track.errAt = 0;
     }
   }
-  marker.position = new Cesium.CallbackProperty((time, result) => trackedPosition(result), false);
-  const visual = createSubjectVisual(viewer, { position: (result) => trackedPosition(result) });
+  marker.position = new Cesium.CallbackProperty(
+    (time, result) => trackedPosition(result),
+    false,
+  );
+  const visual = createSubjectVisual(viewer, {
+    position: (result) => trackedPosition(result),
+    dataManager,
+  });
 
   const ORBIT = {
     aircraft: { rangeM: 22_000, pitchDeg: -25 },
@@ -448,7 +596,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       const now = performance.now();
       const dt = Math.min(0.25, (now - last) / 1000);
       last = now;
-      if (viewer.trackedEntity) viewer.camera.rotateRight(Cesium.Math.toRadians(3) * dt);
+      if (viewer.trackedEntity)
+        viewer.camera.rotateRight(Cesium.Math.toRadians(3) * dt);
     });
     removeOrbit.native = true;
   }
@@ -461,24 +610,31 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     const pitch = Cesium.Math.toRadians(frame.pitchDeg);
     let heading = viewer.camera.heading;
     orbitFlying = true;
-    viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(trackedPosition() || cartesianOf(o), 1), {
-      offset: new Cesium.HeadingPitchRange(heading, pitch, frame.rangeM),
-      duration: 2.0,
-      complete: () => {
-        orbitFlying = false;
-        if (token !== orbitToken || !selected) return;
-        let last = performance.now();
-        const target = new Cesium.Cartesian3();
-        holdContinuousRender('intel-orbit');
-        removeOrbit = scene.preRender.addEventListener(() => {
-          const now = performance.now();
-          heading += Cesium.Math.toRadians(3) * Math.min(0.25, (now - last) / 1000);
-          last = now;
-          if (!trackedPosition(target)) return;
-          viewer.camera.lookAt(target, new Cesium.HeadingPitchRange(heading, pitch, frame.rangeM));
-        });
+    viewer.camera.flyToBoundingSphere(
+      new Cesium.BoundingSphere(trackedPosition() || cartesianOf(o), 1),
+      {
+        offset: new Cesium.HeadingPitchRange(heading, pitch, frame.rangeM),
+        duration: 2.0,
+        complete: () => {
+          orbitFlying = false;
+          if (token !== orbitToken || !selected) return;
+          let last = performance.now();
+          const target = new Cesium.Cartesian3();
+          holdContinuousRender('intel-orbit');
+          removeOrbit = scene.preRender.addEventListener(() => {
+            const now = performance.now();
+            heading +=
+              Cesium.Math.toRadians(3) * Math.min(0.25, (now - last) / 1000);
+            last = now;
+            if (!trackedPosition(target)) return;
+            viewer.camera.lookAt(
+              target,
+              new Cesium.HeadingPitchRange(heading, pitch, frame.rangeM),
+            );
+          });
+        },
       },
-    });
+    );
   }
   // The viewer takes the camera back the moment they touch it.
   const releaseCamera = () => {
@@ -489,16 +645,32 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       renderActions();
     }
   };
-  scene.canvas.addEventListener('pointerdown', releaseCamera, { passive: true });
+  scene.canvas.addEventListener('pointerdown', releaseCamera, {
+    passive: true,
+  });
   scene.canvas.addEventListener('wheel', releaseCamera, { passive: true });
 
   // ── Actions ──────────────────────────────────────────────────────────
   function flyTo(o) {
-    const range = o.kind === 'satellite' ? 2_500_000 : o.kind === 'earthquake' ? 400_000 : o.kind === 'vessel' ? 40_000 : 60_000;
-    viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(cartesianOf(o), 1), {
-      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), range),
-      duration: 2.2,
-    });
+    const range =
+      o.kind === 'satellite'
+        ? 2_500_000
+        : o.kind === 'earthquake'
+          ? 400_000
+          : o.kind === 'vessel'
+            ? 40_000
+            : 60_000;
+    viewer.camera.flyToBoundingSphere(
+      new Cesium.BoundingSphere(cartesianOf(o), 1),
+      {
+        offset: new Cesium.HeadingPitchRange(
+          0,
+          Cesium.Math.toRadians(-45),
+          range,
+        ),
+        duration: 2.2,
+      },
+    );
   }
   function follow(o) {
     const mod = layerModule(o.layerId);
@@ -513,7 +685,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     return ok;
   }
   function stopFollow() {
-    if (!state.following || !selected || !NATIVE_FOLLOW.has(selected.kind)) return;
+    if (!state.following || !selected || !NATIVE_FOLLOW.has(selected.kind))
+      return;
     try {
       layerModule(selected.layerId)?.stopTracking?.({ origin: 'user' });
     } catch {
@@ -541,20 +714,35 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
         height: 0,
       },
     });
-    areas.push({ key: o.key, title: buildDossier(o).title, lat: o.lat, lon: o.lon, radiusKm: AOI_KM, entity });
+    areas.push({
+      key: o.key,
+      title: buildDossier(o).title,
+      lat: o.lat,
+      lon: o.lon,
+      radiusKm: AOI_KM,
+      entity,
+    });
     scene.requestRender();
     return true;
   }
   function reportText(o) {
     const d = buildDossier(o);
-    const lines = [`${d.title} — ${KIND_LABEL[d.kind]} (${d.subtitle || ''})`, `Source: ${d.source} [FEED]`];
+    const lines = [
+      `${d.title} — ${KIND_LABEL[d.kind]} (${d.subtitle || ''})`,
+      `Source: ${d.source} [FEED]`,
+    ];
     for (const f of d.feed) lines.push(`  ${f.label}: ${f.value}`);
     lines.push(`Position: ${o.lat.toFixed(4)}, ${o.lon.toFixed(4)}`);
-    lines.push(`Nearby: ${nearby.total} contacts within ${nearby.radiusKm} km [FEED]`);
+    lines.push(
+      `Nearby: ${nearby.total} contacts within ${nearby.radiusKm} km [FEED]`,
+    );
     lines.push('Assessment [SIMULATED]');
     for (const a of d.analysis) lines.push(`  ${a.label}: ${a.value}`);
     lines.push('Links');
-    for (const l of d.links) lines.push(`  ${l.rel}: ${l.name} [${l.source === 'feed' ? 'FEED' : 'SIMULATED'}]`);
+    for (const l of d.links)
+      lines.push(
+        `  ${l.rel}: ${l.name} [${l.source === 'feed' ? 'FEED' : 'SIMULATED'}]`,
+      );
     lines.push(`Generated ${new Date().toUTCString()} by God's Eye View`);
     return lines.join('\n');
   }
@@ -623,7 +811,10 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   handler.setInputAction((click) => {
     if (!isLive()) return;
     const objects = collect({ fresh: true });
-    const occluder = new Cesium.EllipsoidalOccluder(Cesium.Ellipsoid.WGS84, viewer.camera.positionWC);
+    const occluder = new Cesium.EllipsoidalOccluder(
+      Cesium.Ellipsoid.WGS84,
+      viewer.camera.positionWC,
+    );
     const points = [];
     for (const o of objects) {
       const c = cartesianOf(o);
@@ -648,18 +839,26 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       object: objects.find((x) => x.key === w.key) || w,
       pinned: true,
     }));
-    const ranked = buildTriage(objects).filter((i) => !watchlist.has(i.object.key));
+    const ranked = buildTriage(objects).filter(
+      (i) => !watchlist.has(i.object.key),
+    );
     lastItems = [...watched, ...ranked];
     const list = lastItems
       .map(
-        (item, i) => `<li><button type="button" data-i="${i}" class="gev-tri gev-tri--${item.severity}${item.pinned ? ' gev-tri--pinned' : ''}">
+        (
+          item,
+          i,
+        ) => `<li><button type="button" data-i="${i}" class="gev-tri gev-tri--${item.severity}${item.pinned ? ' gev-tri--pinned' : ''}">
           <span class="gev-tri__sev">${item.pinned ? 'Pinned' : SEV_LABEL[item.severity]}</span>
           <span class="gev-tri__title">${esc(buildDossier(item.object).title)}</span>
           <span class="gev-tri__why">${esc(item.reason)}</span></button></li>`,
       )
       .join('');
     const aoiRows = areas
-      .map((a, i) => `<li class="gev-aoi"><span>Area · ${esc(a.title)}</span><b>${insideArea(objects, a).length}</b><span class="gev-aoi__unit">contacts</span><button type="button" class="gev-aoi__x" data-aoi="${i}" aria-label="Remove area">${ICON.close}</button></li>`)
+      .map(
+        (a, i) =>
+          `<li class="gev-aoi"><span>Area · ${esc(a.title)}</span><b>${insideArea(objects, a).length}</b><span class="gev-aoi__unit">contacts</span><button type="button" class="gev-aoi__x" data-aoi="${i}" aria-label="Remove area">${ICON.close}</button></li>`,
+      )
       .join('');
     triage.innerHTML = `<header class="gev-tri__head"><span>Triage queue ${chip('feed')}</span>
       <button type="button" class="gev-icon-btn" data-act="close" aria-label="Close triage">${ICON.close}</button></header>
@@ -702,7 +901,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
    * Routine 'watch' items (e.g. every military airframe) stay in the list but
    * don't inflate the badge. Uses the cache. */
   const flaggedCount = () =>
-    buildTriage(collect(), { limit: 999 }).filter((i) => i.severity !== 'watch').length + watchlist.size;
+    buildTriage(collect(), { limit: 999 }).filter((i) => i.severity !== 'watch')
+      .length + watchlist.size;
 
   /**
    * Show the dossier for what the Director is looking at ({layerId, record}),
@@ -713,7 +913,10 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     const o = toIntelObject(focus.layerId, focus.record);
     if (!o) return close();
     const live = collect().find((x) => x.key === o.key);
-    open(live ? { ...live, simulated: o.simulated } : o, { quiet: true, headline: focus.headline || '' });
+    open(live ? { ...live, simulated: o.simulated } : o, {
+      quiet: true,
+      headline: focus.headline || '',
+    });
   }
   let onOpen = null;
 
@@ -721,6 +924,14 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     open,
     close,
     showFocus,
+    /** Warm the type photo for an upcoming Director subject while the camera flies. */
+    prefetch(focus) {
+      const o = focus && toIntelObject(focus.layerId, focus.record);
+      const type = o && resolveAssetType(o);
+      if (type) refs.prefetch(type);
+    },
+    /** Start the (two-request) type-photo catalogue lookup. */
+    warmReferenceImages: () => refs.load(),
     /** Re-render the action dock (Director started/stopped). */
     refresh: renderActions,
     onOpen(fn) {
@@ -750,7 +961,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       setTriage(false);
       handler.destroy();
       removeLeaderHook();
-      window.removeEventListener('resize', updateLeaders);
+      window.removeEventListener('resize', onResize);
+      cardObserver?.disconnect();
       toast.remove();
       scene.canvas.removeEventListener('pointerdown', releaseCamera);
       scene.canvas.removeEventListener('wheel', releaseCamera);

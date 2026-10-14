@@ -30,9 +30,13 @@ export function headingDiff(a, b) {
  * @returns {{phase:string, label:string, arriving:boolean|null}}
  */
 export function derivePhase(aircraft, profile) {
-  const aglFt = ((aircraft.altitudeM ?? 0) - (profile.elevationM ?? 0)) * M_TO_FT;
+  const aglFt =
+    ((aircraft.altitudeM ?? 0) - (profile.elevationM ?? 0)) * M_TO_FT;
   const speedKt = (aircraft.speedMps ?? 0) * MPS_TO_KT;
-  const rateFpm = aircraft.verticalRateMps == null ? null : aircraft.verticalRateMps * MPS_TO_FPM;
+  const rateFpm =
+    aircraft.verticalRateMps == null
+      ? null
+      : aircraft.verticalRateMps * MPS_TO_FPM;
 
   if (aircraft.onGround || aglFt < 50) {
     if (speedKt < PARKED_KT) return label('parked', null);
@@ -42,7 +46,8 @@ export function derivePhase(aircraft, profile) {
 
   let climbing;
   if (rateFpm != null) {
-    climbing = rateFpm > CLIMB_FPM ? true : rateFpm < DESCEND_FPM ? false : null;
+    climbing =
+      rateFpm > CLIMB_FPM ? true : rateFpm < DESCEND_FPM ? false : null;
   } else {
     climbing = null;
   }
@@ -58,8 +63,10 @@ export function derivePhase(aircraft, profile) {
   }
   if (climbing == null) climbing = false; // arrivals dominate terminal snapshots
 
-  if (aglFt < 1500) return climbing ? label('takeoff', false) : label('landing', true);
-  if (aglFt < 10000) return climbing ? label('departure', false) : label('approach', true);
+  if (aglFt < 1500)
+    return climbing ? label('takeoff', false) : label('landing', true);
+  if (aglFt < 10000)
+    return climbing ? label('departure', false) : label('approach', true);
   return label('cruise', null);
 }
 

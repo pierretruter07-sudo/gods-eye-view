@@ -10,17 +10,27 @@ import { installFlightPrefetch } from './flightPrefetch.js';
 import { TOUR_AIRPORTS, TOUR_STOPS } from '../tour/config.js';
 
 /** Layers offered in the Layers panel, in display order. */
-export const SHELL_LAYERS = Object.freeze([
-  { id: 'flights', name: 'Flights', dot: '#ffd60a' },
-  { id: 'military', name: 'Military flights', dot: '#ff9f0a' },
-  { id: 'ais-live-vessels', name: 'Ships', dot: '#64d2ff' },
-  { id: 'satellites', name: 'Satellites', dot: '#bf5af2' },
-  { id: 'earthquakes', name: 'Earthquakes', dot: '#ff453a' },
-  { id: 'local-firms', name: 'Fires', dot: '#ff6b35' },
-  { id: 'weather-cyclones', name: 'Cyclones', dot: '#5ac8fa' },
-  { id: 'military-installations', name: 'Military installations', dot: '#98989d' },
-  { id: 'telegeography-submarine-cables', name: 'Submarine cables', dot: '#30d158' },
-].map((layer) => Object.freeze(layer)));
+export const SHELL_LAYERS = Object.freeze(
+  [
+    { id: 'flights', name: 'Flights', dot: '#ffd60a' },
+    { id: 'military', name: 'Military flights', dot: '#ff9f0a' },
+    { id: 'ais-live-vessels', name: 'Ships', dot: '#64d2ff' },
+    { id: 'satellites', name: 'Satellites', dot: '#bf5af2' },
+    { id: 'earthquakes', name: 'Earthquakes', dot: '#ff453a' },
+    { id: 'local-firms', name: 'Fires', dot: '#ff6b35' },
+    { id: 'weather-cyclones', name: 'Cyclones', dot: '#5ac8fa' },
+    {
+      id: 'military-installations',
+      name: 'Military installations',
+      dot: '#98989d',
+    },
+    {
+      id: 'telegeography-submarine-cables',
+      name: 'Submarine cables',
+      dot: '#30d158',
+    },
+  ].map((layer) => Object.freeze(layer)),
+);
 
 /** Layers switched on when the app opens (staggered so start-up stays smooth). */
 const DEFAULT_ON = Object.freeze([
@@ -35,13 +45,16 @@ const DEFAULT_ON_STAGGER_MS = 1500;
 
 const ICONS = {
   eye: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
-  search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
-  layers: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>',
+  search:
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  layers:
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>',
   play: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
   stop: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>',
   back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>',
   list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
-  target: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>',
+  target:
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>',
 };
 
 function el(tag, attrs = {}, html) {
@@ -49,6 +62,27 @@ function el(tag, attrs = {}, html) {
   for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
   if (html != null) node.innerHTML = html;
   return node;
+}
+
+/** Every glTF the layers can draw (public/models). */
+export const MODEL_URLS = Object.freeze([
+  '/models/airplane.glb',
+  '/models/atr72.glb',
+  '/models/b789.glb',
+  '/models/bell206.glb',
+  '/models/c172.glb',
+  '/models/citation2.glb',
+  '/models/jet.glb',
+  '/models/mq9.glb',
+  '/models/ship.glb',
+]);
+
+function warmModels() {
+  for (const url of MODEL_URLS) {
+    fetch(url, { priority: 'low' })
+      .then((r) => r.arrayBuffer())
+      .catch(() => {});
+  }
 }
 
 /** Demo buttons show in development builds or with ?demo in the URL. */
@@ -84,35 +118,109 @@ export function installShell({ viewer, dataManager, placeSearch }) {
 
   // ── Top bar ──────────────────────────────────────────────────────────
   const bar = el('header', { class: 'gev-bar gev-glass' });
-  const brand = el('span', { class: 'gev-bar__brand' }, `${ICONS.eye}<span>God's Eye</span>`);
+  const brand = el(
+    'span',
+    { class: 'gev-bar__brand' },
+    `${ICONS.eye}<span>God's Eye</span>`,
+  );
   const form = el('form', { class: 'gev-bar__search', role: 'search' });
-  const input = el('input', { type: 'search', placeholder: 'Search a place', 'aria-label': 'Search a place', autocomplete: 'off' });
-  form.append(el('span', { class: 'gev-bar__search-icon' }, ICONS.search), input);
-  const modeSwitch = el('div', { class: 'gev-seg', role: 'group', 'aria-label': 'Mode' });
-  const liveBtn = el('button', { type: 'button', 'data-mode': 'live', 'aria-pressed': 'true' }, '<span class="gev-seg__dot gev-seg__dot--live"></span>Live');
-  const exBtn = el('button', { type: 'button', 'data-mode': 'exercise', 'aria-pressed': 'false' }, '<span class="gev-seg__dot gev-seg__dot--ex"></span>Exercise');
+  const input = el('input', {
+    type: 'search',
+    placeholder: 'Search a place',
+    'aria-label': 'Search a place',
+    autocomplete: 'off',
+  });
+  form.append(
+    el('span', { class: 'gev-bar__search-icon' }, ICONS.search),
+    input,
+  );
+  const modeSwitch = el('div', {
+    class: 'gev-seg',
+    role: 'group',
+    'aria-label': 'Mode',
+  });
+  const liveBtn = el(
+    'button',
+    { type: 'button', 'data-mode': 'live', 'aria-pressed': 'true' },
+    '<span class="gev-seg__dot gev-seg__dot--live"></span>Live',
+  );
+  const exBtn = el(
+    'button',
+    { type: 'button', 'data-mode': 'exercise', 'aria-pressed': 'false' },
+    '<span class="gev-seg__dot gev-seg__dot--ex"></span>Exercise',
+  );
   modeSwitch.append(liveBtn, exBtn);
-  const layersBtn = el('button', { type: 'button', class: 'gev-btn', 'aria-expanded': 'false', 'aria-controls': 'gev-layers' }, `${ICONS.layers}<span>Layers</span>`);
-  const triageBtn = el('button', { type: 'button', class: 'gev-btn', 'aria-pressed': 'false' }, `${ICONS.list}<span>Triage</span><span class="gev-badge" hidden></span>`);
-  const directorBtn = el('button', { type: 'button', class: 'gev-btn gev-btn--primary' }, `${ICONS.play}<span>Director</span>`);
-  const generateBtn = el('button', { type: 'button', class: 'gev-btn gev-btn--exercise' }, `${ICONS.target}<span>Generate strike package</span>`);
+  const layersBtn = el(
+    'button',
+    {
+      type: 'button',
+      class: 'gev-btn',
+      'aria-expanded': 'false',
+      'aria-controls': 'gev-layers',
+    },
+    `${ICONS.layers}<span>Layers</span>`,
+  );
+  const triageBtn = el(
+    'button',
+    { type: 'button', class: 'gev-btn', 'aria-pressed': 'false' },
+    `${ICONS.list}<span>Triage</span><span class="gev-badge" hidden></span>`,
+  );
+  const directorBtn = el(
+    'button',
+    { type: 'button', class: 'gev-btn gev-btn--primary' },
+    `${ICONS.play}<span>Director</span>`,
+  );
+  const generateBtn = el(
+    'button',
+    { type: 'button', class: 'gev-btn gev-btn--exercise' },
+    `${ICONS.target}<span>Generate strike package</span>`,
+  );
   generateBtn.hidden = true;
-  bar.append(brand, el('span', { class: 'gev-bar__divider', 'aria-hidden': 'true' }), modeSwitch, form, layersBtn, triageBtn, directorBtn, generateBtn);
+  bar.append(
+    brand,
+    el('span', { class: 'gev-bar__divider', 'aria-hidden': 'true' }),
+    modeSwitch,
+    form,
+    layersBtn,
+    triageBtn,
+    directorBtn,
+    generateBtn,
+  );
 
   // ── Layers panel ─────────────────────────────────────────────────────
-  const panel = el('section', { id: 'gev-layers', class: 'gev-layers gev-glass', 'aria-label': 'Layers' });
+  const panel = el('section', {
+    id: 'gev-layers',
+    class: 'gev-layers gev-glass',
+    'aria-label': 'Layers',
+  });
   panel.hidden = true;
   const head = el('div', { class: 'gev-layers__head' });
-  const collapse = el('button', { type: 'button', class: 'gev-icon-btn', 'aria-label': 'Close layers' }, ICONS.back);
+  const collapse = el(
+    'button',
+    { type: 'button', class: 'gev-icon-btn', 'aria-label': 'Close layers' },
+    ICONS.back,
+  );
   head.append(el('h2', {}, 'Layers'), collapse);
   panel.append(head);
   const rows = new Map();
   for (const layer of SHELL_LAYERS) {
-    const row = el('button', { type: 'button', class: 'gev-layer', 'aria-pressed': 'false' });
+    const row = el('button', {
+      type: 'button',
+      class: 'gev-layer',
+      'aria-pressed': 'false',
+    });
     row.append(
-      el('span', { class: 'gev-layer__dot', style: `background:${layer.dot}`, 'aria-hidden': 'true' }),
+      el('span', {
+        class: 'gev-layer__dot',
+        style: `background:${layer.dot}`,
+        'aria-hidden': 'true',
+      }),
       el('span', { class: 'gev-layer__name' }, layer.name),
-      el('span', { class: 'gev-switch', 'aria-hidden': 'true' }, '<span></span>'),
+      el(
+        'span',
+        { class: 'gev-switch', 'aria-hidden': 'true' },
+        '<span></span>',
+      ),
     );
     row.querySelector('.gev-layer__name').textContent = layer.name;
     row.addEventListener('click', () => toggleLayer(layer.id));
@@ -121,17 +229,38 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   }
 
   // ── Demo buttons (staged events) ─────────────────────────────────────
+  // ?fps shows Cesium's frame-rate readout, to measure on a real GPU.
+  try {
+    if (new URLSearchParams(window.location.search).has('fps'))
+      viewer.scene.debugShowFramesPerSecond = true;
+  } catch {
+    /* no URL access: leave it off */
+  }
   const demo = demoEnabled() ? el('div', { class: 'gev-demo' }) : null;
   if (demo) {
-    const sim = el('button', { type: 'button', class: 'gev-chip' }, 'Simulate 7700');
-    const quake = el('button', { type: 'button', class: 'gev-chip' }, 'Simulate quake');
+    const sim = el(
+      'button',
+      { type: 'button', class: 'gev-chip' },
+      'Simulate 7700',
+    );
+    const quake = el(
+      'button',
+      { type: 'button', class: 'gev-chip' },
+      'Simulate quake',
+    );
     sim.addEventListener('click', () => tour.controller.simulate('aircraft'));
-    quake.addEventListener('click', () => tour.controller.simulate('earthquake'));
+    quake.addEventListener('click', () =>
+      tour.controller.simulate('earthquake'),
+    );
     demo.append(sim, quake);
   }
 
   // ── Exercise banner (hidden until Exercise mode) ─────────────────────
-  const banner = el('div', { class: 'gev-exbanner', role: 'status' }, '<span class="gev-exbanner__dot" aria-hidden="true"></span>EXERCISE · FICTIONAL SCENARIO · LIVE FEEDS DISCONNECTED');
+  const banner = el(
+    'div',
+    { class: 'gev-exbanner', role: 'status' },
+    '<span class="gev-exbanner__dot" aria-hidden="true"></span>EXERCISE · FICTIONAL SCENARIO · LIVE FEEDS DISCONNECTED',
+  );
   banner.hidden = true;
 
   document.body.append(bar, panel, banner, ...(demo ? [demo] : []));
@@ -145,7 +274,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     }
   }
   function refreshRows() {
-    for (const [id, row] of rows) row.setAttribute('aria-pressed', String(isOn(id)));
+    for (const [id, row] of rows)
+      row.setAttribute('aria-pressed', String(isOn(id)));
   }
   async function toggleLayer(id) {
     const row = rows.get(id);
@@ -177,10 +307,17 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   // While the Director runs, keep every airport/city stop's aircraft warm on
   // the server (it serves recent snapshots instantly), one request every
   // 1.5 s so the free upstream sources never see a burst.
-  const WARM_SPOTS = [...TOUR_AIRPORTS, ...TOUR_STOPS.filter((st) => st.rangeM <= 1_000_000)];
+  const WARM_SPOTS = [
+    ...TOUR_AIRPORTS,
+    ...TOUR_STOPS.filter((st) => st.rangeM <= 1_000_000),
+  ];
   let warmTimers = [];
   function warmAll() {
-    WARM_SPOTS.forEach((spot, i) => warmTimers.push(setTimeout(() => prefetch.warm(spot.lat, spot.lon), i * 1500)));
+    WARM_SPOTS.forEach((spot, i) =>
+      warmTimers.push(
+        setTimeout(() => prefetch.warm(spot.lat, spot.lon), i * 1500),
+      ),
+    );
   }
   let warmLoop = null;
   function setTourWarming(on) {
@@ -197,9 +334,24 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     dataManager,
     // Warm the destination's aircraft before the camera gets there, then
     // refresh the moment it arrives (instead of waiting for the 30 s poll).
-    onTravel(phase, view) {
+    onTravel(phase, view, focus) {
+      // Timing hook for diagnostics and the stop-load benchmark (no-op otherwise).
+      window.dispatchEvent(
+        new CustomEvent('gev:tour', {
+          detail: {
+            phase,
+            at: performance.now(),
+            lat: view?.lat,
+            lon: view?.lon,
+            rangeM: view?.rangeM,
+            layerId: focus?.layerId || null,
+          },
+        }),
+      );
+      // The subject's type photo downloads during the flight, not on arrival.
+      if (phase === 'depart' && focus) intelRef?.prefetch(focus);
       if (!view || !(view.rangeM <= 1_000_000)) return;
-      if (phase === 'depart') prefetch.warm(view.lat, view.lon);
+      if (phase === 'depart') prefetch.preload(view.lat, view.lon);
       else prefetch.refreshHere();
     },
     // The Director's current subject opens in the intel view, as if clicked.
@@ -233,7 +385,9 @@ export function installShell({ viewer, dataManager, placeSearch }) {
         console.warn(`[shell] could not switch on ${id}`, error);
       }
       refreshRows();
-      await new Promise((resolve) => startupTimers.push(setTimeout(resolve, DEFAULT_ON_STAGGER_MS)));
+      await new Promise((resolve) =>
+        startupTimers.push(setTimeout(resolve, DEFAULT_ON_STAGGER_MS)),
+      );
     }
   })();
 
@@ -243,7 +397,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     closeWelcome = showWelcome({
       onDone(action) {
         closeWelcome = null;
-        if (action === 'explore' || action === 'dismissed' || mode !== 'live') return;
+        if (action === 'explore' || action === 'dismissed' || mode !== 'live')
+          return;
         tour.controller.start();
       },
     });
@@ -256,8 +411,18 @@ export function installShell({ viewer, dataManager, placeSearch }) {
 
   // ── Intelligence layer (Live mode only) ─────────────────────────────
   let mode = 'live';
-  const intel = installIntel({ viewer, dataManager, isLive: () => mode === 'live' });
+  const intel = installIntel({
+    viewer,
+    dataManager,
+    isLive: () => mode === 'live',
+  });
   intelRef = intel;
+  // Two small API calls resolve the whole type-photo catalogue; do it once
+  // the default layers have had their head start.
+  startupTimers.push(setTimeout(() => intel.warmReferenceImages(), 6000));
+  // Warm the 3D models (≈3 MB) into the HTTP cache at low priority, so the
+  // first aircraft or ship of each class does not stall when it appears.
+  startupTimers.push(setTimeout(warmModels, 9000));
   const badge = triageBtn.querySelector('.gev-badge');
   function refreshBadge() {
     if (mode !== 'live') return;
@@ -273,7 +438,10 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const stopSpin = installIdleSpin({
     viewer,
     isBlocked: () =>
-      mode !== 'live' || tour.controller.isRunning() || intel.isOpen() || !!viewer.trackedEntity,
+      mode !== 'live' ||
+      tour.controller.isRunning() ||
+      intel.isOpen() ||
+      !!viewer.trackedEntity,
   });
   triageBtn.addEventListener('click', () => {
     setPanel(false);
@@ -283,7 +451,11 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   setTimeout(refreshBadge, 12000);
 
   // ── Exercise mode ────────────────────────────────────────────────────
-  const exCaption = el('div', { class: 'gev-caption gev-glass', 'aria-live': 'polite', 'data-visible': 'false' });
+  const exCaption = el('div', {
+    class: 'gev-caption gev-glass',
+    'aria-live': 'polite',
+    'data-visible': 'false',
+  });
   document.body.append(exCaption);
   const exercise = createExerciseMode({
     viewer,
@@ -340,10 +512,14 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     searchAbort = new AbortController();
     form.classList.add('is-busy');
     try {
-      await searchAndFlyTo(viewer, query, { placeSearch, signal: searchAbort.signal });
+      await searchAndFlyTo(viewer, query, {
+        placeSearch,
+        signal: searchAbort.signal,
+      });
       input.blur();
     } catch (error) {
-      if (error?.name !== 'AbortError') console.warn('[shell] search failed', error);
+      if (error?.name !== 'AbortError')
+        console.warn('[shell] search failed', error);
     } finally {
       form.classList.remove('is-busy');
     }
@@ -367,6 +543,11 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     banner.remove();
     exCaption.remove();
     demo?.remove();
-    document.body.classList.remove('gev-clean', 'gev-exercise', 'gev-touring', 'gev-intel-open');
+    document.body.classList.remove(
+      'gev-clean',
+      'gev-exercise',
+      'gev-touring',
+      'gev-intel-open',
+    );
   };
 }

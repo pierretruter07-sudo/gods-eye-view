@@ -5,4 +5,3 @@ export function celestrakTleUrl(group) {
   url.searchParams.set('FORMAT', 'tle');
   return url;
 }
-

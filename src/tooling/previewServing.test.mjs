@@ -11,7 +11,11 @@ test('every data provider serves both the dev and the built-preview server', () 
   const plugins = localProviderPlugins();
   assert.ok(plugins.length > 0);
   for (const plugin of plugins) {
-    assert.notEqual(plugin.name, 'gev-key-setup', 'credential editing was removed');
+    assert.notEqual(
+      plugin.name,
+      'gev-key-setup',
+      'credential editing was removed',
+    );
     assert.equal(typeof plugin.configureServer, 'function', plugin.name);
     assert.equal(typeof plugin.configurePreviewServer, 'function', plugin.name);
   }

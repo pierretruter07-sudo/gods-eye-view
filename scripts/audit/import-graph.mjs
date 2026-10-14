@@ -120,4 +120,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       for (const f of r.testOnly) console.log(`  ${f}`);
     }
   }
+  // A gate in CI: orphan code or a dangling import fails the build.
+  process.exitCode = r.orphans.length || r.dangling.length ? 1 : 0;
 }

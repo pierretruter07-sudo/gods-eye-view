@@ -45,6 +45,9 @@ export class FlightRecords {
       category,
       verticalRateMps: vertical_rate,
       squawk,
+      typeCode: observedTypeCode,
+      typeName: observedTypeName,
+      registration: observedRegistration,
     } = observation;
 
     const onGround = on_ground === true;
@@ -218,7 +221,7 @@ export class FlightRecords {
       category: cat,
       // An adsbdb-enriched type code outranks the coarse OpenSky category.
       klass: classifyAircraft({
-        typeCode: prevMeta?.typeCode ?? null,
+        typeCode: prevMeta?.typeCode ?? observedTypeCode ?? null,
         category: cat,
       }),
       turnRateDps: prevMeta?.turnRateDps || 0,
@@ -240,9 +243,10 @@ export class FlightRecords {
         null,
       ),
       // adsbdb enrichment — written by the enrichment callbacks, carried across polls:
-      typeCode: prevMeta?.typeCode ?? null,
-      typeName: prevMeta?.typeName ?? null,
-      registration: prevMeta?.registration ?? null,
+      // Regional feeds (adsb.lol and friends) report t/r/desc directly.
+      typeCode: prevMeta?.typeCode ?? observedTypeCode ?? null,
+      typeName: prevMeta?.typeName ?? observedTypeName ?? null,
+      registration: prevMeta?.registration ?? observedRegistration ?? null,
       airline: prevMeta?.airline ?? null,
       route: prevMeta?.route ?? null,
       // The RAW poll fix lat/lon (this tick's OpenSky state-vector

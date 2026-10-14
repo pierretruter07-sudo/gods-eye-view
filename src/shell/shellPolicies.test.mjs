@@ -34,3 +34,11 @@ test('flight refresh on arrival: new place, stale data, not from space', () => {
   assert.equal(shouldRefreshFlights({ last, here, heightM: 20_000, now: PREFETCH_MAX_AGE_MS }), true);
   assert.equal(shouldRefreshFlights({ last, here: { lat: 40.64, lon: -73.78 }, heightM: 20_000, now: 1000 }), true);
 });
+
+test('the model warm list matches the shipped glTF files exactly', async () => {
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const source = readFileSync(new URL('./index.js', import.meta.url), 'utf8');
+  const listed = [...source.matchAll(/'\/models\/([a-z0-9]+\.glb)'/g)].map((m) => m[1]).sort();
+  const shipped = readdirSync(new URL('../../public/models/', import.meta.url)).filter((f) => f.endsWith('.glb')).sort();
+  assert.deepEqual(listed, shipped);
+});

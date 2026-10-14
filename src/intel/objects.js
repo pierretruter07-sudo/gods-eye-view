@@ -1,3 +1,4 @@
+import { stateVesselBasis } from '../data/stateVessel.js';
 /**
  * Normalises analyst records from the live layers into intel objects, and
  * scores them into a triage queue. Every triage reason comes from a real feed
@@ -52,7 +53,6 @@ const SQUAWKS = Object.freeze({
   7600: { severity: 'high', reason: 'Squawk 7600 · radio failure' },
   7700: { severity: 'critical', reason: 'Squawk 7700 · general emergency' },
 });
-const STATE_SHIP = /military|law enforce|search and rescue|\bsar\b|naval|warship/i;
 
 const RANK = { critical: 3, high: 2, watch: 1 };
 
@@ -73,9 +73,8 @@ export function triageReason(o) {
     };
   }
   if (o.kind === 'vessel') {
-    if (STATE_SHIP.test(String(o.shipType || '')))
-      return { severity: 'watch', reason: `AIS type · ${o.shipType}` };
-    return null;
+    const basis = stateVesselBasis(o);
+    return basis ? { severity: 'watch', reason: basis } : null;
   }
   if (o.kind === 'satellite' && /\bISS\b|ZARYA/i.test(String(o.name || '')))
     return { severity: 'watch', reason: 'Crewed station overhead pass' };
@@ -122,7 +121,11 @@ function ecef(o) {
   const la = (o.lat * Math.PI) / 180;
   const lo = (o.lon * Math.PI) / 180;
   const r = R + (o.heightM || 0);
-  return [r * Math.cos(la) * Math.cos(lo), r * Math.cos(la) * Math.sin(lo), r * Math.sin(la)];
+  return [
+    r * Math.cos(la) * Math.cos(lo),
+    r * Math.cos(la) * Math.sin(lo),
+    r * Math.sin(la),
+  ];
 }
 /** Straight-line distance in km between two intel objects (altitude-aware). */
 export function distanceKm(a, b) {
@@ -132,10 +135,19 @@ export function distanceKm(a, b) {
 }
 
 /** Search radius per kind: satellites look much wider than surface contacts. */
-export const NEARBY_KM = Object.freeze({ aircraft: 150, vessel: 100, satellite: 1500, earthquake: 300 });
+export const NEARBY_KM = Object.freeze({
+  aircraft: 150,
+  vessel: 100,
+  satellite: 1500,
+  earthquake: 300,
+});
 
 /** Real contacts near `o`, nearest first. Geometry only — no inference. */
-export function nearbyObjects(objects, o, { limit = 5, radiusKm = NEARBY_KM[o.kind] || 150 } = {}) {
+export function nearbyObjects(
+  objects,
+  o,
+  { limit = 5, radiusKm = NEARBY_KM[o.kind] || 150 } = {},
+) {
   const out = [];
   for (const x of objects) {
     if (x.key === o.key) continue;
@@ -149,5 +161,7 @@ export function nearbyObjects(objects, o, { limit = 5, radiusKm = NEARBY_KM[o.ki
 /** Objects inside a circular area of interest (surface distance). */
 export function insideArea(objects, area) {
   const centre = { lat: area.lat, lon: area.lon, heightM: 0 };
-  return objects.filter((x) => distanceKm(centre, { ...x, heightM: 0 }) <= area.radiusKm);
+  return objects.filter(
+    (x) => distanceKm(centre, { ...x, heightM: 0 }) <= area.radiusKm,
+  );
 }

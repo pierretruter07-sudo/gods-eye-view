@@ -6,6 +6,7 @@ import { shouldRefreshFlights } from './flightPrefetchPolicy.js';
  * waiting for the 30 s poll:
  *  - warm(lat, lon): fire-and-forget request for the destination, sent as a
  *    flight STARTS, so the server's regional cache is hot on arrival;
+ *  - preload(lat, lon): load the destination's aircraft while flying there;
  *  - on every camera stop, refresh the flights layer immediately if the view
  *    moved far enough from the last refresh.
  */
@@ -27,7 +28,10 @@ export function installFlightPrefetch({ viewer, dataManager }) {
     );
     if (!p) return null;
     const c = Cesium.Cartographic.fromCartesian(p);
-    return { lat: Cesium.Math.toDegrees(c.latitude), lon: Cesium.Math.toDegrees(c.longitude) };
+    return {
+      lat: Cesium.Math.toDegrees(c.latitude),
+      lon: Cesium.Math.toDegrees(c.longitude),
+    };
   }
 
   function refreshNow(here) {
@@ -43,25 +47,47 @@ export function installFlightPrefetch({ viewer, dataManager }) {
     const heightM = viewer.camera.positionCartographic?.height ?? Infinity;
     const here = centre();
     if (!here) return;
-    if (shouldRefreshFlights({ last, here, heightM, now: Date.now() })) refreshNow(here);
+    if (shouldRefreshFlights({ last, here, heightM, now: Date.now() }))
+      refreshNow(here);
   };
   const remove = viewer.camera.moveEnd.addEventListener(onMoveEnd);
 
   /** Warm the server cache for a destination before the camera gets there. */
   function warm(lat, lon) {
-    if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon))
+      return;
     const url = `/api/opensky?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
     fetch(url, { headers: { Accept: 'application/json' } })
       .then((r) => r.body?.cancel?.())
       .catch(() => {});
   }
 
+  /**
+   * Load the destination's aircraft DURING the camera flight: point the
+   * flights query at the destination and refresh now, so they are already
+   * on the globe when the camera arrives. The arrival refresh then sees a
+   * fresh result for this place and is skipped.
+   */
+  function preload(lat, lon) {
+    if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon))
+      return;
+    const flights = dataManager.getLayerModule?.('flights');
+    if (typeof flights?.setQueryAnchor !== 'function') return warm(lat, lon);
+    flights.setQueryAnchor(lat, lon, 12000);
+    last = { lat, lon, at: Date.now() };
+    Promise.resolve(dataManager.refreshLayer?.('flights')).catch(() => {});
+  }
+
   return {
     warm,
-    /** Refresh for wherever the camera is looking now (after a fly-to). */
+    preload,
+    /** After a fly-to: refresh unless the preload already covered this place. */
     refreshHere() {
       const here = centre();
-      if (here && isOn('flights')) refreshNow(here);
+      if (!here || !isOn('flights')) return;
+      const heightM = viewer.camera.positionCartographic?.height ?? Infinity;
+      if (shouldRefreshFlights({ last, here, heightM, now: Date.now() }))
+        refreshNow(here);
     },
     destroy: () => remove(),
   };

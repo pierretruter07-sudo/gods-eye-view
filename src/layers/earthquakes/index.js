@@ -11,37 +11,6 @@ import {
 export * from './model.js';
 export { createUsgsEarthquakeSource } from './source.js';
 
-/**
- * Zone radius (m) for a magnitude: grows gently with magnitude so clustered
- * quakes stay legible instead of overlapping blobs.
- */
-export function quakeZoneRadiusM(mag) {
-  return Math.pow(1.7, mag) * 850;
-}
-
-/**
- * A radial white→transparent gradient, cached, so zones fade out at the edge.
- * Returns null where no canvas exists (tests, workers): callers then fall
- * back to a flat translucent fill.
- */
-let _radialFade = null;
-function radialFadeImage() {
-  if (_radialFade) return _radialFade;
-  if (typeof document === 'undefined' || typeof document.createElement !== 'function') return null;
-  const s = 128;
-  const c = document.createElement('canvas');
-  c.width = c.height = s;
-  const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-  g.addColorStop(0, 'rgba(255,255,255,1)');
-  g.addColorStop(0.5, 'rgba(255,255,255,0.45)');
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, s, s);
-  _radialFade = c.toDataURL();
-  return _radialFade;
-}
-
 /** Own one earthquake display and its refresh lifecycle. */
 export function createEarthquakesLayer({ source, overlayHost } = {}) {
   if (typeof source?.getSnapshot !== 'function')
@@ -118,34 +87,15 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
           time,
         } of rows) {
           count++;
-          const baseRadius = quakeZoneRadiusM(mag);
           const color = depthColor(depthKm || 0);
-          const isSignificant = mag >= 5.0;
-          // Minimalist soft ping: a radial wash that fades to nothing at the
-          // edge (ImageMaterialProperty below), so clustered quakes read as
-          // clean glows rather than stacked solid zones.
-          const centerAlpha = isSignificant ? 0.5 : 0.34;
-
+          // No ground glow: the quake reads through its on-globe marker and
+          // label (overlay entry below). The entity carries position and
+          // properties for picking and the Director.
           const position = Cesium.Cartesian3.fromDegrees(lon, lat);
           nextEntities.push(
             new Cesium.Entity({
               id: `earthquake:${stableId}`,
               position,
-              ellipse: {
-                // Static axes — see the module header. A CallbackProperty here
-                // re-tessellates the clamped ground geometry every frame.
-                semiMajorAxis: baseRadius,
-                semiMinorAxis: baseRadius,
-                material: radialFadeImage()
-                  ? new Cesium.ImageMaterialProperty({
-                      image: radialFadeImage(),
-                      color: color.withAlpha(centerAlpha),
-                      transparent: true,
-                    })
-                  : new Cesium.ColorMaterialProperty(color.withAlpha(centerAlpha * 0.6)),
-                outline: false,
-                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-              },
               properties: {
                 // Analyst seam (additive): the USGS event id (e.g. "us7000abcd").
                 usgsId,

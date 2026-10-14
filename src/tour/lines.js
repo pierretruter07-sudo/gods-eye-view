@@ -24,12 +24,12 @@ function spellCode(code) {
 export function aircraftLine(event) {
   const f = event.facts;
   const who = f.callsign ? `Flight ${f.callsign}` : 'An aircraft';
-  const parts = [
-    `${who} is squawking ${spellCode(f.squawk)}, ${f.meaning}.`,
-  ];
+  const parts = [`${who} is squawking ${spellCode(f.squawk)}, ${f.meaning}.`];
   if (f.onGround) parts.push('It is on the ground.');
   else if (f.altitudeM != null)
-    parts.push(`Altitude ${round(f.altitudeM * FT_PER_M, 100).toLocaleString('en-US')} feet.`);
+    parts.push(
+      `Altitude ${round(f.altitudeM * FT_PER_M, 100).toLocaleString('en-US')} feet.`,
+    );
   if (f.speedMps != null && !f.onGround)
     parts.push(`Ground speed ${Math.round(f.speedMps * KT_PER_MPS)} knots.`);
   if (f.operator) parts.push(`Operator ${f.operator}.`);
@@ -41,7 +41,8 @@ export function quakeLine(event, now) {
   const parts = [
     `A magnitude ${f.magnitude.toFixed(1)} earthquake${f.place ? `, ${f.place}` : ''}, ${minutesAgo(f.timeMs, now)}.`,
   ];
-  if (f.depthKm != null) parts.push(`Depth ${Math.round(f.depthKm)} kilometres.`);
+  if (f.depthKm != null)
+    parts.push(`Depth ${Math.round(f.depthKm)} kilometres.`);
   return parts.join(' ');
 }
 
@@ -81,25 +82,40 @@ function titleCase(text) {
 export function vesselLine(vessel) {
   const kind = vessel.shipType ? titleCase(vessel.shipType) : 'Vessel';
   const parts = [`${kind}${vessel.name ? ` ${titleCase(vessel.name)}` : ''}`];
-  if (vessel.speedKts != null) parts.push(`making ${Math.round(vessel.speedKts)} knots`);
-  if (vessel.destination) parts.push(`bound for ${titleCase(vessel.destination)}`);
+  if (vessel.speedKts != null)
+    parts.push(`making ${Math.round(vessel.speedKts)} knots`);
+  if (vessel.destination)
+    parts.push(`bound for ${titleCase(vessel.destination)}`);
   return `${parts.join(', ')}.`;
 }
 
 export function militaryLine(aircraft) {
-  const id = aircraft.callsign ? `callsign ${aircraft.callsign}` : 'without a public callsign';
+  const id = aircraft.callsign
+    ? `callsign ${aircraft.callsign}`
+    : 'without a public callsign';
   const parts = [`A military aircraft, ${id}`];
   if (aircraft.aircraftClass) parts.push(`type ${aircraft.aircraftClass}`);
   if (Number.isFinite(aircraft.altitudeM) && !aircraft.onGround)
-    parts.push(`at ${round(aircraft.altitudeM * 3.28084, 100).toLocaleString('en-US')} feet`);
-  if (aircraft.originCountry) parts.push(`registered to ${aircraft.originCountry}`);
+    parts.push(
+      `at ${round(aircraft.altitudeM * 3.28084, 100).toLocaleString('en-US')} feet`,
+    );
+  if (aircraft.originCountry)
+    parts.push(`registered to ${aircraft.originCountry}`);
   return `${parts.join(', ')}.`;
 }
 
 export function satelliteLine(sat) {
-  const name = sat.isIss ? 'The International Space Station' : titleCase(sat.name || 'A satellite');
+  const name = sat.isIss
+    ? 'The International Space Station'
+    : titleCase(sat.name || 'A satellite');
   const parts = [name];
-  if (sat.altitudeM != null) parts.push(`${round(sat.altitudeM / 1000, 10).toLocaleString('en-US')} kilometres up`);
-  if (sat.speedMps != null) parts.push(`travelling at ${round(sat.speedMps * 3.6, 100).toLocaleString('en-US')} kilometres per hour`);
+  if (sat.altitudeM != null)
+    parts.push(
+      `${round(sat.altitudeM / 1000, 10).toLocaleString('en-US')} kilometres up`,
+    );
+  if (sat.speedMps != null)
+    parts.push(
+      `travelling at ${round(sat.speedMps * 3.6, 100).toLocaleString('en-US')} kilometres per hour`,
+    );
   return `${parts.join(', ')}.`;
 }

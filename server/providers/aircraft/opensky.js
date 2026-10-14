@@ -246,46 +246,85 @@ export function adsbLolFallbackAnchor(req) {
  * a different one instead of hammering the limited one. All return `ac`.
  */
 const REGIONAL_SOURCES = Object.freeze([
-  { id: 'adsb.lol', url: (lat, lon, nm) => `https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${nm}` },
-  { id: 'airplanes.live', url: (lat, lon, nm) => `https://api.airplanes.live/v2/point/${lat}/${lon}/${nm}` },
-  { id: 'adsb.fi', url: (lat, lon, nm) => `https://opendata.adsb.fi/api/v3/lat/${lat}/lon/${lon}/dist/${nm}` },
+  {
+    id: 'adsb.lol',
+    url: (lat, lon, nm) =>
+      `https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${nm}`,
+  },
+  {
+    id: 'airplanes.live',
+    url: (lat, lon, nm) =>
+      `https://api.airplanes.live/v2/point/${lat}/${lon}/${nm}`,
+  },
+  {
+    id: 'adsb.fi',
+    url: (lat, lon, nm) =>
+      `https://opendata.adsb.fi/api/v3/lat/${lat}/lon/${lon}/dist/${nm}`,
+  },
 ]);
 const _regionalCooldownUntil = new Map();
 const REGIONAL_COOLDOWN_MS = 60_000;
 const REGIONAL_ERROR_COOLDOWN_MS = 20_000;
 
-async function fetchRegionalPayload(lat, lon, signal) {
+/** Exported for tests: the ordered regional chain with per-source cooldowns. */
+export const REGIONAL_SOURCE_IDS = Object.freeze(
+  REGIONAL_SOURCES.map((s) => s.id),
+);
+export function resetRegionalCooldowns() {
+  _regionalCooldownUntil.clear();
+}
+
+export async function fetchRegionalPayload(lat, lon, signal) {
   let lastError = null;
   for (const source of REGIONAL_SOURCES) {
     if (Date.now() < (_regionalCooldownUntil.get(source.id) || 0)) continue;
     try {
-      const upstream = await fetch(source.url(lat, lon, ADSBLOL_POINT_RADIUS_NM), {
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'gods-eye-view-regional-fallback/1.0',
+      const upstream = await fetch(
+        source.url(lat, lon, ADSBLOL_POINT_RADIUS_NM),
+        {
+          headers: {
+            Accept: 'application/json',
+            'User-Agent': 'gods-eye-view-regional-fallback/1.0',
+          },
+          signal,
         },
-        signal,
-      });
+      );
       if (!upstream.ok) {
         const retryS = Number(upstream.headers.get('retry-after'));
         _regionalCooldownUntil.set(
           source.id,
           Date.now() +
             (upstream.status === 429
-              ? Math.max(REGIONAL_COOLDOWN_MS, Number.isFinite(retryS) ? retryS * 1000 : 0)
+              ? Math.max(
+                  REGIONAL_COOLDOWN_MS,
+                  Number.isFinite(retryS) ? retryS * 1000 : 0,
+                )
               : REGIONAL_ERROR_COOLDOWN_MS),
         );
         throw new Error(`${source.id} upstream HTTP ${upstream.status}`);
       }
-      const payload = await readResponseJsonCapped(upstream, ADSBLOL_POINT_MAX_RESPONSE_BYTES);
-      if (payload && !Array.isArray(payload.ac) && Array.isArray(payload.aircraft))
+      const payload = await readResponseJsonCapped(
+        upstream,
+        ADSBLOL_POINT_MAX_RESPONSE_BYTES,
+      );
+      if (
+        payload &&
+        !Array.isArray(payload.ac) &&
+        Array.isArray(payload.aircraft)
+      )
         payload.ac = payload.aircraft;
       return payload;
     } catch (error) {
       if (signal?.aborted) throw error;
       lastError = error;
-      if (!_regionalCooldownUntil.has(source.id) || Date.now() >= _regionalCooldownUntil.get(source.id))
-        _regionalCooldownUntil.set(source.id, Date.now() + REGIONAL_ERROR_COOLDOWN_MS);
+      if (
+        !_regionalCooldownUntil.has(source.id) ||
+        Date.now() >= _regionalCooldownUntil.get(source.id)
+      )
+        _regionalCooldownUntil.set(
+          source.id,
+          Date.now() + REGIONAL_ERROR_COOLDOWN_MS,
+        );
       console.warn('[Regional Flights Fallback]', error?.message || error);
     }
   }
@@ -305,7 +344,8 @@ async function fetchAdsbLolPointFallback(req) {
   }
   // Stale-while-revalidate: a recent snapshot is returned at once (aircraft
   // appear instantly) and refreshed in the background for the next poll.
-  const revalidateOnly = cached && now - cached.cachedAt < ADSBLOL_POINT_STALE_OK_MS;
+  const revalidateOnly =
+    cached && now - cached.cachedAt < ADSBLOL_POINT_STALE_OK_MS;
 
   const request = coalesceProxyRequest(
     _adsbLolPointInFlight,
@@ -540,7 +580,10 @@ export function openSkyProxy() {
           };
           upstream = await fetch(
             'https://opensky-network.org/api/states/all?extended=1',
-            { headers: retryHeaders, signal: AbortSignal.timeout(OPENSKY_FETCH_TIMEOUT_MS) },
+            {
+              headers: retryHeaders,
+              signal: AbortSignal.timeout(OPENSKY_FETCH_TIMEOUT_MS),
+            },
           );
           usedMode = 'basic';
           reason = 'oauth_rejected_fallback_basic';

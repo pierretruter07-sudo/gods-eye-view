@@ -120,7 +120,8 @@ export function createApplicationViewer({ container, creditContainer }) {
     baseLayer: false,
     creditContainer,
     msaaSamples: 4,
-    contextOptions: { webgl: { preserveDrawingBuffer: true } },
+    // No preserveDrawingBuffer: nothing reads the WebGL canvas back, and
+    // keeping the buffer costs a copy every frame on many GPUs.
   });
   try {
     viewer.targetFrameRate = 60;
@@ -129,9 +130,34 @@ export function createApplicationViewer({ container, creditContainer }) {
     viewer.scene.skyAtmosphere.atmosphereLightIntensity = 18;
     viewer.scene.skyAtmosphere.saturationShift = -0.12;
     viewer.scene.skyAtmosphere.brightnessShift = -0.08;
+    applyHorizonHaze(viewer.scene);
+    // Director stops repeat (airports, cities): keep their tiles resident so
+    // a revisit draws instantly instead of re-downloading (default 100).
+    viewer.scene.globe.tileCacheSize = 300;
     return viewer;
   } catch (error) {
     viewer.destroy();
     throw error;
   }
+}
+
+/**
+ * Distance haze for low, tilted views. The free imagery switches source
+ * mosaic between zoom levels (the far, coarse tiles have a different colour),
+ * which shows as a hard seam towards the horizon; denser fog blends the far
+ * field into the atmosphere, and Cesium loads coarser tiles under fog, so the
+ * same setting also cuts tile requests at every Director stop.
+ */
+export const HORIZON_HAZE = Object.freeze({
+  visualDensityScalar: 0.4,
+  screenSpaceErrorFactor: 4,
+  minimumBrightness: 0.06,
+});
+
+export function applyHorizonHaze(scene, haze = HORIZON_HAZE) {
+  const fog = scene?.fog;
+  if (!fog) return;
+  fog.enabled = true;
+  for (const [key, value] of Object.entries(haze))
+    if (key in fog) fog[key] = value;
 }

@@ -24,7 +24,8 @@ export function qualityLevels(devicePixelRatio = 1) {
     { ratio: native, msaa: 2 },
     { ratio: native, msaa: 1 },
   ];
-  if (native > 1.15) levels.push({ ratio: +Math.max(1, native * 0.85).toFixed(2), msaa: 1 });
+  if (native > 1.15)
+    levels.push({ ratio: +Math.max(1, native * 0.85).toFixed(2), msaa: 1 });
   if (native > 1) levels.push({ ratio: 1, msaa: 1 });
   return levels;
 }
@@ -42,12 +43,14 @@ export function nextQuality(state, fps, levelCount) {
   const { level } = state;
   if (fps < QUALITY.lowFps) {
     const bad = state.bad + 1;
-    if (bad >= QUALITY.badWindowsToDrop && level < levelCount - 1) return { level: level + 1, good: 0, bad: 0 };
+    if (bad >= QUALITY.badWindowsToDrop && level < levelCount - 1)
+      return { level: level + 1, good: 0, bad: 0 };
     return { level, good: 0, bad };
   }
   if (fps > QUALITY.highFps) {
     const good = state.good + 1;
-    if (good >= QUALITY.goodWindowsToRaise && level > 0) return { level: level - 1, good: 0, bad: 0 };
+    if (good >= QUALITY.goodWindowsToRaise && level > 0)
+      return { level: level - 1, good: 0, bad: 0 };
     return { level, good, bad: 0 };
   }
   return { level, good: 0, bad: 0 };

@@ -20,6 +20,8 @@ const credential = (name) => CREDENTIALS.find((spec) => spec.name === name);
 
 test('doctor distinguishes supported, usable EOL, and unsupported Node versions', () => {
   assert.equal(classifyNodeVersion('24.14.0').level, 'ok');
+  assert.equal(classifyNodeVersion('24.13.0').level, 'warn');
+  assert.equal(classifyNodeVersion('24.12.0').level, 'error');
   assert.equal(classifyNodeVersion('26.1.0').level, 'ok');
   assert.equal(classifyNodeVersion('25.6.1').level, 'warn');
   assert.match(classifyNodeVersion('25.6.1').summary, /usable but EOL/);
@@ -91,10 +93,10 @@ test('doctor recognizes every OpenSky OAuth keychain alias used by dev-fresh', (
   );
 });
 
-test('Pinokio-scoped diagnosis ignores Keychain items its start path does not import', () => {
-  const root = mkdtempSync(path.join(tmpdir(), 'gev-pinokio-doctor-'));
+test('keychain-free diagnosis ignores Keychain items', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'gev-doctor-scope-'));
   try {
-    const spec = credential('OPENAI_API_KEY');
+    const spec = credential('AISSTREAM_API_KEY');
     const keychainLookup = () => true;
     assert.deepEqual(resolveCredential(spec, {
       environment: {},
@@ -112,8 +114,8 @@ test('Pinokio-scoped diagnosis ignores Keychain items its start path does not im
   }
 });
 
-test('Pinokio-scoped diagnosis does not count dotenv values shadowed by blank app fields', () => {
-  const root = mkdtempSync(path.join(tmpdir(), 'gev-pinokio-doctor-env-'));
+test('authoritative-environment diagnosis does not count dotenv values shadowed by blank fields', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'gev-doctor-scope-env-'));
   try {
     const spec = credential('GOOGLE_MAPS_API_KEY');
     writeFileSync(path.join(root, '.env.local'), 'GOOGLE_MAPS_API_KEY=dotenv-only\n');
@@ -212,19 +214,14 @@ test('doctor describes the credential ladder without exposing values', () => {
     GOOGLE_MAPS_API_KEY: { configured: false },
     GOOGLE_MAPS_SERVER_API_KEY: { configured: false },
     CESIUM_ION_TOKEN: { configured: true, source: 'environment' },
-    OPENAI_API_KEY: { configured: true, source: 'dotenv files' },
     AISSTREAM_API_KEY: { configured: false },
     FIRMS_MAP_KEY: { configured: false },
-    TOMTOM_API_KEY: { configured: false },
     OPENSKY_CLIENT_ID: { configured: false },
     OPENSKY_CLIENT_SECRET: { configured: false },
-    LL2_API_TOKEN: { configured: true, source: 'environment' },
   };
   const capabilities = buildCapabilitySummary(credentials);
   assert.match(capabilities.map, /Google Photorealistic 3D Tiles through Cesium ion/);
   assert.match(capabilities.map, /Bing and world-terrain stacks/);
-  assert.equal(capabilities.voice, 'available');
-  assert.match(capabilities.missions, /token allowance/);
   assert.equal(capabilities.flights, 'OpenSky keyless anonymous access (rate-limited)');
 
   const report = formatSetupReport({
@@ -237,18 +234,8 @@ test('doctor describes the credential ladder without exposing values', () => {
   });
   assert.doesNotMatch(report, /configured-value/);
   assert.match(report, /Cesium ion \(environment\)/);
-  assert.match(report, /Launch Library 2 \(environment\)/);
+  assert.doesNotMatch(report, /Voice|Traffic|Missions|Launch Library/);
 
-  const pinokioReport = formatSetupReport({
-    ready: true,
-    node: { version: '24.14.0', level: 'ok', summary: 'supported' },
-    npm: { available: true, version: '11.0.0' },
-    dependenciesInstalled: true,
-    credentials,
-    capabilities,
-  }, { readyMessage: 'Ready. Return to Pinokio and choose Start.' });
-  assert.match(pinokioReport, /Return to Pinokio and choose Start/);
-  assert.doesNotMatch(pinokioReport, /npm run dev/);
 });
 
 test('doctor sends Keychain-backed reports to dev-fresh and describes OpenSky as presence only', () => {
@@ -256,13 +243,10 @@ test('doctor sends Keychain-backed reports to dev-fresh and describes OpenSky as
     'GOOGLE_MAPS_API_KEY',
     'GOOGLE_MAPS_SERVER_API_KEY',
     'CESIUM_ION_TOKEN',
-    'OPENAI_API_KEY',
     'AISSTREAM_API_KEY',
     'FIRMS_MAP_KEY',
-    'TOMTOM_API_KEY',
     'OPENSKY_CLIENT_ID',
     'OPENSKY_CLIENT_SECRET',
-    'LL2_API_TOKEN',
   ].map((name) => [name, { configured: false }]));
   credentials.GOOGLE_MAPS_API_KEY = { configured: true, source: 'macOS Keychain' };
   credentials.OPENSKY_CLIENT_ID = { configured: true, source: 'environment' };
@@ -288,13 +272,10 @@ test('doctor never calls a dependency-missing setup ready', () => {
     'GOOGLE_MAPS_API_KEY',
     'GOOGLE_MAPS_SERVER_API_KEY',
     'CESIUM_ION_TOKEN',
-    'OPENAI_API_KEY',
     'AISSTREAM_API_KEY',
     'FIRMS_MAP_KEY',
-    'TOMTOM_API_KEY',
     'OPENSKY_CLIENT_ID',
     'OPENSKY_CLIENT_SECRET',
-    'LL2_API_TOKEN',
   ].map((name) => [name, { configured: false }]));
   const output = formatSetupReport({
     ready: false,

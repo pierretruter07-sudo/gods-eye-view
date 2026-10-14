@@ -12,7 +12,13 @@ import { createNarrator } from '../tour/narrator.js';
  * theatre over the real globe, drives the strike-package panel, and plays the
  * launch cinematic. Nothing here reads a live feed.
  */
-export function createExerciseMode({ viewer, dataManager, liveLayerIds, onBanner, onCaption }) {
+export function createExerciseMode({
+  viewer,
+  dataManager,
+  liveLayerIds,
+  onBanner,
+  onCaption,
+}) {
   let overlay = null;
   let panel = null;
   let swarm = null;
@@ -51,8 +57,15 @@ export function createExerciseMode({ viewer, dataManager, liveLayerIds, onBanner
   function targetAnchors() {
     const t = scenario.target;
     const offsets = [
-      [0, 0], [380, 220], [-320, 160], [220, -260], [-260, -200],
-      [460, -40], [-460, 60], [140, 340], [-160, -340],
+      [0, 0],
+      [380, 220],
+      [-320, 160],
+      [220, -260],
+      [-260, -200],
+      [460, -40],
+      [-460, 60],
+      [140, 340],
+      [-160, -340],
     ];
     const anchors = [];
     for (const [de, dn] of offsets) {
@@ -116,16 +129,30 @@ export function createExerciseMode({ viewer, dataManager, liveLayerIds, onBanner
   }
 
   async function launch() {
-    console.info('[exercise] launch() called', { active, launching, hasPackage: !!currentPackage });
+    console.info('[exercise] launch() called', {
+      active,
+      launching,
+      hasPackage: !!currentPackage,
+    });
     if (!active || launching) return;
     if (!currentPackage) generate();
     launching = true;
     const t = scenario.target;
     panel?.hide();
     // Dive to a dramatic oblique framing of the fictional airfield and settle.
-    flyTo({ lat: t.lat, lon: t.lon, rangeM: 5000, pitchDeg: -28, duration: 3.5 });
-    onCaption?.(`Exercise. Simulated strike: ${currentPackage.name} on ${t.name}.`);
-    narrator.speak(`Exercise. Simulated strike. ${currentPackage.name} inbound on ${t.name}.`);
+    flyTo({
+      lat: t.lat,
+      lon: t.lon,
+      rangeM: 5000,
+      pitchDeg: -28,
+      duration: 3.5,
+    });
+    onCaption?.(
+      `Exercise. Simulated strike: ${currentPackage.name} on ${t.name}.`,
+    );
+    narrator.speak(
+      `Exercise. Simulated strike. ${currentPackage.name} inbound on ${t.name}.`,
+    );
     await wait(3800);
     if (!launching) return;
     const anchors = targetAnchors();
@@ -136,7 +163,9 @@ export function createExerciseMode({ viewer, dataManager, liveLayerIds, onBanner
     }
     if (!launching) return;
     launching = false;
-    onCaption?.('Exercise complete. Simulated battle-damage assessment underway.');
+    onCaption?.(
+      'Exercise complete. Simulated battle-damage assessment underway.',
+    );
     narrator.speak('Exercise complete. This was a simulated engagement.');
     if (currentPackage) panel?.show(currentPackage);
   }

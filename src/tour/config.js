@@ -22,13 +22,14 @@ export const TOUR_TIMING = Object.freeze({
   revisitAfterMin: 6,
 });
 
-/** Camera framing per stop kind. */
+/** Camera framing per stop kind. Steep enough that the far field (coarse,
+ * differently-coloured imagery tiles) stays out of frame and fewer tiles load. */
 export const STOP_CAMERA = Object.freeze({
-  aircraft: Object.freeze({ rangeM: 70_000, pitchDeg: -35 }),
+  aircraft: Object.freeze({ rangeM: 70_000, pitchDeg: -42 }),
   earthquake: Object.freeze({ rangeM: 350_000, pitchDeg: -50 }),
-  airport: Object.freeze({ rangeM: 14_000, pitchDeg: -30 }),
-  vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -35 }),
-  military: Object.freeze({ rangeM: 45_000, pitchDeg: -35 }),
+  airport: Object.freeze({ rangeM: 14_000, pitchDeg: -40 }),
+  vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -40 }),
+  military: Object.freeze({ rangeM: 45_000, pitchDeg: -42 }),
   satellite: Object.freeze({ rangeM: 2_500_000, pitchDeg: -35 }),
 });
 
@@ -75,17 +76,56 @@ export const TOUR_LAYERS = Object.freeze([
 ]);
 
 /** Airports with SilentWing close-ups (runway data from OurAirports). */
-export const TOUR_AIRPORTS = Object.freeze([
-  { id: 'ybbn', label: 'Brisbane Airport', lat: -27.3842, lon: 153.117 },
-  { id: 'yssy', label: 'Sydney Airport', lat: -33.9461, lon: 151.177 },
-  { id: 'ypad', label: 'Adelaide Airport', lat: -34.9475, lon: 138.5334 },
-].map((a) => Object.freeze(a)));
+export const TOUR_AIRPORTS = Object.freeze(
+  [
+    { id: 'ybbn', label: 'Brisbane Airport', lat: -27.3842, lon: 153.117 },
+    { id: 'yssy', label: 'Sydney Airport', lat: -33.9461, lon: 151.177 },
+    { id: 'ypad', label: 'Adelaide Airport', lat: -34.9475, lon: 138.5334 },
+  ].map((a) => Object.freeze(a)),
+);
 
 /** Wide views used when nothing else is available. */
-export const TOUR_STOPS = Object.freeze([
-  { id: 'globe', label: 'Planet overview', lat: -10, lon: 140, rangeM: 18_000_000, pitchDeg: -90 },
-  { id: 'egll', label: 'London Heathrow', lat: 51.47, lon: -0.4543, rangeM: 40_000, pitchDeg: -35 },
-  { id: 'kjfk', label: 'New York JFK', lat: 40.6413, lon: -73.7781, rangeM: 40_000, pitchDeg: -35 },
-  { id: 'omdb', label: 'Dubai International', lat: 25.2532, lon: 55.3657, rangeM: 40_000, pitchDeg: -35 },
-  { id: 'rjtt', label: 'Tokyo Haneda', lat: 35.5494, lon: 139.7798, rangeM: 40_000, pitchDeg: -35 },
-].map((stop) => Object.freeze(stop)));
+export const TOUR_STOPS = Object.freeze(
+  [
+    {
+      id: 'globe',
+      label: 'Planet overview',
+      lat: -10,
+      lon: 140,
+      rangeM: 18_000_000,
+      pitchDeg: -90,
+    },
+    {
+      id: 'egll',
+      label: 'London Heathrow',
+      lat: 51.47,
+      lon: -0.4543,
+      rangeM: 34_000,
+      pitchDeg: -48,
+    },
+    {
+      id: 'kjfk',
+      label: 'New York JFK',
+      lat: 40.6413,
+      lon: -73.7781,
+      rangeM: 34_000,
+      pitchDeg: -48,
+    },
+    {
+      id: 'omdb',
+      label: 'Dubai International',
+      lat: 25.2532,
+      lon: 55.3657,
+      rangeM: 34_000,
+      pitchDeg: -48,
+    },
+    {
+      id: 'rjtt',
+      label: 'Tokyo Haneda',
+      lat: 35.5494,
+      lon: 139.7798,
+      rangeM: 34_000,
+      pitchDeg: -48,
+    },
+  ].map((stop) => Object.freeze(stop)),
+);

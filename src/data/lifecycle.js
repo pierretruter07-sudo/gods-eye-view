@@ -2073,6 +2073,11 @@ export class LayerLifecycle {
   /**
    * Read runtime parameters from a layer if it exposes `getParams()`.
    */
+  /** The registered layer module, for layer-specific calls (or null). */
+  getLayerModule(layerId) {
+    return this.layers.get(layerId)?.module ?? null;
+  }
+
   getLayerParams(layerId) {
     const entry = this.layers.get(layerId);
     if (!entry || !entry.module || typeof entry.module.getParams !== 'function')

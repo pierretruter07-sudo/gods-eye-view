@@ -352,7 +352,8 @@ export function createGroundFloor({ terrain, signal }) {
       (a, b) => b.cold - a.cold || b.speedMps - a.speedMps,
     );
     if (Number.isFinite(epoch) && epoch !== 0) {
-      for (let i = 0; i < ranked.length;) {
+      let i = 0;
+      while (i < ranked.length) {
         let j = i + 1;
         while (
           j < ranked.length &&

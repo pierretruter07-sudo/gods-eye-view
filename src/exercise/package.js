@@ -31,15 +31,52 @@ function seedFrom(text) {
   return h >>> 0;
 }
 
-const CALLSIGN_WORDS = ['Kestrel', 'Anvil', 'Vanguard', 'Harrier', 'Sentinel', 'Mustang'];
+const CALLSIGN_WORDS = [
+  'Kestrel',
+  'Anvil',
+  'Vanguard',
+  'Harrier',
+  'Sentinel',
+  'Mustang',
+];
 
 /** Abstract package roles. Platforms are generic classes, never real types. */
 const ROLE_TEMPLATES = [
-  { role: 'Strike', platform: 'Multirole flight', min: 2, max: 6, essential: true },
-  { role: 'Escort', platform: 'Air-superiority pair', min: 2, max: 2, essential: true },
-  { role: 'SEAD / Jammer', platform: 'Electronic-attack pair', min: 2, max: 2, essential: true },
-  { role: 'Tanker', platform: 'Air-refuelling', min: 1, max: 1, essential: false },
-  { role: 'ISR', platform: 'High-altitude recon', min: 1, max: 1, essential: false },
+  {
+    role: 'Strike',
+    platform: 'Multirole flight',
+    min: 2,
+    max: 6,
+    essential: true,
+  },
+  {
+    role: 'Escort',
+    platform: 'Air-superiority pair',
+    min: 2,
+    max: 2,
+    essential: true,
+  },
+  {
+    role: 'SEAD / Jammer',
+    platform: 'Electronic-attack pair',
+    min: 2,
+    max: 2,
+    essential: true,
+  },
+  {
+    role: 'Tanker',
+    platform: 'Air-refuelling',
+    min: 1,
+    max: 1,
+    essential: false,
+  },
+  {
+    role: 'ISR',
+    platform: 'High-altitude recon',
+    min: 1,
+    max: 1,
+    essential: false,
+  },
 ];
 
 const AUTH_STEPS = [
@@ -80,14 +117,22 @@ export function generatePackage(scenario, options = {}) {
 
   // Risk is an abstract game number: threat environment plus package size.
   const threats = scenario.threats || [];
-  const threatScore =
-    threats.reduce((n, t) => n + (t.band === 'high' ? 30 : t.band === 'medium' ? 15 : 8), 0);
+  const threatScore = threats.reduce(
+    (n, t) => n + (t.band === 'high' ? 30 : t.band === 'medium' ? 15 : 8),
+    0,
+  );
   const sizePenalty = Math.max(0, aircraftTotal - 8) * 2;
-  const risk = Math.min(100, Math.round(threatScore + sizePenalty + between(0, 10)));
+  const risk = Math.min(
+    100,
+    Math.round(threatScore + sizePenalty + between(0, 10)),
+  );
 
   // Relative timeline (H = time on target). Purely illustrative spacing.
   const timeline = [
-    { t: 'H−40', event: `${callsign} package launch from ${scenario.friendlyBase.name}` },
+    {
+      t: 'H−40',
+      event: `${callsign} package launch from ${scenario.friendlyBase.name}`,
+    },
     { t: 'H−18', event: 'Tanker rendezvous and top-off' },
     { t: 'H−08', event: 'ISR on station' },
     { t: 'H−05', event: 'Jammers active, escorts sweep' },
@@ -105,7 +150,10 @@ export function generatePackage(scenario, options = {}) {
     aircraftTotal,
     timeline,
     risk: { score: risk, band: riskBand(risk) },
-    authorisation: AUTH_STEPS.map((label, i) => ({ label, cleared: i < AUTH_STEPS.length - 1 })),
+    authorisation: AUTH_STEPS.map((label, i) => ({
+      label,
+      cleared: i < AUTH_STEPS.length - 1,
+    })),
     seed,
   };
 }

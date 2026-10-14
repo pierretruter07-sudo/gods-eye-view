@@ -171,13 +171,17 @@ export function createRendering({
     const catalog = layerState._catalog;
     if (!layerState._sliceIds || layerState._sliceSize !== catalog.size) {
       layerState._sliceIds = [];
-      for (const [id, sat] of catalog) if (sat.group !== 'dense') layerState._sliceIds.push(id);
+      for (const [id, sat] of catalog)
+        if (sat.group !== 'dense') layerState._sliceIds.push(id);
       layerState._sliceSize = catalog.size;
       layerState._sliceCursor = 0;
     }
     const ids = layerState._sliceIds;
     if (!ids.length) return 0;
-    const count = Math.min(ids.length, Math.max(1, Math.ceil(ids.length * fraction)));
+    const count = Math.min(
+      ids.length,
+      Math.max(1, Math.ceil(ids.length * fraction)),
+    );
     const now = new Date();
     let updated = 0;
     for (let i = 0; i < count; i += 1) {
@@ -188,7 +192,11 @@ export function createRendering({
       if (!sat || !point) continue;
       const pos = parts.orbits.propagatePosition(sat.satrec, now);
       if (!pos) continue;
-      point.position = Cesium.Cartesian3.fromDegrees(pos.longitude, pos.latitude, pos.altitude);
+      point.position = Cesium.Cartesian3.fromDegrees(
+        pos.longitude,
+        pos.latitude,
+        pos.altitude,
+      );
       updated += 1;
     }
     return updated;
@@ -216,7 +224,9 @@ export function createRendering({
     // hitch. Each frame updates the slice that keeps the whole fleet on the
     // same cadence.
     if (layerState._params.showPoints) {
-      const dt = layerState._lastSliceAt ? now - layerState._lastSliceAt : interval;
+      const dt = layerState._lastSliceAt
+        ? now - layerState._lastSliceAt
+        : interval;
       layerState._lastSliceAt = now;
       _propagateSlice(Math.min(1, Math.max(0, dt) / interval));
       layerState._lastPropagation = now;

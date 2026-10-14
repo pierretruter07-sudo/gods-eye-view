@@ -62,7 +62,12 @@ export function createExerciseOverlay(viewer) {
     const ax = [Math.sin(h), Math.cos(h)]; // along-runway (east,north)
     const bx = [Math.cos(h), -Math.sin(h)]; // across
     const out = [];
-    for (const [a, b] of [[1, 1], [1, -1], [-1, -1], [-1, 1]]) {
+    for (const [a, b] of [
+      [1, 1],
+      [1, -1],
+      [-1, -1],
+      [-1, 1],
+    ]) {
       const e = cE + a * (len / 2) * ax[0] + b * (wid / 2) * bx[0];
       const n = cN + a * (len / 2) * ax[1] + b * (wid / 2) * bx[1];
       out.push(...offsetGeo(lat, lon, e, n));
@@ -73,7 +78,9 @@ export function createExerciseOverlay(viewer) {
   function slab(lat, lon, cE, cN, len, wid, hdg, cssColor, height = 0) {
     source.entities.add({
       polygon: {
-        hierarchy: Cesium.Cartesian3.fromDegreesArray(rect(lat, lon, cE, cN, len, wid, hdg)),
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(
+          rect(lat, lon, cE, cN, len, wid, hdg),
+        ),
         material: Cesium.Color.fromCssColorString(cssColor),
         height,
       },
@@ -83,7 +90,9 @@ export function createExerciseOverlay(viewer) {
   function building(lat, lon, cE, cN, len, wid, hdg, cssColor, extrudedHeight) {
     source.entities.add({
       polygon: {
-        hierarchy: Cesium.Cartesian3.fromDegreesArray(rect(lat, lon, cE, cN, len, wid, hdg)),
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(
+          rect(lat, lon, cE, cN, len, wid, hdg),
+        ),
         material: Cesium.Color.fromCssColorString(cssColor),
         extrudedHeight,
         outline: true,
@@ -119,8 +128,21 @@ export function createExerciseOverlay(viewer) {
         if (Math.hypot(cE + 300, cN - 320) < 320) continue; // apron/terminal
         if (Math.random() < 0.28) continue; // some empty lots
         const dist = Math.hypot(cE + 200, cN - 350);
-        const height = Math.max(8, Math.min(55, (9 + 40 * Math.exp(-dist / 650)) * rand(0.7, 1.2)));
-        building(lat, lon, cE, cN, rand(44, 82), rand(44, 82), 0, palette[Math.floor(rand(0, palette.length))], height);
+        const height = Math.max(
+          8,
+          Math.min(55, (9 + 40 * Math.exp(-dist / 650)) * rand(0.7, 1.2)),
+        );
+        building(
+          lat,
+          lon,
+          cE,
+          cN,
+          rand(44, 82),
+          rand(44, 82),
+          0,
+          palette[Math.floor(rand(0, palette.length))],
+          height,
+        );
       }
     }
   }
@@ -160,7 +182,9 @@ export function createExerciseOverlay(viewer) {
   }
 
   function ring(threat) {
-    const color = Cesium.Color.fromCssColorString(threat.band === 'high' ? DEEP_ORANGE : AMBER);
+    const color = Cesium.Color.fromCssColorString(
+      threat.band === 'high' ? DEEP_ORANGE : AMBER,
+    );
     source.entities.add({
       position: Cesium.Cartesian3.fromDegrees(threat.lon, threat.lat),
       ellipse: {
@@ -195,7 +219,12 @@ export function createExerciseOverlay(viewer) {
     drawCity(scenario.target);
     drawAirfield(scenario.target);
     marker(scenario.friendlyBase, BLUE, scenario.friendlyBase.name);
-    marker(scenario.target, DEEP_ORANGE, `${scenario.target.name}  · SIMULATED`, { diamond: true });
+    marker(
+      scenario.target,
+      DEEP_ORANGE,
+      `${scenario.target.name}  · SIMULATED`,
+      { diamond: true },
+    );
   }
 
   function destroy() {

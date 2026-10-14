@@ -34,8 +34,10 @@ export function normalizeOpenSkyAircraft(row) {
     verticalRateMps: finite(row[11]),
     squawk: cleanSquawk(row[14]),
     category: finite(row[17]),
-    typeCode: null,
-    registration: null,
+    // Regional fallback extensions (absent from OpenSky itself).
+    typeCode: cleanText(row[18]) || null,
+    registration: cleanText(row[19]) || null,
+    typeName: cleanText(row[20]) || null,
     operator: null,
   };
 }

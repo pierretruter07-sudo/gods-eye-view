@@ -72,4 +72,3 @@ test('data setup seals the caller catalog and drains its exact instances', async
   for (const release of releases.reverse()) await release();
   assert.equal(dataManager.layers.size, 0);
 });
-

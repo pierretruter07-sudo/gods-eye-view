@@ -17,7 +17,15 @@ export async function createWorldTerrain(accessToken, { signal } = {}) {
   };
 }
 
+/** The free Re:Earth terrain host rate-limits bursts (HTTP 429); Cesium's
+ * default is 18 parallel requests per server. Six keeps tile loading smooth
+ * without tripping the limit during fast Director flights. */
+export const KEYLESS_TERRAIN_HOST = 'terrain.reearth.land:443';
+export const KEYLESS_TERRAIN_MAX_REQUESTS = 6;
+
 export async function createKeylessTerrain() {
+  Cesium.RequestScheduler.requestsByServer[KEYLESS_TERRAIN_HOST] =
+    KEYLESS_TERRAIN_MAX_REQUESTS;
   try {
     // Re:Earth / Mapterhorn ellipsoidal quantized mesh, CC BY 4.0.
     return {

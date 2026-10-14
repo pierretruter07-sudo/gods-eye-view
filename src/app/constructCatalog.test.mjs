@@ -1,7 +1,10 @@
 import { createSurfaceServices } from './surfaceServices.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createApplicationCatalog, APPLICATION_LAYER_IDS } from './constructCatalog.js';
+import {
+  createApplicationCatalog,
+  APPLICATION_LAYER_IDS,
+} from './constructCatalog.js';
 import { createStandaloneLayerSources } from '../standalone/layerSources.js';
 import { LayerLifecycle } from '../data/lifecycle.js';
 
@@ -58,7 +61,8 @@ test('catalogs construct exactly the shipped layers, distinctly, with isolated c
     first.layers.map(({ id }) => id),
     second.layers.map(({ id }) => id),
   );
-  for (const layer of first.layers) assert.notEqual(layer, second.get(layer.id));
+  for (const layer of first.layers)
+    assert.notEqual(layer, second.get(layer.id));
   assert.equal(callsA.length, 0, 'construction must not acquire');
   await first.militaryRegistry.refreshMilitaryRegistryIfStale();
   await second.militaryRegistry.refreshMilitaryRegistryIfStale();

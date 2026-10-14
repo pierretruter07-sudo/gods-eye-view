@@ -7,6 +7,7 @@ import {
   FOCUS_EVIDENCE_DEV,
   AIS_FIRST_CONNECT_LABEL,
 } from './policy.js';
+import { normalizeVesselType } from '../../data/vesselLabels.js';
 
 export function createQueries({
   vesselState,
@@ -165,7 +166,9 @@ export function createQueries({
       lon: num(record?.lon),
       speedKts: num(record?.speed),
       courseDeg: num(record?.course),
-      shipType: text(record?.type),
+      // AIS reports a numeric code ("35"); expose the family text ("MILITARY").
+      shipType: text(normalizeVesselType(record?.type)),
+      shipTypeCode: text(record?.type),
       destination: text(record?.destination),
       navStatus: null,
     };
