@@ -117,3 +117,10 @@ test('every catalogue entry has a drawable silhouette', async () => {
   const { SILHOUETTE_SHAPES } = await import('./silhouettes.js');
   for (const t of ASSET_TYPES) assert.ok(SILHOUETTE_SHAPES.includes(t.shape), `${t.id} → ${t.shape}`);
 });
+
+test('naval types use a modern ship-class photo, not a historic painting', () => {
+  const ship = (rec) => toIntelObject('ais-live-vessels', { mmsi: '2', lat: 0, lon: 0, ...rec });
+  const naval = resolveAssetType(ship({ name: 'HMAS SYDNEY' }));
+  assert.notEqual(naval.article, 'Warship');
+  assert.match(naval.article, /class/);
+});

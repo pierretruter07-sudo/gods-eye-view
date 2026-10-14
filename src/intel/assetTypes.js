@@ -394,11 +394,12 @@ const SHIP_SHAPE = {
   passenger: 'cargo',
 };
 
-// [id, name, article, AIS family pattern]
+// [id, name, article, AIS family pattern]. State vessels point at a modern
+// ship-class article: generic articles such as "Warship" lead with old paintings.
 const VESSELS = [
-  ['naval', 'Naval vessel', 'Warship', null],
-  ['patrol', 'Patrol vessel', 'Patrol boat', /LAW ENFORCE/],
-  ['sar', 'Search and rescue vessel', 'Lifeboat (rescue)', /\bSAR\b/],
+  ['naval', 'Naval vessel', 'Arleigh Burke-class destroyer', null],
+  ['patrol', 'Patrol vessel', 'Cape-class patrol boat', /LAW ENFORCE/],
+  ['sar', 'Search and rescue vessel', 'Severn-class lifeboat', /\bSAR\b/],
   ['tanker', 'Tanker', 'Oil tanker', /TANKER/],
   ['cargo', 'Cargo vessel', 'Container ship', /CARGO/],
   ['passenger', 'Passenger vessel', 'Cruise ship', /PASSENGER/],
