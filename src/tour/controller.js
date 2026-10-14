@@ -7,6 +7,7 @@ import {
 import { TOUR_LAYERS, TOUR_TIMING } from './config.js';
 import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
+import { createStopQueue } from './queue.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
 import { glassSphereSprite } from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
@@ -40,6 +41,7 @@ export function createTourController({
   narrator = createNarrator(),
   onFocus = null,
   onTravel = null,
+  stage = null,
 }) {
   const planner = createPlanner();
   const staged = { flights: [], quakes: [] };
@@ -239,6 +241,25 @@ export function createTourController({
     });
   }
 
+  function incidentData() {
+    return {
+      flights: [...records('flights'), ...staged.flights],
+      quakes: [...records('earthquakes'), ...staged.quakes],
+    };
+  }
+
+  // Look-ahead: the next stop is chosen on arrival at this one and its
+  // aircraft start loading then, so they are on the globe when we get there.
+  let runSignal = null;
+  const queue = createStopQueue({
+    planner,
+    liveData: () => liveData(),
+    incidents: incidentData,
+    stage,
+    maxWaitMs: TOUR_TIMING.stageMaxWaitS * 1000,
+    wait: (ms) => sleep(ms, runSignal),
+  });
+
   function liveData() {
     return {
       flights: [...records('flights'), ...staged.flights],
@@ -259,11 +280,7 @@ export function createTourController({
       );
       await sleep(step, signal);
       if (profile) airport?.update(profile, records('flights'));
-      const incidents = {
-        flights: [...records('flights'), ...staged.flights],
-        quakes: [...records('earthquakes'), ...staged.quakes],
-      };
-      if (planner.hasFresh(incidents)) return;
+      if (planner.hasFresh(incidentData())) return;
     }
   }
 
@@ -306,8 +323,12 @@ export function createTourController({
   }
 
   async function loop(signal) {
+    runSignal = signal;
     for (;;) {
-      const next = planner.next(liveData());
+      // Keep orbiting here until the next stop's data is in (or briefly).
+      const next = await queue.take();
+      // The airport picture fades out as the camera leaves.
+      await airport?.fadeOut();
       stopOrbit();
       clearMarker();
       airport?.clear();
@@ -324,10 +345,13 @@ export function createTourController({
       await flyTo(next.view, signal);
       startOrbit(next.view);
       onTravel?.('arrive', next.view);
+      // Queue the next stop now: its data loads during this whole dwell.
+      queue.planAhead();
       onFocus?.(focusOf(next));
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);
         airport.update(profile, records('flights'));
+        airport.fadeIn();
       }
       ui.setCaption(next.line);
       const started = Date.now();
@@ -420,5 +444,7 @@ export function createTourController({
     simulate,
     destroy,
     isRunning: () => Boolean(run),
+    /** Diagnostics: the queued stop and recent look-ahead decisions. */
+    queue: () => ({ next: queue.peek(), log: queue.log() }),
   };
 }

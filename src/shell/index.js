@@ -346,6 +346,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const tour = installTour({
     viewer,
     dataManager,
+    // The Director's look-ahead: load the next stop's aircraft a dwell early.
+    stage: (view) => prefetch.stage(view),
     // Warm the destination's aircraft before the camera gets there, then
     // refresh the moment it arrives (instead of waiting for the 30 s poll).
     onTravel(phase, view, focus) {

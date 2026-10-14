@@ -24,3 +24,19 @@ export function shouldRefreshFlights({ last, here, heightM, now }) {
     now - last.at >= PREFETCH_MAX_AGE_MS
   );
 }
+
+/**
+ * Aircraft in an OpenSky-style `states` array within `radiusKm` of a point
+ * (state vectors carry longitude at index 5 and latitude at index 6).
+ */
+export function countStatesNear(states, lat, lon, radiusKm) {
+  if (!Array.isArray(states)) return 0;
+  let n = 0;
+  for (const s of states) {
+    const sLon = Array.isArray(s) ? s[5] : s?.lon;
+    const sLat = Array.isArray(s) ? s[6] : s?.lat;
+    if (!Number.isFinite(sLat) || !Number.isFinite(sLon)) continue;
+    if (km({ lat, lon }, { lat: sLat, lon: sLon }) <= radiusKm) n += 1;
+  }
+  return n;
+}

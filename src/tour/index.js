@@ -8,6 +8,7 @@ export function installTour({
   onState,
   onFocus = null,
   onTravel = null,
+  stage = null,
 }) {
   const ui = createTourUi({ onState });
   const controller = createTourController({
@@ -16,6 +17,7 @@ export function installTour({
     ui,
     onFocus,
     onTravel,
+    stage,
   });
   window.__gevTour = controller;
   return {

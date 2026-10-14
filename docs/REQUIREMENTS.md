@@ -71,6 +71,8 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-008 | The Director shall start automatically 10 s after the welcome card appears. `?nointro` shall skip the card. | D |
 | GEV-DIR-009 | At planet-scale views (≥ 5,000 km range) the globe shall keep turning. | D |
 | GEV-DIR-010 | The focused asset shall open in the intel HUD in a reduced "touring" action set. | D |
+| GEV-DIR-011 | The Director shall choose its next stop on arrival at the current one and load that stop's aircraft during the dwell. It shall not arrive at an airport with no aircraft loaded; such an airport is skipped. A new incident still comes first. | T |
+| GEV-DIR-012 | The airport overlay shall fade in on arrival and out on departure, and each aircraft label shall fade in when its data arrives. | D |
 
 ## 6. Intel HUD (INT)
 
