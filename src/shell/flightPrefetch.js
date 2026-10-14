@@ -1,5 +1,8 @@
 import * as Cesium from 'cesium';
-import { shouldRefreshFlights } from './flightPrefetchPolicy.js';
+import {
+  countStatesNear,
+  shouldRefreshFlights,
+} from './flightPrefetchPolicy.js';
 
 /**
  * Makes aircraft appear as soon as the camera arrives somewhere new instead of
@@ -78,9 +81,34 @@ export function installFlightPrefetch({ viewer, dataManager }) {
     Promise.resolve(dataManager.refreshLayer?.('flights')).catch(() => {});
   }
 
+  /**
+   * Load a destination's aircraft ahead of the Director's flight (a whole
+   * dwell early). The answer also warms the server's regional cache, so the
+   * layer's own refresh on departure is served at once.
+   * @returns {Promise<{ready: boolean, count: number|null}>}
+   */
+  async function stage(view, { radiusKm = 50 } = {}) {
+    const { lat, lon } = view || {};
+    if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon))
+      return { ready: true, count: null };
+    const url = `/api/opensky?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
+    try {
+      const r = await fetch(url, { headers: { Accept: 'application/json' } });
+      if (!r.ok) return { ready: false, count: 0 };
+      const payload = await r.json();
+      return {
+        ready: true,
+        count: countStatesNear(payload?.states, lat, lon, radiusKm),
+      };
+    } catch {
+      return { ready: false, count: 0 };
+    }
+  }
+
   return {
     warm,
     preload,
+    stage,
     /** After a fly-to: refresh unless the preload already covered this place. */
     refreshHere() {
       const here = centre();

@@ -6,6 +6,14 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Director look-ahead.** The next stop is chosen on arrival at the
+  current one, and its aircraft load during the whole dwell instead of the
+  4 s flight. An airport with no aircraft is skipped rather than shown
+  empty. The airport overlay fades in and out, and each aircraft label
+  fades in as its data arrives.
+- **Satellite orbit rings.** They now close exactly: the drift from orbit
+  precession and drag over one period is spread around the ring. The part
+  of a ring behind the Earth is hidden.
 - **AUDIT view, round 3.**
   - Every item now says what it means for God's Eye View: the feeds,
     services or people it touches and what would go wrong. Must-fix items

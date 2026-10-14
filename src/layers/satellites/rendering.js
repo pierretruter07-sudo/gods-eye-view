@@ -27,13 +27,9 @@ export function createRendering({
    * both the selected ring and the ISS ring blink once per second while the
    * rebuild was in flight. A rigid Z-rotation needs no rebuild at all.
    *
-   * Why not a CallbackProperty entity (dynamic mode)? Verified in Cesium
-   * 1.138 source: the dynamic polyline updater renders through a shared
-   * PolylineCollection and applies only the fill material —
-   * `depthFailMaterial` is silently dropped, losing the dimmed behind-Earth
-   * segment. The Primitive keeps it via depthFailAppearance + the per-instance
-   * depthFailColor attribute (same mechanism the entity STATIC batch uses):
-   * bright where above the horizon, dimmed where behind the globe.
+   * The ring is depth-tested against the globe, so only the part in front of
+   * the Earth shows (the dimmed behind-Earth segment was removed on
+   * request: it read as clutter).
    */
 
   function _showOrbitPath(noradId, color) {
@@ -54,20 +50,18 @@ export function createRendering({
           positions: basePositions,
           width: noradId === ISS_NORAD ? 2.5 : 2.0,
           vertexFormat: Cesium.PolylineColorAppearance.VERTEX_FORMAT,
+          // Straight segments between the 2° samples: no geodesic
+          // re-interpolation, so the closed ring stays continuous.
+          arcType: Cesium.ArcType.NONE,
         }),
         attributes: {
           color: Cesium.ColorGeometryInstanceAttribute.fromColor(
             pathColor.withAlpha(0.6),
           ),
-          depthFailColor: Cesium.ColorGeometryInstanceAttribute.fromColor(
-            pathColor.withAlpha(0.35),
-          ),
         },
       }),
+      // Depth-tested only: the part of the ring behind the Earth is hidden.
       appearance: new Cesium.PolylineColorAppearance({ translucent: true }),
-      depthFailAppearance: new Cesium.PolylineColorAppearance({
-        translucent: true,
-      }),
       asynchronous: false, // build this frame — no async-rebuild blink window
       allowPicking: false, // ring clicks fall through to satellites/deselect
     });

@@ -20,6 +20,8 @@ export const TOUR_TIMING = Object.freeze({
   interruptCheckS: 2,
   /** An incident already shown may be revisited after this long. */
   revisitAfterMin: 6,
+  /** Longest wait, when leaving, for the next stop's aircraft to load. */
+  stageMaxWaitS: 6,
 });
 
 /** Camera framing per stop kind. Steep enough that the far field (coarse,

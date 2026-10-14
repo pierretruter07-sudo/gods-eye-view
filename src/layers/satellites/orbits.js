@@ -130,7 +130,34 @@ export function createOrbits({ state: layerState, services, parts, source }) {
       }
     }
 
-    return positions;
+    return closeOrbitRing(positions);
+  }
+
+  /**
+   * Close the ring exactly. Even at a fixed GMST, one propagated period does
+   * not end where it began: the orbit plane precesses (J2, about 0.35° per
+   * ISS orbit) and drag shortens the period, so the last point lands tens of
+   * kilometres from the first and the ring shows a step. Spread that
+   * mismatch linearly over the ring so the end meets the start.
+   */
+  function closeOrbitRing(positions) {
+    const n = positions.length - 1;
+    if (n < 2) return positions;
+    const first = positions[0];
+    const last = positions[n];
+    const gap = Cesium.Cartesian3.subtract(
+      last,
+      first,
+      new Cesium.Cartesian3(),
+    );
+    if (Cesium.Cartesian3.magnitude(gap) > 2_000_000) return positions; // not one orbit
+    return positions.map((p, i) =>
+      Cesium.Cartesian3.subtract(
+        p,
+        Cesium.Cartesian3.multiplyByScalar(gap, i / n, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3(),
+      ),
+    );
   }
 
   /**

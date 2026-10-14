@@ -1,4 +1,8 @@
 import * as Cesium from 'cesium';
+import {
+  holdContinuousRender,
+  releaseContinuousRender,
+} from '../renderGovernor.js';
 import { calmWindHeadingDeg } from './profiles.js';
 import { derivePhase, PHASE_COLOR } from './phase.js';
 
@@ -12,8 +16,47 @@ export function createAirportOverlay(viewer) {
   const collection = new Cesium.CustomDataSource('gev-airport');
   viewer.dataSources.add(collection);
 
+  // Fades: the whole picture fades in on arrival and out on departure, and
+  // each aircraft label fades in when its data first arrives (no pop-in).
+  const FADE_MS = 700;
+  let fade = { from: 0, to: 0, at: 0 };
+  const born = new Map(); // aircraft key → first seen (ms)
+  const overall = () => {
+    const k = Math.min(1, (performance.now() - fade.at) / FADE_MS);
+    return fade.from + (fade.to - fade.from) * k;
+  };
+  const alphaOf = (key) => {
+    const seen = key ? born.get(key) : null;
+    const own = seen ? Math.min(1, (performance.now() - seen) / FADE_MS) : 1;
+    return overall() * own;
+  };
+  const faded = (color, key, scale = 1) =>
+    new Cesium.CallbackProperty(
+      () => color.withAlpha(color.alpha * scale * alphaOf(key)),
+      false,
+    );
+
   function clear() {
     collection.entities.removeAll();
+  }
+
+  function fadeIn() {
+    fade = { from: overall(), to: 1, at: performance.now() };
+  }
+
+  /** Fade the picture out; resolves when it is gone (keeps frames coming). */
+  function fadeOut() {
+    if (overall() <= 0.01 || !collection.entities.values.length)
+      return Promise.resolve();
+    fade = { from: overall(), to: 0, at: performance.now() };
+    const hold = 'airport-fade';
+    holdContinuousRender(hold);
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        releaseContinuousRender(hold);
+        resolve();
+      }, FADE_MS),
+    );
   }
 
   /** Great-circle km between two lat/lon points. */
@@ -64,7 +107,9 @@ export function createAirportOverlay(viewer) {
         ]),
         width: 2,
         material: new Cesium.PolylineDashMaterialProperty({
-          color: Cesium.Color.fromCssColorString('#30d158').withAlpha(0.8),
+          color: faded(
+            Cesium.Color.fromCssColorString('#30d158').withAlpha(0.8),
+          ),
           dashLength: 16,
         }),
         clampToGround: true,
@@ -76,7 +121,9 @@ export function createAirportOverlay(viewer) {
         position: Cesium.Cartesian3.fromDegrees(gate.lon, gate.lat),
         point: {
           pixelSize: 5,
-          color: Cesium.Color.fromCssColorString('#30d158').withAlpha(0.7),
+          color: faded(
+            Cesium.Color.fromCssColorString('#30d158').withAlpha(0.7),
+          ),
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       });
@@ -91,6 +138,8 @@ export function createAirportOverlay(viewer) {
   function update(profile, flights) {
     clear();
     drawApproach(profile);
+    const now = performance.now();
+    const seen = new Set();
     for (const f of flights || []) {
       if (!Number.isFinite(f?.lat) || !Number.isFinite(f?.lon)) continue;
       if (
@@ -103,6 +152,9 @@ export function createAirportOverlay(viewer) {
         PHASE_COLOR[phase] || '#f5f7fa',
       );
       const name = f.callsign || f.icao24 || 'contact';
+      const key = f.icao24 || name;
+      seen.add(key);
+      if (!born.has(key)) born.set(key, now);
       collection.entities.add({
         position: Cesium.Cartesian3.fromDegrees(
           f.lon,
@@ -111,16 +163,16 @@ export function createAirportOverlay(viewer) {
         ),
         point: {
           pixelSize: 8,
-          color,
-          outlineColor: Cesium.Color.BLACK.withAlpha(0.6),
+          color: faded(color, key),
+          outlineColor: faded(Cesium.Color.BLACK.withAlpha(0.6), key),
           outlineWidth: 1,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
         label: {
           text: `${name}\n${label}`,
           font: '500 12px sans-serif',
-          fillColor: color,
-          outlineColor: Cesium.Color.BLACK,
+          fillColor: faded(color, key),
+          outlineColor: faded(Cesium.Color.BLACK, key),
           outlineWidth: 3,
           style: Cesium.LabelStyle.FILL_AND_OUTLINE,
           pixelOffset: new Cesium.Cartesian2(10, -6),
@@ -129,12 +181,14 @@ export function createAirportOverlay(viewer) {
         },
       });
     }
+    for (const key of born.keys()) if (!seen.has(key)) born.delete(key);
   }
 
   function destroy() {
     clear();
+    born.clear();
     viewer.dataSources.remove(collection, true);
   }
 
-  return { update, clear, destroy };
+  return { update, clear, fadeIn, fadeOut, destroy };
 }

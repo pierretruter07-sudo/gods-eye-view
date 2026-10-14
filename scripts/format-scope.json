@@ -300,5 +300,6 @@
   "src/tooling/cacheHeaders.test.mjs",
   "src/audit/impact.js",
   "src/maps/google3dBudget.test.mjs",
-  "src/data/pollPause.test.mjs"
+  "src/data/pollPause.test.mjs",
+  "src/tour/queue.test.mjs"
 ]
