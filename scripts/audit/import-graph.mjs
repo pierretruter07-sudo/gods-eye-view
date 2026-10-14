@@ -85,7 +85,7 @@ export function buildGraph(entries = ENTRY_POINTS) {
   return { reachable: seen, dangling };
 }
 
-const isTest = (f) => /\.test\.m?js$/.test(f) || /(^|\/)(testing|fixtures?)\//.test(f);
+const isTest = (f) => /\.test\.m?js$/.test(f) || /(^|\/)(testing|testSupport|fixtures?)\//.test(f) || /fixtureRoot\.mjs$/.test(f);
 
 export function report() {
   const all = SOURCE_DIRS.flatMap(listSources);
