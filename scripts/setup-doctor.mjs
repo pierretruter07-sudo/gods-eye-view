@@ -15,10 +15,8 @@ export const CREDENTIALS = Object.freeze([
   { name: 'GOOGLE_MAPS_API_KEY', label: 'Google Maps', keychain: [['google-maps-api', 'api-key'], ['google-maps-api', 'default'], ['google-maps-api', 'key']] },
   { name: 'GOOGLE_MAPS_SERVER_API_KEY', label: 'Google Places / Street View server', keychain: [] },
   { name: 'CESIUM_ION_TOKEN', label: 'Cesium ion', keychain: [['cesium-ion', 'token']] },
-  { name: 'OPENAI_API_KEY', label: 'OpenAI voice', keychain: [['openai-api', 'api-key']] },
   { name: 'AISSTREAM_API_KEY', label: 'AISStream vessels', keychain: [['aisstream-api', 'api-key']] },
   { name: 'FIRMS_MAP_KEY', label: 'NASA FIRMS fires', keychain: [['firms-map', 'map-key']] },
-  { name: 'TOMTOM_API_KEY', label: 'TomTom traffic', keychain: [['tomtom-api', 'api-key']] },
   {
     name: 'OPENSKY_CLIENT_ID',
     label: 'OpenSky client ID',
@@ -33,7 +31,6 @@ export const CREDENTIALS = Object.freeze([
       ['client_secret', 'client-secret', 'secret'].map((account) => [service, account])
     )),
   },
-  { name: 'LL2_API_TOKEN', label: 'Launch Library 2', keychain: [] },
 ]);
 
 export function isConfiguredValue(value) {
@@ -175,13 +172,8 @@ export function buildCapabilitySummary(
         ? 'Google Photorealistic 3D Tiles through Cesium ion; Bing and world-terrain stacks available'
         : 'Esri World Imagery (keyless satellite basemap) with keyless terrain',
     flights,
-    voice: configured('OPENAI_API_KEY') ? 'available' : 'off until an OpenAI key is added',
     vessels: configured('AISSTREAM_API_KEY') ? 'live AISStream feed' : 'off until an AISStream key is added',
     fires: configured('FIRMS_MAP_KEY') ? 'live NASA FIRMS feed' : 'off until a FIRMS key is added',
-    traffic: configured('TOMTOM_API_KEY') ? 'live TomTom flow' : 'built-in traffic simulation',
-    missions: configured('LL2_API_TOKEN')
-      ? 'Launch Library 2 token allowance'
-      : 'Launch Library 2 public access',
   };
 }
 
@@ -232,11 +224,8 @@ export function formatSetupReport(report, { readyMessage } = {}) {
     '',
     `Map:     ${report.capabilities.map}`,
     `Flights: ${report.capabilities.flights}`,
-    `Voice:   ${report.capabilities.voice}`,
     `Vessels: ${report.capabilities.vessels}`,
     `Fires:   ${report.capabilities.fires}`,
-    `Traffic: ${report.capabilities.traffic}`,
-    `Missions: ${report.capabilities.missions}`,
     '',
     'Configured providers:',
     ...CREDENTIALS.map((spec) => {

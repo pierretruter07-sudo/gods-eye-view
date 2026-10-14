@@ -254,7 +254,13 @@ const _regionalCooldownUntil = new Map();
 const REGIONAL_COOLDOWN_MS = 60_000;
 const REGIONAL_ERROR_COOLDOWN_MS = 20_000;
 
-async function fetchRegionalPayload(lat, lon, signal) {
+/** Exported for tests: the ordered regional chain with per-source cooldowns. */
+export const REGIONAL_SOURCE_IDS = Object.freeze(REGIONAL_SOURCES.map((s) => s.id));
+export function resetRegionalCooldowns() {
+  _regionalCooldownUntil.clear();
+}
+
+export async function fetchRegionalPayload(lat, lon, signal) {
   let lastError = null;
   for (const source of REGIONAL_SOURCES) {
     if (Date.now() < (_regionalCooldownUntil.get(source.id) || 0)) continue;

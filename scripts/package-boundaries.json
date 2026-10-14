@@ -455,7 +455,7 @@
       "src/maps/imagery.js",
       "src/maps/registry.js",
       "src/maps/terrain.js",
-      "src/keySetupCore.mjs"
+      "src/maps/keyRequirement.js"
     ],
     "external": [
       "cesium"
@@ -551,7 +551,7 @@
       "src/data/trackingClickGesture.js",
       "src/data/trailRenderer.js",
       "src/data/vesselLabels.js",
-      "src/keySetupCore.mjs",
+      "src/maps/keyRequirement.js",
       "src/keylessGeocoder.js",
       "src/layers/aircraft/classification.js",
       "src/layers/earthquakes/index.js",

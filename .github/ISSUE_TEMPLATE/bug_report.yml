@@ -29,9 +29,8 @@ body:
     attributes:
       label: How you installed
       options:
-        - Pinokio one-click
+        - Hosted demo (Replit)
         - Terminal (git clone + npm)
-        - Docker
         - Other (say what in the description)
     validations:
       required: true
@@ -63,7 +62,7 @@ body:
     id: logs
     attributes:
       label: Server log and browser console
-      description: Paste the relevant error lines from the terminal or Pinokio log and browser console. If no log is available, explain what prevented it. Redact credentials and personal information.
+      description: Paste the relevant error lines from the terminal and browser console. If no log is available, explain what prevented it. Redact credentials and personal information.
       render: text
     validations:
       required: true
