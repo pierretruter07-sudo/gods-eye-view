@@ -6,7 +6,7 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
-- Requirements baseline (GEV-SRS 0.1, 52 requirements) and a verification
+- Requirements baseline (GEV-SRS 0.1, 56 requirements) and a verification
   plan with a traceability matrix.
 - Configuration index, known limitations, demo runbook and architecture
   docs. Data-source licence register with commercial-use flags.
@@ -20,6 +20,16 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   - Node runtime policy.
 
 ### Changed
+- Director: aircraft at the destination load during the camera flight; the
+  arrival refresh is skipped when that preload already covered the place.
+- 3D models are pre-warmed after startup; globe tile cache raised to 300
+  so revisited stops draw instantly.
+- Horizon haze hides the imagery mosaic seam towards the horizon and lowers
+  far-field tile requests. Director stops use steeper camera angles.
+- Removed `preserveDrawingBuffer` (a per-frame buffer copy nothing needed).
+- Earthquake zones no longer draw an orange ground glow.
+- Intel HUD: type reference photo with class-outline fallback; card anchors
+  are measured on resize instead of every frame.
 - Removed 518 unreachable inherited source files, 277 tests and 68 MB of
   media. The clean shell is the only UI.
 - Welcome card describes the Director as an automated narrator.

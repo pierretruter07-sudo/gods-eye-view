@@ -51,6 +51,20 @@ function el(tag, attrs = {}, html) {
   return node;
 }
 
+/** Every glTF the layers can draw (public/models). */
+export const MODEL_URLS = Object.freeze([
+  '/models/airplane.glb', '/models/atr72.glb', '/models/b789.glb', '/models/bell206.glb', '/models/c172.glb',
+  '/models/citation2.glb', '/models/jet.glb', '/models/mq9.glb', '/models/ship.glb',
+]);
+
+function warmModels() {
+  for (const url of MODEL_URLS) {
+    fetch(url, { priority: 'low' })
+      .then((r) => r.arrayBuffer())
+      .catch(() => {});
+  }
+}
+
 /** Demo buttons show in development builds or with ?demo in the URL. */
 function demoEnabled() {
   try {
@@ -207,7 +221,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
       // The subject's type photo downloads during the flight, not on arrival.
       if (phase === 'depart' && focus) intelRef?.prefetch(focus);
       if (!view || !(view.rangeM <= 1_000_000)) return;
-      if (phase === 'depart') prefetch.warm(view.lat, view.lon);
+      if (phase === 'depart') prefetch.preload(view.lat, view.lon);
       else prefetch.refreshHere();
     },
     // The Director's current subject opens in the intel view, as if clicked.
@@ -269,6 +283,9 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   // Two small API calls resolve the whole type-photo catalogue; do it once
   // the default layers have had their head start.
   startupTimers.push(setTimeout(() => intel.warmReferenceImages(), 6000));
+  // Warm the 3D models (≈3 MB) into the HTTP cache at low priority, so the
+  // first aircraft or ship of each class does not stall when it appears.
+  startupTimers.push(setTimeout(warmModels, 9000));
   const badge = triageBtn.querySelector('.gev-badge');
   function refreshBadge() {
     if (mode !== 'live') return;

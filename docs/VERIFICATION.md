@@ -78,6 +78,8 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-INT-010 | `src/intel/actions.js` `screenConjunctions` | T: `actions.test.mjs` "conjunction screen finds the closest sampled approach" |
 | GEV-INT-011 | `src/intel/objects.js` | T: `intel.test.mjs` "nearby uses real geometry and excludes self", "nearestHit picks the closest point within radius" |
 | GEV-INT-012 | `src/intel/` (no person model exists) | I |
+| GEV-INT-013 | `src/intel/assetTypes.js`, `referenceImages.js`, `markup.js` | T: `src/intel/assetTypes.test.mjs` "aircraft resolve by ICAO designator…", "vessels resolve by AIS family or naval hull prefix…", "the photo sits on a feed card, labelled as a type reference with credit" |
+| GEV-INT-014 | `src/intel/silhouettes.js`, `assetTypes.js` | T: `assetTypes.test.mjs` "every catalogue entry has a drawable silhouette", unlisted-type assertions |
 | GEV-EXE-001 | `src/exercise/mode.js` | I |
 | GEV-EXE-002 | `src/exercise/package.js` | T: `src/exercise/package.test.mjs` "platforms stay generic classes, never real types" |
 | GEV-EXE-003 | `src/exercise/package.js` | T: `package.test.mjs` "authorisation is a checklist with a final command step left open" |
@@ -87,6 +89,8 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-PRF-002 | `src/shell/qualityPolicy.js` | T: `shellPolicies.test.mjs` "one slow window does not drop quality; sustained slowness does; recovery needs headroom" |
 | GEV-PRF-003 | `src/shell/idleSpinPolicy.js` | T: `src/intel/intel.test.mjs` "idle spin only when idle, zoomed out and unblocked" |
 | GEV-PRF-004 | `src/shell/flightPrefetchPolicy.js` | T: `shellPolicies.test.mjs` "flight refresh on arrival: new place, stale data, not from space" |
+| GEV-PRF-005 | `src/shell/flightPrefetch.js` `preload`, `src/layers/flights/controller.js` `setQueryAnchor` | D: `scripts/bench/director-stops.mjs` (`flightsFreshAtArrival`) |
+| GEV-PRF-006 | `src/shell/index.js` `MODEL_URLS` | T: `shellPolicies.test.mjs` "the model warm list matches the shipped glTF files exactly" |
 | GEV-CM-001 | whole tree | A: `scripts/audit/import-graph.mjs` |
 | GEV-CM-002 | `.github/workflows/ci.yml` | I |
 | GEV-CM-003 | `package-lock.json` | I |

@@ -59,6 +59,9 @@ export function createCivilFlightLayer({
     parts.lifecycle.methods,
     parts.ingestion.methods,
   );
+  /** Load aircraft around (lat, lon) on the next refreshes, for ttlMs. */
+  layer.setQueryAnchor = (latitude, longitude, ttlMs) =>
+    parts.controller.setQueryAnchor(latitude, longitude, ttlMs);
   Object.defineProperty(layer, 'testing', { value: parts.testing });
   return layer;
 }

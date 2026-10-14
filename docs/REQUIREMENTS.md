@@ -88,6 +88,8 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-010 | Conjunction screening shall report the closest sampled approaches from the loaded catalogue. | T |
 | GEV-INT-011 | "Nearby" lists shall use great-circle distance and exclude the asset itself. | T |
 | GEV-INT-012 | The system shall hold no dossiers on natural persons. | I |
+| GEV-INT-013 | An asset whose type is identified from feed values (ICAO type designator, AIS ship family or naval hull prefix, satellite name) shall show a type reference image, labelled as a type reference (never this airframe or hull), with the photo's author and licence. | T |
+| GEV-INT-014 | When no free-licensed photo exists, the lookup fails, or the type is not in the catalogue, a class outline shall be shown instead. | T |
 
 ## 7. Exercise mode (EXE)
 
@@ -107,6 +109,8 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-PRF-002 | Quality shall drop only on sustained slow frames and recover only with headroom. | T |
 | GEV-PRF-003 | The idle globe spin shall run only when idle, zoomed out and not blocked by a focus or tour. | T |
 | GEV-PRF-004 | On arrival at a place, flights shall refresh only for a new place or stale data, and never from space. | T |
+| GEV-PRF-005 | When the Director departs for a stop within regional range, aircraft for the destination shall be requested during the camera flight. | D |
+| GEV-PRF-006 | All shipped 3D models shall be pre-warmed at low priority after startup. | T |
 
 ## 9. Configuration management (CM)
 

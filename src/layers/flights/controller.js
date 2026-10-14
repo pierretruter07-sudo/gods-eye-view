@@ -13,7 +13,20 @@ export function createController({
     flightState.feed._activeUpdateControllers.clear();
   }
 
+  // A short-lived query anchor lets a caller (the Director) load the
+  // destination's aircraft while the camera is still flying there.
+  let queryAnchor = null; // { latitude, longitude, until }
+  function setQueryAnchor(latitude, longitude, ttlMs = 12000) {
+    queryAnchor =
+      Number.isFinite(latitude) && Number.isFinite(longitude)
+        ? { latitude, longitude, until: Date.now() + ttlMs }
+        : null;
+  }
+
   function _flightQuery(viewer) {
+    if (queryAnchor && Date.now() < queryAnchor.until)
+      return { latitude: queryAnchor.latitude, longitude: queryAnchor.longitude };
+    queryAnchor = null;
     // Ask for aircraft around what the camera is LOOKING at (screen centre),
     // not where the camera hangs — at an oblique airport view those differ
     // by tens of km, and a regional source would miss the airport itself.
@@ -42,5 +55,5 @@ export function createController({
         }
       : {};
   }
-  return { _abortActiveUpdates, _flightQuery };
+  return { _abortActiveUpdates, _flightQuery, setQueryAnchor };
 }
