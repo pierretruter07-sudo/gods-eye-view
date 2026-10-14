@@ -47,8 +47,11 @@ export function classifyNodeVersion(version = process.versions.node) {
   if (major === 25) {
     return { level: 'warn', summary: 'usable but EOL; allocation benchmarks will be skipped' };
   }
-  if (major < 24 || (major === 24 && minor < 14)) {
-    return { level: 'error', summary: 'too old; install Node 24.14 or newer' };
+  if (major === 24 && minor === 13) {
+    return { level: 'warn', summary: 'usable (hosted demo runtime); allocation gates are calibrated on Node 24.14' };
+  }
+  if (major < 24 || (major === 24 && minor < 13)) {
+    return { level: 'error', summary: 'too old; install Node 24.13 or newer' };
   }
   // NEWER than this release has verified is a warning, never a refusal: a
   // future Node must not brick a no-terminal install with advice its user

@@ -20,6 +20,8 @@ const credential = (name) => CREDENTIALS.find((spec) => spec.name === name);
 
 test('doctor distinguishes supported, usable EOL, and unsupported Node versions', () => {
   assert.equal(classifyNodeVersion('24.14.0').level, 'ok');
+  assert.equal(classifyNodeVersion('24.13.0').level, 'warn');
+  assert.equal(classifyNodeVersion('24.12.0').level, 'error');
   assert.equal(classifyNodeVersion('26.1.0').level, 'ok');
   assert.equal(classifyNodeVersion('25.6.1').level, 'warn');
   assert.match(classifyNodeVersion('25.6.1').summary, /usable but EOL/);

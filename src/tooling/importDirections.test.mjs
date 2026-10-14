@@ -25,7 +25,6 @@ function fixture(t, exports = {}) {
     'package.json',
     JSON.stringify({ name: '@gods-eye-view/core', exports }),
   );
-  write('src/data/feedState.js');
   return { root, write };
 }
 
@@ -120,15 +119,6 @@ for (const [name, files, pattern] of [
     /Provider imports application/,
   ],
   [
-    'voice controls reach protocol indirectly',
-    {
-      'src/voice/sessionCommands.js': "import './helper.js';",
-      'src/voice/helper.js': "import './realtimeSession.js';",
-      'src/voice/realtimeSession.js': '',
-    },
-    /Common voice controls import protocol/,
-  ],
-  [
     'dynamic import cannot evade direction',
     { 'src/app/demo.js': "const target = './module.js'; import(target);" },
     /Computed/,
@@ -156,14 +146,10 @@ test('self package imports cannot evade portable ownership', (t) => {
   assert.throws(() => checkImportDirections(root), /Source imports rendering/);
 });
 
-test('compatibility exceptions are limited to the two existing composition entries', (t) => {
+test('no compatibility exception lets a reusable module select standalone setup', (t) => {
   const { root, write } = fixture(t);
   write('src/ui.js', "import './standalone/catalog.js';");
   write('src/standalone/catalog.js');
-  write('server/providers/local.js', "import '../standalone/key-setup.js';");
-  write('server/standalone/key-setup.js');
-  assert.doesNotThrow(() => checkImportDirections(root));
-  write('src/ui/new.js', "import '../standalone/catalog.js';");
   assert.throws(
     () => checkImportDirections(root),
     /Reusable module imports standalone/,

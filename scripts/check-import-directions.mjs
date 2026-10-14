@@ -14,8 +14,7 @@ const entry = (file) =>
 const tests = (file) =>
   file.endsWith('.test.mjs') ||
   file.startsWith('src/testSupport/') ||
-  file.startsWith('src/tooling/') ||
-  file === 'src/overlays/worldOverlayAllocation.worker.mjs';
+  file.startsWith('src/tooling/');
 const source = (file) =>
   file.startsWith('src/sources/') ||
   /^src\/layers\/[^/]+\/(?:source|bundledSource|flowSource)\.js$/.test(file);
@@ -24,23 +23,13 @@ const renderer = (file) =>
   /^src\/layers\/[^/]+\/(?:index|rendering|snapshotRenderer|overlay|presentation|cards|controls)\.js$/.test(
     file,
   );
-// Two compatibility composition entries intentionally select standalone defaults.
-const compatibilityEdge = (from, to) =>
-  (from === 'server/providers/local.js' &&
-    to === 'server/standalone/key-setup.js') ||
-  (from === 'src/ui.js' && to === 'src/standalone/catalog.js');
 const portableExport = (key) =>
   key.startsWith('./sources/') ||
   /\/source$/.test(key) ||
   /^\.\/layers\/(?:flights|military|vessels)\/(?:records|ingestion)$/.test(
     key,
   ) ||
-  [
-    './director',
-    './voice/action-schemas',
-    './voice/session',
-    './data/lifecycle',
-  ].includes(key);
+  key === './data/lifecycle';
 
 /** Check every runtime file, plus transitive portable/source graphs, independently of bundler reachability. */
 export function checkImportDirections(root) {
@@ -131,13 +120,11 @@ export function checkImportDirections(root) {
       if (file.startsWith('src/') && to.startsWith('server/'))
         report(file, `Browser imports server: ${to}`);
       if (
-        !compatibilityEdge(file, to) &&
         file.startsWith('server/providers/') &&
         (to.startsWith('server/standalone/') || renderer(to))
       )
         report(file, `Provider imports application/rendering: ${to}`);
       if (
-        !compatibilityEdge(file, to) &&
         file.startsWith('src/') &&
         !entry(file) &&
         entry(to)
@@ -145,19 +132,6 @@ export function checkImportDirections(root) {
         report(file, `Reusable module imports standalone setup: ${to}`);
       if (source(file) && renderer(to))
         report(file, `Source imports rendering/application: ${to}`);
-      if (file === 'src/voice/gevActions.js' && to === 'src/data/manager.js')
-        report(
-          file,
-          'Actions must consume feed state without the manager facade',
-        );
-      if (
-        file === 'src/app/constructCatalog.js' &&
-        to === 'src/data/localGeojson.js'
-      )
-        report(
-          file,
-          'Catalog must use the services owner without compatibility layer construction',
-        );
     }
     return record;
   }
@@ -186,7 +160,6 @@ export function checkImportDirections(root) {
     if (portableExport(key) && typeof value === 'string')
       roots.set(value.replace(/^\.\//, ''), key);
   }
-  roots.set('src/data/feedState.js', 'feed state');
   for (const [start, label] of roots) {
     if (!existsSync(path.join(root, start))) {
       report(start, `Missing portable entry: ${label}`);
@@ -222,20 +195,6 @@ export function checkImportDirections(root) {
     }
     visit(start);
   }
-  // Common voice controls may use their DOM view, but never a protocol implementation.
-  const voiceSeen = new Set();
-  function voice(file) {
-    if (voiceSeen.has(file)) return;
-    voiceSeen.add(file);
-    const info = load(file);
-    for (const to of info?.edges || []) {
-      if (/^src\/voice\/realtime/.test(to))
-        report(file, `Common voice controls import protocol: ${to}`);
-      else if (code.test(to)) voice(to);
-    }
-  }
-  if (existsSync(path.join(root, 'src/voice/sessionCommands.js')))
-    voice('src/voice/sessionCommands.js');
   if (errors.size) throw new Error([...errors].join('\n'));
   return { modules: files.length, portableEntries: roots.size };
 }

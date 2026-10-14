@@ -87,7 +87,6 @@
   "src/keylessGeocoder.js",
   "src/standalone/placeSearch.js",
   "src/data/installationFeedback.js",
-  "src/testSupport/readStylesheet.mjs",
   "style.css",
   "src/ui/styles/foundation.css",
   "src/sources/live/aircraft.js",
