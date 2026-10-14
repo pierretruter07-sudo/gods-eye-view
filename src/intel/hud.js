@@ -174,27 +174,27 @@ function quakeHud(o, rand, d, nearbyAll) {
   ];
 }
 
-/** Simulated analyst actions per kind: information, logistics, coordination. */
+/** Analyst actions per kind. Each runner in actions.js labels its output FEED or SIMULATED. */
 export const HUD_ACTIONS = Object.freeze({
   aircraft: [
-    { id: 'flightplan', label: 'Request flight plan', toast: 'Flight-plan request queued with the ANSP (simulated).' },
-    { id: 'atc', label: 'Contact ATC sector', toast: 'Sector controller notified (simulated).' },
-    { id: 'imagery', label: 'Task imagery pass', toast: 'Imagery pass requested — next opportunity in 38 min (simulated).' },
+    { id: 'flightplan', label: 'Request flight plan' },
+    { id: 'atc', label: 'Contact ATC sector' },
+    { id: 'imagery', label: 'Task imagery pass' },
   ],
   vessel: [
-    { id: 'manifest', label: 'Request manifest', toast: 'Manifest request sent to the operator (simulated).' },
-    { id: 'port', label: 'Notify port authority', toast: 'Port authority notified (simulated).' },
-    { id: 'imagery', label: 'Task imagery pass', toast: 'Imagery pass requested — next opportunity in 41 min (simulated).' },
+    { id: 'manifest', label: 'Request manifest' },
+    { id: 'port', label: 'Notify port authority' },
+    { id: 'imagery', label: 'Task imagery pass' },
   ],
   satellite: [
-    { id: 'passes', label: 'Predict passes', toast: 'Pass predictions generated for 24 h (simulated).' },
-    { id: 'conjunction', label: 'Conjunction check', toast: 'Conjunction screen run — no close approaches (simulated).' },
-    { id: 'downlink', label: 'Request downlink', toast: 'Downlink window requested (simulated).' },
+    { id: 'passes', label: 'Predict passes' },
+    { id: 'conjunction', label: 'Conjunction check' },
+    { id: 'downlink', label: 'Request downlink' },
   ],
   earthquake: [
-    { id: 'responders', label: 'Alert responders', toast: 'Regional responders alerted (simulated).' },
-    { id: 'infra', label: 'Infrastructure check', toast: 'Infrastructure status check started (simulated).' },
-    { id: 'imagery', label: 'Request imagery', toast: 'Post-event imagery requested (simulated).' },
+    { id: 'responders', label: 'Alert responders' },
+    { id: 'infra', label: 'Infrastructure check' },
+    { id: 'imagery', label: 'Request imagery' },
   ],
 });
 
