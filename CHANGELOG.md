@@ -6,6 +6,9 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- AUDIT playback: the narrated card now sits in the right-hand column,
+  clear of the orbit. A live data line runs from the card to the timeline
+  stop it explains.
 - **Director look-ahead.** The next stop is chosen on arrival at the
   current one, and its aircraft load during the whole dwell instead of the
   4 s flight. An airport with no aircraft is skipped rather than shown

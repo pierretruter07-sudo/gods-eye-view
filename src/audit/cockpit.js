@@ -278,7 +278,54 @@ export function createCockpit(o) {
   story.hidden = true;
   story.setAttribute('aria-live', 'polite');
   story.dataset.zone = 'story';
-  stage.append(banner, story, tl, hint);
+  stage.append(banner, tl, hint);
+  // A live "data line" from the card to the timeline stop it explains.
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const link = document.createElementNS(SVGNS, 'svg');
+  link.setAttribute('class', 'gev-story-link');
+  link.setAttribute('aria-hidden', 'true');
+  const linkPath = document.createElementNS(SVGNS, 'path');
+  const linkFlow = document.createElementNS(SVGNS, 'path');
+  linkFlow.setAttribute('class', 'is-flow');
+  const linkA = document.createElementNS(SVGNS, 'circle');
+  const linkB = document.createElementNS(SVGNS, 'circle');
+  linkA.setAttribute('r', '3.5');
+  linkB.setAttribute('r', '4.5');
+  link.append(linkPath, linkFlow, linkA, linkB);
+  link.setAttribute('hidden', '');
+  let linkedStop = -1;
+  function drawLink() {
+    if (story.hidden || linkedStop < 0) {
+      link.setAttribute('hidden', '');
+      return;
+    }
+    const base = root.getBoundingClientRect();
+    const card = story.getBoundingClientRect();
+    const dot = stopBtns[linkedStop]
+      ?.querySelector('i')
+      ?.getBoundingClientRect();
+    if (!dot || !card.width) return;
+    link.removeAttribute('hidden');
+    const ax = card.left - base.left;
+    // A "data bus" just above the timeline: out of the card's left edge,
+    // along the lane, then down onto the stop. It stays clear of the orbit.
+    const lane = tl.getBoundingClientRect().top - base.top - 12;
+    const ay = Math.min(
+      Math.max(lane, card.top - base.top + 24),
+      card.bottom - base.top - 24,
+    );
+    const bx = dot.left + dot.width / 2 - base.left;
+    const by = dot.top - base.top - 2;
+    const r = Math.min(10, Math.abs(by - ay) / 2);
+    const d = `M ${ax} ${ay} L ${bx + r} ${ay} Q ${bx} ${ay}, ${bx} ${ay + r} L ${bx} ${by}`;
+    linkPath.setAttribute('d', d);
+    linkFlow.setAttribute('d', d);
+    linkA.setAttribute('cx', ax);
+    linkA.setAttribute('cy', ay);
+    linkB.setAttribute('cx', bx);
+    linkB.setAttribute('cy', by);
+  }
+  window.addEventListener('resize', drawLink);
 
   // ── Detail (right; only while something is selected) ─────────────────
   const detailZone = h('aside', 'gev-audit-detail gev-audit-glass');
@@ -518,10 +565,16 @@ export function createCockpit(o) {
     const bar = h('i', 'gev-story-bar');
     bar.style.animationDuration = `${ms}ms`;
     story.replaceChildren(head, title, score, rows, bar);
+    linkedStop = stop.index;
+    link.dataset.kind = stop.kind;
+    requestAnimationFrame(drawLink);
+    setTimeout(drawLink, 400); // again once fonts and layout settle
   }
   function hideStory() {
     story.hidden = true;
     story.replaceChildren();
+    linkedStop = -1;
+    link.setAttribute('hidden', '');
   }
 
   function setPlaying(on) {
@@ -545,7 +598,7 @@ export function createCockpit(o) {
     lay.meta.textContent = `${on} of ${layerBtns.size} on`;
   }
 
-  root.append(top, rail, stage, detailZone);
+  root.append(top, rail, stage, detailZone, story, link);
   o.container.append(root);
   setLayers(o.layers);
 
@@ -592,6 +645,7 @@ export function createCockpit(o) {
     showStory,
     hideStory,
     destroy() {
+      window.removeEventListener('resize', drawLink);
       root.remove();
     },
   };
