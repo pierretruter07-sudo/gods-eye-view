@@ -48,6 +48,9 @@ jobs:
       - name: Check package boundaries
         run: npm run check:boundaries
 
+      - name: Check traceability and orphan code
+        run: node scripts/audit/trace-check.mjs && node scripts/audit/import-graph.mjs
+
       - name: Run unit tests
         run: npm test
 

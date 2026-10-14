@@ -15,7 +15,8 @@
 | Production build | `npm run build` | Every change. CI. |
 | Smoke test | Headless Chromium loads the built app for 25 s. Pass = zero console/page errors and all 9 layers registered. | Before every deploy |
 | Formatting and package boundaries | `npm run format:check`, `npm run check:boundaries` | CI |
-| Structural coverage (orphan code) | `node scripts/audit/import-graph.mjs` (0 orphans, 0 dangling imports) | Before every release |
+| Structural coverage (orphan code) | `node scripts/audit/import-graph.mjs` (0 orphans, 0 dangling imports) | CI, every push |
+| Traceability | `node scripts/audit/trace-check.mjs`: every requirement traced, every cited file and test title exists | CI, every push, and in `npm test` |
 | Inspection | Review against this matrix | Each baseline |
 | Demonstration | [Demo runbook](DEMO-RUNBOOK.md) walkthrough on the hosted build | Before each presentation |
 
@@ -48,18 +49,18 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-LAY-004 | `src/layers/firms/`, `src/layers/vessels/` | I |
 | GEV-SRV-001 | `server/providers/local.js` | T: `src/tooling/previewServing.test.mjs` "every data provider serves both the dev and the built-preview server" |
 | GEV-SRV-002 | `server/standalone/api-not-found.js` | T: `src/tooling/previewServing.test.mjs` "real dev and built-preview servers serve provider JSON and terminate unknown APIs" |
-| GEV-SRV-003 | `server/providers/terrain.js`, `aircraft/enrichment.js`, `space/celestrak.js` | T: as GEV-SRV-002 (400 cases) |
+| GEV-SRV-003 | `server/providers/terrain.js`, `server/providers/aircraft/enrichment.js`, `server/providers/space/celestrak.js` | T: as GEV-SRV-002 (400 cases) |
 | GEV-SRV-004 | `server/providers/aircraft/opensky.js` `fetchRegionalPayload` | T: `src/tooling/regionalFallback.test.mjs` (3 tests) |
 | GEV-SRV-005 | `build/vite.js` | T: `src/tooling/viteBuild.test.mjs` "explicit build inputs preserve browser-only defines, plugin order and loopback protections" |
 | GEV-SEC-001 | `build/vite.js` `define` | T: `viteBuild.test.mjs` (same), "build helper does not discover environment values…" |
 | GEV-SEC-002 | `build/vite.js` `server.fs.deny` | T: `viteBuild.test.mjs` (same) |
 | GEV-SEC-003 | `build/vite.js` `server.headers` | T: `viteBuild.test.mjs` (same) |
 | GEV-SEC-004 | `src/intel/markup.js` `esc` | T: `src/intel/markup.test.mjs` (3 tests) |
-| GEV-SEC-005 | `scripts/dev-fresh.sh`, `scripts/setup-doctor.mjs` | T: `src/toolProjectRoot.test.mjs` "launcher reads the selected project keys…", "doctor inspects … without disclosing values" |
+| GEV-SEC-005 | `scripts/dev-fresh.sh`, `scripts/setup-doctor.mjs` | T: `src/toolProjectRoot.test.mjs` "launcher reads the selected project keys…", "doctor inspects the selected project dependencies and dotenv without disclosing values" |
 | GEV-DIR-001 | `src/tour/events.js` | T: `src/tour/events.test.mjs` "emergency aircraft rank 7500, 7700, 7600 and ignore ordinary codes", "squawk codes are four octal digits or null" |
 | GEV-DIR-002 | `src/tour/events.js` | T: `events.test.mjs` "aircraft come before quakes; quakes rank by size then recency", "small, old and positionless quakes are ignored" |
 | GEV-DIR-003 | `src/tour/planner.js` | T: `src/tour/planner.test.mjs` "a new incident always comes first…", "an emergency squawk interrupts and jumps the queue" |
-| GEV-DIR-004 | `src/tour/planner.js`, `config.js` `TOUR_ROTATION` | T: `planner.test.mjs` "slots with nothing to show are skipped; ships must be moving", "military aircraft get their own stop, from feed values" |
+| GEV-DIR-004 | `src/tour/planner.js`, `src/tour/config.js` `TOUR_ROTATION` | T: `planner.test.mjs` "slots with nothing to show are skipped; ships must be moving", "military aircraft get their own stop, from feed values" |
 | GEV-DIR-005 | `src/tour/planner.js` | T: `planner.test.mjs` "naval / state vessels are preferred, even when slow" |
 | GEV-DIR-006 | `src/tour/planner.js` | T: `planner.test.mjs` "recent incidents are revisited after the cooldown, introduced as recent"; `events.test.mjs` "events already shown are not repeated" |
 | GEV-DIR-007 | `src/tour/lines.js` | T: `events.test.mjs` "spoken lines use only feed values and flag simulated events"; `planner.test.mjs` "vessel lines use feed values only" |
@@ -67,7 +68,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-DIR-009 | `src/tour/controller.js` | D |
 | GEV-DIR-010 | `src/shell/index.js` `onFocus`, `src/intel/index.js` `showFocus` | D |
 | GEV-INT-001 | `src/intel/hud.js` | T: `src/intel/hud.test.mjs` "every kind gets at most four cards, deterministic" |
-| GEV-INT-002 | `src/intel/hud.js`, `enrichment.js` | T: `hud.test.mjs` "feed values stay feed; illustrative rows are flagged"; `src/intel/intel.test.mjs` "feed and simulated content are kept apart" |
+| GEV-INT-002 | `src/intel/hud.js`, `src/intel/enrichment.js` | T: `hud.test.mjs` "feed values stay feed; illustrative rows are flagged"; `src/intel/intel.test.mjs` "feed and simulated content are kept apart" |
 | GEV-INT-003 | `src/intel/hud.js` | T: `hud.test.mjs` "ownership is generic, never an invented company" |
 | GEV-INT-004 | `src/intel/enrichment.js` | T: `intel.test.mjs` "missing operator becomes a simulated link, never a feed one" |
 | GEV-INT-005 | `src/intel/objects.js` `buildTriage` | T: `intel.test.mjs` "triage is driven by feed fields only" |
@@ -78,8 +79,8 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-INT-010 | `src/intel/actions.js` `screenConjunctions` | T: `actions.test.mjs` "conjunction screen finds the closest sampled approach" |
 | GEV-INT-011 | `src/intel/objects.js` | T: `intel.test.mjs` "nearby uses real geometry and excludes self", "nearestHit picks the closest point within radius" |
 | GEV-INT-012 | `src/intel/` (no person model exists) | I |
-| GEV-INT-013 | `src/intel/assetTypes.js`, `referenceImages.js`, `markup.js` | T: `src/intel/assetTypes.test.mjs` "aircraft resolve by ICAO designator…", "vessels resolve by AIS family or naval hull prefix…", "the photo sits on a feed card, labelled as a type reference with credit" |
-| GEV-INT-014 | `src/intel/silhouettes.js`, `assetTypes.js` | T: `assetTypes.test.mjs` "every catalogue entry has a drawable silhouette", unlisted-type assertions |
+| GEV-INT-013 | `src/intel/assetTypes.js`, `src/intel/referenceImages.js`, `src/intel/markup.js` | T: `src/intel/assetTypes.test.mjs` "aircraft resolve by ICAO designator…", "vessels resolve by AIS family or naval hull prefix…", "the photo sits on a feed card, labelled as a type reference with credit" |
+| GEV-INT-014 | `src/intel/silhouettes.js`, `src/intel/assetTypes.js` | T: `assetTypes.test.mjs` "every catalogue entry has a drawable silhouette", unlisted-type assertions |
 | GEV-EXE-001 | `src/exercise/mode.js` | I |
 | GEV-EXE-002 | `src/exercise/package.js` | T: `src/exercise/package.test.mjs` "platforms stay generic classes, never real types" |
 | GEV-EXE-003 | `src/exercise/package.js` | T: `package.test.mjs` "authorisation is a checklist with a final command step left open" |
