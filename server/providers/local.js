@@ -11,6 +11,7 @@ import { aisLiveProxy } from './vessels/ais-live.js';
 import { trackBackfillProxies } from './aircraft/tracks.js';
 import { googlePlacesContextProxy } from './places.js';
 import { cycloneProxy } from './cyclones.js';
+import { metarProxy } from './metar.js';
 
 /**
  * The server endpoints God's Eye View uses — one per live feed or search
@@ -32,6 +33,7 @@ function localProviderPlugins() {
     trackBackfillProxies(),
     googlePlacesContextProxy(),
     cycloneProxy(),
+    metarProxy(),
   ];
 }
 

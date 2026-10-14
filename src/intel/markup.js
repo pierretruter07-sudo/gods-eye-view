@@ -8,6 +8,8 @@ export const KIND_LABEL = {
   vessel: 'Vessel',
   satellite: 'Satellite',
   earthquake: 'Seismic event',
+  airport: 'Airport',
+  location: 'Location',
 };
 export const SEV_LABEL = {
   critical: 'Priority',

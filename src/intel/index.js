@@ -23,6 +23,7 @@ import {
 } from './markup.js';
 import { runAction } from './actions.js';
 import { buildHud, MAX_CARDS } from './hud.js';
+import { buildPlaceHud } from './place.js';
 import { resolveAssetType } from './assetTypes.js';
 import { createReferenceImages } from './referenceImages.js';
 import { reticleSprite } from '../tour/pulseGraphics.js';
@@ -203,7 +204,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   let headline = '';
   const touring = () => document.body.classList.contains('gev-touring');
   function renderActions() {
-    if (hud) actions.innerHTML = hudActions(hud, state, { touring: touring() });
+    if (!hud) return;
+    // A place has no analyst actions (watching a place is not a thing yet).
+    actions.innerHTML =
+      selected?.kind === 'place'
+        ? ''
+        : hudActions(hud, state, { touring: touring() });
   }
   // Only touch the DOM when a card's markup actually changed: rebuilding it
   // every refresh re-lays out the page and would reload the type photo.
@@ -214,10 +220,81 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     node.innerHTML = html;
     return true;
   }
+  // ── Places (Director airport and city stops) ─────────────────────────
+  // Weather per station, fetched once per 10 minutes and re-rendered when it
+  // arrives; the counts and incidents refresh from the live layers.
+  const metars = new Map(); // station → { report, at } | 'loading'
+  function metarFor(icao) {
+    if (!icao) return null;
+    const hit = metars.get(icao);
+    if (hit === 'loading') return 'loading';
+    if (hit && Date.now() - hit.at < 10 * 60_000) return hit.report;
+    metars.set(icao, 'loading');
+    fetch(`/api/metar?ids=${encodeURIComponent(icao)}`, {
+      headers: { Accept: 'application/json' },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => {
+        metars.set(icao, {
+          report: body?.reports?.[0] || null,
+          at: Date.now(),
+        });
+      })
+      .catch(() => metars.set(icao, { report: null, at: Date.now() }))
+      .finally(() => {
+        if (selected?.kind === 'place') render();
+      });
+    return 'loading';
+  }
+  function placeContext(o) {
+    const objects = collect();
+    const of = (layerId) => objects.filter((x) => x.layerId === layerId);
+    const plain = (id) => {
+      try {
+        return layerOn(id)
+          ? layerModule(id)?.getAnalystRecords?.(5000) || []
+          : [];
+      } catch {
+        return [];
+      }
+    };
+    // Aircraft loaded ahead by the Director count until the live layer
+    // covers the place (they never replace a live record).
+    let flights = of('flights');
+    const staged = Date.now() - (o.stagedAt || 0) < 60_000 ? o.staged : [];
+    if (staged?.length) {
+      const seen = new Set(flights.map((f) => f.icao24).filter(Boolean));
+      flights = [...flights, ...staged.filter((f) => !seen.has(f.icao24))];
+    }
+    return {
+      flights,
+      military: of('military'),
+      vessels: of('ais-live-vessels'),
+      satellites: of('satellites'),
+      quakes: of('earthquakes'),
+      fires: plain('local-firms'),
+      storms: plain('weather-cyclones'),
+      metar: metarFor(o.place.icao),
+      layersOn: {
+        flights: layerOn('flights'),
+        military: layerOn('military'),
+        vessels: layerOn('ais-live-vessels'),
+        satellites: layerOn('satellites'),
+        earthquakes: layerOn('earthquakes'),
+        fires: layerOn('local-firms'),
+        storms: layerOn('weather-cyclones'),
+      },
+    };
+  }
+
   function render() {
     if (!selected) return;
-    const all = nearbyObjects(collect(), selected, { limit: Infinity });
-    hud = buildHud(selected, all.items);
+    if (selected.kind === 'place')
+      hud = buildPlaceHud(selected.place, placeContext(selected));
+    else {
+      const all = nearbyObjects(collect(), selected, { limit: Infinity });
+      hud = buildHud(selected, all.items);
+    }
     setHtml(header, hudHeader(hud, headline));
     let changed = false;
     cards.forEach((node, i) => {
@@ -372,6 +449,10 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     track.fix = null;
     setFix(o);
     visual.show(o);
+    if (o.kind === 'place') {
+      // Live counts, incidents and weather age refresh while the stop lasts.
+      followTimer = setInterval(() => selected && render(), 5000);
+    }
     if (o.kind === 'satellite') {
       // Satellites move ~7 km/s: re-fix every second from the layer itself.
       followTimer = setInterval(() => {
@@ -922,6 +1003,23 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
    */
   function showFocus(focus) {
     if (!focus) return close();
+    if (focus.place) {
+      const p = focus.place;
+      open(
+        {
+          kind: 'place',
+          key: `place:${p.id}`,
+          lat: p.lat,
+          lon: p.lon,
+          heightM: 0,
+          place: p,
+          staged: focus.staged || [],
+          stagedAt: focus.stagedAt || Date.now(),
+        },
+        { quiet: true, headline: focus.headline || '' },
+      );
+      return;
+    }
     const o = toIntelObject(focus.layerId, focus.record);
     if (!o) return close();
     const live = collect().find((x) => x.key === o.key);
@@ -938,6 +1036,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     showFocus,
     /** Warm the type photo for an upcoming Director subject while the camera flies. */
     prefetch(focus) {
+      // A place: fetch its weather during the flight so it is there on arrival.
+      if (focus?.place?.icao) metarFor(focus.place.icao);
       const o = focus && toIntelObject(focus.layerId, focus.record);
       const type = o && resolveAssetType(o);
       if (type) refs.prefetch(type);

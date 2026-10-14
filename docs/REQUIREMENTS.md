@@ -92,6 +92,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-012 | The system shall hold no dossiers on natural persons. | I |
 | GEV-INT-013 | An asset whose type is identified from feed values (ICAO type designator, AIS ship family or naval hull prefix, satellite name) shall show a type reference image, labelled as a type reference (never this airframe or hull), with the photo's author and licence. | T |
 | GEV-INT-014 | When no free-licensed photo exists, the lookup fails, or the type is not in the catalogue, a class outline shall be shown instead. | T |
+| GEV-INT-015 | When the Director stops at an airport or city, the intel view shall show the place itself. It shall cover live traffic counts and phases, the current METAR, the latest incidents nearby (earthquakes, fire hotspots, cyclones, emergency squawks) and what else is around. Every value shall come from a feed or be computed from one; a missing feed or layer shall be named as such. | T |
 
 ## 7. Exercise mode (EXE)
 

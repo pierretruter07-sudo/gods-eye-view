@@ -80,9 +80,27 @@ export const TOUR_LAYERS = Object.freeze([
 /** Airports with SilentWing close-ups (runway data from OurAirports). */
 export const TOUR_AIRPORTS = Object.freeze(
   [
-    { id: 'ybbn', label: 'Brisbane Airport', lat: -27.3842, lon: 153.117 },
-    { id: 'yssy', label: 'Sydney Airport', lat: -33.9461, lon: 151.177 },
-    { id: 'ypad', label: 'Adelaide Airport', lat: -34.9475, lon: 138.5334 },
+    {
+      id: 'ybbn',
+      label: 'Brisbane Airport',
+      lat: -27.3842,
+      lon: 153.117,
+      timeZone: 'Australia/Brisbane',
+    },
+    {
+      id: 'yssy',
+      label: 'Sydney Airport',
+      lat: -33.9461,
+      lon: 151.177,
+      timeZone: 'Australia/Sydney',
+    },
+    {
+      id: 'ypad',
+      label: 'Adelaide Airport',
+      lat: -34.9475,
+      lon: 138.5334,
+      timeZone: 'Australia/Adelaide',
+    },
   ].map((a) => Object.freeze(a)),
 );
 
@@ -99,6 +117,7 @@ export const TOUR_STOPS = Object.freeze(
     },
     {
       id: 'egll',
+      timeZone: 'Europe/London',
       label: 'London Heathrow',
       lat: 51.47,
       lon: -0.4543,
@@ -107,6 +126,7 @@ export const TOUR_STOPS = Object.freeze(
     },
     {
       id: 'kjfk',
+      timeZone: 'America/New_York',
       label: 'New York JFK',
       lat: 40.6413,
       lon: -73.7781,
@@ -115,6 +135,7 @@ export const TOUR_STOPS = Object.freeze(
     },
     {
       id: 'omdb',
+      timeZone: 'Asia/Dubai',
       label: 'Dubai International',
       lat: 25.2532,
       lon: 55.3657,
@@ -123,6 +144,7 @@ export const TOUR_STOPS = Object.freeze(
     },
     {
       id: 'rjtt',
+      timeZone: 'Asia/Tokyo',
       label: 'Tokyo Haneda',
       lat: 35.5494,
       lon: 139.7798,
