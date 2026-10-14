@@ -1,8 +1,9 @@
 /**
- * Canvas sprites for the Director focus pulse. Drawn once and cached, then
- * animated as screen-facing billboards (crisp at any zoom, no ground
- * tessellation cost): a targeting reticle, a rotating radar sweep and a thin
- * expanding ring. Warm palette only — no red.
+ * Canvas sprites for the Director focus pulse and the intel reticle. Drawn
+ * once and cached, then animated as screen-facing billboards (crisp at any
+ * zoom, no ground tessellation cost). The alert pulse is a glass sphere: a
+ * near-clear body, a brighter rim (fresnel) and a small specular highlight,
+ * expanding from the event and fading as it grows.
  */
 
 const cache = new Map();
@@ -23,18 +24,44 @@ function sprite(key, draw, size = 192) {
   return url;
 }
 
-/** A thin glowing ring (used for the expanding pulse). */
-export function ringSprite(hex) {
-  return sprite(`ring:${hex}`, (ctx, s) => {
-    const r = s / 2;
-    ctx.strokeStyle = hex;
-    ctx.lineWidth = 4;
-    ctx.shadowColor = hex;
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(r, r, r - 10, 0, Math.PI * 2);
-    ctx.stroke();
-  });
+/**
+ * A glass sphere, tinted `hex`: clear centre, fresnel rim, a thin white edge
+ * and a specular arc top-left. Rasterised large so it stays crisp when the
+ * pulse expands to ~220 px on high-density screens.
+ */
+export function glassSphereSprite(hex) {
+  return sprite(
+    `glass:${hex}`,
+    (ctx, s) => {
+      const r = s / 2;
+      const body = ctx.createRadialGradient(r * 0.82, r * 0.74, 0, r, r, r - 2);
+      body.addColorStop(0, hexAlpha(hex, 0.1));
+      body.addColorStop(0.62, hexAlpha(hex, 0.05));
+      body.addColorStop(0.9, hexAlpha(hex, 0.22));
+      body.addColorStop(1, hexAlpha(hex, 0));
+      ctx.fillStyle = body;
+      ctx.beginPath();
+      ctx.arc(r, r, r - 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 1.1;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.78)';
+      ctx.beginPath();
+      ctx.arc(r, r, r - 3, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = hexAlpha(hex, 0.45);
+      ctx.beginPath();
+      ctx.arc(r, r, r - 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 2.4;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.beginPath();
+      ctx.arc(r, r, r - 12, Math.PI * 1.08, Math.PI * 1.42);
+      ctx.stroke();
+    },
+    384,
+  );
 }
 
 /** A clean double ring: a steady scope rim (no corner brackets). */
@@ -54,22 +81,6 @@ export function reticleSprite(hex) {
     ctx.beginPath();
     ctx.arc(r, r, r - 30, 0, Math.PI * 2);
     ctx.stroke();
-  });
-}
-
-/** A soft wedge that fades around the circle: rotate it for a radar sweep. */
-export function sweepSprite(hex) {
-  return sprite(`sweep:${hex}`, (ctx, s) => {
-    const r = s / 2;
-    if (typeof ctx.createConicGradient !== 'function') return;
-    const g = ctx.createConicGradient(-Math.PI / 2, r, r);
-    g.addColorStop(0, hexAlpha(hex, 0.55));
-    g.addColorStop(0.12, hexAlpha(hex, 0));
-    g.addColorStop(1, hexAlpha(hex, 0));
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(r, r, r - 8, 0, Math.PI * 2);
-    ctx.fill();
   });
 }
 
