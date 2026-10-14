@@ -9,6 +9,8 @@
 | Standard | EUROCAE ED-153, *Guidelines for ANS Software Safety Assurance* |
 | Target | SWAL 3. Described as a new build with limited requirements. |
 
+**Regulatory note (research, 2026-10-14).** ED-153 is an example means of compliance under the EU 2017/373 guidance, not a mandated standard. Australia's CASA rules have no SWAL requirement. For a public-data advisory tool outside an ANSP's functional system, ED-153 alignment is voluntary. If an ANSP integrates it, the ANSP sets the *required* SWAL and the supplier declares the *achieved* one. Full sourcing is in the ED-153 research report.
+
 **Method.** Each SWAL 3 expectation from the brief is compared with the
 evidence that exists in this repository today:
 - the SRS;
@@ -45,9 +47,7 @@ and quality assurance. This is a self-assessment. It is not an audit opinion.
 3. **Traceability is complete for the fork's own code, not the inherited
    code (🟡).** All 56 baseline requirements trace to code and evidence. The
    inherited code has about 1,000 tests but no requirements.
-4. **Verification is not independent (❌).** Code and tests were written by
-   the same team, with AI assistance. SWAL 3 expects the reviewer or tester
-   to be someone other than the author.
+4. **Verification independence is contested at SWAL 3 (🟡).** The Czech CAA guide requires none at SWAL 3, while EUROCONTROL's 2005 guidance asks for a separate team for functional testing. Code and tests here are written by the same team, with AI assistance, so plan for an independent reviewer of the functional tests.
 5. **Configuration management is functional but informal (🟡).**
    - Git history, a build stamp and a configuration index exist.
    - There are no release tags, no protected branch and no problem reports.
@@ -65,9 +65,9 @@ and quality assurance. This is a self-assessment. It is not an audit opinion.
 | 5 | Bidirectional traceability (safety req → SRS → design → code → test → result) | 🟡 | [VERIFICATION.md §2](VERIFICATION.md): every requirement maps to a code location and an evidence item (56/56, checked mechanically). The results log records test runs per commit. | No safety-requirement tier (item 2). Inherited code is not traced. The matrix is now checked mechanically in CI and `npm test` (`scripts/audit/trace-check.mjs`: 56/56 traced, 51 cited test titles verified to exist). |
 | 6 | Zero orphan code | 🟡 | `scripts/audit/import-graph.mjs`: 326/326 files reachable, 0 orphans, 0 dangling imports. 518 unreachable inherited files were removed. | "Reachable" is not the same as "required". Remaining items: reachable-but-unused functionality (e.g. the `/api/route` endpoint), and inherited code with no requirement. Remove or justify each through a deactivated-code review. |
 | 7 | Functional testing of every requirement, nominal and off-nominal | 🟡 | 42 of 56 requirements are verified by automated test. Fork modules have explicit off-nominal cases (unplaceable records, old or small quakes, ordinary squawks, missing operator, hostile feed strings, upstream failures). | 7 requirements are verified by inspection and 6 by demonstration only. Write test procedures and expected results for these, and record each run. |
-| 8 | Structural coverage | ❌ | Not measured | Add `c8` or V8 coverage to `npm test`, report statement and branch coverage for fork modules, and justify uncovered code. |
+| 8 | Structural coverage | N/A | Not measured | **Not an ED-153 SWAL 3 objective.** The predecessor guidance recommends statement coverage at SWAL 2, and DO-278A requires it at AL3. Good practice: add `c8` coverage reporting for the fork's modules. |
 | 9 | Code review | ❌ | No review records. Changes are committed directly. | Use pull-request reviews on a protected `main` with a reviewer checklist. Keep the review record. |
-| 10 | Verification independence | ❌ | A clean-clone build and test runs in a separate environment (Replit), but the same team authors and verifies. | Appoint an independent reviewer or tester for requirements, tests and results. Record the independence in the verification report. |
+| 10 | Verification independence | 🟡 | A clean-clone build and test runs in a separate environment (Replit), but the same team authors and verifies, with AI assistance. | **Contested at SWAL 3.** The Czech CAA guide (aligned with ED-153) requires none at SWAL 3. EUROCONTROL's 2005 guidance asks for a separate team for functional testing. Plan for it: an independent reviewer of the requirement-based functional tests, and no credit for AI-written tests checking AI-written code. |
 | 11 | Verification plan and report | 🟡 | [VERIFICATION.md](VERIFICATION.md) (plan, matrix, results log). [TESTING.md](TESTING.md) (procedure). | Add the verification report for the release baseline: test results, coverage, review findings, open problems. |
 | 12 | Configuration identification and baselines | 🟡 | [CONFIGURATION-INDEX.md](CONFIGURATION-INDEX.md), lockfile, build stamp on every build | Tag the release baseline. Generate the configuration index from the tag. Put the two Replit-only config files under version control. Deploy from a CI artifact. |
 | 13 | Problem reporting and change control | 🟡 | GitHub Issues with a bug template. Changelog. Commit messages. | No problem reports have ever been raised. Every change goes straight to a branch. Log defects as issues, link fixes to issues, and review changes before merge. |
