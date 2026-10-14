@@ -11,10 +11,23 @@ import {
 export * from './model.js';
 export { createUsgsEarthquakeSource } from './source.js';
 
-/** A radial white→transparent gradient, cached, so zones fade out at the edge. */
+/**
+ * Zone radius (m) for a magnitude: grows gently with magnitude so clustered
+ * quakes stay legible instead of overlapping blobs.
+ */
+export function quakeZoneRadiusM(mag) {
+  return Math.pow(1.7, mag) * 850;
+}
+
+/**
+ * A radial white→transparent gradient, cached, so zones fade out at the edge.
+ * Returns null where no canvas exists (tests, workers): callers then fall
+ * back to a flat translucent fill.
+ */
 let _radialFade = null;
 function radialFadeImage() {
   if (_radialFade) return _radialFade;
+  if (typeof document === 'undefined' || typeof document.createElement !== 'function') return null;
   const s = 128;
   const c = document.createElement('canvas');
   c.width = c.height = s;
@@ -105,9 +118,7 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
           time,
         } of rows) {
           count++;
-          // Minimalist zones: a small ring, gently larger with magnitude,
-          // so clustered quakes stay legible instead of overlapping blobs.
-          const baseRadius = Math.pow(1.7, mag) * 850;
+          const baseRadius = quakeZoneRadiusM(mag);
           const color = depthColor(depthKm || 0);
           const isSignificant = mag >= 5.0;
           // Minimalist soft ping: a radial wash that fades to nothing at the
@@ -125,11 +136,13 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
                 // re-tessellates the clamped ground geometry every frame.
                 semiMajorAxis: baseRadius,
                 semiMinorAxis: baseRadius,
-                material: new Cesium.ImageMaterialProperty({
-                  image: radialFadeImage(),
-                  color: color.withAlpha(centerAlpha),
-                  transparent: true,
-                }),
+                material: radialFadeImage()
+                  ? new Cesium.ImageMaterialProperty({
+                      image: radialFadeImage(),
+                      color: color.withAlpha(centerAlpha),
+                      transparent: true,
+                    })
+                  : new Cesium.ColorMaterialProperty(color.withAlpha(centerAlpha * 0.6)),
                 outline: false,
                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
               },

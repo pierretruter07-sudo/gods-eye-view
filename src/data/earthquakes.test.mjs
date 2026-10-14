@@ -11,6 +11,7 @@ import {
   createEarthquakeOverlayEntry,
   createEarthquakesLayer,
   mapAnalystRecord,
+  quakeZoneRadiusM,
   selectEarthquakeOverlayCohort,
 } from './earthquakes.js';
 import { DataLayerManager } from './manager.js';
@@ -206,8 +207,8 @@ test('quake disc axes are STATIC — a per-frame callback re-tessellates ground 
         `${axis} must not be a CallbackProperty — it rebuilds the ground primitive every frame`,
       );
       assert.equal(property.isConstant, true, `${axis} must be a constant property`);
-      // Magnitude 5.5 → 2^5.5 * 1000 m, unchanged by the dropped pulse.
-      assert.equal(property.getValue(Cesium.JulianDate.now()), Math.pow(2, 5.5) * 1000);
+      // Magnitude 5.5 → the layer's zone-radius rule (minimalist zones, 2026-10).
+      assert.equal(property.getValue(Cesium.JulianDate.now()), quakeZoneRadiusM(5.5));
     }
   } finally {
     globalThis.fetch = originalFetch;
