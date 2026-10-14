@@ -6,6 +6,17 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Place intel at Director stops.** Airport and city stops now open a
+  four-card view instead of an empty screen:
+  - **Live traffic:** aircraft within 50 km; on ground, arriving and
+    departing; busiest operators; emergency squawks; military nearby.
+  - **Weather:** the METAR from NOAA AWC, with the runway into the wind.
+  - **Latest incidents nearby:** earthquakes, fire hotspots, cyclones and
+    squawk alerts.
+  - **Around the location:** ships, satellites overhead, local time,
+    elevation and runways.
+  All values are from feeds; a missing layer is named. Adds the
+  `/api/metar` proxy (cached 10 minutes, last good report for 2 hours).
 - AUDIT playback: the narrated card now sits in the right-hand column,
   clear of the orbit. A live data line runs from the card to the timeline
   stop it explains.

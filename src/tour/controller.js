@@ -330,6 +330,42 @@ export function createTourController({
       return { layerId: 'military', record: next.aircraft };
     if (next.kind === 'satellite')
       return { layerId: 'satellites', record: next.satellite };
+    // Airports and city stops open the place view: live traffic, weather,
+    // incidents nearby and what else is around (never an empty screen).
+    const place = placeOf(next);
+    if (place) return { place, staged: stagedAircraft, stagedAt };
+    return null;
+  }
+
+  /** The place a stop is about, or null for planet-scale views. */
+  function placeOf(next) {
+    if (next.kind === 'airport') {
+      const a = next.airport;
+      const profile = AIRPORT_PROFILES[a.id] || null;
+      return {
+        kind: 'airport',
+        id: a.id,
+        label: a.label,
+        icao: profile?.icao || a.id.toUpperCase(),
+        lat: a.lat,
+        lon: a.lon,
+        profile,
+        timeZone: profile?.timeZone || a.timeZone,
+      };
+    }
+    if (next.kind === 'city' && next.stop && next.view?.rangeM <= 1_000_000) {
+      const s = next.stop;
+      return {
+        kind: /^[a-z]{4}$/.test(s.id) ? 'airport' : 'city',
+        id: s.id,
+        label: s.label,
+        icao: /^[a-z]{4}$/.test(s.id) ? s.id.toUpperCase() : null,
+        lat: s.lat,
+        lon: s.lon,
+        profile: AIRPORT_PROFILES[s.id] || null,
+        timeZone: s.timeZone,
+      };
+    }
     return null;
   }
 

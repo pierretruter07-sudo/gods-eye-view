@@ -31,6 +31,7 @@ Keep it intact.
 | Earthquakes | USGS | browser, direct | U.S. public domain | ✅ |
 | Active fires | NASA FIRMS | `/api/firms` | NASA open data. Acknowledgement requested. Needs a free key. | ✅ |
 | Tropical cyclones | NOAA NHC / CPHC | `/api/cyclones` | U.S. public domain | ✅ |
+| Airport weather (METAR) | NOAA Aviation Weather Center data API | `/api/metar` | U.S. public domain | ✅ |
 | Military installations | OpenStreetMap via Overpass | `/api/military-installations`, `/api/overpass` | ODbL 1.0. Public Overpass servers have fair-use limits. | ✅ |
 | Place search | Photon (Komoot), Nominatim | `/api/geocode` | ODbL data. Nominatim's usage policy limits it to light use. | ⚠️ |
 | Place context (optional) | Google Places | `/api/google/*` | Google Maps Platform terms. Metered. | ⚠️ |

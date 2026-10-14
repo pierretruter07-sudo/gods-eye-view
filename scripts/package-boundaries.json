@@ -672,7 +672,8 @@
       "vendor/three/three.module.min.js",
       "src/audit/progress.js",
       "src/audit/impact.js",
-      "src/tour/queue.js"
+      "src/tour/queue.js",
+      "src/intel/place.js"
     ],
     "external": ["cesium", "egm96-universal", "satellite.js"]
   },

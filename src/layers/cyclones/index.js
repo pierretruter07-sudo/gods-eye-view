@@ -194,6 +194,18 @@ export function createCyclonesLayer({
         installSelection();
       }
     },
+    /** Current storms as plain records (for place summaries). */
+    getAnalystRecords(maxCount = 50) {
+      return (snapshot?.storms || []).slice(0, maxCount).map((storm) => ({
+        id: storm.id,
+        name: storm.name,
+        classification: storm.classification,
+        windKt: storm.windKt,
+        lat: storm.position?.latitude ?? null,
+        lon: storm.position?.longitude ?? null,
+        issuedAt: storm.issuedAt,
+      }));
+    },
     disable() {
       enabled = false;
       unregisterPickOwner('weather-cyclones');

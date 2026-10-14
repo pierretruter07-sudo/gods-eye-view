@@ -22,6 +22,7 @@ function runway(ref) {
 export const AIRPORT_PROFILES = Object.freeze({
   ybbn: {
     id: 'ybbn',
+    timeZone: 'Australia/Brisbane',
     icao: 'YBBN',
     label: 'Brisbane Airport',
     lat: -27.3842,
@@ -33,6 +34,7 @@ export const AIRPORT_PROFILES = Object.freeze({
   },
   yssy: {
     id: 'yssy',
+    timeZone: 'Australia/Sydney',
     icao: 'YSSY',
     label: 'Sydney Airport',
     lat: -33.9461,
@@ -44,6 +46,7 @@ export const AIRPORT_PROFILES = Object.freeze({
   },
   ypad: {
     id: 'ypad',
+    timeZone: 'Australia/Adelaide',
     icao: 'YPAD',
     label: 'Adelaide Airport',
     lat: -34.9475,
