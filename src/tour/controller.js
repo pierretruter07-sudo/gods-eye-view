@@ -8,7 +8,7 @@ import { TOUR_LAYERS, TOUR_TIMING } from './config.js';
 import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
-import { reticleSprite, ringSprite, sweepSprite } from './pulseGraphics.js';
+import { glassSphereSprite } from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
 import { AIRPORT_PROFILES } from '../airports/profiles.js';
 
@@ -76,73 +76,72 @@ export function createTourController({
   }
 
   /**
-   * A cinematic, screen-space focus pulse: a breathing targeting reticle, a
-   * rotating radar sweep, two eased expanding rings and a crisp label pill.
-   * Billboards stay crisp at any zoom and cost no ground tessellation; the
-   * orbit already holds continuous rendering, so the callbacks animate.
+   * Glass alert pulse: a steady glass core on the event and two glass
+   * spheres that expand from it and fade as they grow (staggered half a
+   * period). Ice-blue for live events, warm amber for staged ones. Billboards
+   * stay crisp at any zoom and cost no ground tessellation; the orbit already
+   * holds continuous rendering, so the callbacks animate.
    */
   function showMarker(event) {
     clearMarker();
-    const hex = event.simulated ? '#ffc24d' : '#ff9500';
-    const base = Cesium.Color.fromCssColorString(hex);
+    const hex = event.simulated ? '#ffcf7a' : '#bfe6ff';
+    const sphere = glassSphereSprite(hex);
     const pos = Cesium.Cartesian3.fromDegrees(event.lon, event.lat);
     const common = {
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
       heightReference: Cesium.HeightReference.NONE,
     };
-    const easeOut = (t) => 1 - (1 - t) * (1 - t);
-    const period = 2600;
-    const ringPhase = (offset) => (performance.now() / period + offset) % 1;
+    const easeOut = (t) => 1 - (1 - t) ** 3;
+    const PERIOD_MS = 3200;
+    const phase = (offset) => (performance.now() / PERIOD_MS + offset) % 1;
+    const white = Cesium.Color.WHITE;
 
-    const reticle = viewer.entities.add({
+    const core = viewer.entities.add({
       position: pos,
       billboard: {
-        image: reticleSprite(hex),
-        width: 84,
-        height: 84,
-        color: new Cesium.CallbackProperty(() => {
-          const b = 0.85 + 0.15 * Math.sin(performance.now() / 500);
-          return base.withAlpha(b);
-        }, false),
-        ...common,
-      },
-    });
-
-    const sweep = viewer.entities.add({
-      position: pos,
-      billboard: {
-        image: sweepSprite(hex),
-        width: 84,
-        height: 84,
-        rotation: new Cesium.CallbackProperty(
-          () => (-performance.now() / 900) % (Math.PI * 2),
+        image: sphere,
+        width: 26,
+        height: 26,
+        color: new Cesium.CallbackProperty(
+          () =>
+            white.withAlpha(0.88 + 0.12 * Math.sin(performance.now() / 700)),
           false,
         ),
-        color: base.withAlpha(0.9),
         ...common,
       },
     });
 
-    const ring = (offset) =>
-      viewer.entities.add({
+    // A crisp point at the exact event position, inside the glass core.
+    const dot = viewer.entities.add({
+      position: pos,
+      point: {
+        pixelSize: 5,
+        color: Cesium.Color.fromCssColorString(hex),
+        outlineColor: white.withAlpha(0.9),
+        outlineWidth: 1,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+
+    const wave = (offset) => {
+      const size = new Cesium.CallbackProperty(
+        () => 26 + 200 * easeOut(phase(offset)),
+        false,
+      );
+      return viewer.entities.add({
         position: pos,
         billboard: {
-          image: ringSprite(hex),
-          width: new Cesium.CallbackProperty(
-            () => 40 + 150 * easeOut(ringPhase(offset)),
-            false,
-          ),
-          height: new Cesium.CallbackProperty(
-            () => 40 + 150 * easeOut(ringPhase(offset)),
-            false,
-          ),
+          image: sphere,
+          width: size,
+          height: size,
           color: new Cesium.CallbackProperty(
-            () => base.withAlpha(0.8 * (1 - ringPhase(offset)) ** 1.4),
+            () => white.withAlpha(0.95 * (1 - phase(offset)) ** 1.6),
             false,
           ),
           ...common,
         },
       });
+    };
 
     const label = viewer.entities.add({
       position: pos,
@@ -154,7 +153,7 @@ export function createTourController({
         ),
         showBackground: true,
         backgroundColor:
-          Cesium.Color.fromCssColorString('#0a0f16').withAlpha(0.62),
+          Cesium.Color.fromCssColorString('#0b1422').withAlpha(0.55),
         backgroundPadding: new Cesium.Cartesian2(10, 6),
         style: Cesium.LabelStyle.FILL,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
@@ -163,7 +162,7 @@ export function createTourController({
       },
     });
 
-    marker = [ring(0), ring(0.5), sweep, reticle, label];
+    marker = [wave(0), wave(0.5), core, dot, label];
   }
 
   /** Fly so the target sits in view at the given range and pitch. */
