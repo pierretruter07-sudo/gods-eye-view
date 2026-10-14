@@ -54,6 +54,7 @@ export function createApplicationTools({
   syncVisibilitySuspension();
 
   window.__godsEyeView = {
+    build: String(import.meta.env?.GEV_BUILD || 'development'),
     viewer,
     tileset,
     dataManager,

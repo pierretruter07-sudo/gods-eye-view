@@ -10,6 +10,9 @@
  */
 export const WELCOME_SECONDS = 10;
 
+/** Commit and build date stamped by the Vite config (configuration index). */
+export const BUILD_ID = String(import.meta.env?.GEV_BUILD || 'development');
+
 const COPY = {
   kicker: "God's Eye View",
   title: "Welcome to the God's Eye View dashboard",
@@ -18,8 +21,8 @@ const COPY = {
     'A live, real-time picture of the planet built entirely from public data — and an intelligence layer on top of it, in the style of the analytic platforms used by defence and security organisations.',
   points: [
     ['Live feeds', 'Aircraft (ADS-B), military flights, ships (AIS), satellites (orbital data) and earthquakes (USGS), updated continuously.'],
-    ['The Director', 'An AI narrator tours the globe on its own, flying to emergencies, airports, naval and military traffic, ships and satellites, and explaining what it sees.'],
-    ['Object dossiers', 'Click any contact for its live data, nearby contacts, links, pattern of life and analyst actions. Live data is tagged FEED; illustrative analysis is tagged SIMULATED.'],
+    ['The Director', 'An automated narrator tours the globe on its own, flying to emergencies, airports, naval and military traffic, ships and satellites, and describing what the feeds show.'],
+    ['Intel view', 'Click any contact for up to four cards of live data and context, plus analyst actions. Live data is tagged FEED; illustrative content is tagged SIMULATED.'],
     ['Triage', 'A ranked queue of what needs attention right now — emergency squawks, significant earthquakes and state assets — plus your own watchlist and areas of interest.'],
   ],
 };
@@ -55,6 +58,7 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
           <button type="button" class="gev-btn gev-btn--primary" data-act="start">Start now</button>
         </div>
       </footer>
+      <p class="gev-welcome__build">Build ${BUILD_ID}</p>
     </div>`;
   document.body.append(root);
 
