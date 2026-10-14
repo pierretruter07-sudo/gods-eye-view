@@ -1,6 +1,6 @@
 /**
  * @file AUDIT cockpit: a calm three-column frame around the orbit.
- * Top bar (status line and actions), a left rail of collapsible sections
+ * Top bar (page title and actions), a left rail of collapsible sections
  * (Readiness, Must fix, Layers, Key & sources), the open centre for the
  * orbit, and a Detail column that appears only when something is selected.
  * All text goes through textContent.
@@ -92,7 +92,14 @@ export function createCockpit(o) {
   const evidenceBtn = button('gev-audit-btn', 'Evidence');
   const exitBtn = button('gev-audit-btn is-strong', 'Exit audit');
   actions.append(resetBtn, tourBtn, evidenceBtn, exitBtn);
-  top.append(brand, status, actions);
+  // The page title says what CrossCheck is in one line.
+  const title = h(
+    'h1',
+    'gev-audit-pagetitle',
+    'Find, fix and prove every gap to global safety and security standards',
+  );
+  title.title = title.textContent;
+  top.append(brand, title, actions);
   resetBtn.addEventListener('click', () => o.onReset());
   tourBtn.addEventListener('click', () => o.onTour());
   evidenceBtn.addEventListener('click', () => o.onEvidence());
@@ -104,6 +111,7 @@ export function createCockpit(o) {
 
   // Readiness
   const ready = section('readiness', 'Readiness', true);
+  ready.body.append(status); // the overall verdict leads the section
   const readyRows = {};
   for (const [lens, color, name] of [
     ['saf', '#7aa7dc', 'Safety · ED-153'],
