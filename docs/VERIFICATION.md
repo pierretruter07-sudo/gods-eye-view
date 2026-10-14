@@ -102,6 +102,9 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-AUD-005 | `src/audit/evidenceModel.js`, `src/audit/evidence.js` | T: `src/audit/audit.test.mjs` "the evidence view reads the ledger top down: progress and journey" |
 | GEV-AUD-006 | `src/audit/model.js` `linkedIds` | T: `src/audit/audit.test.mjs` "linked items come from the shared evidence themes" |
 | GEV-AUD-007 | `src/audit/runtime.js` `enter`, `exit` | D: browser run, enter → tour → select → zoom → evidence → exit; globe, primitives and camera restored, 0 page errors |
+| GEV-AUD-008 | `src/audit/progress.js`, `src/audit/cockpit.js` `setStop` | T: `src/audit/audit.test.mjs` "a recorded re-audit becomes a measured stop and later stops build on it" |
+| GEV-AUD-009 | `src/audit/progress.js`, `docs/evidence/ledger.json` | T: `src/audit/audit.test.mjs` "projected stops reproduce the plan’s readiness journey, wave by wave" |
+| GEV-AUD-010 | `src/audit/cameraMath.js` `interpolateRig`, `src/audit/runtime.js` `flyRig` | T: `src/audit/audit.test.mjs` "the tour camera rig reproduces the home framing and keeps its target in view" |
 
 ## 3. Coverage of code by requirements
 

@@ -74,9 +74,15 @@ function journeySvg(j) {
 }
 
 /**
- * @param {{container: HTMLElement, ledger: object, items: object[], onShow: (id: string) => void}} o
+ * @param {{container: HTMLElement, ledger: object, items: object[], onShow: (id: string) => void, onClose?: () => void}} o
  */
-export function createEvidenceDrawer({ container, ledger, items, onShow }) {
+export function createEvidenceDrawer({
+  container,
+  ledger,
+  items,
+  onShow,
+  onClose,
+}) {
   const drawer = h('aside', 'gev-ev gev-audit-glass');
   drawer.setAttribute('aria-label', 'Evidence');
   drawer.hidden = true;
@@ -265,7 +271,7 @@ export function createEvidenceDrawer({ container, ledger, items, onShow }) {
     }
     const foot = h('p', 'gev-audit-muted gev-ev-foot');
     const a = h('a', null, 'remediation plan (PDF)');
-    a.href = `${REPO}docs/evidence/remediation-plan-v0.2.pdf`;
+    a.href = `${REPO}docs/evidence/remediation-plan-v0.3.pdf`;
     a.target = '_blank';
     a.rel = 'noopener';
     const a2 = h('a', null, 'ledger.json');
@@ -290,7 +296,9 @@ export function createEvidenceDrawer({ container, ledger, items, onShow }) {
       close.focus();
     },
     close() {
+      if (drawer.hidden) return;
       drawer.hidden = true;
+      onClose?.();
     },
     isOpen: () => !drawer.hidden,
     el: drawer,

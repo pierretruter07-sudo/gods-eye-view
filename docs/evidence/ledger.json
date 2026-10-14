@@ -79,6 +79,7 @@
  "audits": [
   {
    "id": "A0",
+   "wave": 0,
    "label": "Baseline audit",
    "date": "2026-10-14",
    "commit": "1518ea8",
@@ -121,25 +122,25 @@
    {
     "label": "After Wave 1",
     "safety": 0.4393,
-    "security": 0.8631,
+    "security": 0.8592,
     "kind": "target"
    },
    {
     "label": "After Wave 2",
     "safety": 0.4393,
-    "security": 0.8869,
+    "security": 0.8822,
     "kind": "target"
    },
    {
     "label": "After Wave 3",
     "safety": 0.8354,
-    "security": 0.8869,
+    "security": 0.8822,
     "kind": "target"
    },
    {
     "label": "After Wave 4",
     "safety": 0.8708,
-    "security": 0.8869,
+    "security": 0.8822,
     "kind": "target"
    }
   ],
@@ -148,7 +149,7 @@
     "id": "A",
     "label": "Claude + Replit + owner actions",
     "safety": 0.8708,
-    "security": 0.8869,
+    "security": 0.8822,
     "safety_verdict": "Not yet supported: human-only steps remain open",
     "security_verdict": "ASVS Level 2 met",
     "human_only": [
@@ -178,13 +179,36 @@
     "id": "B",
     "label": "Plus customer and independent reviewer",
     "safety": 0.9635,
-    "security": 0.9018,
+    "security": 0.8966,
     "safety_verdict": "SWAL 3 claim supported, ready for independent assessment",
     "security_verdict": "ASVS Level 2 met"
    }
   ],
   "note": "Readiness = weighted score (Compliant 1, Largely 0.75, Partial 0.4, Non-compliant 0) over rated in-scope items. Verdicts follow the CrossCheck rules, not the score. New scope from sign-in (ASVS V6, V7, V9, V10) is assessed in Wave 2 and is not in these projections."
  },
+ "pending": [
+  {
+   "id": "V4.1.2",
+   "wave": 1,
+   "workstream": "W1",
+   "target": "L",
+   "why": "Depends on the hosting edge: rate from a redirect scan of the deployed app."
+  },
+  {
+   "id": "V12.1.1",
+   "wave": 1,
+   "workstream": "W1",
+   "target": "L",
+   "why": "Depends on the hosting edge: rate from a TLS scan of the deployed app."
+  },
+  {
+   "id": "V12.1.2",
+   "wave": 1,
+   "workstream": "W1",
+   "target": "L",
+   "why": "Depends on the hosting edge: rate from a TLS scan of the deployed app."
+  }
+ ],
  "waves": [
   {
    "id": 1,
@@ -473,10 +497,13 @@
     "status": "P",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -502,10 +529,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -531,10 +561,13 @@
     "status": "N",
     "severity": "SH"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SH",
      "ref": "baseline 1518ea8",
@@ -560,10 +593,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -589,10 +625,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -618,10 +657,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -647,10 +689,13 @@
     "status": "P",
     "severity": "SH"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SH",
      "ref": "baseline 1518ea8",
@@ -676,10 +721,13 @@
     "status": "P",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -705,10 +753,13 @@
     "status": "P",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -734,10 +785,13 @@
     "status": "P",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -763,10 +817,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -792,10 +849,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -821,10 +881,13 @@
     "status": "N",
     "severity": "SH"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SH",
      "ref": "baseline 1518ea8",
@@ -850,10 +913,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -879,10 +945,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -908,10 +977,13 @@
     "status": "P",
     "severity": "SM"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -937,10 +1009,13 @@
     "status": "P",
     "severity": "SM"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -966,10 +1041,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -995,10 +1073,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -1024,10 +1105,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -1053,10 +1137,13 @@
     "status": "N",
     "severity": "S3"
    },
+   "target": "NA",
+   "targetFull": "NA",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -1082,10 +1169,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -1111,10 +1201,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -1140,10 +1233,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -1169,10 +1265,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -1198,10 +1297,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -1227,10 +1329,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -1256,10 +1361,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -1285,10 +1393,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -1314,10 +1425,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -1343,10 +1457,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1372,10 +1489,13 @@
     "status": "N",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -1401,10 +1521,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -1430,10 +1553,13 @@
     "status": "N",
     "severity": "SH"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SH",
      "ref": "baseline 1518ea8",
@@ -1459,10 +1585,13 @@
     "status": "N",
     "severity": "SH"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SH",
      "ref": "baseline 1518ea8",
@@ -1488,10 +1617,13 @@
     "status": "P",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -1517,10 +1649,13 @@
     "status": "P",
     "severity": "SL"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "SL",
      "ref": "baseline 1518ea8",
@@ -1546,10 +1681,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -1575,10 +1713,13 @@
     "status": "N",
     "severity": "SM"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "SM",
      "ref": "baseline 1518ea8",
@@ -1604,10 +1745,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -1633,10 +1777,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1662,10 +1809,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1691,10 +1841,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1720,10 +1873,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1749,10 +1905,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1778,10 +1937,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1807,10 +1969,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1836,10 +2001,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1865,10 +2033,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -1894,10 +2065,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -1923,10 +2097,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -1952,10 +2129,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -1981,10 +2161,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -2010,10 +2193,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2039,10 +2225,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2068,10 +2257,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2097,10 +2289,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "P",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -2126,10 +2321,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2155,10 +2353,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2184,10 +2385,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2213,10 +2417,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2242,10 +2449,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2271,10 +2481,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2300,10 +2513,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2329,10 +2545,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2358,10 +2577,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2387,10 +2609,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2416,10 +2641,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2445,10 +2673,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2474,10 +2705,13 @@
     "status": "N",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2503,10 +2737,13 @@
     "status": "N",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2532,10 +2769,13 @@
     "status": "N",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2561,10 +2801,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2590,10 +2833,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2619,10 +2865,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2648,10 +2897,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2677,10 +2929,13 @@
     "status": "N",
     "severity": "S3"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2706,10 +2961,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2735,10 +2993,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2764,10 +3025,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2793,10 +3057,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2822,10 +3089,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2851,10 +3121,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2880,10 +3153,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2909,10 +3185,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2938,10 +3217,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -2967,10 +3249,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -2996,10 +3281,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3025,10 +3313,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3054,10 +3345,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3083,10 +3377,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3112,10 +3409,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3141,10 +3441,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "P",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -3170,10 +3473,13 @@
     "status": "N",
     "severity": "S3"
    },
+   "target": "P",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -3199,10 +3505,13 @@
     "status": "N",
     "severity": "S3"
    },
+   "target": "P",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -3228,10 +3537,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3257,10 +3569,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -3286,10 +3601,13 @@
     "status": "N",
     "severity": "S2"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "N",
      "severity": "S2",
      "ref": "baseline 1518ea8",
@@ -3315,10 +3633,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",
@@ -3344,10 +3665,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "C",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3373,10 +3697,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3402,10 +3729,13 @@
     "status": "P",
     "severity": "S4"
    },
+   "target": "P",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S4",
      "ref": "baseline 1518ea8",
@@ -3431,10 +3761,13 @@
     "status": "P",
     "severity": "S3"
    },
+   "target": "L",
+   "targetFull": "C",
    "history": [
     {
      "date": "2026-10-14",
      "event": "rated",
+     "audit": "A0",
      "status": "P",
      "severity": "S3",
      "ref": "baseline 1518ea8",

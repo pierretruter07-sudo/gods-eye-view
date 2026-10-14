@@ -1,8 +1,11 @@
 /**
- * @file Guided tour of the AUDIT view for first-time viewers.
- * Each step lights one cockpit zone and the matching part of the orbit
- * together. Arrow keys step, Esc exits. Shown once automatically (a large
- * prompt), then always available from "How it works".
+ * @file Guided tour of the AUDIT view, led by the camera.
+ *
+ * Each step flies the camera to its subject around the orbit (showing on the
+ * way how the view can be rotated, zoomed, tilted and focused), dims the
+ * rest of the orbit and of the screen, and lights the matching cockpit
+ * section. Arrow keys step, Esc exits, input on the globe takes the camera
+ * back. Shown once automatically (a large prompt), then from "Guided tour".
  * @module audit/tour
  */
 
@@ -24,66 +27,246 @@ function markSeen() {
   }
 }
 
-/** The tour script. `zone` names a cockpit zone; `run` drives the orbit. */
+/** Movement hints shown while the camera demonstrates them. */
+const MOVES = Object.freeze({
+  rotate: {
+    label: 'Rotate',
+    how: 'drag with the left mouse button',
+    icon: '<path d="M14 8a6 6 0 1 1-2-4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12.6 1.2v3.2H9.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  },
+  zoomIn: {
+    label: 'Zoom in',
+    how: 'scroll, or drag with the right button',
+    icon: '<circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l4 4M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  },
+  zoomOut: {
+    label: 'Zoom out',
+    how: 'scroll the other way',
+    icon: '<circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l4 4M5 7h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  },
+  tilt: {
+    label: 'Tilt',
+    how: 'Ctrl + drag, or drag with the middle button',
+    icon: '<path d="M2 11c3-5 9-5 12 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 2v6M5.5 4.5L8 2l2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  },
+  focus: {
+    label: 'Fly to',
+    how: 'double-click a pin, or pick it from a list',
+    icon: '<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/>',
+  },
+});
+
+const restoreLayer = (a, m, id) => {
+  if (m[`layer:${id}`] !== undefined) {
+    a.layer(id, m[`layer:${id}`]);
+    delete m[`layer:${id}`];
+  }
+};
+const setLayer = (a, m, id, on) => {
+  if (m[`layer:${id}`] === undefined) m[`layer:${id}`] = a.layerState(id);
+  a.layer(id, on);
+};
+
+/**
+ * The tour script.
+ * - `shot`: where the camera goes (degrees; `target` a point or an item id).
+ * - `focus`: the orbit part left bright ('core'|'saf'|'sec'|'mustfix'|'links').
+ * - `zone`: the cockpit element to light; everything else in the cockpit dims.
+ * - `shade`: '3d' darkens the screen edges, 'ui' darkens the orbit too,
+ *   'none' leaves the view clear (the try-it-yourself step).
+ * - `move`: the movement the camera is demonstrating.
+ */
 export const TOUR_STEPS = Object.freeze([
   {
     title: 'Welcome to CrossCheck',
     body: 'CrossCheck checks software against two global standards: EUROCAE ED-153 for aviation software safety, and OWASP ASVS for application security. Here it is checking God’s Eye View itself.',
+    shade: '3d',
+    shot: (a) => ({
+      az: -38,
+      el: 24,
+      dist: a.homeDist() * 0.9,
+      seconds: 3.4,
+      lift: 0.08,
+      drift: 4,
+    }),
+    move: 'rotate',
   },
   {
     title: 'The centre is the software being checked',
     body: 'The glass globe stands for God’s Eye View. Everything around it is a question the software must answer with evidence.',
-    run: (a) => a.pulse('core'),
+    shade: '3d',
+    focus: 'core',
+    shot: () => ({
+      target: [0, 0, 0],
+      az: 24,
+      el: 16,
+      dist: 7.5,
+      seconds: 3,
+      drift: 7,
+    }),
+    move: 'zoomIn',
   },
   {
     title: 'The inner ring is safety',
     body: '115 objectives from ED-153, grouped into process areas. At the safety level chosen here (SWAL 3), 104 of them apply.',
-    run: (a) => a.pulse('saf'),
+    shade: '3d',
+    focus: 'saf',
+    shot: () => ({
+      target: [0, 0.1, 0],
+      az: -55,
+      el: 56,
+      dist: 15,
+      seconds: 3,
+      lift: 0.1,
+      drift: 5,
+    }),
+    move: 'tilt',
   },
   {
     title: 'The outer ring is security',
     body: '345 requirements from OWASP ASVS 5.0, grouped into chapters. Level 2 applies here: 253 of them.',
-    run: (a) => a.pulse('sec'),
-  },
-  {
-    title: 'How ready each side is',
-    body: 'Each dial shows readiness. The line under it is the verdict. Red means a claim cannot be made yet.',
-    zone: 'status',
+    shade: '3d',
+    focus: 'sec',
+    shot: () => ({
+      target: [0, -0.4, 0],
+      az: 32,
+      el: 24,
+      dist: 24,
+      seconds: 3,
+      drift: 4,
+    }),
+    move: 'zoomOut',
   },
   {
     title: 'Raised pins must be fixed',
-    body: 'These items block a safe-and-secure claim. On first load they are the only things lit, and they are listed here, most severe first.',
-    zone: 'alerts',
-    run: (a) => a.pulse('mustfix', 4000),
+    body: 'These items block a safe-and-secure claim. They are the only things lit on first load, and they are listed on the left, grouped by standard.',
+    shade: '3d',
+    focus: 'mustfix',
+    zone: 'mustfix',
+    open: 'mustfix',
+    shot: () => ({
+      target: '3.3.2',
+      az: 0,
+      el: 30,
+      dist: 9,
+      seconds: 2.8,
+      drift: 3,
+    }),
+    move: 'focus',
+  },
+  {
+    title: 'How ready each side is',
+    body: 'Each dial shows readiness on that standard. The line under it is the verdict: red means a claim cannot be made yet.',
+    shade: 'ui',
+    zone: 'readiness',
+    open: 'readiness',
+    shot: (a) => ({
+      az: -10,
+      el: 34,
+      dist: a.homeDist(),
+      seconds: 2.4,
+      drift: 2,
+    }),
   },
   {
     title: 'Click any pin to read it',
-    body: 'Every item explains itself in plain words: what it is, why it matters, the fix, and its evidence trail. Double-click a pin to fly to it.',
+    body: 'Every item explains itself in plain words: what it is, why it matters and the fix. Its evidence trail folds open underneath.',
+    shade: '3d',
     zone: 'detail',
-    run: (a) => a.select('V8.2.1'),
+    run: (a, m) => {
+      m.selected = true;
+      a.select('V8.2.1');
+    },
+    shot: () => ({ target: 'V8.2.1', az: 0, el: 26, dist: 10, seconds: 2.6 }),
+    move: 'focus',
   },
   {
     title: 'Some fixes help both standards',
     body: 'Threads link safety and security items that need the same evidence. Fix once and both sides improve.',
+    shade: '3d',
+    focus: 'links',
     zone: 'detail',
-    run: (a, t) => {
-      t.restoreLinks ??= a.layerState('links');
-      a.layer('links', true);
-    },
+    run: (a, m) => setLayer(a, m, 'links', true),
+    leave: (a, m) => restoreLayer(a, m, 'links'),
+    shot: () => ({
+      target: [0, -0.2, 0],
+      az: 64,
+      el: 58,
+      dist: 19,
+      seconds: 3,
+      lift: 0.1,
+      drift: 4,
+    }),
+    move: 'rotate',
   },
   {
     title: 'Turn layers on and off',
-    body: 'Layers you have not switched on stay at 15%, so you keep the context without the clutter. Try it: switch on Passing to see what already meets the standards.',
+    body: 'Layers that are off stay faint (15%), so you keep the context without the clutter. Watch: Passing switches on to show what already meets the standards.',
+    shade: '3d',
     zone: 'layers',
+    open: 'layers',
+    run: (a, m) => {
+      m.timer = setTimeout(() => setLayer(a, m, 'passing', true), 1300);
+    },
+    leave: (a, m) => {
+      clearTimeout(m.timer);
+      restoreLayer(a, m, 'passing');
+    },
+    shot: (a) => ({
+      az: 20,
+      el: 40,
+      dist: a.homeDist() * 0.95,
+      seconds: 2.4,
+      drift: 3,
+    }),
+  },
+  {
+    title: 'Watch the gaps close',
+    body: 'The timeline runs from the baseline audit through each remediation wave. Solid stops are measured by a re-audit. Dashed stops are the plan’s target and stay labelled Projected until they are measured. Press play to run it.',
+    shade: '3d',
+    zone: 'timeline',
+    run: (a, m) => {
+      m.stop ??= a.stopIndex();
+      m.timer = setTimeout(() => a.stop(a.lastStop()), 1200);
+    },
+    leave: (a, m) => {
+      clearTimeout(m.timer);
+      if (m.stop !== undefined) a.stop(m.stop);
+      delete m.stop;
+    },
+    shot: (a) => ({
+      az: -15,
+      el: 42,
+      dist: a.homeDist() * 0.92,
+      seconds: 2.4,
+      drift: 3,
+    }),
+  },
+  {
+    title: 'Now you try',
+    body: 'The camera is yours. It moves just like the live globe:',
+    keys: [
+      ['Drag', 'Rotate'],
+      ['Scroll', 'Zoom'],
+      ['Ctrl + drag', 'Tilt'],
+      ['Double-click', 'Fly to a pin'],
+      ['Reset view', 'Back to the start'],
+    ],
+    shade: 'none',
+    zone: 'reset',
+    free: true,
   },
   {
     title: 'See how the gaps are being closed',
     body: 'Evidence opens the full record, 40,000 ft first: the pipeline, before and now, and the readiness journey, then wave by wave down to each finding’s history.',
+    shade: 'ui',
     zone: 'evidence',
   },
   {
     title: 'You’re ready',
-    body: 'Drag to rotate, scroll to zoom, double-click a pin to fly to it. Esc steps back. Exit audit returns to the live globe.',
+    body: 'Esc steps back. Exit audit returns to the live globe, exactly where you left it.',
+    shade: '3d',
+    home: true,
   },
 ]);
 
@@ -100,60 +283,129 @@ function button(cls, text) {
 }
 
 /**
- * @param {{container: HTMLElement, zones: Record<string, HTMLElement>, actions: object}} o
+ * @param {{container: HTMLElement, shadeBefore: HTMLElement,
+ *   zones: Record<string, any>, actions: object}} o
  */
-export function createTour({ container, zones, actions }) {
+export function createTour({ container, shadeBefore, zones, actions }) {
+  const shade = h('div', 'gev-tour-shade');
+  container.insertBefore(shade, shadeBefore);
   const root = h('div', 'gev-tour');
   root.hidden = true;
   const spot = h('div', 'gev-tour-spot');
+  spot.hidden = true;
+  const move = h('div', 'gev-tour-move');
+  move.setAttribute('aria-live', 'polite');
   const card = h('div', 'gev-tour-card gev-audit-glass');
   card.setAttribute('role', 'dialog');
   card.setAttribute('aria-modal', 'false');
   card.setAttribute('aria-labelledby', 'gev-tour-title');
-  root.append(spot, card);
+  root.append(spot, move, card);
   container.append(root);
 
   let index = -1;
   let mode = 'closed'; // closed | prompt | step
   const memo = {};
+  let moveTimer = null;
+  const opened = new Set(); // sections the tour expanded
+
+  const dimmables = () =>
+    [
+      zones.top,
+      zones.readiness,
+      zones.mustfix,
+      zones.layers,
+      zones.key,
+      zones.detail,
+      zones.timeline,
+      zones.stage?.querySelector('.gev-audit-hint'),
+    ].filter(Boolean);
+
+  function setDim(focusEl, all) {
+    for (const el of dimmables()) {
+      const keep =
+        focusEl &&
+        (el === focusEl || el.contains(focusEl) || focusEl.contains(el));
+      el.dataset.dim = String(all ? !keep : false);
+    }
+  }
+  function clearDim() {
+    for (const el of dimmables()) delete el.dataset.dim;
+  }
+
+  function showMove(key, seconds) {
+    clearTimeout(moveTimer);
+    const m = key && MOVES[key];
+    if (!m) {
+      move.dataset.on = 'false';
+      return;
+    }
+    move.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${m.icon}</svg>`;
+    move.append(h('b', null, m.label), h('span', null, m.how));
+    move.dataset.on = 'true';
+    moveTimer = setTimeout(
+      () => (move.dataset.on = 'false'),
+      (seconds + 2.2) * 1000,
+    );
+  }
 
   function placeCard(rect) {
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const cw = Math.min(380, W - 32);
+    const cw = Math.min(344, W - 32);
     card.style.width = `${cw}px`;
+    const ch = card.offsetHeight || 200;
+    const clampX = (x) => Math.min(Math.max(16, x), W - cw - 16);
+    const clampY = (y) => Math.min(Math.max(16, y), H - ch - 16);
     if (!rect) {
-      card.style.left = `${(W - cw) / 2}px`;
-      card.style.top = '';
-      card.style.bottom = '32px';
+      // Bottom left, over the dimmed rail: the orbit stays in full view.
+      card.style.left = `${clampX(16)}px`;
+      card.style.top = `${clampY(H - ch - 16)}px`;
+      return;
+    }
+    const cx = rect.left + rect.width / 2;
+    let left;
+    let top;
+    if (cx < W / 3 && rect.right + 20 + cw <= W - 16) {
+      left = rect.right + 20;
+      top = rect.top;
+    } else if (cx > (2 * W) / 3 && rect.left - 20 - cw >= 16) {
+      left = rect.left - 20 - cw;
+      top = rect.top;
+    } else if (rect.top < H / 2) {
+      left = Math.min(rect.right - cw, cx - cw / 2);
+      top = rect.bottom + 18;
+    } else {
+      left = cx - cw / 2;
+      top = rect.top - ch - 18;
+    }
+    card.style.left = `${clampX(left)}px`;
+    card.style.top = `${clampY(top)}px`;
+  }
+
+  function placeSpot(el) {
+    if (!el) {
       spot.hidden = true;
       return;
     }
+    const r = el.getBoundingClientRect();
     spot.hidden = false;
     Object.assign(spot.style, {
-      left: `${rect.left - 8}px`,
-      top: `${rect.top - 8}px`,
-      width: `${rect.width + 16}px`,
-      height: `${rect.height + 16}px`,
+      left: `${r.left - 6}px`,
+      top: `${r.top - 6}px`,
+      width: `${r.width + 12}px`,
+      height: `${r.height + 12}px`,
     });
-    const ch = card.offsetHeight || 220;
-    let left = rect.right + 16;
-    if (left + cw > W - 16) left = rect.left - cw - 16;
-    if (left < 16) left = Math.min(Math.max(16, rect.left), W - cw - 16);
-    let top = rect.top;
-    if (left === Math.min(Math.max(16, rect.left), W - cw - 16))
-      top = rect.top > H / 2 ? rect.top - ch - 16 : rect.bottom + 16;
-    top = Math.min(Math.max(16, top), H - ch - 16);
-    card.style.left = `${left}px`;
-    card.style.top = `${top}px`;
-    card.style.bottom = '';
   }
 
   function renderPrompt() {
     mode = 'prompt';
     root.hidden = false;
     root.dataset.mode = 'prompt';
+    container.dataset.tour = 'on';
+    shade.dataset.mode = 'prompt';
+    setDim(null, true);
     spot.hidden = true;
+    move.dataset.on = 'false';
     const start = button(
       'gev-audit-btn is-strong is-big',
       'Take the guided tour',
@@ -174,15 +426,22 @@ export function createTour({ container, zones, actions }) {
       h(
         'p',
         null,
-        'Take a two-minute tour of what this view checks, what each display means, how it maps to the 3D space, and how to switch layers on and off.',
+        'Take a two-minute flight around the audit: what it checks, what each display means, how it maps to the 3D space, how to switch layers, and how the gaps close wave by wave.',
       ),
       actionsRow,
     );
-    const w = Math.min(680, window.innerWidth - 32);
+    const w = Math.min(640, window.innerWidth - 32);
     card.style.width = `${w}px`;
     card.style.left = `${(window.innerWidth - w) / 2}px`;
-    card.style.top = `${Math.max(16, window.innerHeight * 0.26)}px`;
-    card.style.bottom = '';
+    card.style.top = `${Math.max(16, (window.innerHeight - (card.offsetHeight || 260)) / 2)}px`;
+    // A slow turn behind the prompt: the view is alive and can move.
+    actions.shot({
+      az: 0,
+      el: 34,
+      dist: actions.homeDist(),
+      seconds: 1.2,
+      drift: 2.5,
+    });
     start.focus();
   }
 
@@ -206,8 +465,8 @@ export function createTour({ container, zones, actions }) {
       dots.append(d);
     });
     const row = h('div', 'gev-tour-actions');
-    row.append(back, next, dots, skip);
-    card.replaceChildren(
+    row.append(back, next, dots);
+    const parts = [
       h(
         'span',
         'gev-audit-zlabel',
@@ -215,22 +474,63 @@ export function createTour({ container, zones, actions }) {
       ),
       title,
       h('p', null, step.body),
-      row,
-    );
+    ];
+    if (step.keys) {
+      const ul = h('ul');
+      for (const [k, v] of step.keys) {
+        const li = h('li');
+        li.append(h('kbd', null, k));
+        ul.append(li, h('li', null, v));
+      }
+      parts.push(ul);
+    }
+    parts.push(row, skip);
+    card.replaceChildren(...parts);
     const zone = step.zone ? zones[step.zone] : null;
-    placeCard(zone ? zone.getBoundingClientRect() : null);
-    // Second pass once the card has its real height.
-    requestAnimationFrame(() =>
-      placeCard(zone ? zone.getBoundingClientRect() : null),
-    );
-    next.focus();
+    const layout = () => {
+      placeSpot(zone);
+      placeCard(zone ? zone.getBoundingClientRect() : null);
+    };
+    layout();
+    // Again once sections have opened and the card has its real height.
+    requestAnimationFrame(layout);
+    setTimeout(layout, 260);
+    next.focus({ preventScroll: true });
+  }
+
+  function leaveStep() {
+    const step = TOUR_STEPS[index];
+    step?.leave?.(actions, memo);
   }
 
   function go(i) {
-    index = Math.max(0, Math.min(TOUR_STEPS.length - 1, i));
+    const to = Math.max(0, Math.min(TOUR_STEPS.length - 1, i));
+    if (mode === 'step') leaveStep();
+    index = to;
     mode = 'step';
     root.hidden = false;
-    TOUR_STEPS[index].run?.(actions, memo);
+    container.dataset.tour = 'on';
+    const step = TOUR_STEPS[index];
+    shade.dataset.mode = step.shade || '3d';
+    if (step.open && !actions.sectionOpen(step.open)) {
+      actions.openSection(step.open);
+      opened.add(step.open);
+    }
+    const zone = step.zone ? zones[step.zone] : null;
+    setDim(zone, !step.free);
+    actions.emphasis(step.focus || null);
+    step.run?.(actions, memo);
+    if (step.free) {
+      actions.stopCamera();
+      showMove(null);
+    } else if (step.home) {
+      actions.home();
+      showMove(null);
+    } else if (step.shot) {
+      const s = step.shot(actions);
+      actions.shot(s);
+      showMove(step.move, s.seconds || 2.6);
+    } else showMove(null);
     renderStep();
   }
 
@@ -263,20 +563,34 @@ export function createTour({ container, zones, actions }) {
       go(0);
     },
     close() {
-      if (mode === 'step') markSeen();
-      if (memo.restoreLinks !== undefined) {
-        actions.layer('links', memo.restoreLinks);
-        delete memo.restoreLinks;
+      if (mode === 'closed') return;
+      if (mode === 'step') {
+        markSeen();
+        leaveStep();
       }
+      for (const id of opened) if (id === 'layers') actions.closeSection(id);
+      opened.clear();
+      if (zones.rail) zones.rail.scrollTop = 0;
+      clearTimeout(moveTimer);
+      move.dataset.on = 'false';
+      if (memo.selected) actions.select(null);
+      delete memo.selected;
+      actions.emphasis(null);
+      actions.stopCamera();
+      clearDim();
+      delete container.dataset.tour;
       mode = 'closed';
       index = -1;
       root.hidden = true;
+      spot.hidden = true;
     },
     isOpen: () => mode !== 'closed',
     destroy() {
       window.removeEventListener('keydown', onKey, { capture: true });
       window.removeEventListener('resize', onResize);
+      clearTimeout(moveTimer);
       root.remove();
+      shade.remove();
     },
   };
   return api;

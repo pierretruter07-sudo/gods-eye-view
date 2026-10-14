@@ -669,7 +669,8 @@
       "src/audit/tour.js",
       "src/audit/data/assessment.json",
       "docs/evidence/ledger.json",
-      "vendor/three/three.module.min.js"
+      "vendor/three/three.module.min.js",
+      "src/audit/progress.js"
     ],
     "external": ["cesium", "egm96-universal", "satellite.js"]
   },

@@ -126,3 +126,85 @@ export function ease(t) {
 export function phase(t, a, b) {
   return Math.min(1, Math.max(0, (t - a) / (b - a)));
 }
+
+// ── Camera rig: the guided tour's and Reset view's camera ───────────────
+// A rig is a camera orbiting a point of the orbit: `target` (orbit-local,
+// Earth radii), azimuth `az` around the Earth's axis (0 = from the viewer's
+// side), elevation `el` above the ring plane and distance `dist` (radians,
+// Earth radii). Interpolating rigs keeps the target in frame all the way.
+
+const EL_LIMIT = (85 * Math.PI) / 180;
+const HOME_TARGET = [0, -0.8, 0.13];
+const HOME_EYE = [0, 13, 20.33];
+
+/** The rig matching `auditPose` (the AUDIT view's home framing). */
+export function homeRig(fovy) {
+  const k = Math.tan((15 * Math.PI) / 180) / Math.tan(fovy / 2);
+  const off = sub(HOME_EYE, HOME_TARGET);
+  return {
+    target: [...HOME_TARGET],
+    az: Math.atan2(off[0], off[2]),
+    el: Math.atan2(off[1], Math.hypot(off[0], off[2])),
+    dist: k * Math.hypot(...off),
+  };
+}
+
+/** Camera pose (ECEF metres and unit vectors) for a rig at longitude `lon`. */
+export function rigPose(rig, lon, { radiusM = EARTH_RADIUS_M } = {}) {
+  const el = Math.max(-EL_LIMIT, Math.min(EL_LIMIT, rig.el));
+  const off = [
+    Math.sin(rig.az) * Math.cos(el),
+    Math.sin(el),
+    Math.cos(rig.az) * Math.cos(el),
+  ];
+  const basis = basisForLongitude(lon);
+  const eye = localToEcef(add(rig.target, scale(off, rig.dist)), basis);
+  const target = localToEcef(rig.target, basis);
+  const direction = norm(sub(target, eye));
+  const north = basis.y;
+  const up = norm(sub(north, scale(direction, dot(north, direction))));
+  return { position: scale(eye, radiusM), direction, up };
+}
+
+/** The rig that reproduces a camera position while looking at `target`. */
+export function rigFromPosition(
+  position,
+  lon,
+  target,
+  { radiusM = EARTH_RADIUS_M } = {},
+) {
+  const b = basisForLongitude(lon);
+  const p = scale(position, 1 / radiusM);
+  const local = [dot(p, b.x), dot(p, b.y), dot(p, b.z)];
+  const off = sub(local, target);
+  const dist = Math.hypot(...off) || 1;
+  return {
+    target: [...target],
+    az: Math.atan2(off[0], off[2]),
+    el: Math.asin(Math.max(-1, Math.min(1, off[1] / dist))),
+    dist,
+  };
+}
+
+/** Shortest signed angle from `a` to `b`, radians. */
+export function angleDelta(a, b) {
+  return Math.atan2(Math.sin(b - a), Math.cos(b - a));
+}
+
+/**
+ * Rig part-way between two rigs. Distance moves logarithmically (a smooth
+ * zoom), azimuth along the shortest arc; `lift` pulls the camera back
+ * mid-flight (0.2 = 20% further at the midpoint) for a crane-like move.
+ */
+export function interpolateRig(a, b, t, { lift = 0 } = {}) {
+  const k = Math.min(1, Math.max(0, t));
+  return {
+    target: a.target.map((x, i) => x + (b.target[i] - x) * k),
+    az: a.az + angleDelta(a.az, b.az) * k,
+    el: a.el + (b.el - a.el) * k,
+    dist:
+      a.dist *
+      Math.pow(b.dist / a.dist, k) *
+      (1 + lift * Math.sin(Math.PI * k)),
+  };
+}
