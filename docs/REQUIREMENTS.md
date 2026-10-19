@@ -101,6 +101,8 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-016 | Opening a street camera shall show its live still, refreshed every 10 seconds, with its location, network, licence and what is around it. Every value shall come from the camera catalog or be computed from it; no simulated value shall be shown on a camera. | T |
 | GEV-INT-017 | When the street-camera layer is on, a Director place card shall show the nearest camera within 10 km with its live still. | T |
 | GEV-INT-018 | An ADS-B airport surface vehicle (emitter category C1 or C2) shall open as a vehicle with feed values only: no simulated rows and no aircraft actions. | T |
+| GEV-INT-019 | Each analyst action and an "Object" button shall open a sheet in a drawer at the side of the screen, so the focused asset stays in view. A sheet shall show the object's type and key, its data lineage, properties, linked objects and a timeline. Every value shall be tagged FEED or SIM, no person shall be named, and ownership shall stay generic. | T |
+| GEV-INT-020 | The track-history sheet shall list positions observed this session as FEED, and any path reconstructed from the current track and speed as SIM, never as recorded positions. | T |
 
 ## 7. Exercise mode (EXE)
 

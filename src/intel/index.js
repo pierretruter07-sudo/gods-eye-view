@@ -20,9 +20,15 @@ import {
   hudHeader,
   hudCard,
   hudActions,
-  resultPanel,
+  sheetDrawer,
 } from './markup.js';
 import { runAction } from './actions.js';
+import {
+  blockCsv,
+  objectIdentity,
+  objectLineage,
+  overviewSheet,
+} from './sheets.js';
 import { buildHud, MAX_CARDS } from './hud.js';
 import { buildPlaceHud } from './place.js';
 import { buildCameraHud, CAMERA_FRAME_REFRESH_MS } from './camera.js';
@@ -83,12 +89,11 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   brief.hidden = true;
   const actions = el('nav', 'gev-iv__actions gev-glass');
   actions.setAttribute('aria-label', 'Analyst actions');
-  // Result of an analyst action (passes, imagery, manifest…), above the dock.
-  const result = el('section', 'gev-res gev-glass');
-  result.setAttribute('aria-label', 'Action result');
-  result.setAttribute('aria-live', 'polite');
-  result.hidden = true;
-  bottom.append(result, brief, actions);
+  // Analyst sheets: a drawer on the right so the asset stays in view.
+  const drawer = el('aside', 'gev-sheet gev-glass');
+  drawer.setAttribute('aria-label', 'Analyst sheets');
+  drawer.hidden = true;
+  bottom.append(brief, actions);
   // Leader lines from the asset to each card (decorative).
   const svgNS = 'http://www.w3.org/2000/svg';
   const leaders = document.createElementNS(svgNS, 'svg');
@@ -130,7 +135,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const toast = el('div', 'gev-hud__toast gev-glass');
   toast.setAttribute('role', 'status');
   toast.hidden = true;
-  view.append(leaders, header, ...cards, bottom);
+  view.append(leaders, header, ...cards, bottom, drawer);
   document.body.append(toast);
 
   const triage = el('section', 'gev-triage gev-glass');
@@ -469,6 +474,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     brief.hidden = true;
     stopBrief();
     render();
+    observe(o);
+    syncSheets(o);
     setTriage(false);
     view.hidden = false;
     measureCards();
@@ -545,25 +552,60 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       }, CACHE_MS);
     }
   }
-  // ── Action results ───────────────────────────────────────────────────
-  let resultToken = 0;
-  let lastResult = null;
-  function hideResult() {
-    resultToken += 1;
-    result.hidden = true;
-    result.innerHTML = '';
-    lastResult = null;
+  // ── Analyst sheets ─────────────────────────────────────────────────
+  // One tab per sheet; "overview" (the object view) is always first. The
+  // drawer follows the focused object: on a new focus it re-runs the tabs
+  // that exist for the new kind.
+  let sheetTabs = [];
+  let sheetActive = null;
+  const sheetResults = new Map();
+  let sheetToken = 0;
+  // Positions seen this session for moving contacts (track-history sheet).
+  const observations = new Map();
+  function observe(o) {
+    if (!o || (o.kind !== 'aircraft' && o.kind !== 'vessel')) return;
+    if (!Number.isFinite(o.lat) || !Number.isFinite(o.lon)) return;
+    const list = observations.get(o.key) || [];
+    const last = list[list.length - 1];
+    if (last && last.lat === o.lat && last.lon === o.lon) return;
+    list.push({
+      t: Date.now(),
+      lat: o.lat,
+      lon: o.lon,
+      altitudeM: o.altitudeM,
+    });
+    if (list.length > 40) list.shift();
+    observations.set(o.key, list);
+    if (observations.size > 200)
+      observations.delete(observations.keys().next().value);
   }
-  async function runResult(action, o) {
-    const token = ++resultToken;
-    result.innerHTML = resultPanel(
-      { title: action.label, sources: [] },
-      { busy: true },
-    );
-    result.hidden = false;
-    const ctx = {
+  const observeTimer = setInterval(() => {
+    if (
+      !selected ||
+      (selected.kind !== 'aircraft' && selected.kind !== 'vessel')
+    )
+      return;
+    observe(collect().find((x) => x.key === selected.key));
+  }, 15_000);
+
+  function sheetCtx() {
+    return {
       now: Date.now(),
       objects: collect(),
+      observations: (key) => observations.get(key) || [],
+      flagged: () => buildTriage(collect(), { limit: 999 }),
+      cameraHealth: async () => {
+        try {
+          const r = await fetch('/api/cctv/health', {
+            headers: { Accept: 'application/json' },
+          });
+          if (!r.ok) return [];
+          const body = await r.json();
+          return Array.isArray(body?.cameras) ? body.cameras : [];
+        } catch {
+          return [];
+        }
+      },
       satrecs: () => {
         try {
           return layerModule('satellites')?.getCatalogSatrecs?.() || [];
@@ -583,28 +625,141 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
         }
       },
     };
-    const r = await runAction(action.id, o, ctx);
-    if (token !== resultToken || selected?.key !== o.key) return;
-    lastResult = r;
-    result.innerHTML = resultPanel(r);
   }
-  result.addEventListener('click', (event) => {
-    const act = event.target.closest('[data-res]')?.dataset.res;
-    if (act === 'close') hideResult();
-    if (act === 'send' && lastResult?.send) {
-      showToast(lastResult.send.toast);
-      hideResult();
+  function renderSheets() {
+    if (!selected || !sheetTabs.length) return;
+    drawer.innerHTML = sheetDrawer({
+      identity: objectIdentity(selected),
+      lineage: objectLineage(selected),
+      tabs: sheetTabs,
+      active: sheetActive,
+      sheet: sheetResults.get(sheetActive) || null,
+      busy: !sheetResults.has(sheetActive),
+    });
+  }
+  async function runSheet(id, o) {
+    const token = sheetToken;
+    if (id === 'overview') {
+      const ctx = sheetCtx();
+      const satrec =
+        o.kind === 'satellite'
+          ? ctx.satrecs().find((x) => x.noradId === String(o.noradId))?.satrec
+          : null;
+      sheetResults.set(
+        id,
+        overviewSheet(o, {
+          now: ctx.now,
+          // Links reach further than the HUD's nearby count (an airliner
+          // over open country still has neighbours worth following).
+          nearby: nearbyObjects(ctx.objects, o, {
+            limit: 6,
+            radiusKm: o.kind === 'satellite' ? 3000 : 300,
+          }).items,
+          observations: ctx.observations(o.key),
+          satrec,
+        }),
+      );
+      renderSheets();
+      return;
     }
+    const r = await runAction(id, o, sheetCtx());
+    if (token !== sheetToken || selected?.key !== o.key) return;
+    sheetResults.set(id, { id, ...r });
+    renderSheets();
+  }
+  function openSheet(id, label) {
+    if (!selected) return;
+    if (!sheetTabs.length) sheetTabs = [{ id: 'overview', label: 'Object' }];
+    if (!sheetTabs.some((t) => t.id === id)) sheetTabs.push({ id, label });
+    sheetActive = id;
+    drawer.hidden = false;
+    document.body.classList.add('gev-sheets-open');
+    renderSheets();
+    if (!sheetResults.has('overview')) runSheet('overview', selected);
+    if (!sheetResults.has(id)) runSheet(id, selected);
+  }
+  // Tabs parked while the Director moves between subjects (it closes the
+  // view between stops); they come back on the next subject.
+  let parked = null;
+  function hideResult({ keep = false } = {}) {
+    parked =
+      keep && sheetTabs.length
+        ? { tabs: sheetTabs, active: sheetActive }
+        : null;
+    sheetToken += 1;
+    sheetTabs = [];
+    sheetActive = null;
+    sheetResults.clear();
+    drawer.hidden = true;
+    drawer.innerHTML = '';
+    document.body.classList.remove('gev-sheets-open');
+  }
+  /** A new object is in focus: keep the drawer, re-run what still applies. */
+  function syncSheets(o) {
+    if (!sheetTabs.length && parked && o.kind !== 'place') {
+      sheetTabs = parked.tabs;
+      sheetActive = parked.active;
+      parked = null;
+      drawer.hidden = false;
+      document.body.classList.add('gev-sheets-open');
+    }
+    if (!sheetTabs.length) return;
+    sheetToken += 1;
+    sheetResults.clear();
+    const available = new Set([
+      'overview',
+      ...(hud?.actions || []).map((a) => a.id),
+    ]);
+    if (o.kind === 'place') return hideResult({ keep: true });
+    sheetTabs = sheetTabs.filter((t) => available.has(t.id));
+    if (!sheetTabs.some((t) => t.id === sheetActive)) sheetActive = 'overview';
+    renderSheets();
+    for (const t of sheetTabs) runSheet(t.id, o);
+  }
+  drawer.addEventListener('click', async (event) => {
+    const act = event.target.closest('[data-res]')?.dataset.res;
+    if (!act || !selected) return;
+    if (act === 'close') return hideResult();
+    if (act.startsWith('tab:')) {
+      sheetActive = act.slice(4);
+      return renderSheets();
+    }
+    if (act.startsWith('untab:')) {
+      const id = act.slice(6);
+      sheetTabs = sheetTabs.filter((t) => t.id !== id);
+      sheetResults.delete(id);
+      if (sheetActive === id) sheetActive = 'overview';
+      return renderSheets();
+    }
+    if (act.startsWith('link:')) {
+      const target = collect().find((x) => x.key === act.slice(5));
+      if (target) open(target);
+      return;
+    }
+    const sheet = sheetResults.get(sheetActive);
+    if (act.startsWith('csv:')) {
+      const block = sheet?.blocks?.[Number(act.slice(4))];
+      const text = block ? blockCsv(block) : '';
+      const button = event.target.closest('button');
+      try {
+        await navigator.clipboard.writeText(text);
+        if (button) button.textContent = 'Copied';
+      } catch {
+        if (button) button.textContent = 'Copy unavailable';
+      }
+      return;
+    }
+    if (act === 'send' && sheet?.send) showToast(sheet.send.toast);
   });
 
-  function close() {
+  function close({ keepSheets = false } = {}) {
     if (selected?.kind === 'camera') {
       const cams = layerModule('cctv');
       if (cams?.getParams?.().calibrationMode)
         cams.setParams?.({ calibrationMode: false });
       cams?.deactivateActiveCamera?.();
     }
-    hideResult();
+    hideResult({ keep: keepSheets });
     stopFollow();
     stopOrbit();
     stopBrief();
@@ -902,7 +1057,11 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     if (act === 'close') return close();
     if (act.startsWith('sim:')) {
       const a = hud?.actions.find((x) => `sim:${x.id}` === act);
-      if (a) runResult(a, o);
+      if (a) openSheet(a.id, a.label);
+      return;
+    }
+    if (act === 'sheet:overview') {
+      openSheet('overview', 'Object');
       return;
     }
     if (act.startsWith('cam:') && o.kind === 'camera') {
@@ -1102,7 +1261,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
    * or close it (null). Prefers the layer's live record for the same object.
    */
   function showFocus(focus) {
-    if (!focus) return close();
+    if (!focus) return close({ keepSheets: true });
     if (focus.place) {
       const p = focus.place;
       open(
@@ -1121,7 +1280,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       return;
     }
     const o = toIntelObject(focus.layerId, focus.record);
-    if (!o) return close();
+    if (!o) return close({ keepSheets: true });
     const live = collect().find((x) => x.key === o.key);
     open(live ? { ...live, simulated: o.simulated } : o, {
       quiet: true,
@@ -1170,6 +1329,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     },
     destroy() {
       close();
+      clearInterval(observeTimer);
       setTriage(false);
       handler.destroy();
       disposeCameraClicks();

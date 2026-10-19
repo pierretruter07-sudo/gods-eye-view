@@ -43,6 +43,8 @@ export const ICON = {
   brief:
     '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>',
   copy: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>',
+  sheet:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 9.5h16M9.5 9.5V20"/></svg>',
   close:
     '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg>',
 };
@@ -128,9 +130,18 @@ export function hudActions(h, state, { touring = false } = {}) {
       btn(`sim:${esc(a.id)}`, '', esc(a.label), false, 'gev-act--sim'),
     )
     .join('');
+  const object = btn(
+    'sheet:overview',
+    ICON.sheet,
+    'Object',
+    false,
+    'gev-act--sheet',
+  );
   if (h.kind === 'camera') {
     const cam = h.camera || {};
     return [
+      object,
+      sim,
       btn(
         'cam:panel',
         ICON.follow,
@@ -153,6 +164,7 @@ export function hudActions(h, state, { touring = false } = {}) {
   }
   if (touring)
     return (
+      object +
       sim +
       btn(
         'watch',
@@ -168,6 +180,7 @@ export function hudActions(h, state, { touring = false } = {}) {
       state.following ? 'Following' : 'Follow',
       state.following,
     ),
+    object,
     sim,
     btn(
       'watch',
@@ -182,21 +195,56 @@ export function hudActions(h, state, { touring = false } = {}) {
   ].join('');
 }
 
-// ── Action result panel ────────────────────────────────────────────────
-function resultBlock(b) {
-  if (b.type === 'rows')
-    return `<dl class="gev-res__rows">${b.rows
+// ── Action result panel / analyst sheets ───────────────────────────────
+const SIM_DOT = '<i class="gev-hud__sim" aria-label="simulated"></i>';
+const tag = (sim) =>
+  `<span class="gev-sheet__tag ${sim ? 'gev-sheet__tag--sim' : 'gev-sheet__tag--feed'}">${sim ? 'SIM' : 'FEED'}</span>`;
+const csvBtn = (i) =>
+  `<button type="button" class="gev-sheet__csv" data-res="csv:${i}">Copy CSV</button>`;
+
+function resultBlock(b, i = 0) {
+  if (b.type === 'rows' || b.type === 'props')
+    return `${b.title ? `<div class="gev-sheet__sec"><h4>${esc(b.title)}</h4>${csvBtn(i)}</div>` : ''}<dl class="gev-res__rows">${b.rows
       .map(
         (r) =>
-          `<dt>${r.sim ? '<i class="gev-hud__sim" aria-label="simulated"></i>' : ''}${esc(r.label)}</dt><dd>${esc(r.value)}</dd>`,
+          `<dt>${r.sim ? SIM_DOT : ''}${esc(r.label)}</dt><dd>${esc(r.value)}</dd>`,
       )
       .join('')}</dl>`;
-  if (b.type === 'table')
-    return `${b.title ? `<p class="gev-res__sub">${esc(b.title)}</p>` : ''}<table class="gev-res__table"><thead><tr>${b.head
+  if (b.type === 'table') {
+    const tagged = b.rows.some((r) => !Array.isArray(r));
+    const head = [...b.head, ...(tagged ? ['Source'] : [])];
+    return `<div class="gev-sheet__sec">${b.title ? `<p class="gev-res__sub">${esc(b.title)}</p>` : '<span></span>'}${csvBtn(i)}</div><div class="gev-sheet__scroll"><table class="gev-res__table"><thead><tr>${head
       .map((h) => `<th scope="col">${esc(h)}</th>`)
-      .join(
-        '',
-      )}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      .join('')}</tr></thead><tbody>${b.rows
+      .map((r) =>
+        Array.isArray(r)
+          ? `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`
+          : `<tr${r.sim ? ' class="gev-sheet__simrow"' : ''}>${r.cells.map((c) => `<td>${esc(c)}</td>`).join('')}<td>${tag(r.sim)}</td></tr>`,
+      )
+      .join('')}</tbody></table></div>`;
+  }
+  if (b.type === 'links')
+    return `<div class="gev-sheet__sec"><h4>${esc(b.title || 'Linked objects')}</h4></div>${
+      b.links.length
+        ? `<ul class="gev-sheet__links">${b.links
+            .map((l) => {
+              const body = `<span class="gev-sheet__rel">${esc(l.rel)}</span><span class="gev-sheet__lname">${esc(l.name)}</span><span class="gev-sheet__ltype">${esc(l.type || '')}${l.detail ? ` · ${esc(l.detail)}` : ''}</span>`;
+              return `<li>${
+                l.key
+                  ? `<button type="button" class="gev-sheet__link" data-res="link:${esc(l.key)}">${body}</button>`
+                  : `<div class="gev-sheet__link gev-sheet__link--static">${body}</div>`
+              }</li>`;
+            })
+            .join('')}</ul>`
+        : '<p class="gev-res__note">No linked objects in range.</p>'
+    }`;
+  if (b.type === 'timeline')
+    return `<div class="gev-sheet__sec"><h4>${esc(b.title || 'Timeline')}</h4></div><ol class="gev-sheet__timeline">${b.events
+      .map(
+        (e) =>
+          `<li${e.sim ? ' class="gev-sheet__simrow"' : ''}><time>${esc(e.when)}</time><span>${esc(e.text)}</span>${tag(e.sim)}</li>`,
+      )
+      .join('')}</ol>`;
   if (b.type === 'message')
     return `<p class="gev-res__sub">${esc(b.label || 'Message')}</p><blockquote class="gev-res__msg">${esc(b.text)}</blockquote>`;
   if (b.type === 'imagery')
@@ -207,6 +255,61 @@ function resultBlock(b) {
       )}<span class="gev-res__mark" style="left:${(b.markX * 100).toFixed(1)}%;top:${(b.markY * 100).toFixed(1)}%" aria-hidden="true"></span></div><figcaption>${esc(b.caption)}</figcaption></figure>`;
   if (b.type === 'note') return `<p class="gev-res__note">${esc(b.text)}</p>`;
   return '';
+}
+
+/**
+ * The analyst-sheet drawer: object identity, lineage, one tab per sheet
+ * and the active sheet's content.
+ * @param {{identity: object, lineage: object[], tabs: {id:string,label:string}[],
+ *   active: string, sheet: object|null, busy?: boolean}} m
+ */
+export function sheetDrawer({
+  identity,
+  lineage,
+  tabs,
+  active,
+  sheet,
+  busy = false,
+}) {
+  const chain = lineage
+    .map(
+      (s) =>
+        `<span class="gev-prov ${s.feed ? 'gev-prov--feed' : 'gev-prov--sim'}">${esc(s.label)}${s.feed ? '' : ' · SIM'}</span>`,
+    )
+    .join('<span class="gev-sheet__arrow" aria-hidden="true">→</span>');
+  const tabBar = tabs
+    .map(
+      (t) =>
+        `<span class="gev-sheet__tabwrap${t.id === active ? ' is-active' : ''}"><button type="button" role="tab" class="gev-sheet__tab" aria-selected="${t.id === active}" data-res="tab:${esc(t.id)}">${esc(t.label)}</button>${
+          t.id === 'overview'
+            ? ''
+            : `<button type="button" class="gev-sheet__tabx" data-res="untab:${esc(t.id)}" aria-label="Close ${esc(t.label)}">×</button>`
+        }</span>`,
+    )
+    .join('');
+  const sources = (sheet?.sources || [])
+    .map(
+      (s) =>
+        `<span class="gev-prov ${s.feed ? 'gev-prov--feed' : 'gev-prov--sim'}">${esc(s.label)}${s.feed ? '' : ' · SIM'}</span>`,
+    )
+    .join('');
+  const body = busy
+    ? '<p class="gev-res__busy"><span class="gev-res__spin" aria-hidden="true"></span>Computing from live data…</p>'
+    : (sheet?.blocks || []).map((b, i) => resultBlock(b, i)).join('');
+  return `<header class="gev-sheet__head">
+      <div class="gev-sheet__id"><span class="gev-sheet__type">${esc(identity.type)}</span><span class="gev-sheet__key">${esc(identity.keyLabel)} ${esc(identity.keyValue)}</span></div>
+      <h3>${esc(identity.title)}</h3>
+      <p class="gev-sheet__rid">${esc(identity.rid)}</p>
+      <button type="button" class="gev-icon-btn gev-sheet__close" data-res="close" aria-label="Close sheets">${ICON.close}</button>
+    </header>
+    <div class="gev-sheet__lineage" aria-label="Data lineage">${chain}</div>
+    <div class="gev-sheet__tabs" role="tablist">${tabBar}</div>
+    <div class="gev-sheet__body" role="tabpanel">
+      ${sheet && !busy && sheet.id !== 'overview' ? `<h4 class="gev-sheet__title">${esc(sheet.title)}</h4>` : ''}
+      ${sources && sheet?.id !== 'overview' ? `<div class="gev-res__chips">${sources}</div>` : ''}
+      ${body}
+      ${sheet?.send && !busy ? `<div class="gev-res__foot"><button type="button" class="gev-act gev-act--sim" data-res="send">${esc(sheet.send.label)}</button><span>Sending is simulated.</span></div>` : ''}
+    </div>`;
 }
 
 export function resultPanel(r, { busy = false } = {}) {

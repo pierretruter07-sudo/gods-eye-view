@@ -1405,4 +1405,83 @@ body.gev-intel-open #global-loading-status { display: none !important; }
 @keyframes gev-res-spin { to { transform: rotate(360deg); } }
 .gev-res__foot { display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: rgba(255, 255, 255, 0.6); }
 @media (prefers-reduced-motion: reduce) { .gev-res__spin { animation: none; } }
+
+/* ── Analyst sheets: right-hand drawer, the asset stays in view ───────── */
+.gev-sheet {
+  position: fixed;
+  top: 72px;
+  right: max(14px, env(safe-area-inset-right, 0px));
+  bottom: 96px;
+  width: min(420px, calc(100vw - 28px));
+  z-index: 6;
+  pointer-events: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: rgba(12, 16, 24, 0.72);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  font-size: 12.5px;
+  color: #fff;
+  overflow: hidden;
+  animation: gev-sheet-in 220ms ease-out;
+}
+.gev-sheet[hidden] { display: none; }
+@keyframes gev-sheet-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .gev-sheet { animation: none; } }
+.gev-sheet__head { position: relative; padding: 14px 48px 10px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.gev-sheet__id { display: flex; gap: 8px; align-items: center; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #64d2ff; font-weight: 650; }
+.gev-sheet__key { color: rgba(255, 255, 255, 0.6); letter-spacing: 0.06em; font-family: 'SF Mono', ui-monospace, Menlo, monospace; text-transform: none; }
+.gev-sheet__head h3 { margin: 4px 0 0; font-size: 18px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.gev-sheet__rid { margin: 3px 0 0; font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 10.5px; color: rgba(255, 255, 255, 0.42); }
+.gev-sheet__close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; }
+.gev-sheet__lineage { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 8px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.gev-sheet__arrow { color: rgba(255, 255, 255, 0.4); font-size: 11px; }
+.gev-sheet__tabs { display: flex; gap: 4px; padding: 8px 12px 0; overflow-x: auto; scrollbar-width: thin; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.gev-sheet__tabwrap { display: inline-flex; align-items: center; border-radius: 9px 9px 0 0; flex: none; }
+.gev-sheet__tabwrap.is-active { background: rgba(100, 210, 255, 0.14); box-shadow: inset 0 -2px 0 #64d2ff; }
+.gev-sheet__tab, .gev-sheet__tabx { appearance: none; border: 0; background: none; color: rgba(255, 255, 255, 0.72); font: inherit; cursor: pointer; }
+.gev-sheet__tab { padding: 7px 4px 8px 10px; font-weight: 600; white-space: nowrap; }
+.gev-sheet__tabwrap:not(:has(.gev-sheet__tabx)) .gev-sheet__tab { padding-right: 10px; }
+.gev-sheet__tabwrap.is-active .gev-sheet__tab { color: #fff; }
+.gev-sheet__tabx { padding: 4px 8px 4px 4px; font-size: 14px; line-height: 1; color: rgba(255, 255, 255, 0.45); }
+.gev-sheet__tabx:hover, .gev-sheet__tab:hover { color: #fff; }
+.gev-sheet__tab:focus-visible, .gev-sheet__tabx:focus-visible, .gev-sheet__link:focus-visible, .gev-sheet__csv:focus-visible { outline: 2px solid #64d2ff; outline-offset: 1px; border-radius: 6px; }
+.gev-sheet__body { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.gev-sheet__title { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
+.gev-sheet__sec { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.gev-sheet__sec h4 { margin: 0; font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); }
+.gev-sheet__csv { appearance: none; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.78); border-radius: 7px; padding: 3px 8px; font: inherit; font-size: 11px; cursor: pointer; flex: none; }
+.gev-sheet__csv:hover { background: rgba(255, 255, 255, 0.12); }
+.gev-sheet__scroll { overflow-x: auto; }
+.gev-sheet__tag { display: inline-block; padding: 1px 6px; border-radius: 5px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; }
+.gev-sheet__tag--feed { background: rgba(48, 209, 88, 0.2); color: #5ee27f; }
+.gev-sheet__tag--sim { background: rgba(255, 159, 10, 0.22); color: #ffbe55; }
+.gev-sheet__simrow td, .gev-sheet__simrow span:not(.gev-sheet__tag) { color: rgba(255, 220, 170, 0.86); }
+.gev-sheet__links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.gev-sheet__link { width: 100%; box-sizing: border-box; display: grid; grid-template-columns: 7.5em 1fr; grid-template-rows: auto auto; column-gap: 10px; text-align: left; padding: 7px 10px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, 0.07); background: rgba(255, 255, 255, 0.04); color: #fff; font: inherit; }
+button.gev-sheet__link { cursor: pointer; }
+button.gev-sheet__link:hover { background: rgba(100, 210, 255, 0.1); border-color: rgba(100, 210, 255, 0.35); }
+.gev-sheet__rel { grid-row: 1 / span 2; align-self: center; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); }
+.gev-sheet__lname { font-weight: 650; overflow-wrap: anywhere; }
+.gev-sheet__ltype { font-size: 11px; color: rgba(255, 255, 255, 0.55); }
+.gev-sheet__timeline { list-style: none; margin: 0; padding: 0 0 0 12px; border-left: 1px solid rgba(100, 210, 255, 0.3); display: flex; flex-direction: column; gap: 7px; }
+.gev-sheet__timeline li { position: relative; display: grid; grid-template-columns: 5.6em 1fr auto; gap: 8px; align-items: baseline; }
+.gev-sheet__timeline li::before { content: ''; position: absolute; left: -16px; top: 0.45em; width: 7px; height: 7px; border-radius: 50%; background: #64d2ff; }
+.gev-sheet__timeline li.gev-sheet__simrow::before { background: #ffbe55; }
+.gev-sheet__timeline time { font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: rgba(255, 255, 255, 0.6); }
+/* While sheets are open, the right-hand cards step aside for the drawer. */
+body.gev-sheets-open .gev-hud__card--tr,
+body.gev-sheets-open .gev-hud__card--br { visibility: hidden; }
+body.gev-sheets-open .gev-hud__leaders g:nth-of-type(2),
+body.gev-sheets-open .gev-hud__leaders g:nth-of-type(4) { display: none; }
+@media (max-width: 760px) {
+  /* Phones: the action dock wraps to several rows, so the drawer drops
+     from the top instead, leaves the dock clear and stops above the
+     centre of the screen, where the focused asset sits. */
+  .gev-sheet { top: calc(env(safe-area-inset-top, 0px) + 56px); left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); width: auto; bottom: auto; max-height: min(40vh, 340px); }
+}
 .gev-res > * { flex-shrink: 0; }

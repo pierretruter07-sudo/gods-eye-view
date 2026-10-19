@@ -123,7 +123,10 @@ export function buildCameraHud(o, ctx = {}) {
     demo: false,
     status: 'Public traffic camera · live still',
     cards,
-    actions: [],
+    actions: [
+      { id: 'health', label: 'Network health' },
+      { id: 'incidents', label: 'Nearby incidents' },
+    ],
     camera: { panel3d: !!ctx.panel3d, adjusting: !!ctx.adjusting },
   };
 }
