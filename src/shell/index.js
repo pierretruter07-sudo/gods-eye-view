@@ -29,6 +29,7 @@ export const SHELL_LAYERS = Object.freeze(
       name: 'Submarine cables',
       dot: '#30d158',
     },
+    { id: 'cctv', name: 'Street cameras', dot: '#e5e5ea' },
   ].map((layer) => Object.freeze(layer)),
 );
 

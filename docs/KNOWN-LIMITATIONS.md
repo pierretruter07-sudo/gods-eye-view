@@ -13,6 +13,7 @@ demonstration or an audit.
 | L4 | AIS coverage is terrestrial: dense near coasts, sparse mid-ocean. Military aircraft are only those broadcasting ADS-B. | The picture is incomplete by nature. | State this up front in the demo. |
 | L5 | The free keyless terrain host (terrain.reearth.land) returns HTTP 429 under bursts. | Some terrain tiles load late. Console shows 429 errors. | Requests are throttled to 6 in parallel. Configure a Cesium ion token for world terrain. |
 | L7 | Measured on the hosted demo (2026-10-14): airplanes.live answers HTTP 403 to the Replit server, adsb.lol rate-limits with HTTP 429, and anonymous OpenSky requests time out. | Aircraft at a new stop can take 5–17 s to appear. | Server caching and stale data cover most gaps. OpenSky credentials, or a licensed ADS-B feed, fix it properly. |
+| L8 | Street cameras are stills from public traffic networks, not live video. Most publish no camera facing, and the panel position in the city is an estimate until adjusted. Camera addresses can change without notice. | A camera can show a placeholder card or sit slightly off its real view. | The card names the network and refresh time; Adjust, Save and Reset correct a panel; a placeholder says why there is no frame. |
 | L6 | Cyclone advisories cover the Atlantic and the east/central Pacific (NOAA) only. | No western Pacific or Indian Ocean storms. | Add JTWC/BoM feeds. |
 
 ## Functional scope

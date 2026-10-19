@@ -35,6 +35,13 @@ Keep it intact.
 | Military installations | OpenStreetMap via Overpass | `/api/military-installations`, `/api/overpass` | ODbL 1.0. Public Overpass servers have fair-use limits. | ✅ |
 | Place search | Photon (Komoot), Nominatim | `/api/geocode` | ODbL data. Nominatim's usage policy limits it to light use. | ⚠️ |
 | Place context (optional) | Google Places | `/api/google/*` | Google Maps Platform terms. Metered. | ⚠️ |
+| Street cameras (NSW) | Live Traffic NSW (Transport for NSW) | `/api/cctv/*` | CC BY 4.0, attribution required | ✅ |
+| Street cameras (London) | TfL Open Data (JamCams) | `/api/cctv/*` | TfL Open Data terms, attribution required ("Powered by TfL Open Data") | ✅ |
+| Street cameras (Finland) | Fintraffic / Digitraffic weathercams | `/api/cctv/*` | CC BY 4.0, attribution required | ✅ |
+| Street cameras (British Columbia) | DriveBC | `/api/cctv/*` | Open Government Licence – British Columbia | ✅ |
+| Street cameras (Calgary) | Open Calgary | `/api/cctv/*` | Open Government Licence – City of Calgary | ✅ |
+| Street cameras (Ontario) | Ontario 511 | `/api/cctv/*` | Open Government Licence – Ontario | ✅ |
+| Street cameras, off by default | City of Austin, Caltrans, TxDOT, City of Tallinn, Transpordiamet (Tarktee), Stadt Warendorf | `/api/cctv/*` | Public data published without a stated reuse licence ("courtesy"). Off unless `CCTV_<NAME>_ENABLED=1`. | ⚠️ |
 
 ## Imagery, terrain and 3D
 
@@ -79,3 +86,23 @@ Values the app marks **SIMULATED** are produced locally and deterministically
 (`src/intel/enrichment.js`, `src/intel/actions.js`, `src/tour/simulate.js`,
 `src/exercise/`). They come from no data source. They must never be presented
 as real.
+
+## Street cameras: what the app does with them
+
+- **Sources.** Only cameras the server registered from the networks above are
+  shown; the browser cannot hand the relay an address. Open-licence networks
+  are on by default; courtesy-only networks are off. Live video (DelDOT), the
+  licence-plate-reader (ALPR) map and the inherited sample-video "pilot" pack
+  are not used.
+- **Frames.** Stills are fetched at request time, relayed as served and never
+  written to disk. Nothing in the app blurs, enhances, recognises or classifies
+  what is in a frame: no face, plate or object detection, and no recording.
+  Frames can show people, vehicles and number plates.
+- **When there is no frame.** The relay serves a placeholder card that says
+  "CCTV FEED PLACEHOLDER" and why. A Google Street View still is used only if
+  `CCTV_STREETVIEW_FALLBACK=1` and a server Google key are set.
+- **Placement.** Cameras are grounded at runtime. No precomputed heights from
+  Google Photorealistic 3D Tiles are stored, because Google's Map Tiles terms
+  forbid storing tile content.
+- **Limits.** `/api/cctv` is rate-limited per client (600 a minute by
+  default, `CCTV_RATE_LIMIT_PER_MIN`).

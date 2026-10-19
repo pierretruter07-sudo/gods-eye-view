@@ -6,6 +6,16 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Street cameras.** A new layer restores the public traffic cameras from
+  the original God's Eye View: up to about 2,300 cameras (per-network caps) from Live Traffic NSW,
+  TfL London, Fintraffic, DriveBC, Open Calgary and Ontario 511. Clicking one
+  opens an intel card with its live still (refreshed every 10 s), location,
+  network and licence, and shows the still as a panel in the 3D city that can
+  be adjusted, saved and reset. Director place cards show the nearest
+  camera's still. Courtesy-only networks are off by default; live video,
+  the licence-plate-reader map, sample-video "pilot" cameras and invented
+  fallback cameras are not used. The relay is rate-limited and stores no
+  frames.
 - **ISO/IEC 42001 audit ring.** AUDIT now checks God's Eye View against a
   third standard, the AI management system (clauses 4–10 and Annex A, 65
   items), on an outer ring. Baseline: 24%, not met, 8 must-fix. The

@@ -47,11 +47,14 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-LAY-002 | `src/shell/index.js`, `src/tour/config.js` `TOUR_LAYERS` | D: smoke test reports layer ids |
 | GEV-LAY-003 | `src/data/dataCredits.js` | T: `src/data/dataCredits.test.mjs` "every shipped live source and bundled asset has an attribution entry" |
 | GEV-LAY-004 | `src/layers/firms/`, `src/layers/vessels/` | I |
+| GEV-LAY-005 | `server/providers/cctv/catalog.js` `enabledLivePacks`, `src/layers/cctv/lifecycle.js` | T: `src/intel/camera.test.mjs` "open-licence camera networks are on by default; courtesy-only ones are off" |
+| GEV-LAY-006 | `src/layers/cctv/projection.js`, `src/layers/cctv/calibration.js`, `src/intel/index.js` camera actions | D: select a camera on the deployed app; show, adjust, save and reset its panel |
 | GEV-SRV-001 | `server/providers/local.js` | T: `src/tooling/previewServing.test.mjs` "every data provider serves both the dev and the built-preview server" |
 | GEV-SRV-002 | `server/standalone/api-not-found.js` | T: `src/tooling/previewServing.test.mjs` "real dev and built-preview servers serve provider JSON and terminate unknown APIs" |
 | GEV-SRV-003 | `server/providers/terrain.js`, `server/providers/aircraft/enrichment.js`, `server/providers/space/celestrak.js` | T: as GEV-SRV-002 (400 cases) |
 | GEV-SRV-004 | `server/providers/aircraft/opensky.js` `fetchRegionalPayload` | T: `src/tooling/regionalFallback.test.mjs` (3 tests) |
 | GEV-SRV-005 | `build/vite.js` | T: `src/tooling/viteBuild.test.mjs` "explicit build inputs preserve browser-only defines, plugin order and loopback protections" |
+| GEV-SRV-006 | `server/providers/cctv.js`, `server/providers/cctv/media.js` | T: `src/data/cctvProxy.test.mjs` "CCTV upstream frame fetch supplies a bounded abort signal" "CCTV upstream frame fetch rejects a declared oversize body without draining it" |
 | GEV-SEC-001 | `build/vite.js` `define` | T: `viteBuild.test.mjs` (same), "build helper does not discover environment values…" |
 | GEV-SEC-002 | `build/vite.js` `server.fs.deny` | T: `viteBuild.test.mjs` (same) |
 | GEV-SEC-003 | `build/vite.js` `server.headers` | T: `viteBuild.test.mjs` (same) |
@@ -84,6 +87,8 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-INT-013 | `src/intel/assetTypes.js`, `src/intel/referenceImages.js`, `src/intel/markup.js` | T: `src/intel/assetTypes.test.mjs` "aircraft resolve by ICAO designator…", "vessels resolve by AIS family or naval hull prefix…", "the photo sits on a feed card, labelled as a type reference with credit" |
 | GEV-INT-014 | `src/intel/silhouettes.js`, `src/intel/assetTypes.js` | T: `assetTypes.test.mjs` "every catalogue entry has a drawable silhouette", unlisted-type assertions |
 | GEV-INT-015 | `src/intel/place.js`, `src/intel/index.js` `showFocus`, `server/providers/metar.js` | T: `src/intel/place.test.mjs` "an airport stop shows live traffic, weather, incidents and surroundings" "missing feeds say so instead of inventing figures"; `src/data/metarProxy.test.mjs` "stations are validated, cached for ten minutes and served stale on failure" |
+| GEV-INT-016 | `src/intel/camera.js`, `src/intel/index.js` | T: `src/intel/camera.test.mjs` "a street camera opens as an all-feed card set with its live still" "a camera facing is shown only when the source published it with confidence" |
+| GEV-INT-017 | `src/intel/place.js`, `src/intel/index.js` `nearestCamera` | T: `src/intel/camera.test.mjs` "a Director place card shows the nearest camera still when one is within reach" |
 | GEV-EXE-001 | `src/exercise/mode.js` | I |
 | GEV-EXE-002 | `src/exercise/package.js` | T: `src/exercise/package.test.mjs` "platforms stay generic classes, never real types" |
 | GEV-EXE-003 | `src/exercise/package.js` | T: `package.test.mjs` "authorisation is a checklist with a final command step left open" |

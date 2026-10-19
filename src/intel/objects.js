@@ -13,6 +13,7 @@ export const INTEL_LAYERS = Object.freeze({
   'ais-live-vessels': 'vessel',
   satellites: 'satellite',
   earthquakes: 'earthquake',
+  cctv: 'camera',
 });
 
 /** Turn one analyst record into an intel object, or null if unplaceable. */
@@ -140,6 +141,7 @@ export const NEARBY_KM = Object.freeze({
   vessel: 100,
   satellite: 1500,
   earthquake: 300,
+  camera: 50,
 });
 
 /** Real contacts near `o`, nearest first. Geometry only — no inference. */

@@ -98,6 +98,13 @@ function refFigure(ref, image) {
     <figcaption><b>${esc(ref.name)}</b><span>${label} · ${esc(ref.basis)}</span>${credit ? `<span class="gev-hud__ref-credit">Photo: ${esc(credit)} · Wikimedia</span>` : ''}</figcaption></figure>`;
 }
 
+/** A camera's live still, relayed from its registered address (FEED). */
+function frameFigure(frame) {
+  return `<figure class="gev-hud__frame">
+    <img src="${esc(frame.url)}" alt="${esc(frame.alt)}" decoding="async">
+    <figcaption><span class="gev-hud__live">LIVE STILL</span></figcaption></figure>`;
+}
+
 export function hudCard(c, index, { image = null } = {}) {
   const list = c.rows
     .map(
@@ -106,6 +113,7 @@ export function hudCard(c, index, { image = null } = {}) {
     )
     .join('');
   return `<header class="gev-hud__head"><span>${String(index + 1).padStart(2, '0')} · ${esc(c.title)}</span>${SRC_CHIP[c.source] || ''}</header>
+    ${c.frame ? frameFigure(c.frame) : ''}
     ${c.ref ? refFigure(c.ref, image) : ''}
     ${c.route ? routeSvg(c.route) : ''}
     ${c.gauge ? gaugeSvg(c.gauge) : ''}
@@ -120,6 +128,29 @@ export function hudActions(h, state, { touring = false } = {}) {
       btn(`sim:${esc(a.id)}`, '', esc(a.label), false, 'gev-act--sim'),
     )
     .join('');
+  if (h.kind === 'camera') {
+    const cam = h.camera || {};
+    return [
+      btn(
+        'cam:panel',
+        ICON.follow,
+        cam.panel3d ? 'Panel in city: on' : 'Show panel in city',
+        !!cam.panel3d,
+      ),
+      cam.panel3d
+        ? btn(
+            'cam:adjust',
+            ICON.aoi,
+            cam.adjusting ? 'Adjusting' : 'Adjust panel',
+            !!cam.adjusting,
+          )
+        : '',
+      cam.adjusting ? btn('cam:save', '', 'Save position') : '',
+      cam.adjusting ? btn('cam:reset', '', 'Reset') : '',
+      btn('cam:next', ICON.fly, 'Next camera nearby'),
+      `<button type="button" class="gev-act gev-act--close" data-act="close" aria-label="Close">${ICON.close}</button>`,
+    ].join('');
+  }
   if (touring)
     return (
       sim +

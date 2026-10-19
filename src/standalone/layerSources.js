@@ -7,6 +7,7 @@ import { createInstallationSource } from '../layers/installations/source.js';
 import { createSatelliteSource } from '../layers/satellites/source.js';
 import { createCycloneSource } from '../layers/cyclones/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
+import { createCctvSource } from '../layers/cctv/source.js';
 import { createReferenceSources } from '../sources/reference.js';
 export { createReferenceSources as createStandaloneReferenceSources } from '../sources/reference.js';
 
@@ -23,5 +24,6 @@ export function createStandaloneLayerSources() {
     satellites: createSatelliteSource(),
     firms: createFirmsSource(),
     cyclones: createCycloneSource(),
+    cctv: createCctvSource(),
   };
 }
