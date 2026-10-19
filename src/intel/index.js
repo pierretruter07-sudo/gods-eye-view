@@ -81,6 +81,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     true,
   );
   const header = el('div', 'gev-hud__header');
+  // The title block is re-rendered; the Director's sensor tag sits beside
+  // it and is set by tour/sensorLook.js (textContent only).
+  const headerBody = el('div', 'gev-hud__titleblock');
+  const sensorTag = el('p', 'gev-hud__sensor');
+  sensorTag.hidden = true;
+  header.append(headerBody, sensorTag);
   // Four card slots around the asset: top-left, top-right, bottom-left, bottom-right.
   const SLOTS = ['tl', 'tr', 'bl', 'br'];
   const cards = SLOTS.slice(0, MAX_CARDS).map((slot) =>
@@ -431,7 +437,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       const all = nearbyObjects(collect(), selected, { limit: Infinity });
       hud = buildHud(selected, all.items);
     }
-    setHtml(header, hudHeader(hud, headline));
+    setHtml(headerBody, hudHeader(hud, headline));
     let changed = false;
     cards.forEach((node, i) => {
       const c = hud.cards[i];

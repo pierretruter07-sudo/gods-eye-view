@@ -262,7 +262,11 @@ export function createPlanner({
           lat: sat.lat,
           lon: sat.lon,
           heightM: sat.altitudeM,
-          ...(geo ? STOP_CAMERA.geoSatellite : STOP_CAMERA.satellite),
+          ...(geo
+            ? STOP_CAMERA.geoSatellite
+            : sat.altitudeM > 8_000_000
+              ? STOP_CAMERA.meoSatellite
+              : STOP_CAMERA.satellite),
         },
         line: satelliteLine(sat),
         dwellS: dwell('satellite'),

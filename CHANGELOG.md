@@ -6,6 +6,18 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Thermal and night-vision looks.** At military stops the Director
+  switches to a white-hot thermal look, and on the night side to night
+  vision, tagged "SENSOR · FLIR" or "SENSOR · NVG". Space, wide views and
+  street cameras stay in the normal look.
+- **Orbit rings and coverage footprints.** At space stops the satellite's
+  orbit ring glows, the geostationary belt is drawn for GEO stops, and the
+  satellite's coverage footprint is drawn on the Earth below (solid edge:
+  horizon; dashed: 10° above it).
+- **Day/night, trails and quake rings.** A live day/night line with NASA
+  city lights at planet scale, glowing trails behind aircraft and ships
+  from positions seen this session, and expanding rings at earthquakes.
+  Switches: `?daynight=0`, `?trails=0`, `?quakerings=0`.
 - **Live street video.** Iowa DOT's traffic cameras (CC BY 4.0) are added,
   and about 700 of them stream live video, which now plays live in the
   camera card and the Expand view (labelled LIVE VIDEO), relayed through

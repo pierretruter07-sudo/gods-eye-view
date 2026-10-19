@@ -204,6 +204,14 @@ export const DATA_CREDITS = [
       'part of NASA’s Earth Observing System Data and Information System (EOSDIS)',
   },
   {
+    key: 'nasa-gibs-black-marble',
+    html:
+      'Night lights: NASA Black Marble (VIIRS, public domain) · we acknowledge ' +
+      'the use of imagery provided by services from NASA’s Global Imagery ' +
+      'Browse Services (<a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">GIBS</a>), ' +
+      'part of NASA’s Earth Science Data and Information System (ESDIS)',
+  },
+  {
     key: 'telegeography',
     html:
       'Submarine cables: © TeleGeography — ' +
