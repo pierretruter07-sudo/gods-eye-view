@@ -15,8 +15,12 @@ export const QUAKE_RINGS = Object.freeze({
   growS: 4,
   /** Seconds between ring starts. */
   staggerS: 1.3,
-  /** Pulses (each one is `rings` rings) before settling. */
-  pulses: 3,
+  /** Pulses (each one is `rings` rings) before settling: enough to keep
+   * pulsing through a whole Director stop (Replit, 20 Oct: a settled ring
+   * was too faint to see on photorealistic tiles). */
+  pulses: 8,
+  /** Opacity of the ring left once the pulses end. */
+  settledAlpha: 0.75,
   /** Rings sit this far up so terrain and 3D tiles do not hide them. */
   heightM: 1500,
   segments: 96,
@@ -36,7 +40,7 @@ export function ringRadiusKm(magnitude) {
 export function ringFrame(t, rules = QUAKE_RINGS) {
   const cycle = rules.growS + rules.staggerS * (rules.rings - 1);
   if (t >= cycle * rules.pulses)
-    return { settled: true, rings: [{ scale: 1, alpha: 0.35 }] };
+    return { settled: true, rings: [{ scale: 1, alpha: rules.settledAlpha }] };
   const local = t % cycle;
   const rings = [];
   for (let i = 0; i < rules.rings; i += 1) {
@@ -122,12 +126,20 @@ export function createQuakeRings({
       ds.entities.add({
         polyline: {
           positions,
-          width: i === 0 ? 10 : 7,
+          width: i === 0 ? 14 : 10,
           arcType: Cesium.ArcType.NONE,
           material: new Cesium.PolylineGlowMaterialProperty({
-            glowPower: 0.3,
+            glowPower: 0.25,
             color: new Cesium.CallbackProperty(
               () => color(frame().rings[i]?.alpha ?? 0),
+              false,
+            ),
+          }),
+          // Still visible where terrain or 3D tiles rise above the ring.
+          depthFailMaterial: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.25,
+            color: new Cesium.CallbackProperty(
+              () => color((frame().rings[i]?.alpha ?? 0) * 0.6),
               false,
             ),
           }),
