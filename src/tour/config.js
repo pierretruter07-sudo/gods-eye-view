@@ -125,6 +125,8 @@ export const DESCENT_RULES = Object.freeze({
   helicopterMaxM: 914, // 3,000 ft
   /** ...or, when none is airborne, a light aircraft at or below this. */
   lightMaxM: 1_524, // 5,000 ft
+  /** Ship step: vessels at least this fast count as under way (knots). */
+  shipMinKts: 1,
   /** Taxiing aircraft (ground-vehicle fallback): ground speed band, m/s. */
   taxiMinMps: 2.5, // ~5 kt
   taxiMaxMps: 15, // ~30 kt
@@ -145,6 +147,7 @@ export const DESCENT_CAMERA = Object.freeze({
   geo: Object.freeze({ rangeM: 95_000_000, pitchDeg: -90 }),
   cruise: Object.freeze({ rangeM: 25_000, pitchDeg: -30 }),
   low: Object.freeze({ rangeM: 3_000, pitchDeg: -25 }),
+  ship: Object.freeze({ rangeM: 2_500, pitchDeg: -30 }),
   ground: Object.freeze({ rangeM: 900, pitchDeg: -35 }),
   street: Object.freeze({ rangeM: 380, pitchDeg: -18, orbitDegPerS: 6 }),
 });
@@ -154,6 +157,7 @@ export const DESCENT_DWELL_S = Object.freeze({
   satellite: 10,
   cruise: 10,
   low: 10,
+  ship: 10,
   ground: 10,
   street: 20,
   nearby: 12,

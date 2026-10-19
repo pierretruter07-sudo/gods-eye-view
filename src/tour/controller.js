@@ -299,8 +299,17 @@ export function createTourController({
     };
   }
 
-  /** Wait out a stop, cutting it short if a brand-new incident appears. */
-  async function dwell(seconds, profile, signal) {
+  /**
+   * Wait out a stop, cutting it short if a brand-new incident appears.
+   * Opening-descent stops are never cut short: the descent has priority and
+   * incidents are shown as soon as it ends.
+   */
+  async function dwell(
+    seconds,
+    profile,
+    signal,
+    { interruptible = true } = {},
+  ) {
     const until = Date.now() + seconds * 1000;
     while (Date.now() < until) {
       const step = Math.min(
@@ -309,7 +318,7 @@ export function createTourController({
       );
       await sleep(step, signal);
       if (profile) airport?.update(profile, airportFlights());
-      if (planner.hasFresh(incidentData())) return;
+      if (interruptible && planner.hasFresh(incidentData())) return;
     }
   }
 
@@ -418,11 +427,10 @@ export function createTourController({
     };
   }
 
-  /** The next descent stop, or null (finished, or an incident came in). */
+  /** The next descent stop, or null once the descent is over. */
   async function nextDescentStop(signal) {
     let waitedMs = 0;
     for (;;) {
-      if (planner.hasFresh(incidentData())) return null;
       if (['cruise', 'low', 'ground'].includes(descent.peekStep()))
         await stageRegion(descent.region, signal);
       const stop = descent.next(descentData());
@@ -437,7 +445,10 @@ export function createTourController({
     }
   }
 
-  /** Descent first (a new incident still jumps in), then the rotation. */
+  /**
+   * The opening descent runs start to finish first, ahead of incidents;
+   * anything that came in meanwhile is shown straight after it.
+   */
   async function takeNext(signal) {
     if (descent && !descent.isDone()) {
       const stop = await nextDescentStop(signal);
@@ -492,6 +503,7 @@ export function createTourController({
         Math.max(budget - spokenS, isGlobe ? 0.5 : 1),
         profile,
         signal,
+        { interruptible: !next.descent },
       );
     }
   }

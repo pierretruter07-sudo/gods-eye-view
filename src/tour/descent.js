@@ -3,8 +3,8 @@
  *
  * On the first Director run after the dashboard opens, the camera steps down
  * from the geostationary belt to street level: GEO belt → ISS → an airliner
- * near 40,000 ft → a low-level helicopter → a ground vehicle → a street
- * camera → nearby cameras. Steps from the airliner down stay over one region,
+ * near 40,000 ft → a low-level helicopter → a ship → a ground vehicle → a
+ * street camera → nearby cameras. Incidents wait until it ends. Steps from the airliner down stay over one region,
  * chosen where it is daytime. Every subject is a live record; a step with
  * nothing live is skipped, never faked. Pure: no Cesium, no DOM.
  * @module tour/descent
@@ -24,6 +24,7 @@ import {
   lowLevelLine,
   satelliteLine,
   streetLine,
+  vesselLine,
 } from './lines.js';
 
 /** Returned by next() while a step's data source has not loaded yet. */
@@ -34,6 +35,7 @@ export const DESCENT_STEPS = Object.freeze([
   'iss',
   'cruise',
   'low',
+  'ship',
   'ground',
   'street',
   ...Array.from({ length: DESCENT_RULES.nearbyCameras }, () => 'nearby'),
@@ -237,6 +239,32 @@ export function createDescentPlanner({
         lowLevelLine(a, { helicopter }),
         DESCENT_CAMERA.low,
         a.altitudeM,
+      );
+    },
+
+    ship(data) {
+      const vessels = (data.vessels || []).filter(placed);
+      if (!vessels.length) return DESCENT_WAIT;
+      const underWay = vessels.filter(
+        (v) => finite(v.speedKts) && v.speedKts >= rules.shipMinKts,
+      );
+      const vessel = nearest(
+        underWay.length ? underWay : vessels,
+        region.lat,
+        region.lon,
+      );
+      if (!vessel) return null;
+      return stop(
+        'ship',
+        'vessel',
+        { vessel },
+        {
+          lat: vessel.lat,
+          lon: vessel.lon,
+          heightM: 0,
+          ...DESCENT_CAMERA.ship,
+        },
+        vesselLine(vessel),
       );
     },
 
