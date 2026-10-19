@@ -86,12 +86,22 @@ function titleCase(text) {
     .replace(/\b[a-z]/g, (c) => c.toUpperCase());
 }
 
+/**
+ * AIS destinations are free text typed by the crew; skip placeholders such
+ * as "0", "-" or "N/A" rather than reading them out.
+ */
+export function plausibleDestination(text) {
+  const t = String(text ?? '').trim();
+  if ((t.match(/[a-z]/gi) || []).length < 3) return false;
+  return !/^(n\/?a|none|null|unknown|tba|tbd)$/i.test(t);
+}
+
 export function vesselLine(vessel) {
   const kind = vessel.shipType ? titleCase(vessel.shipType) : 'Vessel';
   const parts = [`${kind}${vessel.name ? ` ${titleCase(vessel.name)}` : ''}`];
   if (vessel.speedKts != null)
     parts.push(`making ${Math.round(vessel.speedKts)} knots`);
-  if (vessel.destination)
+  if (plausibleDestination(vessel.destination))
     parts.push(`bound for ${titleCase(vessel.destination)}`);
   return `${parts.join(', ')}.`;
 }

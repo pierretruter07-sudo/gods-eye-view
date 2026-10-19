@@ -157,7 +157,19 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
 
     military(data, now) {
       const repeatMs = TOUR_TIMING.militaryRepeatMin * 60_000;
-      const airborne = (data.military || []).filter(
+      // The military feed first; military airframes in the general flights
+      // feed fill in when that feed is rate-limited or empty.
+      const seen = new Set();
+      const pool = [
+        ...(data.military || []),
+        ...(data.flights || []).filter((f) => f?.military === true),
+      ].filter((m) => {
+        if (!m?.icao24) return true;
+        if (seen.has(m.icao24)) return false;
+        seen.add(m.icao24);
+        return true;
+      });
+      const airborne = pool.filter(
         (m) =>
           Number.isFinite(m?.lat) &&
           Number.isFinite(m?.lon) &&

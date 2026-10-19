@@ -129,3 +129,19 @@ test('military airfields are stops with live traffic counts', () => {
   assert.equal(stop.base.id, 'yamb');
   assert.equal(stop.line, 'Military airfield: RAAF Base Amberley, Queensland. 1 aircraft airborne within 50 kilometres.');
 });
+
+test('military stops fall back to military airframes in the flights feed', () => {
+  const planner = createPlanner({ rotation: ['military'] });
+  const civil = { icao24: 'c1', callsign: 'QFA1', lat: 1, lon: 1, altitudeM: 10000, onGround: false };
+  const mil = { icao24: 'ae9', callsign: 'RCH9', military: true, typeCode: 'C17', lat: 2, lon: 2, altitudeM: 9000, onGround: false };
+  const stop = planner.next({ flights: [civil, mil], quakes: [], vessels: [], satellites: [], military: [] }, t0);
+  assert.equal(stop.kind, 'military');
+  assert.equal(stop.aircraft.icao24, 'ae9');
+  assert.match(stop.line, /^A C-17 Globemaster III, callsign RCH9/);
+});
+
+test('placeholder AIS destinations are not read out', () => {
+  const planner = createPlanner({ rotation: ['vessel'] });
+  const v = { mmsi: '9', name: 'BROLTUS', shipType: 'Cargo', lat: 1, lon: 1, speedKts: 12, destination: '0' };
+  assert.equal(planner.next({ flights: [], quakes: [], vessels: [v], satellites: [] }, t0).line, 'Cargo Broltus, making 12 knots.');
+});

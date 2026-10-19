@@ -63,10 +63,10 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-DIR-001 | `src/tour/events.js` | T: `src/tour/events.test.mjs` "emergency aircraft rank 7500, 7700, 7600 and ignore ordinary codes", "squawk codes are four octal digits or null" |
 | GEV-DIR-002 | `src/tour/events.js` | T: `events.test.mjs` "aircraft come before quakes; quakes rank by size then recency", "small, old and positionless quakes are ignored" |
 | GEV-DIR-003 | `src/tour/planner.js` | T: `src/tour/planner.test.mjs` "a new incident always comes first…", "an emergency squawk interrupts and jumps the queue" |
-| GEV-DIR-004 | `src/tour/planner.js`, `src/tour/config.js` `TOUR_ROTATION`, `MILITARY_TYPES`, `TOUR_BASES` | T: `planner.test.mjs` "slots with nothing to show are skipped; ships must be moving", "military aircraft get their own stop, from feed values", "military stops favour named types like a Black Hawk, and do not repeat", "military airfields are stops with live traffic counts" |
+| GEV-DIR-004 | `src/tour/planner.js`, `src/tour/config.js` `TOUR_ROTATION`, `MILITARY_TYPES`, `TOUR_BASES` | T: `planner.test.mjs` "slots with nothing to show are skipped; ships must be moving", "military aircraft get their own stop, from feed values", "military stops favour named types like a Black Hawk, and do not repeat", "military airfields are stops with live traffic counts", `planner.test.mjs` "military stops fall back to military airframes in the flights feed" |
 | GEV-DIR-005 | `src/tour/planner.js` | T: `planner.test.mjs` "naval / state vessels are preferred, even when slow" |
 | GEV-DIR-006 | `src/tour/planner.js` `alertAllowed` | T: `planner.test.mjs` "at most one alert every ten minutes; later alerts wait their turn", "recent incidents are revisited after the cooldown, introduced as recent"; `events.test.mjs` "events already shown are not repeated" |
-| GEV-DIR-007 | `src/tour/lines.js` | T: `events.test.mjs` "spoken lines use only feed values and flag simulated events"; `planner.test.mjs` "vessel lines use feed values only" |
+| GEV-DIR-007 | `src/tour/lines.js` | T: `events.test.mjs` "spoken lines use only feed values and flag simulated events"; `planner.test.mjs` "vessel lines use feed values only", `planner.test.mjs` "placeholder AIS destinations are not read out" |
 | GEV-DIR-008 | `src/shell/welcome.js` | D |
 | GEV-DIR-009 | `src/tour/controller.js` | D |
 | GEV-DIR-010 | `src/shell/index.js` `onFocus`, `src/intel/index.js` `showFocus` | D |
