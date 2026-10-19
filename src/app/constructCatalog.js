@@ -10,6 +10,7 @@ import { createApplicationSatellites } from './layers/satellites.js';
 import { createApplicationFirms } from './layers/firms.js';
 import { createApplicationEarthquakes } from './layers/earthquakes.js';
 import { createApplicationCables } from './layers/submarineCables.js';
+import { createApplicationCctv } from './layers/cctv.js';
 
 /**
  * The layers God's Eye View ships. Everything the dashboard shows comes from
@@ -25,6 +26,7 @@ export const APPLICATION_LAYER_IDS = Object.freeze([
   'weather-cyclones',
   'military-installations',
   'telegeography-submarine-cables',
+  'cctv',
 ]);
 
 const SOURCE_METHODS = Object.freeze({
@@ -37,6 +39,7 @@ const SOURCE_METHODS = Object.freeze({
   cyclones: ['getSnapshot'],
   earthquakes: ['getSnapshot'],
   cables: ['fetch'],
+  cctv: ['getCatalog', 'getHealth', 'getFrameUrl', 'getMediaUrl'],
 });
 
 /** Serialization metadata for exactly the layers this catalog constructs. */
@@ -119,6 +122,7 @@ export function createApplicationCatalog({
           source: 'NASA FIRMS · LIVE',
           feed: sources.firms,
         }),
+        createApplicationCctv({ surface, source: sources.cctv }),
       ],
       metadata,
     );

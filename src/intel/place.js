@@ -296,7 +296,15 @@ export function buildPlaceHud(place, ctx = {}) {
   } catch {
     localTime = null;
   }
+  // Nearest public street camera (Street cameras layer on), with its live still.
+  const cam = ctx.camera?.record ? ctx.camera : null;
   const around = card('around', 'Around the location', [
+    cam
+      ? row(
+          'Street camera',
+          `${cam.record.name} · ${cam.km < 1 ? '<1' : Math.round(cam.km)} km`,
+        )
+      : null,
     row(
       'Ships within 50 km',
       on.vessels === false
@@ -320,6 +328,12 @@ export function buildPlaceHud(place, ctx = {}) {
         : null,
     ),
   ]);
+
+  if (cam?.frameUrl)
+    around.frame = {
+      url: cam.frameUrl,
+      alt: `Live still from ${cam.record.name}`,
+    };
 
   const metar = ctx.metar && ctx.metar !== 'loading' ? ctx.metar : null;
   const status = [

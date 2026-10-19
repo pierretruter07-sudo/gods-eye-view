@@ -7,6 +7,7 @@ import {
   nearestHit,
   nearbyObjects,
   insideArea,
+  distanceKm,
 } from './objects.js';
 import {
   KIND_LABEL,
@@ -24,6 +25,8 @@ import {
 import { runAction } from './actions.js';
 import { buildHud, MAX_CARDS } from './hud.js';
 import { buildPlaceHud } from './place.js';
+import { buildCameraHud, CAMERA_FRAME_REFRESH_MS } from './camera.js';
+import { registerCctvFocusRequestListener } from '../cctvFocusRequest.js';
 import { resolveAssetType } from './assetTypes.js';
 import { createReferenceImages } from './referenceImages.js';
 import { reticleSprite } from '../tour/pulseGraphics.js';
@@ -246,6 +249,20 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       });
     return 'loading';
   }
+  /** Nearest street camera within 10 km of a place, with its current still. */
+  function nearestCamera(place) {
+    const cams = layerOn('cctv') ? layerModule('cctv') : null;
+    let best = null;
+    for (const record of cams?.getAnalystRecords?.() || []) {
+      const km = distanceKm(
+        { lat: place.lat, lon: place.lon, heightM: 0 },
+        { lat: record.lat, lon: record.lon, heightM: 0 },
+      );
+      if (km <= 10 && (!best || km < best.km)) best = { record, km };
+    }
+    return best ? { ...best, frameUrl: cams.frameUrl?.(best.record.id) } : null;
+  }
+
   function placeContext(o) {
     const objects = collect();
     const of = (layerId) => objects.filter((x) => x.layerId === layerId);
@@ -275,6 +292,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       fires: plain('local-firms'),
       storms: plain('weather-cyclones'),
       metar: metarFor(o.place.icao),
+      camera: nearestCamera(o.place),
       layersOn: {
         flights: layerOn('flights'),
         military: layerOn('military'),
@@ -291,7 +309,18 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     if (!selected) return;
     if (selected.kind === 'place')
       hud = buildPlaceHud(selected.place, placeContext(selected));
-    else {
+    else if (selected.kind === 'camera') {
+      const cams = layerModule('cctv');
+      const all = nearbyObjects(collect(), selected, { limit: Infinity });
+      hud = buildCameraHud(selected, {
+        frameUrl: cams?.frameUrl?.(selected.id) || null,
+        refreshedAt: Date.now(),
+        nearby: all.items,
+        radiusKm: all.radiusKm,
+        panel3d: cams?.getActiveCameraId?.() === selected.id,
+        adjusting: !!cams?.getParams?.().calibrationMode,
+      });
+    } else {
       const all = nearbyObjects(collect(), selected, { limit: Infinity });
       hud = buildHud(selected, all.items);
     }
@@ -453,6 +482,26 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       // Live counts, incidents and weather age refresh while the stop lasts.
       followTimer = setInterval(() => selected && render(), 5000);
     }
+    if (o.kind === 'camera') {
+      // Show the camera's panel in the city and refresh its still. The
+      // adjust tool belongs to one camera, so it ends when another opens.
+      const cams = layerModule('cctv');
+      if (cams?.getParams?.().calibrationMode)
+        cams.setParams?.({ calibrationMode: false });
+      cams?.selectCamera?.(o.id);
+      render();
+      followTimer = setInterval(
+        () => selected && render(),
+        CAMERA_FRAME_REFRESH_MS,
+      );
+      if (!quiet) {
+        marker.show = false;
+        layerModule('cctv')?.focusCamera?.(o.id, 1.8);
+        state.following = false;
+        renderActions();
+      }
+      return;
+    }
     if (o.kind === 'satellite') {
       // Satellites move ~7 km/s: re-fix every second from the layer itself.
       followTimer = setInterval(() => {
@@ -549,6 +598,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   });
 
   function close() {
+    if (selected?.kind === 'camera') {
+      const cams = layerModule('cctv');
+      if (cams?.getParams?.().calibrationMode)
+        cams.setParams?.({ calibrationMode: false });
+      cams?.deactivateActiveCamera?.();
+    }
     hideResult();
     stopFollow();
     stopOrbit();
@@ -850,6 +905,35 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       if (a) runResult(a, o);
       return;
     }
+    if (act.startsWith('cam:') && o.kind === 'camera') {
+      const cams = layerModule('cctv');
+      if (act === 'cam:panel') {
+        if (cams?.getActiveCameraId?.() === o.id) {
+          if (cams.getParams?.().calibrationMode)
+            cams.setParams?.({ calibrationMode: false });
+          cams.deactivateActiveCamera?.();
+        } else {
+          cams?.selectCamera?.(o.id);
+          cams?.focusCamera?.(o.id, 1.4);
+        }
+      }
+      if (act === 'cam:adjust')
+        cams?.setParams?.({
+          calibrationMode: !cams.getParams?.().calibrationMode,
+        });
+      if (act === 'cam:save')
+        cams?.setParams?.({ calibration: { cameraId: o.id, save: true } });
+      if (act === 'cam:reset')
+        cams?.setParams?.({ calibration: { cameraId: o.id, reset: true } });
+      if (act === 'cam:next') {
+        const next = nearbyObjects(collect(), o, { limit: 20 }).items.find(
+          (n) => n.object.kind === 'camera',
+        );
+        if (next) return open(next.object);
+      }
+      render();
+      return;
+    }
     if (act === 'fly') flyTo(o);
     if (act === 'follow') {
       if (NATIVE_FOLLOW.has(o.kind)) {
@@ -919,6 +1003,22 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     if (hit) open(hit.o);
     else if (selected) close();
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  // A camera clicked in the city (its own pick, which can win over the
+  // ground-level hit test above) opens the same camera card.
+  const disposeCameraClicks = registerCctvFocusRequestListener(
+    window,
+    (event) => {
+      const id = event?.detail?.cameraId;
+      if (!id || !isLive()) return;
+      if (selected?.kind === 'camera' && selected.id === id) return;
+      const record = layerModule('cctv')
+        ?.getAnalystRecords?.()
+        ?.find((r) => r.id === id);
+      const o = record && toIntelObject('cctv', record);
+      if (o) open(o);
+    },
+  );
 
   // ── Triage queue (+ watchlist and areas of interest) ─────────────────
   let triageTimer = null;
@@ -1072,6 +1172,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       close();
       setTriage(false);
       handler.destroy();
+      disposeCameraClicks();
       removeLeaderHook();
       window.removeEventListener('resize', onResize);
       cardObserver?.disconnect();

@@ -102,6 +102,87 @@ export const DATA_CREDITS = [
     key: 'weather-cyclones',
     html: 'Cyclone advisories: <a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener">NOAA/NWS NHC / CPHC</a> · Atlantic and eastern/central North Pacific. Forecast center uncertainty, not storm size.',
   },
+  // Street cameras: open-licence networks first; courtesy-only networks
+  // are off unless switched on (DATA_SOURCES.md).
+  {
+    key: 'nsw-cctv',
+    html:
+      'CCTV cameras &amp; frames (New South Wales): ' +
+      '<a href="https://www.livetraffic.com/" target="_blank" rel="noopener">Live Traffic NSW</a> — Transport for NSW ' +
+      '(<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)',
+  },
+  {
+    key: 'tfl-cctv',
+    html:
+      'CCTV cameras &amp; frames (London): ' +
+      '<a href="https://tfl.gov.uk/info-for/open-data-users/" target="_blank" rel="noopener">Powered by TfL Open Data</a>. ' +
+      'Contains OS data © Crown copyright and database rights.',
+  },
+  {
+    key: 'fintraffic-cctv',
+    html:
+      'CCTV cameras &amp; frames (Finland): Fintraffic / ' +
+      '<a href="https://www.digitraffic.fi/en/" target="_blank" rel="noopener">digitraffic.fi</a>, ' +
+      'license CC BY 4.0',
+  },
+  {
+    key: 'drivebc-cctv',
+    html:
+      'CCTV cameras &amp; frames (British Columbia): ' +
+      '<a href="https://www.drivebc.ca/" target="_blank" rel="noopener">DriveBC</a>. ' +
+      'Contains information licensed under the ' +
+      '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc" target="_blank" rel="noopener">Open Government Licence – British Columbia</a>. ' +
+      'Some cameras are supplied by partners (TransLink, the City of Vancouver, the City of Surrey, Parks Canada and others); each names its provider in the camera card.',
+  },
+  {
+    key: 'calgary-cctv',
+    html:
+      'Traffic cameras (Calgary): contains information licensed under the ' +
+      '<a href="https://data.calgary.ca/stories/s/Open-Calgary-Terms-of-Use/u45n-7awa" target="_blank" rel="noopener">Open Government Licence – City of Calgary</a>',
+  },
+  {
+    key: 'ontario-511-cctv',
+    html:
+      'CCTV cameras &amp; frames (Ontario): ' +
+      '<a href="https://511on.ca/" target="_blank" rel="noopener">Ontario 511</a> ' +
+      '(<a href="https://www.ontario.ca/page/open-government-licence-ontario" target="_blank" rel="noopener">Open Government Licence - Ontario</a>)',
+  },
+  {
+    key: 'austin-cctv',
+    html:
+      'CCTV cameras &amp; frames: City of Austin, TX — ' +
+      '<a href="https://data.austintexas.gov" target="_blank" rel="noopener">data.austintexas.gov</a>',
+  },
+  {
+    key: 'caltrans-cctv',
+    html:
+      'CCTV cameras &amp; frames (California): Caltrans — ' +
+      '<a href="https://cwwp2.dot.ca.gov/" target="_blank" rel="noopener">cwwp2.dot.ca.gov</a>',
+  },
+  {
+    key: 'txdot-cctv',
+    html:
+      'CCTV cameras &amp; frames (Texas): ' +
+      '<a href="https://its.txdot.gov/" target="_blank" rel="noopener">Texas Department of Transportation</a> (courtesy)',
+  },
+  {
+    key: 'tallinn-cctv',
+    html:
+      'CCTV cameras &amp; frames (Tallinn): City of Tallinn — ' +
+      '<a href="https://ristmikud.tallinn.ee/" target="_blank" rel="noopener">ristmikud.tallinn.ee</a> (courtesy)',
+  },
+  {
+    key: 'tarktee-cctv',
+    html:
+      'CCTV cameras &amp; frames (Estonia road weather): Transpordiamet / Tarktee — ' +
+      '<a href="https://tarktee.transpordiamet.ee/" target="_blank" rel="noopener">tarktee.transpordiamet.ee</a> (courtesy)',
+  },
+  {
+    key: 'warendorf-cctv',
+    html:
+      'Webcam (Warendorf): <a href="https://www.warendorf.de/" target="_blank" rel="noopener">Stadt Warendorf</a> (courtesy); ' +
+      'camera poses derived from OpenStreetMap geometry, © OpenStreetMap contributors (ODbL)',
+  },
   {
     key: 'metar',
     html: 'Airport weather: <a href="https://aviationweather.gov/" target="_blank" rel="noopener">NOAA Aviation Weather Center</a> METAR reports (U.S. public domain)',

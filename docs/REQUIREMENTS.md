@@ -32,10 +32,12 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 
 | ID | Requirement | V |
 |---|---|---|
-| GEV-LAY-001 | The layer catalog shall construct exactly these layers: flights, military, ais-live-vessels, satellites, earthquakes, local-firms, weather-cyclones, military-installations, telegeography-submarine-cables. | T |
+| GEV-LAY-001 | The layer catalog shall construct exactly these layers: flights, military, ais-live-vessels, satellites, earthquakes, local-firms, weather-cyclones, military-installations, telegeography-submarine-cables, cctv (street cameras). | T |
 | GEV-LAY-002 | At start the system shall enable flights, military, earthquakes, satellites and ais-live-vessels. | D |
 | GEV-LAY-003 | Each third-party data source in use shall be credited in the in-app data attribution panel. | T |
 | GEV-LAY-004 | A layer whose provider needs a missing key shall stay empty and report that a key is required. It shall not show fabricated data. | I |
+| GEV-LAY-005 | The street-camera layer shall show only cameras the server registered from configured public networks. Networks published under an open licence shall be on by default and courtesy-only networks off; no invented or sample cameras shall be shown. | T |
+| GEV-LAY-006 | Selecting a street camera shall show its live still as a panel in the 3D scene, which the operator can adjust, save and reset. | D |
 
 ## 3. Server proxies (SRV)
 
@@ -46,6 +48,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-SRV-003 | Malformed parameters to the terrain, aircraft-type and TLE proxies shall be rejected with HTTP 400. | T |
 | GEV-SRV-004 | Regional flight requests shall try adsb.lol, then airplanes.live, then adsb.fi. A source that fails shall be put on cooldown and skipped by the following requests. | T |
 | GEV-SRV-005 | The development server shall bind to `localhost` by default and accept only loopback and `.local` host headers unless explicitly bound to all interfaces. | T |
+| GEV-SRV-006 | The camera relay shall fetch frames only from server-registered camera addresses, with a timeout and a size cap on every fetch and a per-client rate limit, and shall never write a frame to disk. | T |
 
 ## 4. Security (SEC)
 
@@ -93,6 +96,8 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-013 | An asset whose type is identified from feed values (ICAO type designator, AIS ship family or naval hull prefix, satellite name) shall show a type reference image, labelled as a type reference (never this airframe or hull), with the photo's author and licence. | T |
 | GEV-INT-014 | When no free-licensed photo exists, the lookup fails, or the type is not in the catalogue, a class outline shall be shown instead. | T |
 | GEV-INT-015 | When the Director stops at an airport or city, the intel view shall show the place itself. It shall cover live traffic counts and phases, the current METAR, the latest incidents nearby (earthquakes, fire hotspots, cyclones, emergency squawks) and what else is around. Every value shall come from a feed or be computed from one; a missing feed or layer shall be named as such. | T |
+| GEV-INT-016 | Opening a street camera shall show its live still, refreshed every 10 seconds, with its location, network, licence and what is around it. Every value shall come from the camera catalog or be computed from it; no simulated value shall be shown on a camera. | T |
+| GEV-INT-017 | When the street-camera layer is on, a Director place card shall show the nearest camera within 10 km with its live still. | T |
 
 ## 7. Exercise mode (EXE)
 

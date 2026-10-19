@@ -59,8 +59,19 @@ export function allocationTestArgs(file) {
   return ['--expose-gc', '--test', '--test-concurrency=1', file];
 }
 
+/** On GitHub Actions, also annotate each failing test on the check run. */
+export function reporterArgs(env = process.env) {
+  if (env.GITHUB_ACTIONS !== 'true') return [];
+  return [
+    '--test-reporter=spec',
+    '--test-reporter-destination=stdout',
+    '--test-reporter=./scripts/ci/annotate-failures.mjs',
+    '--test-reporter-destination=stdout',
+  ];
+}
+
 function runTests(args) {
-  const result = spawnSync(process.execPath, args, {
+  const result = spawnSync(process.execPath, [...reporterArgs(), ...args], {
     cwd: process.cwd(),
     stdio: 'inherit',
     env: process.env,

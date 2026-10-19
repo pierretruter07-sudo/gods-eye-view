@@ -12,6 +12,8 @@ import { trackBackfillProxies } from './aircraft/tracks.js';
 import { googlePlacesContextProxy } from './places.js';
 import { cycloneProxy } from './cyclones.js';
 import { metarProxy } from './metar.js';
+import { cctvProxy } from './cctv.js';
+import { defaultSourceRoot } from './common/source-root.js';
 
 /**
  * The server endpoints God's Eye View uses — one per live feed or search
@@ -34,6 +36,7 @@ function localProviderPlugins() {
     googlePlacesContextProxy(),
     cycloneProxy(),
     metarProxy(),
+    cctvProxy({ sourceRoot: defaultSourceRoot }),
   ];
 }
 
