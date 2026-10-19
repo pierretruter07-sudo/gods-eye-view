@@ -163,3 +163,11 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-AUD-011 | Every item shall say how it affects God’s Eye View (which feeds, services or people, and what would go wrong); every must-fix item in its own words. | T |
 | GEV-AUD-012 | Playing the timeline shall explain each stop in turn: what the wave fixes, which gaps it closes, how readiness moves, and what it makes possible next. | T |
 | GEV-AUD-013 | The AUDIT view shall show ISO/IEC 42001 as a third ring with its own readiness, verdict, must-fix list, impact statements and journey, rolled up with the same rules as the evidence ledger at every timeline stop. | T |
+
+## 11. World visuals (VIS)
+
+| ID | Requirement | V |
+|---|---|---|
+| GEV-VIS-001 | At planet and regional scale (camera above about 600 km, full above 2,000 km) the globe shall show the live day/night line from the real Sun position (wall clock), with a soft terminator and NASA Black Marble city lights on the night side. It shall never tint city or street-level views. The night-lights source shall be credited and listed with its licence. `?daynight=0` shall switch it off. | T |
+| GEV-VIS-002 | Aircraft and ships near the camera (and the Director's subject first) shall show a short trail through positions the feed reported this session, fading with age (3 min for aircraft, 10 min for ships), capped at 40 trails and hidden above 2,500 km camera height. Trails shall never extend beyond the newest reported fix. `?trails=0` shall switch them off. | T |
+| GEV-VIS-003 | When the Director shows an earthquake, rings shall expand from the epicentre three times, then settle into one ring and a marker until the Director moves on. The ring size is a display scale (30 km at M5, doubling per magnitude, 15–400 km), not a measured shaking area. `?quakerings=0` shall switch them off. | T |

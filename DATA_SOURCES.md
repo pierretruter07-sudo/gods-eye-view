@@ -53,6 +53,7 @@ Keep it intact.
 | Ion stacks (optional) | Cesium ion | Plan terms. The Community plan is non-commercial; commercial use needs a paid plan. | ⚠️ |
 | Keyless terrain | Mapterhorn via terrain.reearth.land; EGM2008 / EGM96 geoid | CC BY 4.0; NGA public | ✅ |
 | Analyst "archive imagery" action | Esri World Imagery tiles | As above | ⚠️ |
+| Night lights on the night side (planet view) | NASA Black Marble (VIIRS) via NASA GIBS WMS, `gibs.earthdata.nasa.gov` (one whole-world image, fetched by the browser) | NASA imagery is public domain. GIBS asks for an acknowledgement, given in the credits. | ✅ |
 
 ## Bundled datasets (in this repository)
 

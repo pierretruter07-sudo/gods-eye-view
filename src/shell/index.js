@@ -9,6 +9,7 @@ import { installAdaptiveQuality } from './quality.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
 import { installAudit } from '../audit/index.js';
 import { installLayout } from './layout.js';
+import { installWorldVisuals } from '../visuals/index.js';
 
 /** Layers offered in the Layers panel, in display order. */
 export const SHELL_LAYERS = Object.freeze(
@@ -319,6 +320,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   let intelRef = null; // set once the intel view exists (the tour can start first)
   let auditRef = null; // set once AUDIT is installed (idle spin starts first)
   const prefetch = installFlightPrefetch({ viewer, dataManager });
+  // Day/night with city lights, comet trails, quake shockwave rings.
+  const world = installWorldVisuals({ viewer, dataManager });
   // The Director stages each next stop's aircraft itself (one request per
   // stop, a whole dwell ahead), so there is no background warm loop: a loop
   // over every stop kept the free regional sources near their rate limits.
@@ -355,6 +358,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     },
     // The Director's current subject opens in the intel view, as if clicked.
     onFocus(focus) {
+      world.onFocus(focus);
       if (intelRef && mode === 'live') intelRef.showFocus(focus);
     },
     onState(state) {
@@ -587,6 +591,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     exercise.exit();
     exercise.destroy();
     tour.dispose();
+    world.destroy();
+    if (window.__gevWorld === world) delete window.__gevWorld;
     bar.remove();
     panel.remove();
     banner.remove();

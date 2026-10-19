@@ -134,10 +134,13 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-AUD-011 | `src/audit/impact.js`, `src/audit/cockpit.js` `setDetail` | T: `src/audit/audit.test.mjs` "every item says how it affects God’s Eye View; must-fix items in their own words" |
 | GEV-AUD-012 | `src/audit/progress.js` `stopStory`, `src/audit/runtime.js` `playStep` | T: `src/audit/audit.test.mjs` "the narrated playback explains each stop: what it fixes, what it closes, what it unlocks" |
 | GEV-AUD-013 | `src/audit/model.js` `RINGS.ai`, `rollup`, `src/audit/scene.js`, `src/audit/cockpit.js`, `src/audit/impact.js` | T: `src/audit/audit.test.mjs` "the audit snapshot rolls up to the ledger baseline readiness and verdicts", "projected stops reproduce the plan’s readiness journey, wave by wave", "every item sits once on its ring" |
+| GEV-VIS-001 | `src/visuals/dayNight.js` `createDayNight`, `subsolarPoint`, `nightFade`; `src/data/dataCredits.js`; `DATA_SOURCES.md` | T: `src/visuals/visuals.test.mjs` "the day/night line follows the real Sun" "day/night shows at planet and regional scale only, never at city or street level" "each world visual can be switched off from the URL"; `src/data/dataCredits.test.mjs` "every shipped live source and bundled asset has an attribution entry"; D: harness screenshots 20 Oct (stub night-lights image; GIBS not reachable from the harness) |
+| GEV-VIS-002 | `src/visuals/trails.js` `createTrailStore`, `pickTrails`, `createTrails` | T: `src/visuals/visuals.test.mjs` "trails use only observed fixes, fade with age and drop when old" "tails are drawn for the focused asset and the nearest ones only, capped" |
+| GEV-VIS-003 | `src/visuals/quakeRings.js` `ringRadiusKm`, `ringFrame`, `createQuakeRings`; `src/visuals/index.js` `onFocus` | T: `src/visuals/visuals.test.mjs` "quake rings grow with magnitude, pulse a few times, then settle" |
 
 ## 3. Coverage of code by requirements
 
-The fork's own modules are fully traced: `src/tour`, `src/intel`,
+The fork’s own modules are fully traced: `src/tour`, `src/intel`, `src/visuals`,
 `src/shell`, `src/audit`, `src/exercise`, and the server fallback chain. The inherited
 layer engine (`src/layers`, `src/data`, `src/maps`, ~45k lines) is covered by
 about 1,000 inherited unit tests. These tests are **not yet traced** to
