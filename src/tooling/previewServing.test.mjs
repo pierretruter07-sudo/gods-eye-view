@@ -89,7 +89,7 @@ test('real dev and built-preview servers serve provider JSON and terminate unkno
         ['/api/firms/status', 200],
         ['/api/terrain/heights?points=invalid', 400],
         ['/api/overpass', 405],
-        ['/api/cctv/sources', 404],
+        ['/api/cctv/sources', 200],
         ['/api/tomtom/status', 404],
         ['/api/launches', 404],
         ['/api/setup/status', 404],
