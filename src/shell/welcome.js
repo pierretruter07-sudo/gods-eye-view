@@ -15,28 +15,52 @@ export const BUILD_ID = String(import.meta.env?.GEV_BUILD || 'development');
 
 const COPY = {
   kicker: "God's Eye View",
-  title: "Welcome to the God's Eye View dashboard",
+  title: 'The planet, live',
   by: 'Developed by Digital Dynamics Group',
-  lead: 'A live, real-time picture of the planet built entirely from public data — and an intelligence layer on top of it, in the style of the analytic platforms used by defence and security organisations.',
-  points: [
-    [
-      'Live feeds',
-      'Aircraft (ADS-B), military flights, ships (AIS), satellites (orbital data) and earthquakes (USGS), updated continuously.',
-    ],
-    [
-      'The Director',
-      'An automated narrator tours the globe on its own, flying to emergencies, airports, naval and military traffic, ships and satellites, and describing what the feeds show.',
-    ],
-    [
-      'Intel view',
-      'Click any contact for up to four cards of live data and context, plus analyst actions. Live data is tagged FEED; illustrative content is tagged SIMULATED.',
-    ],
-    [
-      'Triage',
-      'A ranked queue of what needs attention right now — emergency squawks, significant earthquakes and state assets — plus your own watchlist and areas of interest.',
-    ],
-  ],
+  lead: 'One live picture of the world, built from public data.',
 };
+
+/**
+ * Picture tiles: a small drawing and one short sentence each. The drawings
+ * are decorative (aria-hidden); the sentence carries the meaning.
+ */
+const TILES = [
+  {
+    title: 'Live world',
+    text: 'Aircraft, ships and satellites, live.',
+    art: `<circle cx="32" cy="22" r="15" class="w-line"/>
+      <path d="M17 22h30M32 7c-6 5-6 25 0 30M32 7c6 5 6 25 0 30" class="w-faint"/>
+      <path d="M12 9l5 2-5 2z" class="w-fill"/><rect x="47" y="31" width="8" height="3" rx="1.2" class="w-fill"/>
+      <rect x="49" y="6" width="5" height="5" class="w-accent"/><path d="M45 8.5h3M55 8.5h3" class="w-line"/>`,
+  },
+  {
+    title: 'Orbit to street',
+    text: 'The Director flies you down, level by level.',
+    art: `<path d="M18 6h28M14 15h36M10 24h44M6 33h52" class="w-faint"/>
+      <circle r="3" class="w-accent w-drop"/>
+      <path d="M32 6v27" class="w-dash"/>`,
+  },
+  {
+    title: 'Intel sheets',
+    text: 'Click anything for its data, links and history.',
+    art: `<rect x="12" y="5" width="40" height="32" rx="4" class="w-line"/>
+      <path d="M12 13h40" class="w-line"/><path d="M17 19h14M17 24h20M17 29h11" class="w-faint"/>
+      <circle cx="44" cy="22" r="2.4" class="w-accent"/><circle cx="44" cy="30" r="2.4" class="w-fill"/>`,
+  },
+  {
+    title: 'Street cameras',
+    text: 'Live stills from 1,200+ traffic cameras.',
+    art: `<rect x="14" y="13" width="26" height="15" rx="3" class="w-line"/>
+      <path d="M40 17l9-5v17l-9-5z" class="w-line"/><circle cx="27" cy="20.5" r="4" class="w-accent"/>
+      <path d="M27 28v7M21 35h12" class="w-faint"/>`,
+  },
+  {
+    title: 'Alerts',
+    text: 'Emergencies and big quakes, flagged as they happen.',
+    art: `<circle cx="32" cy="21" r="4" class="w-alert"/>
+      <circle cx="32" cy="21" r="10" class="w-ring"/><circle cx="32" cy="21" r="16" class="w-ring w-ring2"/>`,
+  },
+];
 
 export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
   const root = document.createElement('div');
@@ -52,8 +76,11 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
       <h1 id="gev-welcome-title" class="gev-welcome__title">${COPY.title}</h1>
       <p class="gev-welcome__by">${COPY.by}</p>
       <p class="gev-welcome__lead">${COPY.lead}</p>
-      <ul class="gev-welcome__points">
-        ${COPY.points.map(([h, t]) => `<li><b>${h}</b><span>${t}</span></li>`).join('')}
+      <ul class="gev-welcome__tiles">
+        ${TILES.map(
+          (t) =>
+            `<li class="gev-welcome__tile"><svg viewBox="0 0 64 42" width="64" height="42" aria-hidden="true" class="gev-welcome__art">${t.art}</svg><b>${t.title}</b><span>${t.text}</span></li>`,
+        ).join('')}
       </ul>
       <footer class="gev-welcome__foot">
         <div class="gev-welcome__count" aria-live="polite">
@@ -63,7 +90,7 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
           </svg>
           <span class="gev-welcome__num">${seconds}</span>
         </div>
-        <p class="gev-welcome__hint">The Director starts in <b class="gev-welcome__secs">${seconds}</b> seconds while live data loads.</p>
+        <p class="gev-welcome__hint">Tour starts in <b class="gev-welcome__secs">${seconds}</b> s</p>
         <div class="gev-welcome__btns">
           <button type="button" class="gev-btn" data-act="explore">Explore on my own</button>
           <button type="button" class="gev-btn gev-btn--primary" data-act="start">Start now</button>

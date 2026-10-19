@@ -67,17 +67,19 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-001 | The Director shall detect aircraft squawking 7500, 7700 or 7600, rank them in that order, and ignore other codes. | T |
 | GEV-DIR-002 | The Director shall detect earthquakes of magnitude ≥ 4.5 and no older than 3 h, ranked by magnitude then recency. Aircraft emergencies come before earthquakes. | T |
 | GEV-DIR-003 | A new incident shall interrupt the tour and be shown next. | T |
-| GEV-DIR-004 | Between incidents the Director shall rotate recent → airport → military → vessel → satellite → recent → city, skipping slots with nothing to show. | T |
+| GEV-DIR-004 | Between alerts the Director shall rotate military aircraft → busy airport → military airfield → military aircraft → vessel → busy airport → military aircraft → military airfield → satellite → planet view, skipping slots with nothing to show. Military aircraft shall be chosen by interest (named types such as Black Hawk, P-8, E-3, KC-135 first) and not repeated within 30 min. | T |
 | GEV-DIR-005 | Vessel stops shall prefer naval/state vessels (≥ 1 kn). Otherwise they shall use moving vessels (≥ 8 kn). | T |
-| GEV-DIR-006 | A shown incident shall not repeat until 6 min have passed, and shall then be introduced as recent. | T |
+| GEV-DIR-006 | The Director shall show at most one alert (new or revisited) every 10 min; later alerts wait their turn. A shown incident shall not repeat until 6 min have passed, and shall then be introduced as recent. | T |
 | GEV-DIR-007 | Spoken and on-screen Director lines shall contain only feed values. Simulated events shall be announced as simulated. | T |
-| GEV-DIR-008 | The Director shall start automatically 10 s after the welcome card appears. `?nointro` shall skip the card. | D |
+| GEV-DIR-008 | The welcome card shall present the product in five picture tiles with one short sentence each. The Director shall start automatically 10 s after the welcome card appears. `?nointro` shall skip the card. | D |
 | GEV-DIR-009 | At planet-scale views (≥ 5,000 km range) the globe shall keep turning. | D |
 | GEV-DIR-010 | The focused asset shall open in the intel HUD in a reduced "touring" action set. | D |
 | GEV-DIR-011 | The Director shall choose its next stop on arrival at the current one and load that stop's aircraft during the dwell. The loaded aircraft shall be drawn on arrival until the live layer's own records arrive. It shall not arrive at an airport with no aircraft loaded; such an airport is skipped. A new incident still comes first. | T |
 | GEV-DIR-012 | The airport overlay shall fade in on arrival and out on departure, and each aircraft label shall fade in when its data arrives. | D |
-| GEV-DIR-013 | On its first run after the dashboard opens, the Director shall descend in order: geostationary belt → ISS → an airliner at 35,000–43,000 ft → a helicopter at or below 3,000 ft (else a light aircraft at or below 5,000 ft) → the nearest ship under way → an ADS-B airport surface vehicle (else a taxiing aircraft) → the nearest street camera → up to two cameras within 8 km. It shall then return to the normal rotation; later starts shall skip the descent. | T |
+| GEV-DIR-013 | On its first run after the dashboard opens, the Director shall descend in order: geostationary belt → ISS → an airliner at 35,000–43,000 ft → a helicopter at or below 3,000 ft (else a light aircraft at or below 5,000 ft) → the nearest ship under way → an ADS-B airport surface vehicle (a wheeled vehicle; never an aircraft) → the nearest street camera → up to two cameras within 8 km. It shall then return to the normal rotation; later starts shall skip the descent. | T |
 | GEV-DIR-014 | The descent shall stay over the camera region nearest local early afternoon (solar time). Every subject shall be a live record, and a step with nothing live shall be skipped, never simulated. A step whose source has not loaded shall wait at most 8 s. The descent shall have priority over incidents: incidents that arrive during it shall be shown as soon as it ends. | T |
+| GEV-DIR-015 | During the opening descent a checklist at the side of the screen shall list the seven levels (geostationary orbit to street cameras), mark each as it is reached with its live value, mark levels with nothing live as skipped, and fade away when the descent ends. | T |
+| GEV-DIR-016 | Street cameras switched on by the opening descent shall be switched off again when it ends. Ground-level descent stops without a published ground height shall be aimed at sampled terrain. | D |
 
 ## 6. Intel HUD (INT)
 
@@ -103,6 +105,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-018 | An ADS-B airport surface vehicle (emitter category C1 or C2) shall open as a vehicle with feed values only: no simulated rows and no aircraft actions. | T |
 | GEV-INT-019 | Each analyst action and an "Object" button shall open a sheet in a drawer at the side of the screen, so the focused asset stays in view. A sheet shall show the object's type and key, its data lineage, properties, linked objects and a timeline. Every value shall be tagged FEED or SIM, no person shall be named, and ownership shall stay generic. | T |
 | GEV-INT-020 | The track-history sheet shall list positions observed this session as FEED, and any path reconstructed from the current track and speed as SIM, never as recorded positions. | T |
+| GEV-INT-021 | ADS-B airport surface vehicles shall be drawn as wheeled vehicles on the ground, with no aircraft 3D model. | T |
 
 ## 7. Exercise mode (EXE)
 

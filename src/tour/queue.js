@@ -13,6 +13,7 @@
 export function needsAircraft(stop) {
   return (
     stop?.kind === 'airport' ||
+    stop?.kind === 'base' ||
     (stop?.kind === 'city' && stop?.view?.rangeM <= 1_000_000)
   );
 }

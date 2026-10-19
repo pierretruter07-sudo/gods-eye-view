@@ -67,6 +67,13 @@ export function eventLine(event, now = Date.now(), { recent = false } = {}) {
   return recent ? `Recent event. ${body}` : `Alert. ${body}`;
 }
 
+export function baseLine(base, airborne, radiusKm) {
+  const name = base.region ? `${base.label}, ${base.region}` : base.label;
+  return airborne > 0
+    ? `Military airfield: ${name}. ${airborne} aircraft airborne within ${radiusKm} kilometres.`
+    : `Military airfield: ${name}.`;
+}
+
 export function airportLine(airport, airborne, radiusKm) {
   return airborne > 0
     ? `${airport.label}. ${airborne} aircraft airborne within ${radiusKm} kilometres.`
@@ -89,12 +96,16 @@ export function vesselLine(vessel) {
   return `${parts.join(', ')}.`;
 }
 
-export function militaryLine(aircraft) {
+export function militaryLine(aircraft, { typeName = null } = {}) {
   const id = aircraft.callsign
     ? `callsign ${aircraft.callsign}`
     : 'without a public callsign';
-  const parts = [`A military aircraft, ${id}`];
-  if (aircraft.aircraftClass) parts.push(`type ${aircraft.aircraftClass}`);
+  const parts = [
+    `${typeName ? `A ${typeName}` : 'A military aircraft'}, ${id}`,
+  ];
+  if (!typeName && aircraft.aircraftClass)
+    parts.push(`type ${aircraft.aircraftClass}`);
+  if (aircraft.operator) parts.push(`operated by ${aircraft.operator}`);
   if (Number.isFinite(aircraft.altitudeM) && !aircraft.onGround)
     parts.push(
       `at ${round(aircraft.altitudeM * 3.28084, 100).toLocaleString('en-US')} feet`,

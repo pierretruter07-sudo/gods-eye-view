@@ -399,6 +399,8 @@ const OPENSKY_CATEGORY = {
   7: 'fastjet', // High performance (>5g, >400 kt)
   8: 'helicopter', // Rotorcraft
   9: 'glider',
+  16: 'vehicle', // Surface vehicle – emergency
+  17: 'vehicle', // Surface vehicle – service
 };
 
 /** ADS-B emitter-category string → class. */
@@ -411,9 +413,15 @@ const EMITTER_CATEGORY = {
   A6: 'fastjet',
   A7: 'helicopter',
   B1: 'glider',
+  C1: 'vehicle',
+  C2: 'vehicle',
 };
 
 export function classifyAircraft({ typeCode, category } = {}) {
+  // Airport surface vehicles (ADS-B C1/C2) are wheeled vehicles whatever
+  // type code an enrichment lookup may attach.
+  if (category === 16 || category === 17) return 'vehicle';
+  if (/^C[12]$/i.test(String(category || '').trim())) return 'vehicle';
   const code = String(typeCode || '')
     .trim()
     .toUpperCase();
@@ -464,6 +472,7 @@ export const CLASS_SCALE_2D = {
   fastjet: 0.8,
   bizjet: 0.72,
   uav: 0.75,
+  vehicle: 0.6,
 };
 
 /** 3D model scale multipliers — clamped [0.75, 1.45] while every class shares

@@ -63,17 +63,19 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-DIR-001 | `src/tour/events.js` | T: `src/tour/events.test.mjs` "emergency aircraft rank 7500, 7700, 7600 and ignore ordinary codes", "squawk codes are four octal digits or null" |
 | GEV-DIR-002 | `src/tour/events.js` | T: `events.test.mjs` "aircraft come before quakes; quakes rank by size then recency", "small, old and positionless quakes are ignored" |
 | GEV-DIR-003 | `src/tour/planner.js` | T: `src/tour/planner.test.mjs` "a new incident always comes first…", "an emergency squawk interrupts and jumps the queue" |
-| GEV-DIR-004 | `src/tour/planner.js`, `src/tour/config.js` `TOUR_ROTATION` | T: `planner.test.mjs` "slots with nothing to show are skipped; ships must be moving", "military aircraft get their own stop, from feed values" |
+| GEV-DIR-004 | `src/tour/planner.js`, `src/tour/config.js` `TOUR_ROTATION`, `MILITARY_TYPES`, `TOUR_BASES` | T: `planner.test.mjs` "slots with nothing to show are skipped; ships must be moving", "military aircraft get their own stop, from feed values", "military stops favour named types like a Black Hawk, and do not repeat", "military airfields are stops with live traffic counts" |
 | GEV-DIR-005 | `src/tour/planner.js` | T: `planner.test.mjs` "naval / state vessels are preferred, even when slow" |
-| GEV-DIR-006 | `src/tour/planner.js` | T: `planner.test.mjs` "recent incidents are revisited after the cooldown, introduced as recent"; `events.test.mjs` "events already shown are not repeated" |
+| GEV-DIR-006 | `src/tour/planner.js` `alertAllowed` | T: `planner.test.mjs` "at most one alert every ten minutes; later alerts wait their turn", "recent incidents are revisited after the cooldown, introduced as recent"; `events.test.mjs` "events already shown are not repeated" |
 | GEV-DIR-007 | `src/tour/lines.js` | T: `events.test.mjs` "spoken lines use only feed values and flag simulated events"; `planner.test.mjs` "vessel lines use feed values only" |
 | GEV-DIR-008 | `src/shell/welcome.js` | D |
 | GEV-DIR-009 | `src/tour/controller.js` | D |
 | GEV-DIR-010 | `src/shell/index.js` `onFocus`, `src/intel/index.js` `showFocus` | D |
 | GEV-DIR-011 | `src/tour/queue.js`, `src/tour/controller.js`, `src/shell/flightPrefetch.js` `stage` | T: `src/tour/queue.test.mjs` "the next stop is planned on arrival and its data loads a whole dwell ahead" "an airport with no aircraft is skipped instead of shown empty" "a slow source is waited for only briefly; a fresh incident jumps the queue"; `src/shell/shellPolicies.test.mjs` "staged aircraft are counted near the destination only" |
 | GEV-DIR-012 | `src/airports/overlay.js` `fadeIn`, `fadeOut` | D: Director run on the deployed app, airport stops |
-| GEV-DIR-013 | `src/tour/descent.js` `createDescentPlanner`, `src/tour/controller.js` `takeNext` | T: `src/tour/descent.test.mjs` "the descent steps down from GEO to street level, then ends" "fallbacks: a light aircraft for the helicopter, a taxiing aircraft for the vehicle" |
+| GEV-DIR-013 | `src/tour/descent.js` `createDescentPlanner`, `src/tour/controller.js` `takeNext` | T: `src/tour/descent.test.mjs` "the descent steps down from GEO to street level, then ends" "fallbacks: a light aircraft for the helicopter; never an aircraft for the vehicle" |
 | GEV-DIR-014 | `src/tour/descent.js` `pickDescentRegion`, `src/tour/controller.js` `nextDescentStop` | T: `src/tour/descent.test.mjs` "the descent region is the one nearest early afternoon, solar time" "a step with nothing live is skipped, never faked" "a step waits while its source is still loading, and can be skipped" |
+| GEV-DIR-015 | `src/tour/descent.js` `DESCENT_LEVELS`, `levelStates`, `descentDetail`; `src/tour/descentChecklist.js` | T: `src/tour/descent.test.mjs` "the checklist levels cover every step, and outcomes track shown and skipped"; D: harness run 19 Oct (ticks, skipped, fade-out) |
+| GEV-DIR-016 | `src/tour/controller.js` `wrapDescent`, `groundHeightAt` | D: harness run 19 Oct (cameras off after the last descent stop) |
 | GEV-INT-001 | `src/intel/hud.js` | T: `src/intel/hud.test.mjs` "every kind gets at most four cards, deterministic" |
 | GEV-INT-002 | `src/intel/hud.js`, `src/intel/enrichment.js` | T: `hud.test.mjs` "feed values stay feed; illustrative rows are flagged"; `src/intel/intel.test.mjs` "feed and simulated content are kept apart" |
 | GEV-INT-003 | `src/intel/hud.js` | T: `hud.test.mjs` "ownership is generic, never an invented company" |
@@ -94,6 +96,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-INT-018 | `src/intel/hud.js` `surfaceVehicleHud` | T: `src/intel/hud.test.mjs` "an airport surface vehicle shows feed values only, never aircraft rows" |
 | GEV-INT-019 | `src/intel/sheets.js`, `src/intel/markup.js` `sheetDrawer`, `src/intel/index.js` `openSheet` | T: `src/intel/sheets.test.mjs` "an object opens with a typed identity, a stable id and a lineage from its feed" "properties keep feed values as feed and flag platform fields as simulated" "linked objects are feed labels or openable nearby assets, never people" "the timeline is newest first, with simulated events flagged" "the drawer shows identity, lineage, tabs and escapes feed strings" "an airport surface vehicle is typed as one, with no flight events" |
 | GEV-INT-020 | `src/intel/sheets.js` `trackHistory` | T: `src/intel/sheets.test.mjs` "track history: observed positions are feed; the reconstructed path is simulated" |
+| GEV-INT-021 | `src/data/aircraftClass.js` `classifyAircraft`, `src/data/aircraftIcons.js` `vehicle`, `src/layers/flights/rendering.js` | T: `src/data/aircraftClass.test.mjs` "ADS-B surface vehicles (C1/C2) classify as wheeled vehicles, whatever the type code" |
 | GEV-EXE-001 | `src/exercise/mode.js` | I |
 | GEV-EXE-002 | `src/exercise/package.js` | T: `src/exercise/package.test.mjs` "platforms stay generic classes, never real types" |
 | GEV-EXE-003 | `src/exercise/package.js` | T: `package.test.mjs` "authorisation is a checklist with a final command step left open" |

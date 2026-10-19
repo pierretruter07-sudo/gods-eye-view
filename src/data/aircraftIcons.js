@@ -134,6 +134,17 @@ const BODIES = {
   //    obvious circle, unlike a thin ring) with a bold two-blade cross, a
   //    teardrop cabin, a tail boom, and a tail rotor. Unmistakable "disc on top"
   //    silhouette that never reads as a fixed-wing.
+  // ── Surface vehicle (ADS-B C1/C2: airport fire trucks, tugs, follow-me
+  //    cars): a top-down truck with four wheels and a light bar, front up.
+  vehicle: `
+    <rect x="-13" y="-22" width="4.5" height="10" rx="1.6" fill="white" fill-opacity="0.75"/>
+    <rect x="8.5" y="-22" width="4.5" height="10" rx="1.6" fill="white" fill-opacity="0.75"/>
+    <rect x="-13" y="12" width="4.5" height="10" rx="1.6" fill="white" fill-opacity="0.75"/>
+    <rect x="8.5" y="12" width="4.5" height="10" rx="1.6" fill="white" fill-opacity="0.75"/>
+    <rect x="-10" y="-30" width="20" height="60" rx="5" fill="white" ${STROKE}/>
+    <rect x="-7.5" y="-24" width="15" height="9" rx="2" fill="rgba(0,0,0,0.28)"/>
+    <rect x="-8" y="-29" width="16" height="3" rx="1.5" fill="rgba(0,0,0,0.35)"/>`,
+
   helicopter: `
     <circle cx="0" cy="-6" r="31" fill="white" fill-opacity="0.22"/>
     <g transform="rotate(45 0 -6)">

@@ -1,8 +1,10 @@
 import { isStateVessel } from '../data/stateVessel.js';
 import {
   EVENT_RULES,
+  MILITARY_TYPES,
   STOP_CAMERA,
   TOUR_AIRPORTS,
+  TOUR_BASES,
   TOUR_ROTATION,
   TOUR_STOPS,
   TOUR_TIMING,
@@ -10,6 +12,7 @@ import {
 import { countNearby, rankEvents } from './events.js';
 import {
   airportLine,
+  baseLine,
   eventLine,
   militaryLine,
   satelliteLine,
@@ -33,9 +36,9 @@ const SATELLITE_GROUPS = [
 /**
  * Decides what the Director shows next. Pure: callers pass live records and
  * the time, and get back a stop description (camera view, spoken line,
- * optional event for the card). New incidents always come first; otherwise
- * the rotation cycles through recent incidents, airports, ships, satellites
- * and wide views so the camera keeps moving.
+ * optional event for the card). Alerts come first, but at most one every
+ * TOUR_TIMING.alertGapMin; otherwise the rotation tours military aircraft,
+ * busy airports, military airfields, ships, satellites and the planet.
  */
 export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
   const shownAt = new Map(); // event key -> last time shown (ms)
@@ -45,6 +48,11 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
   let vesselIndex = 0;
   let militaryIndex = 0;
   let satelliteIndex = 0;
+  let baseIndex = 0;
+  let lastAlertAt = -Infinity;
+  const militaryShownAt = new Map(); // icao24 -> last time shown (ms)
+  const alertAllowed = (now) =>
+    now - lastAlertAt >= TOUR_TIMING.alertGapMin * 60_000;
 
   const dwell = (kind) =>
     kind === 'event' ? TOUR_TIMING.eventDwellS : TOUR_TIMING.stopDwellS;
@@ -59,6 +67,7 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
 
   function eventStop(event, now, recent) {
     shownAt.set(event.key, now);
+    lastAlertAt = now;
     return {
       kind: 'event',
       event,
@@ -75,6 +84,7 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
 
   const builders = {
     recent(data, now) {
+      if (!alertAllowed(now)) return null;
       const revisitMs = TOUR_TIMING.revisitAfterMin * 60_000;
       const candidates = rankEvents({
         flights: data.flights,
@@ -145,17 +155,31 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
       };
     },
 
-    military(data) {
+    military(data, now) {
+      const repeatMs = TOUR_TIMING.militaryRepeatMin * 60_000;
       const airborne = (data.military || []).filter(
         (m) =>
-          Number.isFinite(m?.lat) && Number.isFinite(m?.lon) && !m.onGround,
+          Number.isFinite(m?.lat) &&
+          Number.isFinite(m?.lon) &&
+          !m.onGround &&
+          !(now - (militaryShownAt.get(m.icao24) ?? -Infinity) < repeatMs),
       );
       if (!airborne.length) return null;
-      // Identified airframes (callsign or type) make the better story.
-      const named = airborne.filter((m) => m.callsign || m.aircraftClass);
-      const pool = named.length ? named : airborne;
-      const aircraft = pool[militaryIndex % pool.length];
+      // Most interesting first: named types (helicopters, ISR, bombers,
+      // tankers, fighters, transports), then identified airframes.
+      const score = (m) =>
+        (MILITARY_TYPES[String(m.typeCode || '').toUpperCase()]?.score || 0) *
+          10 +
+        (m.callsign ? 2 : 0) +
+        (m.aircraftClass ? 1 : 0);
+      const ranked = [...airborne].sort((a, b) => score(b) - score(a));
+      const top = ranked.filter((m) => score(m) === score(ranked[0]));
+      const aircraft = top[militaryIndex % top.length];
       militaryIndex += 1;
+      if (aircraft.icao24) militaryShownAt.set(aircraft.icao24, now);
+      const typeName =
+        MILITARY_TYPES[String(aircraft.typeCode || '').toUpperCase()]?.name ||
+        null;
       return {
         kind: 'military',
         aircraft,
@@ -165,8 +189,26 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
           heightM: Number.isFinite(aircraft.altitudeM) ? aircraft.altitudeM : 0,
           ...STOP_CAMERA.military,
         },
-        line: militaryLine(aircraft),
+        line: militaryLine(aircraft, { typeName }),
         dwellS: dwell('military'),
+      };
+    },
+
+    base(data) {
+      const base = TOUR_BASES[baseIndex % TOUR_BASES.length];
+      baseIndex += 1;
+      const airborne = countNearby(
+        [...(data.flights || []), ...(data.military || [])],
+        base.lat,
+        base.lon,
+        EVENT_RULES.airportRadiusKm,
+      );
+      return {
+        kind: 'base',
+        base,
+        view: { lat: base.lat, lon: base.lon, heightM: 0, ...STOP_CAMERA.base },
+        line: baseLine(base, airborne, EVENT_RULES.airportRadiusKm),
+        dwellS: dwell('base'),
       };
     },
 
@@ -225,13 +267,16 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
   };
 
   return {
-    /** True when an incident exists that has never been shown. */
+    /**
+     * True when an incident that has never been shown may be shown now
+     * (at most one alert every TOUR_TIMING.alertGapMin).
+     */
     hasFresh(data, now = Date.now()) {
-      return freshEvents(data, now).length > 0;
+      return alertAllowed(now) && freshEvents(data, now).length > 0;
     },
 
     next(data, now = Date.now()) {
-      const [fresh] = freshEvents(data, now);
+      const [fresh] = alertAllowed(now) ? freshEvents(data, now) : [];
       if (fresh) return eventStop(fresh, now, false);
       for (let tries = 0; tries < rotation.length; tries += 1) {
         const kind = rotation[slot % rotation.length];

@@ -20,6 +20,10 @@ export const TOUR_TIMING = Object.freeze({
   interruptCheckS: 2,
   /** An incident already shown may be revisited after this long. */
   revisitAfterMin: 6,
+  /** At most one alert (new or revisited) per this many minutes. */
+  alertGapMin: 10,
+  /** A military aircraft is not shown again within this many minutes. */
+  militaryRepeatMin: 30,
   /** Longest wait, when leaving, for the next stop's aircraft to load. */
   stageMaxWaitS: 6,
 });
@@ -30,6 +34,7 @@ export const STOP_CAMERA = Object.freeze({
   aircraft: Object.freeze({ rangeM: 70_000, pitchDeg: -42 }),
   earthquake: Object.freeze({ rangeM: 350_000, pitchDeg: -50 }),
   airport: Object.freeze({ rangeM: 14_000, pitchDeg: -40 }),
+  base: Object.freeze({ rangeM: 12_000, pitchDeg: -42 }),
   vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -40 }),
   military: Object.freeze({ rangeM: 45_000, pitchDeg: -42 }),
   satellite: Object.freeze({ rangeM: 2_500_000, pitchDeg: -35 }),
@@ -55,16 +60,22 @@ export const EVENT_RULES = Object.freeze({
 });
 
 /**
- * What to show between incidents, in order, repeating. A slot with nothing
- * available is skipped. New incidents always jump the queue.
+ * What to show between alerts, in order, repeating: a defence-minded tour
+ * of military aircraft, the busiest airports and well-known military
+ * airfields, with naval traffic, satellites and the planet in between. A
+ * slot with nothing available is skipped. Alerts (at most one every
+ * TOUR_TIMING.alertGapMin) come before the rotation.
  */
 export const TOUR_ROTATION = Object.freeze([
-  'recent',
+  'military',
   'airport',
+  'base',
   'military',
   'vessel',
+  'airport',
+  'military',
+  'base',
   'satellite',
-  'recent',
   'city',
 ]);
 
@@ -127,9 +138,6 @@ export const DESCENT_RULES = Object.freeze({
   lightMaxM: 1_524, // 5,000 ft
   /** Ship step: vessels at least this fast count as under way (knots). */
   shipMinKts: 1,
-  /** Taxiing aircraft (ground-vehicle fallback): ground speed band, m/s. */
-  taxiMinMps: 2.5, // ~5 kt
-  taxiMaxMps: 15, // ~30 kt
   /** Geostationary altitude band used to count the belt (metres). */
   geoMinM: 34_000_000,
   geoMaxM: 37_500_000,
@@ -154,7 +162,7 @@ export const DESCENT_CAMERA = Object.freeze({
 
 export const DESCENT_DWELL_S = Object.freeze({
   geo: 9,
-  satellite: 10,
+  iss: 10,
   cruise: 10,
   low: 10,
   ship: 10,
@@ -196,8 +204,197 @@ export const TOUR_AIRPORTS = Object.freeze(
       lon: 138.5334,
       timeZone: 'Australia/Adelaide',
     },
+    // Among the world's busiest passenger airports (approximate reference
+    // points; the live aircraft count is what the Director reports).
+    {
+      id: 'katl',
+      label: 'Atlanta Hartsfield-Jackson',
+      lat: 33.6407,
+      lon: -84.4277,
+      timeZone: 'America/New_York',
+    },
+    {
+      id: 'omdb',
+      label: 'Dubai International',
+      lat: 25.2532,
+      lon: 55.3657,
+      timeZone: 'Asia/Dubai',
+    },
+    {
+      id: 'egll',
+      label: 'London Heathrow',
+      lat: 51.47,
+      lon: -0.4543,
+      timeZone: 'Europe/London',
+    },
+    {
+      id: 'kdfw',
+      label: 'Dallas/Fort Worth',
+      lat: 32.8998,
+      lon: -97.0403,
+      timeZone: 'America/Chicago',
+    },
+    {
+      id: 'rjtt',
+      label: 'Tokyo Haneda',
+      lat: 35.5494,
+      lon: 139.7798,
+      timeZone: 'Asia/Tokyo',
+    },
+    {
+      id: 'ltfm',
+      label: 'Istanbul Airport',
+      lat: 41.2753,
+      lon: 28.7519,
+      timeZone: 'Europe/Istanbul',
+    },
+    {
+      id: 'kord',
+      label: "Chicago O'Hare",
+      lat: 41.9742,
+      lon: -87.9073,
+      timeZone: 'America/Chicago',
+    },
+    {
+      id: 'klax',
+      label: 'Los Angeles International',
+      lat: 33.9416,
+      lon: -118.4085,
+      timeZone: 'America/Los_Angeles',
+    },
+    {
+      id: 'wsss',
+      label: 'Singapore Changi',
+      lat: 1.3644,
+      lon: 103.9915,
+      timeZone: 'Asia/Singapore',
+    },
+    {
+      id: 'lfpg',
+      label: 'Paris Charles de Gaulle',
+      lat: 49.0097,
+      lon: 2.5479,
+      timeZone: 'Europe/Paris',
+    },
   ].map((a) => Object.freeze(a)),
 );
+
+/**
+ * Well-known military airfields, public names and approximate reference
+ * points. The Director shows each with its live traffic and the mapped
+ * installation outlines; it never claims what is based there.
+ */
+export const TOUR_BASES = Object.freeze(
+  [
+    {
+      id: 'yamb',
+      label: 'RAAF Base Amberley',
+      region: 'Queensland',
+      lat: -27.6406,
+      lon: 152.7119,
+      timeZone: 'Australia/Brisbane',
+    },
+    {
+      id: 'ywlm',
+      label: 'RAAF Base Williamtown',
+      region: 'New South Wales',
+      lat: -32.795,
+      lon: 151.8344,
+      timeZone: 'Australia/Sydney',
+    },
+    {
+      id: 'etar',
+      label: 'Ramstein Air Base',
+      region: 'Germany',
+      lat: 49.4369,
+      lon: 7.6003,
+      timeZone: 'Europe/Berlin',
+    },
+    {
+      id: 'klsv',
+      label: 'Nellis Air Force Base',
+      region: 'Nevada',
+      lat: 36.2362,
+      lon: -115.0343,
+      timeZone: 'America/Los_Angeles',
+    },
+    {
+      id: 'rodn',
+      label: 'Kadena Air Base',
+      region: 'Okinawa',
+      lat: 26.3556,
+      lon: 127.7675,
+      timeZone: 'Asia/Tokyo',
+    },
+    {
+      id: 'egul',
+      label: 'RAF Lakenheath',
+      region: 'England',
+      lat: 52.4093,
+      lon: 0.561,
+      timeZone: 'Europe/London',
+    },
+    {
+      id: 'kngu',
+      label: 'Naval Station Norfolk',
+      region: 'Virginia',
+      lat: 36.9376,
+      lon: -76.2893,
+      timeZone: 'America/New_York',
+    },
+    {
+      id: 'phik',
+      label: 'Joint Base Pearl Harbor-Hickam',
+      region: 'Hawaii',
+      lat: 21.3187,
+      lon: -157.9224,
+      timeZone: 'Pacific/Honolulu',
+    },
+    {
+      id: 'pgua',
+      label: 'Andersen Air Force Base',
+      region: 'Guam',
+      lat: 13.584,
+      lon: 144.93,
+      timeZone: 'Pacific/Guam',
+    },
+    {
+      id: 'yptn',
+      label: 'RAAF Base Tindal',
+      region: 'Northern Territory',
+      lat: -14.5214,
+      lon: 132.3778,
+      timeZone: 'Australia/Darwin',
+    },
+  ].map((b) => Object.freeze(b)),
+);
+
+/**
+ * Military types worth flying to, with a display name and an interest
+ * score (higher first). ICAO type designators as the feeds report them.
+ */
+export const MILITARY_TYPES = Object.freeze({
+  H60: { name: 'Black Hawk helicopter', score: 5 },
+  H47: { name: 'Chinook helicopter', score: 5 },
+  V22: { name: 'V-22 Osprey', score: 5 },
+  B52: { name: 'B-52 Stratofortress', score: 5 },
+  P8: { name: 'P-8 Poseidon maritime patrol aircraft', score: 5 },
+  E3TF: { name: 'E-3 Sentry AWACS', score: 5 },
+  E3CF: { name: 'E-3 Sentry AWACS', score: 5 },
+  E737: { name: 'E-7 Wedgetail AEW&C', score: 5 },
+  R135: { name: 'RC-135 reconnaissance aircraft', score: 5 },
+  K35R: { name: 'KC-135 tanker', score: 4 },
+  F35: { name: 'F-35 Lightning II', score: 4 },
+  F16: { name: 'F-16 Fighting Falcon', score: 4 },
+  F15: { name: 'F-15 Eagle', score: 4 },
+  F18S: { name: 'F/A-18 Super Hornet', score: 4 },
+  F18H: { name: 'F/A-18 Hornet', score: 4 },
+  EUFI: { name: 'Eurofighter Typhoon', score: 4 },
+  C17: { name: 'C-17 Globemaster III', score: 3 },
+  C130: { name: 'C-130 Hercules', score: 3 },
+  C30J: { name: 'C-130J Super Hercules', score: 3 },
+  A400: { name: 'A400M Atlas', score: 3 },
+});
 
 /** Wide views used when nothing else is available. */
 export const TOUR_STOPS = Object.freeze(
