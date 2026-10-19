@@ -38,8 +38,10 @@ export const STOP_CAMERA = Object.freeze({
   vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -40 }),
   military: Object.freeze({ rangeM: 45_000, pitchDeg: -42 }),
   satellite: Object.freeze({ rangeM: 2_500_000, pitchDeg: -35 }),
-  // Geostationary: far enough back to see the satellite against the Earth.
-  geoSatellite: Object.freeze({ rangeM: 9_000_000, pitchDeg: -25 }),
+  // High orbits look down past the satellite at the Earth behind it, so
+  // its coverage cone and footprint are in frame.
+  geoSatellite: Object.freeze({ rangeM: 14_000_000, pitchDeg: -72 }),
+  meoSatellite: Object.freeze({ rangeM: 9_000_000, pitchDeg: -68 }),
 });
 
 export const EVENT_RULES = Object.freeze({
@@ -191,6 +193,23 @@ export const DESCENT_DWELL_S = Object.freeze({
   ground: 10,
   street: 20,
   nearby: 12,
+});
+
+/**
+ * Sensor looks the Director uses at a stop (Pierre, 20 Oct): thermal
+ * (FLIR, white-hot) for military aircraft, airfields and naval ships, night
+ * vision (NVG) where the sun is down at the stop, the normal look otherwise.
+ * Never for space or planet-scale views, the descent's GEO and ISS steps,
+ * or street cameras (their pictures must stay readable). Visual only.
+ */
+export const DIRECTOR_SENSORS = Object.freeze({
+  /** Wider views than this see regions, not an asset: normal look. */
+  maxRangeM: 600_000,
+  /** Night vision when the sun is below this elevation at the stop. */
+  nightBelowDeg: 0,
+  flirKinds: Object.freeze(['military', 'base']),
+  noneKinds: Object.freeze(['satellite', 'geo', 'camera']),
+  noneDescentSteps: Object.freeze(['geo', 'iss', 'street']),
 });
 
 /** Layers the Director switches on when it starts. */

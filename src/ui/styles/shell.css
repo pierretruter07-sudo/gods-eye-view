@@ -1228,6 +1228,26 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
   font-weight: 650;
   text-shadow: none;
 }
+/* The Director's sensor look (thermal or night vision), under the title. */
+.gev-hud__sensor {
+  display: inline-block;
+  margin: 6px 0 0;
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.82em;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  text-shadow: none;
+}
+.gev-hud__sensor[data-mode='nvg'] {
+  color: #b9ffc6;
+  border-color: rgba(120, 255, 150, 0.6);
+}
+.gev-hud__sensor[hidden] { display: none; }
 
 .gev-hud__card {
   box-sizing: border-box;
