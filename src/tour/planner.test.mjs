@@ -163,6 +163,20 @@ test('at least one stop in every five is in space, cycling GEO, stations and nav
     const groups = stops.filter((s) => s.kind === 'satellite').map((s) => s.satellite.group);
     assert.deepEqual(groups.slice(0, 5), ['geo', 'stations', 'gps-ops', 'geo', 'galileo']);
   }
+  // An alert landing just as space falls due still leaves a satellite in
+  // every run of five stops (Replit run, 20 Oct: stops 7-11 had none).
+  for (let at = 0; at < 8; at += 1) {
+    const planner = createPlanner();
+    const kinds = Array.from({ length: 16 }, (_, i) => {
+      const now = t0 + i * 11 * min;
+      const quakes =
+        i === at + 4 ? [{ ...quake(`q${at}`, 6.0, 5), timeMs: now - 5 * min }] : [];
+      return planner.next({ ...data, quakes }, now).kind;
+    });
+    for (let i = 0; i + 5 <= kinds.length; i += 1)
+      assert.ok(kinds.slice(i, i + 5).includes('satellite'), `alert at ${at + 4}: ${kinds.join(',')}`);
+    assert.equal(kinds[at + 4], 'event', 'the alert still goes first');
+  }
   const planner = createPlanner();
   let g;
   for (let i = 0; i < 10 && !g; i += 1) {

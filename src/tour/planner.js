@@ -298,14 +298,18 @@ export function createPlanner({
   function pick(data, now) {
     const [fresh] = alertAllowed(now) ? freshEvents(data, now) : [];
     if (fresh) return eventStop(fresh, now, false);
-    // Space is due: at least one stop in every `space.every`.
-    if (space.every > 0 && sinceSpace >= space.every - 1) {
+    // Space is due: at least one stop in every `space.every`. It falls due
+    // one stop early, so an alert arriving at that moment (alerts always go
+    // first) still leaves a satellite inside every run of `every` stops.
+    if (space.every > 1 && sinceSpace >= space.every - 2) {
       const sat = builders.satellite(data, now);
       if (sat) return sat;
     }
     for (let tries = 0; tries < rotation.length; tries += 1) {
       const kind = rotation[slot % rotation.length];
       slot += 1;
+      // Never two satellites in a row (a forced one just went).
+      if (kind === 'satellite' && sinceSpace === 0 && tries === 0) continue;
       const stop = builders[kind]?.(data, now);
       if (stop) return stop;
     }
