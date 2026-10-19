@@ -37,6 +37,74 @@ function countBy(nearbyAll, kind) {
   return (nearbyAll || []).filter((n) => n.object.kind === kind).length;
 }
 
+/** ADS-B surface vehicle role from the emitter category (C1 16, C2 17). */
+export function surfaceVehicleRole(o) {
+  const c = o?.emitterCategory ?? o?.category ?? null;
+  if (c === 16) return 'Emergency vehicle';
+  if (c === 17) return 'Service vehicle';
+  return null;
+}
+
+/**
+ * An airport surface vehicle broadcasting ADS-B: feed values only. No
+ * aircraft rows (fuel, souls on board, flight plan) are ever attached to it.
+ */
+function surfaceVehicleHud(o, role, nearbyAll) {
+  const cards = [
+    card(
+      'vehicle',
+      'Vehicle',
+      rows(
+        row('Role', role),
+        row('Callsign', o.callsign),
+        row('ICAO 24', o.icao24),
+        row('Country', o.originCountry),
+      ),
+    ),
+    card(
+      'movement',
+      'Movement',
+      rows(
+        row(
+          'Ground speed',
+          Number.isFinite(o.speedMps)
+            ? `${Math.round(o.speedMps * KT)} kt`
+            : null,
+        ),
+        row(
+          'Heading',
+          Number.isFinite(o.heading ?? o.headingDeg)
+            ? `${Math.round(o.heading ?? o.headingDeg)}°`
+            : null,
+        ),
+        row('Position', `${o.lat.toFixed(4)}, ${o.lon.toFixed(4)}`),
+      ),
+    ),
+    card(
+      'around',
+      'Around',
+      rows(
+        row('Aircraft nearby', String(countBy(nearbyAll, 'aircraft'))),
+        row('Cameras nearby', String(countBy(nearbyAll, 'camera'))),
+      ),
+    ),
+  ].filter((c) => c.rows.length);
+  return {
+    kind: 'aircraft',
+    title: o.callsign || o.icao24 || 'Surface vehicle',
+    subtitle: `Airport surface vehicle · ${role}`,
+    source: 'FEED · ADS-B',
+    demo: false,
+    status:
+      cards[1]?.rows
+        .map((r) => r.value)
+        .slice(0, 2)
+        .join(' · ') || '',
+    cards,
+    actions: [],
+  };
+}
+
 function aircraftHud(o, rand, d, nearbyAll) {
   const altFt = Number.isFinite(o.altitudeM) ? o.altitudeM * FT : null;
   const vr = Number(o.verticalRateMps);
@@ -420,6 +488,8 @@ export const HUD_ACTIONS = Object.freeze({
 });
 
 export function buildHud(o, nearbyAll = []) {
+  const vehicleRole = o.kind === 'aircraft' ? surfaceVehicleRole(o) : null;
+  if (vehicleRole) return surfaceVehicleHud(o, vehicleRole, nearbyAll);
   const d = buildDossier(o);
   const rand = rng(seedFrom(`hud:${o.key || o.id}`));
   const build = {

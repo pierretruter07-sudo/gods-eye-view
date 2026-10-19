@@ -649,6 +649,7 @@
       "src/shell/welcome.js",
       "src/tour/config.js",
       "src/tour/controller.js",
+      "src/tour/descent.js",
       "src/tour/events.js",
       "src/tour/index.js",
       "src/tour/lines.js",

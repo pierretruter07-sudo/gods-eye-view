@@ -76,6 +76,8 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-010 | The focused asset shall open in the intel HUD in a reduced "touring" action set. | D |
 | GEV-DIR-011 | The Director shall choose its next stop on arrival at the current one and load that stop's aircraft during the dwell. The loaded aircraft shall be drawn on arrival until the live layer's own records arrive. It shall not arrive at an airport with no aircraft loaded; such an airport is skipped. A new incident still comes first. | T |
 | GEV-DIR-012 | The airport overlay shall fade in on arrival and out on departure, and each aircraft label shall fade in when its data arrives. | D |
+| GEV-DIR-013 | On its first run after the dashboard opens, the Director shall descend in order: geostationary belt → ISS → an airliner at 35,000–43,000 ft → a helicopter at or below 3,000 ft (else a light aircraft at or below 5,000 ft) → an ADS-B airport surface vehicle (else a taxiing aircraft) → the nearest street camera → up to two cameras within 8 km. It shall then return to the normal rotation; later starts shall skip the descent. | T |
+| GEV-DIR-014 | The descent shall stay over the camera region nearest local early afternoon (solar time). Every subject shall be a live record, and a step with nothing live shall be skipped, never simulated. A step whose source has not loaded shall wait at most 8 s. A new incident shall still be shown first, and the descent resumes after it. | T |
 
 ## 6. Intel HUD (INT)
 
@@ -98,6 +100,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-015 | When the Director stops at an airport or city, the intel view shall show the place itself. It shall cover live traffic counts and phases, the current METAR, the latest incidents nearby (earthquakes, fire hotspots, cyclones, emergency squawks) and what else is around. Every value shall come from a feed or be computed from one; a missing feed or layer shall be named as such. | T |
 | GEV-INT-016 | Opening a street camera shall show its live still, refreshed every 10 seconds, with its location, network, licence and what is around it. Every value shall come from the camera catalog or be computed from it; no simulated value shall be shown on a camera. | T |
 | GEV-INT-017 | When the street-camera layer is on, a Director place card shall show the nearest camera within 10 km with its live still. | T |
+| GEV-INT-018 | An ADS-B airport surface vehicle (emitter category C1 or C2) shall open as a vehicle with feed values only: no simulated rows and no aircraft actions. | T |
 
 ## 7. Exercise mode (EXE)
 

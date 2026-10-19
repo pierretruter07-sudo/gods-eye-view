@@ -4,7 +4,12 @@ import {
   holdContinuousRender,
   releaseContinuousRender,
 } from '../renderGovernor.js';
-import { TOUR_LAYERS, TOUR_TIMING } from './config.js';
+import { DESCENT_RULES, TOUR_LAYERS, TOUR_TIMING } from './config.js';
+import {
+  DESCENT_WAIT,
+  createDescentPlanner,
+  pickDescentRegion,
+} from './descent.js';
 import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
@@ -42,8 +47,14 @@ export function createTourController({
   onFocus = null,
   onTravel = null,
   stage = null,
+  openingDescent = false,
 }) {
   const planner = createPlanner();
+  // The opening descent runs on the first start after the dashboard opens;
+  // later starts go straight to the normal rotation.
+  let descentPending = openingDescent;
+  let descent = null;
+  let regionStaged = { aircraft: [], at: 0 };
   const staged = { flights: [], quakes: [] };
   let run = null; // { controller: AbortController }
   let removeOrbit = null;
@@ -204,10 +215,17 @@ export function createTourController({
     });
   }
 
-  function startOrbit({ lat, lon, heightM = 0, rangeM, pitchDeg }) {
+  function startOrbit({
+    lat,
+    lon,
+    heightM = 0,
+    rangeM,
+    pitchDeg,
+    orbitDegPerS = TOUR_TIMING.orbitDegPerS,
+  }) {
     stopOrbit();
     const target = Cesium.Cartesian3.fromDegrees(lon, lat, heightM);
-    const rate = Cesium.Math.toRadians(TOUR_TIMING.orbitDegPerS);
+    const rate = Cesium.Math.toRadians(orbitDegPerS);
     const pitch = Cesium.Math.toRadians(pitchDeg);
     let heading = viewer.camera.heading;
     let last = performance.now();
@@ -330,6 +348,10 @@ export function createTourController({
       return { layerId: 'military', record: next.aircraft };
     if (next.kind === 'satellite')
       return { layerId: 'satellites', record: next.satellite };
+    if (next.kind === 'aircraft')
+      return { layerId: 'flights', record: next.aircraft };
+    if (next.kind === 'camera') return { layerId: 'cctv', record: next.camera };
+    if (next.kind === 'geo') return null;
     // Airports and city stops open the place view: live traffic, weather,
     // incidents nearby and what else is around (never an empty screen).
     const place = placeOf(next);
@@ -369,11 +391,66 @@ export function createTourController({
     return null;
   }
 
+  // ── Opening descent ────────────────────────────────────────────────
+  /** Load the descent region's aircraft (at most every 20 s, 6 s cap). */
+  async function stageRegion(region, signal) {
+    if (!stage || Date.now() - regionStaged.at < 20_000) return;
+    const result = await Promise.race([
+      Promise.resolve(
+        stage(
+          { lat: region.lat, lon: region.lon },
+          { radiusKm: DESCENT_RULES.regionRadiusKm },
+        ),
+      ).catch(() => null),
+      sleep(6000, signal).then(() => null),
+    ]);
+    regionStaged = {
+      aircraft: Array.isArray(result?.aircraft) ? result.aircraft : [],
+      at: Date.now(),
+    };
+  }
+
+  function descentData() {
+    return {
+      ...liveData(),
+      cameras: records('cctv'),
+      staged: regionStaged.aircraft,
+    };
+  }
+
+  /** The next descent stop, or null (finished, or an incident came in). */
+  async function nextDescentStop(signal) {
+    let waitedMs = 0;
+    for (;;) {
+      if (planner.hasFresh(incidentData())) return null;
+      if (['cruise', 'low', 'ground'].includes(descent.peekStep()))
+        await stageRegion(descent.region, signal);
+      const stop = descent.next(descentData());
+      if (stop !== DESCENT_WAIT) return stop;
+      if (waitedMs >= DESCENT_RULES.stepMaxWaitS * 1000) {
+        descent.skip();
+        waitedMs = 0;
+        continue;
+      }
+      await sleep(1000, signal);
+      waitedMs += 1000;
+    }
+  }
+
+  /** Descent first (a new incident still jumps in), then the rotation. */
+  async function takeNext(signal) {
+    if (descent && !descent.isDone()) {
+      const stop = await nextDescentStop(signal);
+      if (stop) return stop;
+    }
+    return queue.take();
+  }
+
   async function loop(signal) {
     runSignal = signal;
     for (;;) {
       // Keep orbiting here until the next stop's data is in (or briefly).
-      const next = await queue.take();
+      const next = await takeNext(signal);
       stagedAircraft = next.staged?.aircraft || [];
       stagedAt = next.staged?.at || Date.now();
       // The airport picture fades out as the camera leaves.
@@ -394,8 +471,9 @@ export function createTourController({
       await flyTo(next.view, signal);
       startOrbit(next.view);
       onTravel?.('arrive', next.view);
-      // Queue the next stop now: its data loads during this whole dwell.
-      queue.planAhead();
+      // Queue the next stop now: its data loads during this whole dwell
+      // (once the opening descent has no steps left).
+      if (!descent || descent.isDone()) queue.planAhead();
       onFocus?.(focusOf(next));
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);
@@ -418,8 +496,8 @@ export function createTourController({
     }
   }
 
-  async function enableLayers() {
-    for (const id of TOUR_LAYERS) {
+  async function enableLayers(extra = []) {
+    for (const id of [...TOUR_LAYERS, ...extra]) {
       try {
         if (!dataManager.isEnabled(id)) await dataManager.setEnabled(id, true);
       } catch (error) {
@@ -435,7 +513,13 @@ export function createTourController({
     interruptCameraMotion('tour-start');
     viewer.trackedEntity = undefined;
     ui.setState('running');
-    enableLayers();
+    descent = null;
+    if (descentPending) {
+      descentPending = false;
+      descent = createDescentPlanner({ region: pickDescentRegion(Date.now()) });
+      regionStaged = { aircraft: [], at: 0 };
+    }
+    enableLayers(descent ? ['cctv'] : []);
     try {
       await loop(controller.signal);
     } catch (error) {
@@ -493,6 +577,15 @@ export function createTourController({
     simulate,
     destroy,
     isRunning: () => Boolean(run),
+    /** Diagnostics: the opening descent's region and next step. */
+    descent: () =>
+      descent
+        ? {
+            region: descent.region.id,
+            step: descent.peekStep(),
+            done: descent.isDone(),
+          }
+        : null,
     /** Diagnostics: the queued stop and recent look-ahead decisions. */
     queue: () => ({ next: queue.peek(), log: queue.log() }),
   };

@@ -74,5 +74,14 @@ test('staged aircraft are counted near the destination only', () => {
     speedMps: 70,
     headingDeg: 190,
     verticalRateMps: -4,
+    category: null,
   });
+  // The extended category (index 17) travels with the record: 8 rotorcraft.
+  const [heli] = statesNear(
+    [['7c2', 'RSCU1', 'AU', 0, 0, 153.1, -27.4, 300, false, 50, 0, 0, null, 320, null, false, 0, 8]],
+    bne.lat,
+    bne.lon,
+    50,
+  );
+  assert.equal(heli.category, 8);
 });

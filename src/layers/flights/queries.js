@@ -254,6 +254,9 @@ export function createQueries({
       aircraftClass: tr3bAircraftClass(icao24, text(info?.klass)),
       originCountry: text(info?.originCountry),
       operator: text(info?.airline),
+      // ADS-B emitter category as OpenSky numbers it (8 rotorcraft, 16/17
+      // airport surface vehicles); null when the feed did not send one.
+      emitterCategory: num(info?.category),
       typeCode: text(info?.typeCode),
       typeName: text(info?.typeName),
       registration: text(info?.registration),

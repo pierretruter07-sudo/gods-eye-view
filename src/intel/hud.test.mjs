@@ -50,3 +50,23 @@ test('staged demo objects are entirely simulated', () => {
   assert.ok(h.demo);
   assert.ok(h.cards.every((c) => c.source === 'sim' && c.rows.every((r) => r.sim)));
 });
+
+test('an airport surface vehicle shows feed values only, never aircraft rows', () => {
+  const o = toIntelObject('flights', {
+    icao24: 'veh1',
+    callsign: 'FIRE2',
+    lat: -33.94,
+    lon: 151.17,
+    onGround: true,
+    speedMps: 6,
+    emitterCategory: 16,
+  });
+  const h = buildHud(o, []);
+  assert.equal(h.subtitle, 'Airport surface vehicle · Emergency vehicle');
+  assert.deepEqual(h.actions, []);
+  const all = h.cards.flatMap((c) => c.rows);
+  assert.ok(all.length > 0);
+  assert.ok(all.every((r) => r.sim === false), 'no simulated rows');
+  assert.ok(!all.some((r) => /fuel|souls|endurance|owner/i.test(r.label)));
+  assert.ok(h.cards.every((c) => c.source === 'feed'));
+});
