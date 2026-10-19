@@ -36,7 +36,7 @@ Keep it intact.
 | Place search | Photon (Komoot), Nominatim | `/api/geocode` | ODbL data. Nominatim's usage policy limits it to light use. | ⚠️ |
 | Place context (optional) | Google Places | `/api/google/*` | Google Maps Platform terms. Metered. | ⚠️ |
 | Street cameras (NSW) | Live Traffic NSW (Transport for NSW) | `/api/cctv/*` | CC BY 4.0, attribution required | ✅ |
-| Street cameras (London) | TfL Open Data (JamCams) | `/api/cctv/*` | TfL Open Data terms, attribution required ("Powered by TfL Open Data") | ✅ |
+| Street cameras (London) | TfL Open Data (JamCams): stills and short MP4 clips | `/api/cctv/*` | TfL Open Data terms, attribution required ("Powered by TfL Open Data") | ✅ |
 | Street cameras (Finland) | Fintraffic / Digitraffic weathercams | `/api/cctv/*` | CC BY 4.0, attribution required | ✅ |
 | Street cameras (British Columbia) | DriveBC | `/api/cctv/*` | Open Government Licence – British Columbia | ✅ |
 | Street cameras (Calgary) | Open Calgary | `/api/cctv/*` | Open Government Licence – City of Calgary | ✅ |

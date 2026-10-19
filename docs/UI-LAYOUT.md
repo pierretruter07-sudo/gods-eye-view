@@ -8,6 +8,7 @@ the "Screen map" section at the end of `src/ui/styles/shell.css`.
 
 ```
 ┌──────────────────────────── top bar ────────────────────────────┐
+│             │   band (descent checklist, when on)    │          │
 │ left column │            title (asset name)          │ right    │
 │             │                                        │ column   │
 │ triage      │                                        │ sheets   │
@@ -26,8 +27,9 @@ the "Screen map" section at the end of `src/ui/styles/shell.css`.
 | Zone | What lives there |
 |---|---|
 | Top bar | The bar with mode, search, Layers, Triage, Director and Audit |
+| Band | The opening-descent checklist: a slim strip directly under the top bar that pushes everything below it down |
 | Title | The focused asset's name and status, the Exercise banner, toasts |
-| Left column | Triage, Layers, the descent checklist, the asset view's left cards |
+| Left column | Triage, Layers, the asset view's left cards |
 | Right column | The analyst-sheet drawer, the Director's alert card, the exercise package, the asset view's right cards |
 | Button bar | The focused asset's actions (at the foot of the asset view) |
 | Caption | The Director's spoken line, directly above the credits |
@@ -38,14 +40,18 @@ the "Screen map" section at the end of `src/ui/styles/shell.css`.
 
 Each side column has one owner at a time. Highest priority first:
 
-- **Left:** Triage, then Layers, then the descent checklist, then the asset cards.
+- **Left:** Triage, then Layers, then the asset cards.
 - **Right:** the sheets drawer, then the alert card, then the asset cards.
 
 A panel that loses its column hides until the column is free again. Panels
 you opened yourself always beat the Director's own panels.
 
-- **When the drawer opens,** the asset view shrinks to the space beside it, and
-  its button bar wraps instead of running underneath.
+- **No asset card is ever hidden on screens wider than 900 px.** The descent
+  checklist takes the band, not a column. When the drawer opens, the asset
+  view shrinks to the space beside it, all four cards stack in its left
+  column (which scrolls if needed), and the button bar wraps instead of
+  running underneath. The camera's "Expand view" drawer is wide, about half
+  the screen.
 - **The caption and the asset view** stack: the credits strip is reserved at the
   very bottom, the caption sits on it, and the asset view (with its button bar)
   ends above the caption.

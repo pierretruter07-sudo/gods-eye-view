@@ -52,6 +52,8 @@ const countKind = (items, kind) =>
  * @param {object} o - Intel object from the camera layer (kind 'camera').
  * @param {object} [ctx]
  * @param {string|null} [ctx.frameUrl] - Current still URL from the layer.
+ * @param {string|null} [ctx.mediaUrl] - Video URL when the camera publishes
+ *   video (a looping clip), else null.
  * @param {number} [ctx.refreshedAt] - When that URL was issued (ms).
  * @param {object[]} [ctx.nearby] - Objects around the camera (intel nearby list).
  * @param {number} [ctx.radiusKm]
@@ -62,18 +64,30 @@ export function buildCameraHud(o, ctx = {}) {
   const nearby = Array.isArray(ctx.nearby) ? ctx.nearby : [];
   const radius = Number.isFinite(ctx.radiusKm) ? ctx.radiusKm : 50;
   const credit = [o.provider, o.credit].filter(Boolean).join(' · ');
+  const video = ctx.mediaUrl || null;
   const cards = [
     card(
       'live',
       'Live view',
-      rows(
-        row('Refreshed', clockText(ctx.refreshedAt)),
-        row('Cadence', `Every ${CAMERA_FRAME_REFRESH_MS / 1000} s`),
-      ),
+      video
+        ? rows(
+            row('Video', 'Clip from the network'),
+            row('Updated', 'Every few minutes'),
+          )
+        : rows(
+            row('Refreshed', clockText(ctx.refreshedAt)),
+            row('Cadence', `Every ${CAMERA_FRAME_REFRESH_MS / 1000} s`),
+          ),
       {
-        frame: ctx.frameUrl
-          ? { url: ctx.frameUrl, alt: `Live still from ${o.name || 'camera'}` }
-          : null,
+        frame:
+          video || ctx.frameUrl
+            ? {
+                url: ctx.frameUrl || null,
+                video,
+                badge: video ? 'VIDEO CLIP' : 'LIVE STILL',
+                alt: `${video ? 'Video clip' : 'Live still'} from ${o.name || 'camera'}`,
+              }
+            : null,
       },
     ),
     card(
@@ -96,7 +110,15 @@ export function buildCameraHud(o, ctx = {}) {
         row('Network', o.provider),
         row('Licence', o.license || 'See data attribution'),
         row('Credit', o.credit || null),
-        row('Feed', o.feedType === 'image' ? 'Still image' : o.feedType),
+        row(
+          'Feed',
+          {
+            image: 'Still image',
+            mp4: 'Video clip',
+            webm: 'Video clip',
+            hls: 'Live stream',
+          }[o.feedType] || o.feedType,
+        ),
       ),
     ),
     card(
@@ -121,9 +143,10 @@ export function buildCameraHud(o, ctx = {}) {
     subtitle: [o.city, o.provider].filter(Boolean).join(' · '),
     source: credit ? `FEED · ${credit}` : 'FEED',
     demo: false,
-    status: 'Public traffic camera · live still',
+    status: `Public traffic camera · ${video ? 'video clip' : 'live still'}`,
     cards,
     actions: [
+      { id: 'liveview', label: 'Expand view' },
       { id: 'health', label: 'Network health' },
       { id: 'incidents', label: 'Nearby incidents' },
     ],

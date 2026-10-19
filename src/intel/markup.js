@@ -101,10 +101,17 @@ function refFigure(ref, image) {
 }
 
 /** A camera's live still, relayed from its registered address (FEED). */
-function frameFigure(frame) {
-  return `<figure class="gev-hud__frame">
-    <img src="${esc(frame.url)}" alt="${esc(frame.alt)}" decoding="async">
-    <figcaption><span class="gev-hud__live">LIVE STILL</span></figcaption></figure>`;
+/**
+ * A camera's live view. Video is a placeholder the intel view fills with a
+ * persistent <video> element (so card refreshes never restart playback).
+ */
+export function frameFigure(frame, { size = 'card' } = {}) {
+  const badge = `<figcaption><span class="gev-hud__live">${esc(frame.badge || 'LIVE STILL')}</span></figcaption>`;
+  if (frame.video)
+    return `<figure class="gev-hud__frame gev-hud__frame--${size}" data-video="${esc(frame.video)}" data-video-slot="${size}" aria-label="${esc(frame.alt)}">${badge}</figure>`;
+  return `<figure class="gev-hud__frame gev-hud__frame--${size}">
+    <img src="${esc(frame.url)}" alt="${esc(frame.alt)}" decoding="async" data-still="${size}">
+    ${badge}</figure>`;
 }
 
 export function hudCard(c, index, { image = null } = {}) {
@@ -253,6 +260,8 @@ function resultBlock(b, i = 0) {
       .join(
         '',
       )}<span class="gev-res__mark" style="left:${(b.markX * 100).toFixed(1)}%;top:${(b.markY * 100).toFixed(1)}%" aria-hidden="true"></span></div><figcaption>${esc(b.caption)}</figcaption></figure>`;
+  if (b.type === 'media')
+    return `${frameFigure(b.frame, { size: 'large' })}${b.caption ? `<p class="gev-res__note">${esc(b.caption)}</p>` : ''}`;
   if (b.type === 'note') return `<p class="gev-res__note">${esc(b.text)}</p>`;
   return '';
 }

@@ -107,6 +107,8 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-020 | The track-history sheet shall list positions observed this session as FEED, and any path reconstructed from the current track and speed as SIM, never as recorded positions. | T |
 | GEV-INT-021 | ADS-B airport surface vehicles shall be drawn as wheeled vehicles on the ground, with no aircraft 3D model. | T |
 | GEV-INT-022 | Every fixed on-screen panel shall be assigned to one zone of the screen map (top bar, title, left column, right column, button bar, caption, credits, centre). Each side column shall have one owner at a time, by the priority in docs/UI-LAYOUT.md. Panels shall not overlap each other or run off screen at 1920×1080, 1440×900, 1280×720, 1024×768, 820×1180 or 390×844. | T |
+| GEV-INT-023 | A camera that publishes video (TfL JamCams' short MP4 clips) shall play it, looping, in its card and in the city panel, labelled "VIDEO CLIP". Card refreshes shall not restart playback. Stills-only networks shall stay labelled "LIVE STILL". An "Expand view" action shall open the camera's view in a wide drawer, about half the screen. | T |
+| GEV-INT-024 | No asset card shall be hidden to make room for another panel on screens wider than 900 px. The descent checklist sits in a band under the top bar, and when the drawer takes the right column all four cards stack in the left column. | T |
 
 ## 7. Exercise mode (EXE)
 

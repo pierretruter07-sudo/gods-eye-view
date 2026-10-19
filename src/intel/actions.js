@@ -652,6 +652,39 @@ export const ACTIONS = {
     }),
   },
   camera: {
+    liveview: (o, ctx) => {
+      const video = ctx.cameraMedia?.(o.id) || null;
+      const still = ctx.cameraFrame?.(o.id) || null;
+      if (!video && !still)
+        return {
+          title: 'Live view',
+          sources: [],
+          blocks: [
+            {
+              type: 'note',
+              text: 'No image is available from this camera right now.',
+            },
+          ],
+        };
+      return {
+        title: 'Live view',
+        sources: [{ label: o.provider || 'Camera network', feed: true }],
+        blocks: [
+          {
+            type: 'media',
+            frame: {
+              url: still,
+              video,
+              badge: video ? 'VIDEO CLIP' : 'LIVE STILL',
+              alt: `${video ? 'Video clip' : 'Live still'} from ${o.name || 'camera'}`,
+            },
+            caption: video
+              ? `${o.name || 'Camera'}: a short clip published by ${o.provider || 'the network'}, replaced every few minutes. Not a continuous live stream.`
+              : `${o.name || 'Camera'}: the latest still from ${o.provider || 'the network'}, refreshed every 10 seconds. This network publishes stills only.`,
+          },
+        ],
+      };
+    },
     health: async (o, ctx) => {
       const health = (await ctx.cameraHealth?.()) || [];
       const cameras = ctx.objects.filter((x) => x.kind === 'camera');
