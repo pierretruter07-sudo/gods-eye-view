@@ -113,7 +113,8 @@ test('quake rings grow with magnitude, pulse a few times, then settle', () => {
     QUAKE_RINGS.growS + QUAKE_RINGS.staggerS * (QUAKE_RINGS.rings - 1);
   const end = ringFrame(cycle * QUAKE_RINGS.pulses + 1);
   assert.equal(end.settled, true);
-  assert.deepEqual(end.rings, [{ scale: 1, alpha: 0.35 }]);
+  assert.deepEqual(end.rings, [{ scale: 1, alpha: QUAKE_RINGS.settledAlpha }]);
+  assert.ok(cycle * QUAKE_RINGS.pulses >= 45, 'still pulsing through a whole stop');
   // The ring is a true circle on the globe: every point is the radius away.
   const RAD = Math.PI / 180;
   for (const p of circleDegrees(35, 139, 60, 24)) {
