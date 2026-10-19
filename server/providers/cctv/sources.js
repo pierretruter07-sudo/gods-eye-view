@@ -454,16 +454,22 @@ function pickOntarioCctvView(views) {
 }
 
 /**
- * Fetch Ontario 511 CCTV cameras. Keyless: the catalog is exposed by the
- * public 511 API, while frame URLs are stable still-image endpoints under
+ * Fetch Ontario 511 CCTV cameras. The catalog call needs a free developer
+ * key (ONTARIO_511_API_KEY; the API answers 400 without one, checked
+ * 2026-10-19). The key stays server-side; frame URLs are stable, keyless
+ * still-image endpoints under
  * 511on.ca/map/Cctv/. Only rows with finite Ontario coords and at least one
  * enabled official still view are kept.
  *
  * @returns {Promise<Array<object>>} Normalized camera source objects.
  */
 export async function loadOntarioSourcesFromOpenData() {
+  const key = String(process.env.ONTARIO_511_API_KEY ?? '').trim();
+  if (!key) return [];
   try {
-    const resp = await fetch(ONTARIO_511_CAMERAS_URL, {
+    const url = new URL(ONTARIO_511_CAMERAS_URL);
+    url.searchParams.set('key', key);
+    const resp = await fetch(url, {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
     });

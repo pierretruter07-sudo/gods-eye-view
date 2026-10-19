@@ -30,6 +30,8 @@ const envSwitch = (name, defaultOn) => {
   return value === '' ? defaultOn : value !== '0';
 };
 const open = (name) => () => envSwitch(name, true);
+/** Ontario 511 now requires a free developer key; without one it stays off. */
+const hasKey = (name) => String(process.env[name] ?? '').trim() !== '';
 const courtesy = (name) => () => envSwitch(name, false);
 
 /**
@@ -68,7 +70,8 @@ const LIVE_PACKS = [
   },
   {
     name: 'ontario',
-    enabled: open('CCTV_ONTARIO_ENABLED'),
+    enabled: () =>
+      open('CCTV_ONTARIO_ENABLED')() && hasKey('ONTARIO_511_API_KEY'),
     load: loadOntarioSourcesFromOpenData,
   },
   {

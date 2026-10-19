@@ -40,7 +40,7 @@ Keep it intact.
 | Street cameras (Finland) | Fintraffic / Digitraffic weathercams | `/api/cctv/*` | CC BY 4.0, attribution required | ✅ |
 | Street cameras (British Columbia) | DriveBC | `/api/cctv/*` | Open Government Licence – British Columbia | ✅ |
 | Street cameras (Calgary) | Open Calgary | `/api/cctv/*` | Open Government Licence – City of Calgary | ✅ |
-| Street cameras (Ontario) | Ontario 511 | `/api/cctv/*` | Open Government Licence – Ontario | ✅ |
+| Street cameras (Ontario) | Ontario 511 (free developer key, `ONTARIO_511_API_KEY`; off without it) | `/api/cctv/*` | Open Government Licence – Ontario | ✅ |
 | Street cameras, off by default | City of Austin, Caltrans, TxDOT, City of Tallinn, Transpordiamet (Tarktee), Stadt Warendorf | `/api/cctv/*` | Public data published without a stated reuse licence ("courtesy"). Off unless `CCTV_<NAME>_ENABLED=1`. | ⚠️ |
 
 ## Imagery, terrain and 3D

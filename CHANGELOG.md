@@ -15,7 +15,7 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   live; a step with nothing live is skipped.
 - **Street cameras.** A new layer restores the public traffic cameras from
   the original God's Eye View: up to about 2,300 cameras (per-network caps) from Live Traffic NSW,
-  TfL London, Fintraffic, DriveBC, Open Calgary and Ontario 511. Clicking one
+  TfL London, Fintraffic, DriveBC, Open Calgary and Ontario 511 (with a free developer key). Clicking one
   opens an intel card with its live still (refreshed every 10 s), location,
   network and licence, and shows the still as a panel in the 3D city that can
   be adjusted, saved and reset. Director place cards show the nearest
