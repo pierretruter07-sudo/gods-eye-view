@@ -82,7 +82,8 @@ test('a Director place card shows the nearest camera still when one is within re
 });
 
 test('open-licence camera networks are on by default; courtesy-only ones are off', () => {
-  const keys = Object.keys(process.env).filter((k) => k.startsWith('CCTV_'));
+  const ours = (k) => k.startsWith('CCTV_') || k === 'ONTARIO_511_API_KEY';
+  const keys = Object.keys(process.env).filter(ours);
   const saved = Object.fromEntries(keys.map((k) => [k, process.env[k]]));
   for (const k of keys) delete process.env[k];
   try {
@@ -92,8 +93,10 @@ test('open-licence camera networks are on by default; courtesy-only ones are off
       'fintraffic',
       'drivebc',
       'calgary',
-      'ontario',
     ]);
+    // Ontario 511 needs a developer key; with one set it joins the defaults.
+    process.env.ONTARIO_511_API_KEY = 'test-key';
+    assert.ok(enabledLivePacks().includes('ontario'));
     process.env.CCTV_TXDOT_ENABLED = '1';
     process.env.CCTV_NSW_ENABLED = '0';
     const on = enabledLivePacks();
@@ -101,8 +104,7 @@ test('open-licence camera networks are on by default; courtesy-only ones are off
     assert.ok(!on.includes('nsw'));
     assert.ok(!on.includes('deldot'));
   } finally {
-    for (const k of Object.keys(process.env))
-      if (k.startsWith('CCTV_')) delete process.env[k];
+    for (const k of Object.keys(process.env)) if (ours(k)) delete process.env[k];
     Object.assign(process.env, saved);
   }
 });
