@@ -654,6 +654,8 @@ export const ACTIONS = {
   camera: {
     liveview: (o, ctx) => {
       const video = ctx.cameraMedia?.(o.id) || null;
+      const live =
+        Boolean(video) && (ctx.cameraMediaType?.(o.id) || o.feedType) === 'hls';
       const still = ctx.cameraFrame?.(o.id) || null;
       if (!video && !still)
         return {
@@ -675,12 +677,15 @@ export const ACTIONS = {
             frame: {
               url: still,
               video,
-              badge: video ? 'VIDEO CLIP' : 'LIVE STILL',
-              alt: `${video ? 'Video clip' : 'Live still'} from ${o.name || 'camera'}`,
+              videoType: live ? 'hls' : video ? 'clip' : null,
+              badge: live ? 'LIVE VIDEO' : video ? 'VIDEO CLIP' : 'LIVE STILL',
+              alt: `${live ? 'Live video' : video ? 'Video clip' : 'Live still'} from ${o.name || 'camera'}`,
             },
-            caption: video
-              ? `${o.name || 'Camera'}: a short clip published by ${o.provider || 'the network'}, replaced every few minutes. Not a continuous live stream.`
-              : `${o.name || 'Camera'}: the latest still from ${o.provider || 'the network'}, refreshed every 10 seconds. This network publishes stills only.`,
+            caption: live
+              ? `${o.name || 'Camera'}: live video from ${o.provider || 'the network'}, a few seconds behind real time.`
+              : video
+                ? `${o.name || 'Camera'}: a short clip published by ${o.provider || 'the network'}, replaced every few minutes. Not a continuous live stream.`
+                : `${o.name || 'Camera'}: the latest still from ${o.provider || 'the network'}, refreshed every 10 seconds. This network publishes stills only.`,
           },
         ],
       };

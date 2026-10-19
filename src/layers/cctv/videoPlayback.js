@@ -4,10 +4,10 @@ export function attachCctvVideo(
   url,
   feedType,
   {
-    // hls.js is not bundled: no shipped camera network publishes live HLS.
-    // Browsers with native HLS (Safari) still play it; others fall back to
-    // the still frame.
-    loadHls = async () => ({ default: { isSupported: () => false } }),
+    // hls.js loads on demand, only when a live stream is opened. Browsers
+    // with native HLS (Safari) play it directly; on failure the caller
+    // falls back to the still frame.
+    loadHls = () => import('hls.js'),
     onFailure = () => {},
     fetchImpl = globalThis.fetch,
   } = {},
