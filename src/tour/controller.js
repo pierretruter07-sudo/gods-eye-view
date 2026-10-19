@@ -628,14 +628,11 @@ export function createTourController({
       warmer.stop();
       // Flights are always shown in the normal look.
       sensorLook.set(null);
-      await flyTo(next.view, signal);
-      startOrbit(next.view);
-      onTravel?.('arrive', next.view);
-      sensorLook.set(sensorFor(next, Date.now()));
       space.clear();
       await flyTo(next.view, signal);
       startOrbit(next.view);
       onTravel?.('arrive', next.view);
+      sensorLook.set(sensorFor(next, Date.now()));
       space.show(next);
       // Queue the next stop now: its data loads during this whole dwell,
       // and its Google tiles once this stop's own tiles are in. A fresh
