@@ -26,6 +26,8 @@ function emitterCategory(value) {
     B4: 12,
     B6: 14,
     B7: 15,
+    C1: 16, // surface vehicle: emergency
+    C2: 17, // surface vehicle: service
   };
   return categories[category] || 0;
 }

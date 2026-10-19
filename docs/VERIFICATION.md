@@ -72,6 +72,8 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-DIR-010 | `src/shell/index.js` `onFocus`, `src/intel/index.js` `showFocus` | D |
 | GEV-DIR-011 | `src/tour/queue.js`, `src/tour/controller.js`, `src/shell/flightPrefetch.js` `stage` | T: `src/tour/queue.test.mjs` "the next stop is planned on arrival and its data loads a whole dwell ahead" "an airport with no aircraft is skipped instead of shown empty" "a slow source is waited for only briefly; a fresh incident jumps the queue"; `src/shell/shellPolicies.test.mjs` "staged aircraft are counted near the destination only" |
 | GEV-DIR-012 | `src/airports/overlay.js` `fadeIn`, `fadeOut` | D: Director run on the deployed app, airport stops |
+| GEV-DIR-013 | `src/tour/descent.js` `createDescentPlanner`, `src/tour/controller.js` `takeNext` | T: `src/tour/descent.test.mjs` "the descent steps down from GEO to street level, then ends" "fallbacks: a light aircraft for the helicopter, a taxiing aircraft for the vehicle" |
+| GEV-DIR-014 | `src/tour/descent.js` `pickDescentRegion`, `src/tour/controller.js` `nextDescentStop` | T: `src/tour/descent.test.mjs` "the descent region is the one nearest early afternoon, solar time" "a step with nothing live is skipped, never faked" "a step waits while its source is still loading, and can be skipped" |
 | GEV-INT-001 | `src/intel/hud.js` | T: `src/intel/hud.test.mjs` "every kind gets at most four cards, deterministic" |
 | GEV-INT-002 | `src/intel/hud.js`, `src/intel/enrichment.js` | T: `hud.test.mjs` "feed values stay feed; illustrative rows are flagged"; `src/intel/intel.test.mjs` "feed and simulated content are kept apart" |
 | GEV-INT-003 | `src/intel/hud.js` | T: `hud.test.mjs` "ownership is generic, never an invented company" |
@@ -89,6 +91,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-INT-015 | `src/intel/place.js`, `src/intel/index.js` `showFocus`, `server/providers/metar.js` | T: `src/intel/place.test.mjs` "an airport stop shows live traffic, weather, incidents and surroundings" "missing feeds say so instead of inventing figures"; `src/data/metarProxy.test.mjs` "stations are validated, cached for ten minutes and served stale on failure" |
 | GEV-INT-016 | `src/intel/camera.js`, `src/intel/index.js` | T: `src/intel/camera.test.mjs` "a street camera opens as an all-feed card set with its live still" "a camera facing is shown only when the source published it with confidence" |
 | GEV-INT-017 | `src/intel/place.js`, `src/intel/index.js` `nearestCamera` | T: `src/intel/camera.test.mjs` "a Director place card shows the nearest camera still when one is within reach" |
+| GEV-INT-018 | `src/intel/hud.js` `surfaceVehicleHud` | T: `src/intel/hud.test.mjs` "an airport surface vehicle shows feed values only, never aircraft rows" |
 | GEV-EXE-001 | `src/exercise/mode.js` | I |
 | GEV-EXE-002 | `src/exercise/package.js` | T: `src/exercise/package.test.mjs` "platforms stay generic classes, never real types" |
 | GEV-EXE-003 | `src/exercise/package.js` | T: `package.test.mjs` "authorisation is a checklist with a final command step left open" |

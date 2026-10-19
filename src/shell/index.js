@@ -324,8 +324,12 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const tour = installTour({
     viewer,
     dataManager,
-    // The Director's look-ahead: load the next stop's aircraft a dwell early.
-    stage: (view) => prefetch.stage(view),
+    // The Director's look-ahead: load the next stop's aircraft a dwell early
+    // (the opening descent asks for a wider radius around its region).
+    stage: (view, opts) =>
+      prefetch.stage(view, { radiusKm: opts?.radiusKm ?? 50 }),
+    // First run after the dashboard opens: GEO belt down to street level.
+    openingDescent: true,
     // Warm the destination's aircraft before the camera gets there, then
     // refresh the moment it arrives (instead of waiting for the 30 s poll).
     onTravel(phase, view, focus) {

@@ -119,3 +119,56 @@ export function satelliteLine(sat) {
     );
   return `${parts.join(', ')}.`;
 }
+
+// ── Opening descent ─────────────────────────────────────────────────────
+
+const feet = (m) => round(m * FT_PER_M, 100).toLocaleString('en-US');
+
+export function geoBeltLine(count) {
+  return `The geostationary belt, 35,786 kilometres above the equator. ${count.toLocaleString('en-US')} satellites tracked here.`;
+}
+
+function aircraftWho(a, fallback) {
+  if (a.callsign) return `Flight ${a.callsign}`;
+  return fallback;
+}
+
+export function cruiseLine(a) {
+  const parts = [
+    `${aircraftWho(a, 'An airliner')} at ${feet(a.altitudeM)} feet`,
+  ];
+  if (a.speedMps != null)
+    parts.push(`ground speed ${Math.round(a.speedMps * KT_PER_MPS)} knots`);
+  if (a.operator) parts.push(`operator ${a.operator}`);
+  return `${parts.join(', ')}.`;
+}
+
+export function lowLevelLine(a, { helicopter }) {
+  const kind = helicopter ? 'A helicopter' : 'A light aircraft';
+  const parts = [`${kind} at ${feet(a.altitudeM)} feet`];
+  if (a.callsign) parts.push(`callsign ${a.callsign}`);
+  if (a.speedMps != null)
+    parts.push(`${Math.round(a.speedMps * KT_PER_MPS)} knots`);
+  return `${parts.join(', ')}.`;
+}
+
+export function groundLine(a, { vehicle }) {
+  if (vehicle) {
+    const role = vehicle === 'emergency' ? 'emergency' : 'service';
+    const parts = [`An airport ${role} vehicle broadcasting its position`];
+    if (a.callsign) parts.push(`callsign ${a.callsign}`);
+    return `${parts.join(', ')}.`;
+  }
+  const parts = [`${aircraftWho(a, 'An aircraft')} taxiing`];
+  if (a.speedMps != null)
+    parts.push(`at ${Math.round(a.speedMps * KT_PER_MPS)} knots`);
+  return `${parts.join(' ')}.`;
+}
+
+export function streetLine(camera, { first }) {
+  const name = camera.name || 'A street camera';
+  if (!first) return `${name}.`;
+  return camera.provider
+    ? `Street level. ${name}, a live ${camera.provider} camera.`
+    : `Street level. ${name}, a live public camera.`;
+}

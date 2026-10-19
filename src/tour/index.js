@@ -9,6 +9,7 @@ export function installTour({
   onFocus = null,
   onTravel = null,
   stage = null,
+  openingDescent = false,
 }) {
   const ui = createTourUi({ onState });
   const controller = createTourController({
@@ -18,6 +19,7 @@ export function installTour({
     onFocus,
     onTravel,
     stage,
+    openingDescent,
   });
   window.__gevTour = controller;
   return {

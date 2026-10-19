@@ -68,6 +68,97 @@ export const TOUR_ROTATION = Object.freeze([
   'city',
 ]);
 
+/**
+ * Opening descent: on the first Director run after the dashboard opens, the
+ * camera steps down from the geostationary belt to street level before the
+ * normal rotation starts. Steps 3-7 stay over one region, chosen where it is
+ * daytime so the camera stills are lit. Each region has a public traffic
+ * camera network that is on by default (see server/providers/cctv/catalog.js).
+ * groundM is the approximate city ground height, used only to aim the camera.
+ */
+export const DESCENT_REGIONS = Object.freeze(
+  [
+    {
+      id: 'sydney',
+      label: 'Sydney',
+      lat: -33.8688,
+      lon: 151.2093,
+      groundM: 20,
+    },
+    { id: 'london', label: 'London', lat: 51.5074, lon: -0.1278, groundM: 20 },
+    {
+      id: 'helsinki',
+      label: 'Helsinki',
+      lat: 60.1699,
+      lon: 24.9384,
+      groundM: 20,
+    },
+    {
+      id: 'vancouver',
+      label: 'Vancouver',
+      lat: 49.2827,
+      lon: -123.1207,
+      groundM: 10,
+    },
+    {
+      id: 'calgary',
+      label: 'Calgary',
+      lat: 51.0447,
+      lon: -114.0719,
+      groundM: 1080,
+    },
+    {
+      id: 'toronto',
+      label: 'Toronto',
+      lat: 43.6532,
+      lon: -79.3832,
+      groundM: 90,
+    },
+  ].map((r) => Object.freeze(r)),
+);
+
+export const DESCENT_RULES = Object.freeze({
+  /** Cruise band for the "airliner near 40,000 ft" step (metres, barometric). */
+  cruiseMinM: 10_668, // 35,000 ft
+  cruiseMaxM: 13_106, // 43,000 ft
+  /** Low-level step: helicopters at or below this height... */
+  helicopterMaxM: 914, // 3,000 ft
+  /** ...or, when none is airborne, a light aircraft at or below this. */
+  lightMaxM: 1_524, // 5,000 ft
+  /** Taxiing aircraft (ground-vehicle fallback): ground speed band, m/s. */
+  taxiMinMps: 2.5, // ~5 kt
+  taxiMaxMps: 15, // ~30 kt
+  /** Geostationary altitude band used to count the belt (metres). */
+  geoMinM: 34_000_000,
+  geoMaxM: 37_500_000,
+  /** Nearby cameras visited after the first street-level stop. */
+  nearbyCameras: 2,
+  nearbyCameraMaxKm: 8,
+  /** Radius of the region's aircraft load at the start of the descent. */
+  regionRadiusKm: 450,
+  /** Longest wait for a step's data to arrive before the step is skipped. */
+  stepMaxWaitS: 8,
+});
+
+/** Camera framing per descent step. */
+export const DESCENT_CAMERA = Object.freeze({
+  geo: Object.freeze({ rangeM: 95_000_000, pitchDeg: -90 }),
+  cruise: Object.freeze({ rangeM: 25_000, pitchDeg: -30 }),
+  low: Object.freeze({ rangeM: 3_000, pitchDeg: -25 }),
+  ground: Object.freeze({ rangeM: 900, pitchDeg: -35 }),
+  street: Object.freeze({ rangeM: 380, pitchDeg: -18, orbitDegPerS: 6 }),
+});
+
+export const DESCENT_DWELL_S = Object.freeze({
+  geo: 9,
+  satellite: 10,
+  cruise: 10,
+  low: 10,
+  ground: 10,
+  street: 20,
+  nearby: 12,
+});
+
 /** Layers the Director switches on when it starts. */
 export const TOUR_LAYERS = Object.freeze([
   'flights',

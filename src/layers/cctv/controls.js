@@ -257,6 +257,9 @@ export function createControls({ state: layerState, services, parts, source }) {
           lon: c.lon,
           headingDeg: c.headingDeg,
           headingConfidence: c.headingConfidence,
+          groundElevationM: Number.isFinite(c.groundElevationM)
+            ? c.groundElevationM
+            : null,
         });
       }
       return out;

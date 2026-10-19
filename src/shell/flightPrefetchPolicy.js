@@ -51,6 +51,8 @@ export function statesNear(states, lat, lon, radiusKm) {
       speedMps: num(s[9]),
       headingDeg: num(s[10]),
       verticalRateMps: num(s[11]),
+      // OpenSky extended category (8 rotorcraft, 16/17 surface vehicles).
+      category: num(s[17]),
     });
   }
   return out;
