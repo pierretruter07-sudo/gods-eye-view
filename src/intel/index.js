@@ -649,7 +649,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
         id,
         overviewSheet(o, {
           now: ctx.now,
-          nearby: nearbyObjects(ctx.objects, o, { limit: 6 }).items,
+          // Links reach further than the HUD's nearby count (an airliner
+          // over open country still has neighbours worth following).
+          nearby: nearbyObjects(ctx.objects, o, {
+            limit: 6,
+            radiusKm: o.kind === 'satellite' ? 3000 : 300,
+          }).items,
           observations: ctx.observations(o.key),
           satrec,
         }),

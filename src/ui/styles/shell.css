@@ -1480,7 +1480,8 @@ body.gev-sheets-open .gev-hud__leaders g:nth-of-type(2),
 body.gev-sheets-open .gev-hud__leaders g:nth-of-type(4) { display: none; }
 @media (max-width: 760px) {
   /* Phones: the action dock wraps to several rows, so the drawer drops
-     from the top instead and leaves the dock clear. */
-  .gev-sheet { top: calc(env(safe-area-inset-top, 0px) + 56px); left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); width: auto; bottom: auto; max-height: 52vh; }
+     from the top instead, leaves the dock clear and stops above the
+     centre of the screen, where the focused asset sits. */
+  .gev-sheet { top: calc(env(safe-area-inset-top, 0px) + 56px); left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); width: auto; bottom: auto; max-height: min(40vh, 340px); }
 }
 .gev-res > * { flex-shrink: 0; }
