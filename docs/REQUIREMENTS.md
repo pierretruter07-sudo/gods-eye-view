@@ -82,6 +82,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-016 | Street cameras switched on by the opening descent shall be switched off again when it ends. Ground-level descent stops without a published ground height shall be aimed at sampled terrain. | D |
 | GEV-DIR-017 | While dwelling at a stop, the Director shall start loading the 3D map tiles for the stop it already knows comes next (the queued stop, or the descent's next step), once the current stop's tiles are in or after 4 s. An empty airport shall be replaced during the dwell so its replacement is loaded ahead too. A fresh real-time alert shall not wait for this: it replaces the queued stop and is flown to at once. Planet-scale views (over 1,000 km) are not warmed. | T |
 | GEV-DIR-018 | At least one stop in every five shall be in space (a satellite), even when other rotation slots fall back or an alert comes between. Space stops shall cycle geostationary satellites, crewed stations (the ISS first) and navigation satellites (GPS, Galileo, GLONASS), and a geostationary satellite shall be framed far enough back to show the Earth. | T |
+| GEV-DIR-021 | The opening descent's street step shall prefer a camera with live video within 25 km of the region's centre over a nearer still, and Des Moines (Iowa DOT live video) shall be one of the descent regions. | T |
 
 ## 6. Intel HUD (INT)
 
@@ -112,6 +113,8 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-023 | A camera that publishes video (TfL JamCams' short MP4 clips) shall play it, looping, in its card and in the city panel, labelled "VIDEO CLIP". Card refreshes shall not restart playback. Stills-only networks shall stay labelled "LIVE STILL". An "Expand view" action shall open the camera's view in a wide drawer, about half the screen. | T |
 | GEV-INT-024 | No asset card shall be hidden to make room for another panel on screens wider than 900 px. The descent checklist sits in a band under the top bar, and when the drawer takes the right column all four cards stack in the left column. | T |
 | GEV-INT-025 | Leader lines from a focused asset to its cards shall run only horizontally and vertically (rounded corners allowed), each in its own lane, so lines never cross or run on top of one another beyond the first few pixels. | T |
+| GEV-INT-026 | A camera that publishes a live stream (HLS, MPEG-TS or fragmented MP4) shall play it live in its card and in the Expand view, labelled "LIVE VIDEO", relayed through the server so the browser never contacts the agency directly. If the stream fails, the card shall fall back to the camera's live still, labelled "LIVE STILL". | T |
+| GEV-INT-027 | Iowa DOT traffic cameras shall be loaded from its public feature service (CC BY 4.0, credited "Iowa Department of Transportation"), with live video only from Iowa DOT video hosts and stills only from its snapshot host. | T |
 
 ## 7. Exercise mode (EXE)
 

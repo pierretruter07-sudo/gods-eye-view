@@ -6,6 +6,12 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Live street video.** Iowa DOT's traffic cameras (CC BY 4.0) are added,
+  and about 700 of them stream live video, which now plays live in the
+  camera card and the Expand view (labelled LIVE VIDEO), relayed through
+  the server. If a stream fails the card falls back to the live still. Des
+  Moines joins the descent regions, and the descent's street step prefers
+  a live-video camera.
 - **Welcome card: 30 s and the five key components.** The card now stays
   for 30 s, and its tiles show Live data, Orbit to street, Every asset in
   depth, AI Director and Real-time alerts (cameras fold into Orbit to

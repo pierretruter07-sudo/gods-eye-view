@@ -52,6 +52,12 @@ import {
   NSW_MAX_VIEW_LABEL,
   DEFAULT_CALGARY_ROWS_URL,
   CALGARY_IMAGE_ORIGIN,
+  DEFAULT_IOWA_CAMERAS_URL,
+  IOWA_IMAGE_ORIGIN,
+  IOWA_VIDEO_HOST,
+  DEFAULT_IOWA_MAX_SOURCES,
+  IOWA_DES_MOINES,
+  IOWA_MAX_CATALOG_BYTES,
   DEFAULT_CALGARY_MAX_SOURCES,
   CALGARY_DOWNTOWN,
   CALGARY_MAX_CATALOG_BYTES,
@@ -1602,6 +1608,136 @@ export async function loadCalgarySourcesFromOpenData() {
   } catch (error) {
     console.warn(
       '[CCTV] Calgary camera download error:',
+      error?.message || error,
+    );
+    return [];
+  }
+}
+
+// ── Iowa DOT (live video) ────────────────────────────────────────────────
+
+const IOWA_LICENCE =
+  'CC BY 4.0 · Iowa Department of Transportation (data.iowa.gov)';
+
+/** An Iowa DOT URL as published (its own scheme and port), or ''. */
+function iowaUrl(value, check) {
+  let url;
+  try {
+    url = new URL(String(value || '').trim());
+  } catch {
+    return '';
+  }
+  if (!['http:', 'https:'].includes(url.protocol)) return '';
+  if (url.username || url.password) return '';
+  return check(url) ? url.href : '';
+}
+
+/**
+ * One Iowa DOT camera feature (GeoJSON) → a registered camera source. Live
+ * HLS video where the camera publishes it; its snapshot is the frame and
+ * fallback. Returns null for rows without a usable position or image.
+ */
+export function iowaCameraToSource(feature) {
+  const p = feature?.properties;
+  if (!p || typeof p !== 'object') return null;
+  const coords = feature?.geometry?.coordinates;
+  const lat = toFiniteNumber(p.latitude ?? coords?.[1]);
+  const lon = toFiniteNumber(p.longitude ?? coords?.[0]);
+  // Iowa and the roads just over its borders.
+  if (!(lat > 40 && lat < 44 && lon > -97 && lon < -89.5)) return null;
+  const imageUrl = iowaUrl(
+    p.ImageURL,
+    (u) => u.hostname === new URL(IOWA_IMAGE_ORIGIN).hostname,
+  );
+  if (!imageUrl) return null;
+  const videoUrl = iowaUrl(
+    p.VideoURL,
+    (u) => IOWA_VIDEO_HOST.test(u.hostname) && /\.m3u8$/i.test(u.pathname),
+  );
+  const raw = String(p.device_id ?? p.COMMON_ID ?? p.ImageName ?? '').trim();
+  const key = raw.replace(/[^A-Za-z0-9_.-]/g, '');
+  if (!key) return null;
+  const cameraId = `iowa-${key}`;
+  const name = String(p.Desc_ || p.ImageName || `Iowa DOT camera ${key}`)
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120);
+  const metro = /^DM\b/.test(name);
+  return {
+    id: cameraId,
+    name,
+    city: metro ? 'Des Moines' : 'Iowa',
+    cityId: metro ? 'desmoines' : 'iowa',
+    provider: 'Iowa Department of Transportation',
+    lat,
+    lon,
+    headingDeg: fallbackHeadingFromId(cameraId),
+    headingConfidence: 'low',
+    pitchDeg: -15,
+    fovDeg: 50,
+    rangeM: 220,
+    mountHeightM: 12,
+    groundElevationM: 260, // Des Moines prior; the ground snap corrects it.
+    feedType: videoUrl ? 'hls' : 'image',
+    url: videoUrl || imageUrl,
+    snapshotUrl: imageUrl,
+    sourceKind: 'iowa-dot-open-data',
+    license: IOWA_LICENCE,
+    credit: 'Iowa Department of Transportation',
+    code: cameraDisplayCode(name.toUpperCase()),
+  };
+}
+
+/**
+ * Fetch Iowa DOT traffic cameras (keyless ESRI feature service, CC BY 4.0).
+ * Cameras with live video come first, nearest downtown Des Moines.
+ */
+export async function loadIowaSourcesFromOpenData() {
+  try {
+    const endpoint = process.env.CCTV_IOWA_URL || DEFAULT_IOWA_CAMERAS_URL;
+    const resp = await fetch(endpoint, {
+      headers: { Accept: 'application/geo+json, application/json' },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
+    });
+    if (!resp.ok) {
+      try {
+        await resp.body?.cancel();
+      } catch {
+        /* no-op */
+      }
+      console.warn('[CCTV] Iowa DOT camera download failed:', resp.status);
+      return [];
+    }
+    const body = await readResponseJsonCapped(resp, IOWA_MAX_CATALOG_BYTES);
+    const features = Array.isArray(body?.features) ? body.features : [];
+    const seen = new Set();
+    const cameras = [];
+    for (const feature of features) {
+      const camera = iowaCameraToSource(feature);
+      if (!camera || seen.has(camera.id)) continue;
+      seen.add(camera.id);
+      cameras.push(camera);
+    }
+    const maxRaw = Number(
+      process.env.CCTV_IOWA_MAX_SOURCES || DEFAULT_IOWA_MAX_SOURCES,
+    );
+    const maxCount = Number.isFinite(maxRaw)
+      ? Math.max(8, Math.min(600, Math.floor(maxRaw)))
+      : DEFAULT_IOWA_MAX_SOURCES;
+    const live = cameras.filter((c) => c.feedType === 'hls');
+    const stills = cameras.filter((c) => c.feedType !== 'hls');
+    const prioritized = [
+      ...prioritizeSources(live, maxCount, [IOWA_DES_MOINES]),
+      ...prioritizeSources(stills, maxCount, [IOWA_DES_MOINES]),
+    ].slice(0, maxCount);
+    console.log(
+      `[CCTV] Loaded Iowa DOT camera sources: ${cameras.length} (${live.length} live video; using ${prioritized.length})`,
+    );
+    return prioritized;
+  } catch (error) {
+    console.warn(
+      '[CCTV] Iowa DOT camera download error:',
       error?.message || error,
     );
     return [];

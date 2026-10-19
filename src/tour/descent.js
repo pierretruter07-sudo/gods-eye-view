@@ -388,7 +388,19 @@ export function createDescentPlanner({
     street(data) {
       const cameras = (data.cameras || []).filter(placed);
       if (!cameras.length) return DESCENT_WAIT;
-      const camera = nearest(cameras, region.lat, region.lon);
+      // A camera with live video near the centre beats a nearer still.
+      const video = cameras.filter(
+        (c) =>
+          ['hls', 'mp4', 'webm'].includes(c.feedType) &&
+          distanceKm(region.lat, region.lon, c.lat, c.lon) <=
+            DESCENT_RULES.streetVideoRadiusKm,
+      );
+      const pool = video.some((c) => c.feedType === 'hls')
+        ? video.filter((c) => c.feedType === 'hls')
+        : video.length
+          ? video
+          : cameras;
+      const camera = nearest(pool, region.lat, region.lon);
       streetCamera = camera;
       return cameraStop('street', camera, true);
     },

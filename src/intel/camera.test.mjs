@@ -93,6 +93,7 @@ test('open-licence camera networks are on by default; courtesy-only ones are off
       'fintraffic',
       'drivebc',
       'calgary',
+      'iowa',
     ]);
     // Ontario 511 needs a developer key; with one set it joins the defaults.
     process.env.ONTARIO_511_API_KEY = 'test-key';

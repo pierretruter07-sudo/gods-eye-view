@@ -200,6 +200,8 @@ export function groundLine(a, { vehicle }) {
 export function streetLine(camera, { first }) {
   const name = camera.name || 'A street camera';
   if (!first) return `${name}.`;
+  if (camera.feedType === 'hls')
+    return `Street level. ${name}, live video from ${camera.provider || 'a public camera network'}.`;
   return camera.provider
     ? `Street level. ${name}, a live ${camera.provider} camera.`
     : `Street level. ${name}, a live public camera.`;

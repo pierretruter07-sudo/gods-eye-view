@@ -141,6 +141,14 @@ export const DATA_CREDITS = [
       '<a href="https://data.calgary.ca/stories/s/Open-Calgary-Terms-of-Use/u45n-7awa" target="_blank" rel="noopener">Open Government Licence – City of Calgary</a>',
   },
   {
+    key: 'iowa-cctv',
+    html:
+      'Traffic cameras and live video (Iowa): ' +
+      '<a href="https://iowadot.gov/" target="_blank" rel="noopener">Iowa Department of Transportation</a>, via ' +
+      '<a href="https://data.iowa.gov/" target="_blank" rel="noopener">data.iowa.gov</a> ' +
+      '(<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)',
+  },
+  {
     key: 'ontario-511-cctv',
     html:
       'CCTV cameras &amp; frames (Ontario): ' +
