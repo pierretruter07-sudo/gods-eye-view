@@ -631,6 +631,7 @@
       "src/exercise/swarm.js",
       "src/intel/actions.js",
       "src/intel/sheets.js",
+      "src/intel/leaderRoute.js",
       "src/intel/assetTypes.js",
       "src/intel/enrichment.js",
       "src/intel/hud.js",

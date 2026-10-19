@@ -42,6 +42,7 @@ import {
   holdContinuousRender,
   releaseContinuousRender,
 } from '../renderGovernor.js';
+import { assignLanes, orthogonalPath } from './leaderRoute.js';
 
 /**
  * Live-mode intelligence view — the Constellation HUD. Click any aircraft,
@@ -468,11 +469,16 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   function updateLeaders() {
     if (view.hidden || !selected) return;
     const at = assetScreen();
+    // Orthogonal routes (horizontal and vertical runs only), one lane each.
+    const live = anchors.map((a, i) =>
+      at && a && !cards[i].hidden ? { x: Number(a.x), y: Number(a.y) } : null,
+    );
+    const lanes = at ? assignLanes(at, live) : [];
     leaderEls.forEach(
       ({ g, grad, stopA, stopB, halo, line, pulse, dot }, i) => {
         const node = cards[i];
         const anchor = anchors[i];
-        if (!at || node.hidden || !anchor) {
+        if (!live[i]) {
           if (g.style.display !== 'none') g.style.display = 'none';
           lastD[i] = '';
           return;
@@ -480,7 +486,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
         const { x, y } = anchor;
         const ax = at.x.toFixed(1);
         const ay = at.y.toFixed(1);
-        const d = `M${ax} ${ay}L${x} ${y}`;
+        const d = orthogonalPath(at, live[i], lanes[i]);
         if (d === lastD[i]) return; // nothing moved since the last frame
         lastD[i] = d;
         const source = node.dataset.source || 'feed';

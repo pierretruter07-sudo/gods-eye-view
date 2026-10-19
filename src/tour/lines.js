@@ -125,11 +125,22 @@ export function militaryLine(aircraft, { typeName = null } = {}) {
   return `${parts.join(', ')}.`;
 }
 
+/** What a satellite group is, in a few spoken words. */
+const SATELLITE_ROLES = Object.freeze({
+  geo: 'in geostationary orbit, holding still over the equator',
+  'gps-ops': 'part of the GPS navigation constellation',
+  galileo: "part of Europe's Galileo navigation system",
+  glonass: "part of Russia's GLONASS navigation system",
+  stations: 'a crewed space station',
+});
+
 export function satelliteLine(sat) {
   const name = sat.isIss
     ? 'The International Space Station'
     : titleCase(sat.name || 'A satellite');
   const parts = [name];
+  const role = SATELLITE_ROLES[sat.group];
+  if (role && !sat.isIss) parts.push(role);
   if (sat.altitudeM != null)
     parts.push(
       `${round(sat.altitudeM / 1000, 10).toLocaleString('en-US')} kilometres up`,

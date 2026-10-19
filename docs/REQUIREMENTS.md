@@ -67,11 +67,11 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-001 | The Director shall detect aircraft squawking 7500, 7700 or 7600, rank them in that order, and ignore other codes. | T |
 | GEV-DIR-002 | The Director shall detect earthquakes of magnitude ≥ 4.5 and no older than 3 h, ranked by magnitude then recency. Aircraft emergencies come before earthquakes. | T |
 | GEV-DIR-003 | A new incident shall interrupt the tour and be shown next. | T |
-| GEV-DIR-004 | Between alerts the Director shall rotate military aircraft → busy airport → military airfield → military aircraft → vessel → busy airport → military aircraft → military airfield → satellite → planet view, skipping slots with nothing to show. Military aircraft shall be chosen by interest (named types such as Black Hawk, P-8, E-3, KC-135 first) and not repeated within 30 min. | T |
+| GEV-DIR-004 | Between alerts the Director shall rotate military aircraft → busy airport → military airfield → satellite → vessel → military aircraft → busy airport → military airfield → satellite → planet view, skipping slots with nothing to show. Military aircraft shall be chosen by interest (named types such as Black Hawk, P-8, E-3, KC-135 first) and not repeated within 30 min. | T |
 | GEV-DIR-005 | Vessel stops shall prefer naval/state vessels (≥ 1 kn). Otherwise they shall use moving vessels (≥ 8 kn). | T |
 | GEV-DIR-006 | The Director shall show at most one alert (new or revisited) every 10 min; later alerts wait their turn. A shown incident shall not repeat until 6 min have passed, and shall then be introduced as recent. | T |
 | GEV-DIR-007 | Spoken and on-screen Director lines shall contain only feed values. Simulated events shall be announced as simulated. | T |
-| GEV-DIR-008 | The welcome card shall present the product in five picture tiles with one short sentence each. The Director shall start automatically 10 s after the welcome card appears. `?nointro` shall skip the card. | D |
+| GEV-DIR-008 | The welcome card shall present the platform's five key components in picture tiles with one short sentence each: live data sources, orbit-to-street levels, asset detail, the AI Director and real-time alerts. The Director shall start automatically 30 s after the welcome card appears. `?nointro` shall skip the card. | T |
 | GEV-DIR-009 | At planet-scale views (≥ 5,000 km range) the globe shall keep turning. | D |
 | GEV-DIR-010 | The focused asset shall open in the intel HUD in a reduced "touring" action set. | D |
 | GEV-DIR-011 | The Director shall choose its next stop on arrival at the current one and load that stop's aircraft during the dwell. The loaded aircraft shall be drawn on arrival until the live layer's own records arrive. It shall not arrive at an airport with no aircraft loaded; such an airport is skipped. A new incident still comes first. | T |
@@ -81,6 +81,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-015 | During the opening descent a checklist at the side of the screen shall list the seven levels (geostationary orbit to street cameras), mark each as it is reached with its live value, mark levels with nothing live as skipped, and fade away when the descent ends. | T |
 | GEV-DIR-016 | Street cameras switched on by the opening descent shall be switched off again when it ends. Ground-level descent stops without a published ground height shall be aimed at sampled terrain. | D |
 | GEV-DIR-017 | While dwelling at a stop, the Director shall start loading the 3D map tiles for the stop it already knows comes next (the queued stop, or the descent's next step), once the current stop's tiles are in or after 4 s. An empty airport shall be replaced during the dwell so its replacement is loaded ahead too. A fresh real-time alert shall not wait for this: it replaces the queued stop and is flown to at once. Planet-scale views (over 1,000 km) are not warmed. | T |
+| GEV-DIR-018 | At least one stop in every five shall be in space (a satellite), even when other rotation slots fall back; an alert may come between. Space stops shall cycle geostationary satellites, crewed stations (the ISS first) and navigation satellites (GPS, Galileo, GLONASS), and a geostationary satellite shall be framed far enough back to show the Earth. | T |
 
 ## 6. Intel HUD (INT)
 
@@ -110,6 +111,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-022 | Every fixed on-screen panel shall be assigned to one zone of the screen map (top bar, title, left column, right column, button bar, caption, credits, centre). Each side column shall have one owner at a time, by the priority in docs/UI-LAYOUT.md. Panels shall not overlap each other or run off screen at 1920×1080, 1440×900, 1280×720, 1024×768, 820×1180 or 390×844. | T |
 | GEV-INT-023 | A camera that publishes video (TfL JamCams' short MP4 clips) shall play it, looping, in its card and in the city panel, labelled "VIDEO CLIP". Card refreshes shall not restart playback. Stills-only networks shall stay labelled "LIVE STILL". An "Expand view" action shall open the camera's view in a wide drawer, about half the screen. | T |
 | GEV-INT-024 | No asset card shall be hidden to make room for another panel on screens wider than 900 px. The descent checklist sits in a band under the top bar, and when the drawer takes the right column all four cards stack in the left column. | T |
+| GEV-INT-025 | Leader lines from a focused asset to its cards shall run only horizontally and vertically (rounded corners allowed), each in its own lane, so lines never cross or run on top of one another beyond the first few pixels. | T |
 
 ## 7. Exercise mode (EXE)
 

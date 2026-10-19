@@ -28,7 +28,7 @@ test('a new incident always comes first, then the rotation keeps moving', () => 
   // The same quake is not repeated straight away: the defence rotation moves
   // on (military slots with nothing airborne are skipped).
   const kinds = [1, 2, 3, 4].map(() => planner.next(data, t0 + min).kind);
-  assert.deepEqual(kinds, ['airport', 'base', 'vessel', 'airport']);
+  assert.deepEqual(kinds, ['airport', 'base', 'satellite', 'vessel']);
 });
 
 test('an emergency squawk interrupts and jumps the queue', () => {
@@ -144,4 +144,31 @@ test('placeholder AIS destinations are not read out', () => {
   const planner = createPlanner({ rotation: ['vessel'] });
   const v = { mmsi: '9', name: 'BROLTUS', shipType: 'Cargo', lat: 1, lon: 1, speedKts: 12, destination: '0' };
   assert.equal(planner.next({ flights: [], quakes: [], vessels: [v], satellites: [] }, t0).line, 'Cargo Broltus, making 12 knots.');
+});
+
+test('at least one stop in every five is in space, cycling GEO, stations and navigation satellites', () => {
+  const geo = { noradId: '40001', name: 'INTELSAT TEST', group: 'geo', lat: 0, lon: 60, altitudeM: 35_786_000 };
+  const gps = { noradId: '40002', name: 'GPS TEST', group: 'gps-ops', lat: 30, lon: 10, altitudeM: 20_200_000 };
+  const gal = { noradId: '40003', name: 'GALILEO TEST', group: 'galileo', lat: -20, lon: 90, altitudeM: 23_222_000 };
+  const data = { flights: [], quakes: [], vessels: [ship], satellites: [gps, iss, geo, gal] };
+  // A rotation with no space in it at all still visits space every 5 stops.
+  for (const rotation of [undefined, ['vessel', 'city', 'airport']]) {
+    const planner = createPlanner(rotation ? { rotation } : {});
+    const stops = Array.from({ length: 40 }, (_, i) => planner.next(data, t0 + i * min));
+    for (let i = 0; i + 5 <= stops.length; i += 1)
+      assert.ok(
+        stops.slice(i, i + 5).some((s) => s.kind === 'satellite'),
+        `stops ${i}-${i + 4} include space`,
+      );
+    const groups = stops.filter((s) => s.kind === 'satellite').map((s) => s.satellite.group);
+    assert.deepEqual(groups.slice(0, 5), ['geo', 'stations', 'gps-ops', 'geo', 'galileo']);
+  }
+  const planner = createPlanner();
+  let g;
+  for (let i = 0; i < 10 && !g; i += 1) {
+    const s = planner.next(data, t0 + i * min);
+    if (s.kind === 'satellite' && s.satellite.group === 'geo') g = s;
+  }
+  assert.ok(g.view.rangeM > 5_000_000, 'GEO is seen from far enough back to show the Earth');
+  assert.match(g.line, /geostationary orbit/);
 });
