@@ -208,11 +208,8 @@ export function createLifecycle({
       }
 
       layerState._count = layerState._records.length;
-      if (layerState._records.length > 0) {
-        // Projection runtime + first frame fetch are deferred to enable() so
-        // initializing the catalog stays render-cheap.
-        layerState._activeCameraId = layerState._records[0].camera.id;
-      }
+      // No camera is active until the operator opens one: enabling the layer
+      // shows the cameras, not an arbitrary first camera's panel.
 
       // Task 5: if the prior batch lost init's bounded race, apply it post-hoc
       // when it lands (pure recomputes — applyLateGroundPriors guards against
@@ -356,10 +353,6 @@ export function createLifecycle({
           );
         return Boolean(coverage && layerState._recordById.has(coverage[1]));
       });
-      if (!layerState._activeCameraId && layerState._records.length) {
-        layerState._activeCameraId = layerState._records[0].camera.id;
-        layerState._autoHopSuspended = false;
-      }
       const activeRecord = parts.selection.getActiveRecord();
       if (activeRecord) {
         parts.projection.ensureProjectionRuntime(activeRecord);

@@ -483,8 +483,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       followTimer = setInterval(() => selected && render(), 5000);
     }
     if (o.kind === 'camera') {
-      // Show the camera's panel in the city and refresh its still.
-      layerModule('cctv')?.selectCamera?.(o.id);
+      // Show the camera's panel in the city and refresh its still. The
+      // adjust tool belongs to one camera, so it ends when another opens.
+      const cams = layerModule('cctv');
+      if (cams?.getParams?.().calibrationMode)
+        cams.setParams?.({ calibrationMode: false });
+      cams?.selectCamera?.(o.id);
       render();
       followTimer = setInterval(
         () => selected && render(),
