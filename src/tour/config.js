@@ -38,6 +38,8 @@ export const STOP_CAMERA = Object.freeze({
   vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -40 }),
   military: Object.freeze({ rangeM: 45_000, pitchDeg: -42 }),
   satellite: Object.freeze({ rangeM: 2_500_000, pitchDeg: -35 }),
+  // Geostationary: far enough back to see the satellite against the Earth.
+  geoSatellite: Object.freeze({ rangeM: 9_000_000, pitchDeg: -25 }),
 });
 
 export const EVENT_RULES = Object.freeze({
@@ -70,14 +72,34 @@ export const TOUR_ROTATION = Object.freeze([
   'military',
   'airport',
   'base',
-  'military',
+  'satellite',
   'vessel',
-  'airport',
   'military',
+  'airport',
   'base',
   'satellite',
   'city',
 ]);
+
+/**
+ * Space stays in the tour: at least one stop in every `every` is a
+ * satellite (Pierre, 20 Oct), whatever the rotation falls back to. Space
+ * stops cycle through these groups so the tour shows geostationary
+ * satellites, crewed stations and navigation constellations in turn.
+ */
+export const TOUR_SPACE = Object.freeze({
+  every: 5,
+  groups: Object.freeze([
+    'geo',
+    'stations',
+    'gps-ops',
+    'geo',
+    'galileo',
+    'stations',
+    'glonass',
+    'visual',
+  ]),
+});
 
 /**
  * Opening descent: on the first Director run after the dashboard opens, the

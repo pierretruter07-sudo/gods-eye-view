@@ -8,7 +8,7 @@
  * simply runs out with no click at all, the Director may start with
  * captions only on some browsers.
  */
-export const WELCOME_SECONDS = 10;
+export const WELCOME_SECONDS = 30;
 
 /** Commit and build date stamped by the Vite config (configuration index). */
 export const BUILD_ID = String(import.meta.env?.GEV_BUILD || 'development');
@@ -24,10 +24,10 @@ const COPY = {
  * Picture tiles: a small drawing and one short sentence each. The drawings
  * are decorative (aria-hidden); the sentence carries the meaning.
  */
-const TILES = [
+export const WELCOME_TILES = Object.freeze([
   {
-    title: 'Live world',
-    text: 'Aircraft, ships and satellites, live.',
+    title: 'Live data',
+    text: 'Aircraft, ships, satellites, quakes and fires from open feeds.',
     art: `<circle cx="32" cy="22" r="15" class="w-line"/>
       <path d="M17 22h30M32 7c-6 5-6 25 0 30M32 7c6 5 6 25 0 30" class="w-faint"/>
       <path d="M12 9l5 2-5 2z" class="w-fill"/><rect x="47" y="31" width="8" height="3" rx="1.2" class="w-fill"/>
@@ -35,32 +35,34 @@ const TILES = [
   },
   {
     title: 'Orbit to street',
-    text: 'The Director flies you down, level by level.',
+    text: 'Seven levels, from GEO orbit down to a street camera.',
     art: `<path d="M18 6h28M14 15h36M10 24h44M6 33h52" class="w-faint"/>
       <circle r="3" class="w-accent w-drop"/>
       <path d="M32 6v27" class="w-dash"/>`,
   },
   {
-    title: 'Intel sheets',
-    text: 'Click anything for its data, links and history.',
+    title: 'Every asset, in depth',
+    text: 'Click anything for its data, links, history and source.',
     art: `<rect x="12" y="5" width="40" height="32" rx="4" class="w-line"/>
       <path d="M12 13h40" class="w-line"/><path d="M17 19h14M17 24h20M17 29h11" class="w-faint"/>
       <circle cx="44" cy="22" r="2.4" class="w-accent"/><circle cx="44" cy="30" r="2.4" class="w-fill"/>`,
   },
   {
-    title: 'Street cameras',
-    text: 'Live stills from 1,200+ traffic cameras.',
-    art: `<rect x="14" y="13" width="26" height="15" rx="3" class="w-line"/>
-      <path d="M40 17l9-5v17l-9-5z" class="w-line"/><circle cx="27" cy="20.5" r="4" class="w-accent"/>
-      <path d="M27 28v7M21 35h12" class="w-faint"/>`,
+    title: 'AI Director',
+    text: 'Tours the planet on its own and narrates what matters.',
+    art: `<path d="M8 32c8-16 16 4 24-10s14-8 22-14" class="w-dash"/>
+      <circle cx="8" cy="32" r="2.4" class="w-fill"/><circle cx="32" cy="22" r="2.4" class="w-fill"/>
+      <circle cx="54" cy="8" r="3" class="w-accent"/>
+      <path d="M42 30c2 2 2 6 0 8M46 27c4 4 4 10 0 14" class="w-line"/>`,
   },
   {
-    title: 'Alerts',
+    title: 'Real-time alerts',
     text: 'Emergencies and big quakes, flagged as they happen.',
     art: `<circle cx="32" cy="21" r="4" class="w-alert"/>
       <circle cx="32" cy="21" r="10" class="w-ring"/><circle cx="32" cy="21" r="16" class="w-ring w-ring2"/>`,
   },
-];
+]);
+const TILES = WELCOME_TILES;
 
 export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
   const root = document.createElement('div');

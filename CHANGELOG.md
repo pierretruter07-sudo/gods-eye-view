@@ -6,6 +6,16 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Welcome card: 30 s and the five key components.** The card now stays
+  for 30 s, and its tiles show Live data, Orbit to street, Every asset in
+  depth, AI Director and Real-time alerts (cameras fold into Orbit to
+  street).
+- **Space in every five stops.** The Director visits a satellite at least
+  once in every five stops, cycling geostationary satellites, crewed
+  stations and GPS, Galileo and GLONASS satellites. GEO satellites are
+  framed from 9,000 km back so the Earth shows behind them.
+- **Orthogonal leader lines.** Lines from the asset to its cards run only
+  horizontally and vertically, with rounded corners and a lane each.
 - **Google tiles load before the camera arrives.** The Director knows its
   next stop while it dwells at this one, and now starts loading that
   place's 3D map tiles a few seconds early. A genuine real-time alert still

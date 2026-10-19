@@ -6,6 +6,7 @@ import {
   TOUR_AIRPORTS,
   TOUR_BASES,
   TOUR_ROTATION,
+  TOUR_SPACE,
   TOUR_STOPS,
   TOUR_TIMING,
 } from './config.js';
@@ -23,15 +24,6 @@ import {
 /** AIS ship types that mark a naval or other state vessel. */
 
 const ISS_NORAD = '25544';
-/** Satellite groups worth showing, in the order they are visited. */
-const SATELLITE_GROUPS = [
-  'stations',
-  'gps-ops',
-  'galileo',
-  'glonass',
-  'geo',
-  'visual',
-];
 
 /**
  * Decides what the Director shows next. Pure: callers pass live records and
@@ -40,14 +32,19 @@ const SATELLITE_GROUPS = [
  * TOUR_TIMING.alertGapMin; otherwise the rotation tours military aircraft,
  * busy airports, military airfields, ships, satellites and the planet.
  */
-export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
+export function createPlanner({
+  rotation = TOUR_ROTATION,
+  space = TOUR_SPACE,
+} = {}) {
   const shownAt = new Map(); // event key -> last time shown (ms)
   let slot = 0;
   let airportIndex = 0;
   let cityIndex = 0;
   let vesselIndex = 0;
   let militaryIndex = 0;
-  let satelliteIndex = 0;
+  let spaceSlot = 0; // position in space.groups
+  const groupIndex = new Map(); // group -> next member to show
+  let sinceSpace = 0; // stops since the last one in space
   let baseIndex = 0;
   let lastAlertAt = -Infinity;
   const militaryShownAt = new Map(); // icao24 -> last time shown (ms)
@@ -232,16 +229,32 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
           Number.isFinite(s?.altitudeM),
       );
       if (!sats.length) return null;
-      const order = [
-        ...sats.filter((s) => s.noradId === ISS_NORAD),
-        ...SATELLITE_GROUPS.flatMap((g) =>
-          sats.filter((s) => s.group === g && s.noradId !== ISS_NORAD),
-        ),
-      ];
-      const pool = order.length ? order : sats;
-      const sat = { ...pool[satelliteIndex % pool.length] };
-      satelliteIndex += 1;
+      // Next group in the cycle that has anything tracked; else any satellite.
+      const groups = space.groups || [];
+      let group = null;
+      let members = [];
+      for (let tries = 0; tries < groups.length; tries += 1) {
+        const g = groups[spaceSlot % groups.length];
+        spaceSlot += 1;
+        members = sats.filter((s) => s.group === g);
+        if (g === 'stations')
+          members.sort(
+            (a, b) => (b.noradId === ISS_NORAD) - (a.noradId === ISS_NORAD),
+          );
+        if (members.length) {
+          group = g;
+          break;
+        }
+      }
+      if (!group) {
+        group = '*';
+        members = sats;
+      }
+      const i = groupIndex.get(group) || 0;
+      groupIndex.set(group, i + 1);
+      const sat = { ...members[i % members.length] };
       sat.isIss = sat.noradId === ISS_NORAD;
+      const geo = sat.group === 'geo' || sat.altitudeM > 30_000_000;
       return {
         kind: 'satellite',
         satellite: sat,
@@ -249,7 +262,7 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
           lat: sat.lat,
           lon: sat.lon,
           heightM: sat.altitudeM,
-          ...STOP_CAMERA.satellite,
+          ...(geo ? STOP_CAMERA.geoSatellite : STOP_CAMERA.satellite),
         },
         line: satelliteLine(sat),
         dwellS: dwell('satellite'),
@@ -278,6 +291,27 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
     },
   };
 
+  function pick(data, now) {
+    const [fresh] = alertAllowed(now) ? freshEvents(data, now) : [];
+    if (fresh) return eventStop(fresh, now, false);
+    // Space is due: at least one stop in every `space.every`. It falls due
+    // one stop early, so an alert arriving at that moment (alerts always go
+    // first) still leaves a satellite inside every run of `every` stops.
+    if (space.every > 1 && sinceSpace >= space.every - 2) {
+      const sat = builders.satellite(data, now);
+      if (sat) return sat;
+    }
+    for (let tries = 0; tries < rotation.length; tries += 1) {
+      const kind = rotation[slot % rotation.length];
+      slot += 1;
+      // Never two satellites in a row (a forced one just went).
+      if (kind === 'satellite' && sinceSpace === 0 && tries === 0) continue;
+      const stop = builders[kind]?.(data, now);
+      if (stop) return stop;
+    }
+    return builders.city(data, now);
+  }
+
   return {
     /**
      * True when an incident that has never been shown may be shown now
@@ -288,15 +322,9 @@ export function createPlanner({ rotation = TOUR_ROTATION } = {}) {
     },
 
     next(data, now = Date.now()) {
-      const [fresh] = alertAllowed(now) ? freshEvents(data, now) : [];
-      if (fresh) return eventStop(fresh, now, false);
-      for (let tries = 0; tries < rotation.length; tries += 1) {
-        const kind = rotation[slot % rotation.length];
-        slot += 1;
-        const stop = builders[kind]?.(data, now);
-        if (stop) return stop;
-      }
-      return builders.city(data, now);
+      const stop = pick(data, now);
+      sinceSpace = stop?.kind === 'satellite' ? 0 : sinceSpace + 1;
+      return stop;
     },
   };
 }
