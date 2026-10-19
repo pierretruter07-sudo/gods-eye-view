@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  DESCENT_LEVELS,
   DESCENT_STEPS,
+  descentDetail,
   DESCENT_WAIT,
   createDescentPlanner,
   pickDescentRegion,
@@ -96,7 +98,7 @@ test('the descent steps down from GEO to street level, then ends', () => {
     stops.push(stop);
   assert.deepEqual(
     stops.map((s) => s.descent),
-    ['geo', 'satellite', 'cruise', 'low', 'ship', 'ground', 'street', 'nearby', 'nearby'],
+    ['geo', 'iss', 'cruise', 'low', 'ship', 'ground', 'street', 'nearby', 'nearby'],
   );
   assert.equal(stops.length, DESCENT_STEPS.length);
   assert.ok(planner.isDone());
@@ -128,7 +130,7 @@ test('the descent steps down from GEO to street level, then ends', () => {
   assert.equal(planner.next(data), null);
 });
 
-test('fallbacks: a light aircraft for the helicopter, a taxiing aircraft for the vehicle', () => {
+test('fallbacks: a light aircraft for the helicopter; never an aircraft for the vehicle', () => {
   const planner = createDescentPlanner({ region: sydney });
   const data = fullData();
   data.flights = [
@@ -143,8 +145,10 @@ test('fallbacks: a light aircraft for the helicopter, a taxiing aircraft for the
   const by = Object.fromEntries(stops.map((s) => [s.descent, s]));
   assert.equal(by.low.aircraft.icao24, 'vh1');
   assert.match(by.low.line, /^A light aircraft at 3,000 feet/);
-  assert.equal(by.ground.aircraft.icao24, 'taxi1');
-  assert.match(by.ground.line, /^Flight TAXI1 taxiing at 14 knots\./);
+  // A taxiing aircraft is not a ground vehicle: with no wheeled vehicle
+  // broadcasting, the step is skipped.
+  assert.equal(by.ground, undefined);
+  assert.equal(planner.outcomes().get('ground'), 'skipped');
 });
 
 test('a step with nothing live is skipped, never faked', () => {
@@ -154,7 +158,7 @@ test('a step with nothing live is skipped, never faked', () => {
   const steps = [];
   for (let stop = planner.next(data); stop; stop = planner.next(data))
     steps.push(stop.descent);
-  assert.deepEqual(steps, ['geo', 'satellite', 'ship', 'street', 'nearby', 'nearby']);
+  assert.deepEqual(steps, ['geo', 'iss', 'ship', 'street', 'nearby', 'nearby']);
 });
 
 test('a step waits while its source is still loading, and can be skipped', () => {
@@ -163,9 +167,31 @@ test('a step waits while its source is still loading, and can be skipped', () =>
   assert.equal(planner.peekStep(), 'geo');
   planner.skip();
   assert.equal(planner.peekStep(), 'iss');
-  assert.equal(planner.next({ satellites: [iss] }).descent, 'satellite');
+  assert.equal(planner.next({ satellites: [iss] }).descent, 'iss');
   // The region's staged aircraft count as loaded data.
   const stop = planner.next({ flights: [], staged: [jet('s1', -34, 151, 12_000)] });
   assert.equal(stop.descent, 'cruise');
   assert.equal(stop.aircraft.icao24, 's1');
+});
+
+test('the checklist levels cover every step, and outcomes track shown and skipped', () => {
+  const planner = createDescentPlanner({ region: sydney });
+  const data = fullData();
+  data.flights = data.flights.filter((f) => f.icao24 !== 'veh1');
+  const stops = [];
+  for (let stop = planner.next(data); stop; stop = planner.next(data)) stops.push(stop);
+  const outcomes = planner.outcomes();
+  assert.equal(outcomes.get('geo'), 'shown');
+  assert.equal(outcomes.get('ground'), 'skipped');
+  assert.equal(outcomes.get('street'), 'shown');
+  const covered = DESCENT_LEVELS.flatMap((l) => l.steps).sort();
+  assert.deepEqual(covered, [...outcomes.keys()].sort());
+  assert.equal(DESCENT_LEVELS.length, 7);
+  assert.equal(descentDetail(stops.find((s) => s.descent === 'cruise')), 'QFA1 · 38,100 ft');
+  assert.equal(descentDetail(stops.find((s) => s.descent === 'geo')), '3 satellites');
+  // The ground vehicle stop asks the controller to aim at sampled terrain.
+  const p2 = createDescentPlanner({ region: sydney });
+  const all = [];
+  for (let stop = p2.next(fullData()); stop; stop = p2.next(fullData())) all.push(stop);
+  assert.equal(all.find((s) => s.descent === 'ground').view.sampleGround, true);
 });

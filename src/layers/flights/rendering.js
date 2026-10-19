@@ -893,6 +893,9 @@ export function createRendering({
         // not just at the handoff below, or accumulated conversions would starve
         // ordinary contacts of 3D models. (The handoff guard stays as defence.)
         if (isTr3b(icao)) continue;
+        // Surface vehicles have no 3D model (an airliner mesh on a fire truck
+        // read wrong and sank into the apron): they stay billboards.
+        if (flightState.records.data.get(icao)?.klass === 'vehicle') continue;
         // Ground planes compete for model slots like everyone else (owner decision
         // 2026-07-03: "3D mode is respected regardless of whether a plane is on the
         // ground or in the air — no distinction"). The cap + nearest-first ordering
@@ -1084,7 +1087,13 @@ export function createRendering({
       // fed a stand-in mesh. The billboard keeps rendering (and keeps satisfying
       // the getNearby/getDetectableObjects `bb.show` visibility guards), so a
       // converted contact still works in Contacts and Cockpit.
-      if (useModels && dr && modelEligible.has(icao24) && !isTr3b(icao24)) {
+      if (
+        useModels &&
+        dr &&
+        modelEligible.has(icao24) &&
+        !isTr3b(icao24) &&
+        flightState.records.data.get(icao24)?.klass !== 'vehicle'
+      ) {
         _ensureModel(icao24);
         const model = flightState._models.get(icao24);
         const ownsVisual = _driveFleetModelHandoff(

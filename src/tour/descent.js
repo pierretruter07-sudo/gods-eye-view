@@ -27,6 +27,47 @@ import {
   vesselLine,
 } from './lines.js';
 
+/** A unique key per step position ('nearby' appears more than once). */
+const stepKey = (i) =>
+  DESCENT_STEPS[i] === 'nearby' ? `nearby${i}` : DESCENT_STEPS[i];
+
+/**
+ * Checklist state per level: 'active' while one of its steps is on screen,
+ * 'done' once one was shown, 'skipped' when all its steps were skipped,
+ * otherwise 'pending'.
+ * @param {Map<string,string>} outcomes - from planner.outcomes()
+ * @param {string|null} activeKey - the step key on screen, or null
+ */
+export function levelStates(outcomes, activeKey) {
+  return DESCENT_LEVELS.map((level) => {
+    if (activeKey && level.steps.includes(activeKey)) return 'active';
+    const seen = level.steps.map((k) => outcomes.get(k)).filter(Boolean);
+    if (seen.includes('shown')) return 'done';
+    if (seen.length && seen.length === level.steps.length) return 'skipped';
+    return 'pending';
+  });
+}
+
+/** Short live detail for a descent stop, for the checklist. */
+export function descentDetail(stop) {
+  const ft = (m) =>
+    `${(Math.round((m * 3.28084) / 100) * 100).toLocaleString('en-US')} ft`;
+  if (!stop) return '';
+  if (stop.kind === 'geo')
+    return `${stop.count.toLocaleString('en-US')} satellites`;
+  if (stop.kind === 'satellite')
+    return `${Math.round(stop.satellite.altitudeM / 1000).toLocaleString('en-US')} km`;
+  if (stop.kind === 'aircraft' && stop.descent !== 'ground')
+    return [stop.aircraft.callsign, ft(stop.aircraft.altitudeM)]
+      .filter(Boolean)
+      .join(' · ');
+  if (stop.kind === 'aircraft')
+    return stop.aircraft.callsign || 'Airport vehicle';
+  if (stop.kind === 'vessel') return stop.vessel.name || 'Vessel';
+  if (stop.kind === 'camera') return stop.camera.name || 'Camera';
+  return '';
+}
+
 /** Returned by next() while a step's data source has not loaded yet. */
 export const DESCENT_WAIT = Object.freeze({ wait: true });
 
@@ -40,6 +81,53 @@ export const DESCENT_STEPS = Object.freeze([
   'street',
   ...Array.from({ length: DESCENT_RULES.nearbyCameras }, () => 'nearby'),
 ]);
+
+/**
+ * The levels shown on the descent checklist, top to bottom. Each lists
+ * the step keys that belong to it; nominal heights are physical facts or
+ * the step's band, the live value comes from the stop itself.
+ */
+export const DESCENT_LEVELS = Object.freeze(
+  [
+    {
+      id: 'geo',
+      label: 'Geostationary orbit',
+      nominal: '35,786 km',
+      steps: ['geo'],
+    },
+    { id: 'iss', label: 'Space station', nominal: '~420 km', steps: ['iss'] },
+    {
+      id: 'cruise',
+      label: 'Airliner at cruise',
+      nominal: '~40,000 ft',
+      steps: ['cruise'],
+    },
+    {
+      id: 'low',
+      label: 'Low-level flight',
+      nominal: 'Under 5,000 ft',
+      steps: ['low'],
+    },
+    { id: 'ship', label: 'Ship at sea', nominal: 'Sea level', steps: ['ship'] },
+    {
+      id: 'ground',
+      label: 'Ground vehicle',
+      nominal: 'Ground',
+      steps: ['ground'],
+    },
+    {
+      id: 'street',
+      label: 'Street cameras',
+      nominal: 'Street level',
+      steps: [
+        'street',
+        ...DESCENT_STEPS.map((_, i) => stepKey(i)).filter((k) =>
+          k.startsWith('nearby'),
+        ),
+      ],
+    },
+  ].map((l) => Object.freeze(l)),
+);
 
 const ISS_NORAD = '25544';
 const HOUR_MS = 3_600_000;
@@ -113,6 +201,8 @@ export function createDescentPlanner({
 } = {}) {
   let index = 0;
   let streetCamera = null;
+  /** step id -> 'shown' | 'skipped', in the order they were decided. */
+  const outcomes = new Map();
   const visitedCameras = new Set();
 
   const groundHeightNear = (lat, lon) =>
@@ -146,7 +236,14 @@ export function createDescentPlanner({
       descent,
       'camera',
       { camera },
-      { lat: camera.lat, lon: camera.lon, heightM, ...DESCENT_CAMERA.street },
+      {
+        lat: camera.lat,
+        lon: camera.lon,
+        heightM,
+        ...DESCENT_CAMERA.street,
+        // No published ground height: aim at sampled terrain instead.
+        sampleGround: !finite(camera.groundElevationM),
+      },
       streetLine(camera, { first }),
     );
   }
@@ -180,7 +277,7 @@ export function createDescentPlanner({
       if (!iss || !finite(iss.altitudeM)) return null;
       const satellite = { ...iss, isIss: true };
       return stop(
-        'satellite',
+        'iss',
         'satellite',
         { satellite },
         {
@@ -271,27 +368,21 @@ export function createDescentPlanner({
     ground(data) {
       const pool = aircraftPool(data);
       if (!pool.length) return DESCENT_WAIT;
+      // Wheeled vehicles only (ADS-B C1/C2): an aircraft is never shown
+      // as the ground vehicle. None live: the step is skipped.
       const vehicles = pool.filter((a) => surfaceVehicle(a));
-      let a = nearest(vehicles, region.lat, region.lon);
-      const vehicle = a ? surfaceVehicle(a) : null;
-      if (!a) {
-        const taxiing = pool.filter(
-          (f) =>
-            f.onGround &&
-            finite(f.speedMps) &&
-            f.speedMps >= rules.taxiMinMps &&
-            f.speedMps <= rules.taxiMaxMps,
-        );
-        a = nearest(taxiing, region.lat, region.lon);
-      }
+      const a = nearest(vehicles, region.lat, region.lon);
       if (!a) return null;
-      return aircraftStop(
+      const stopped = aircraftStop(
         'ground',
         a,
-        groundLine(a, { vehicle }),
+        groundLine(a, { vehicle: surfaceVehicle(a) }),
         DESCENT_CAMERA.ground,
         groundHeightNear(a.lat, a.lon),
       );
+      // Aim at the real ground height there (sampled on the way in).
+      stopped.view.sampleGround = true;
+      return stopped;
     },
 
     street(data) {
@@ -323,8 +414,14 @@ export function createDescentPlanner({
     isDone: () => index >= DESCENT_STEPS.length,
     /** Give up on the current step (its data never arrived). */
     skip() {
-      if (index < DESCENT_STEPS.length) index += 1;
+      if (index < DESCENT_STEPS.length) {
+        if (!outcomes.has(stepKey(index)))
+          outcomes.set(stepKey(index), 'skipped');
+        index += 1;
+      }
     },
+    /** What happened to each step so far (for the descent checklist). */
+    outcomes: () => new Map(outcomes),
     /**
      * The next descent stop; DESCENT_WAIT while the current step's source
      * is still empty; null once the descent is over. Steps with nothing live
@@ -334,6 +431,8 @@ export function createDescentPlanner({
       while (index < DESCENT_STEPS.length) {
         const result = builders[DESCENT_STEPS[index]](data);
         if (result === DESCENT_WAIT) return DESCENT_WAIT;
+        outcomes.set(stepKey(index), result ? 'shown' : 'skipped');
+        if (result) result.stepKey = stepKey(index);
         index += 1;
         if (result) return result;
       }

@@ -6,8 +6,11 @@ import {
 } from '../renderGovernor.js';
 import { DESCENT_RULES, TOUR_LAYERS, TOUR_TIMING } from './config.js';
 import {
+  DESCENT_LEVELS,
   DESCENT_WAIT,
   createDescentPlanner,
+  descentDetail,
+  levelStates,
   pickDescentRegion,
 } from './descent.js';
 import { createNarrator } from './narrator.js';
@@ -48,6 +51,7 @@ export function createTourController({
   onTravel = null,
   stage = null,
   openingDescent = false,
+  checklist = null,
 }) {
   const planner = createPlanner();
   // The opening descent runs on the first start after the dashboard opens;
@@ -55,6 +59,10 @@ export function createTourController({
   let descentPending = openingDescent;
   let descent = null;
   let regionStaged = { aircraft: [], at: 0 };
+  // Street cameras the descent switched on are switched off again when it
+  // ends (left on, every later stop near a city filled with camera stills).
+  let cctvByDescent = false;
+  let descentWrapped = true;
   const staged = { flights: [], quakes: [] };
   let run = null; // { controller: AbortController }
   let removeOrbit = null;
@@ -384,6 +392,19 @@ export function createTourController({
         timeZone: profile?.timeZone || a.timeZone,
       };
     }
+    if (next.kind === 'base') {
+      const b = next.base;
+      return {
+        kind: 'airport',
+        id: b.id,
+        label: b.label,
+        icao: b.id.toUpperCase(),
+        lat: b.lat,
+        lon: b.lon,
+        profile: null,
+        timeZone: b.timeZone,
+      };
+    }
     if (next.kind === 'city' && next.stop && next.view?.rangeM <= 1_000_000) {
       const s = next.stop;
       return {
@@ -445,6 +466,36 @@ export function createTourController({
     }
   }
 
+  /** The descent is over: tick the last level, fade the list, tidy up. */
+  function wrapDescent() {
+    if (descentWrapped || !descent) return;
+    descentWrapped = true;
+    checklist?.update(levelStates(descent.outcomes(), null));
+    checklist?.finish();
+    if (cctvByDescent) {
+      cctvByDescent = false;
+      Promise.resolve(dataManager.setEnabled('cctv', false)).catch(() => {});
+    }
+  }
+
+  /** Aim height for a ground-level stop: sampled terrain, else the view's. */
+  async function groundHeightAt(view, signal) {
+    try {
+      const sample = Cesium.sampleTerrainMostDetailed(viewer.terrainProvider, [
+        Cesium.Cartographic.fromDegrees(view.lon, view.lat),
+      ]);
+      const result = await Promise.race([
+        sample,
+        sleep(2500, signal).then(() => null),
+      ]);
+      const h = result?.[0]?.height;
+      return Number.isFinite(h) ? h : view.heightM;
+    } catch (error) {
+      if (signal.aborted) throw error;
+      return view.heightM;
+    }
+  }
+
   /**
    * The opening descent runs start to finish first, ahead of incidents;
    * anything that came in meanwhile is shown straight after it.
@@ -454,6 +505,7 @@ export function createTourController({
       const stop = await nextDescentStop(signal);
       if (stop) return stop;
     }
+    wrapDescent();
     return queue.take();
   }
 
@@ -477,6 +529,20 @@ export function createTourController({
       } else {
         ui.showStop(next);
       }
+      if (next.stepKey && descent) {
+        const index = DESCENT_LEVELS.findIndex((l) =>
+          l.steps.includes(next.stepKey),
+        );
+        checklist?.update(levelStates(descent.outcomes(), next.stepKey), {
+          index,
+          detail: descentDetail(next),
+        });
+      }
+      if (next.view?.sampleGround)
+        next.view = {
+          ...next.view,
+          heightM: await groundHeightAt(next.view, signal),
+        };
       onFocus?.(null);
       onTravel?.('depart', next.view, focusOf(next));
       await flyTo(next.view, signal);
@@ -530,6 +596,13 @@ export function createTourController({
       descentPending = false;
       descent = createDescentPlanner({ region: pickDescentRegion(Date.now()) });
       regionStaged = { aircraft: [], at: 0 };
+      descentWrapped = false;
+      try {
+        cctvByDescent = !dataManager.isEnabled('cctv');
+      } catch {
+        cctvByDescent = false;
+      }
+      checklist?.start(DESCENT_LEVELS);
     }
     enableLayers(descent ? ['cctv'] : []);
     try {
@@ -552,6 +625,11 @@ export function createTourController({
     clearMarker();
     airport?.clear();
     onFocus?.(null);
+    // Stopped mid-descent: the checklist goes; the cameras stay as they are.
+    if (!descentWrapped) {
+      descentWrapped = true;
+      checklist?.finish({ delayMs: 0 });
+    }
     ui.setState('paused');
   }
 

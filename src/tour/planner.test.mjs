@@ -25,9 +25,10 @@ test('a new incident always comes first, then the rotation keeps moving', () => 
   assert.equal(first.kind, 'event');
   assert.match(first.line, /^Alert\./);
   assert.equal(first.dwellS, TOUR_TIMING.eventDwellS);
-  // The same quake is not repeated straight away: the rotation moves on.
+  // The same quake is not repeated straight away: the defence rotation moves
+  // on (military slots with nothing airborne are skipped).
   const kinds = [1, 2, 3, 4].map(() => planner.next(data, t0 + min).kind);
-  assert.deepEqual(kinds, ['airport', 'vessel', 'satellite', 'city']);
+  assert.deepEqual(kinds, ['airport', 'base', 'vessel', 'airport']);
 });
 
 test('an emergency squawk interrupts and jumps the queue', () => {
@@ -49,7 +50,8 @@ test('recent incidents are revisited after the cooldown, introduced as recent', 
   assert.equal(planner.next(data, t0).kind, 'event');
   // Too soon to revisit: falls through to a wide view.
   assert.equal(planner.next(data, t0 + min).kind, 'city');
-  const later = t0 + (TOUR_TIMING.revisitAfterMin + 1) * min;
+  const later =
+    t0 + (Math.max(TOUR_TIMING.revisitAfterMin, TOUR_TIMING.alertGapMin) + 1) * min;
   const again = planner.next(data, later);
   assert.equal(again.kind, 'event');
   assert.match(again.line, /^Recent event\. A magnitude 6\.1 earthquake, Panama/);
@@ -88,4 +90,58 @@ test('military aircraft get their own stop, from feed values', () => {
   assert.equal(stop.kind, 'military');
   assert.match(stop.line, /RCH123/);
   assert.match(stop.line, /30,000 feet/);
+});
+
+test('at most one alert every ten minutes; later alerts wait their turn', () => {
+  const planner = createPlanner({ rotation: ['city'] });
+  const q1 = quake('q1', 5.0, 5);
+  const q2 = quake('q2', 6.0, 4);
+  const data = { flights: [], quakes: [q1, q2], vessels: [], satellites: [] };
+  const first = planner.next(data, t0);
+  assert.equal(first.kind, 'event');
+  // Another fresh quake inside the gap neither interrupts nor jumps in.
+  assert.equal(planner.hasFresh(data, t0 + 5 * min), false);
+  assert.equal(planner.next(data, t0 + 5 * min).kind, 'city');
+  const gap = TOUR_TIMING.alertGapMin * min;
+  assert.equal(planner.hasFresh(data, t0 + gap), true);
+  const second = planner.next(data, t0 + gap);
+  assert.equal(second.kind, 'event');
+  assert.notEqual(second.event.key, first.event.key);
+});
+
+test('military stops favour named types like a Black Hawk, and do not repeat', () => {
+  const planner = createPlanner({ rotation: ['military'] });
+  const plain = { icao24: 'ae0001', callsign: 'XYZ1', lat: 1, lon: 1, altitudeM: 3000, onGround: false };
+  const hawk = { icao24: 'ae0002', callsign: 'DUSTY21', typeCode: 'H60', operator: 'US Army', lat: 2, lon: 2, altitudeM: 300, onGround: false };
+  const data = { flights: [], quakes: [], vessels: [], satellites: [], military: [plain, hawk] };
+  const first = planner.next(data, t0);
+  assert.equal(first.aircraft.icao24, 'ae0002');
+  assert.match(first.line, /^A Black Hawk helicopter, callsign DUSTY21, operated by US Army, at 1,000 feet/);
+  // Shown recently: the next military stop is a different aircraft.
+  assert.equal(planner.next(data, t0 + min).aircraft.icao24, 'ae0001');
+});
+
+test('military airfields are stops with live traffic counts', () => {
+  const planner = createPlanner({ rotation: ['base'] });
+  const near = { icao24: 'x', lat: -27.65, lon: 152.7, onGround: false };
+  const stop = planner.next({ flights: [near], quakes: [], vessels: [], satellites: [], military: [] }, t0);
+  assert.equal(stop.kind, 'base');
+  assert.equal(stop.base.id, 'yamb');
+  assert.equal(stop.line, 'Military airfield: RAAF Base Amberley, Queensland. 1 aircraft airborne within 50 kilometres.');
+});
+
+test('military stops fall back to military airframes in the flights feed', () => {
+  const planner = createPlanner({ rotation: ['military'] });
+  const civil = { icao24: 'c1', callsign: 'QFA1', lat: 1, lon: 1, altitudeM: 10000, onGround: false };
+  const mil = { icao24: 'ae9', callsign: 'RCH9', military: true, typeCode: 'C17', lat: 2, lon: 2, altitudeM: 9000, onGround: false };
+  const stop = planner.next({ flights: [civil, mil], quakes: [], vessels: [], satellites: [], military: [] }, t0);
+  assert.equal(stop.kind, 'military');
+  assert.equal(stop.aircraft.icao24, 'ae9');
+  assert.match(stop.line, /^A C-17 Globemaster III, callsign RCH9/);
+});
+
+test('placeholder AIS destinations are not read out', () => {
+  const planner = createPlanner({ rotation: ['vessel'] });
+  const v = { mmsi: '9', name: 'BROLTUS', shipType: 'Cargo', lat: 1, lon: 1, speedKts: 12, destination: '0' };
+  assert.equal(planner.next({ flights: [], quakes: [], vessels: [v], satellites: [] }, t0).line, 'Cargo Broltus, making 12 knots.');
 });

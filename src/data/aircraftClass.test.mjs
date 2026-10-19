@@ -64,3 +64,11 @@ test('CLASS_MODEL_REAL entries carry the fields the layers consume', () => {
     assert.ok(Number.isFinite(CLASS_SCALE_2D[kind]), kind);
   }
 });
+
+test('ADS-B surface vehicles (C1/C2) classify as wheeled vehicles, whatever the type code', () => {
+  assert.equal(classifyAircraft({ category: 16 }), 'vehicle');
+  assert.equal(classifyAircraft({ category: 17, typeCode: 'A320' }), 'vehicle');
+  assert.equal(classifyAircraft({ category: 'C2' }), 'vehicle');
+  assert.ok(CLASS_SCALE_2D.vehicle > 0);
+  assert.equal(CLASS_MODEL_REAL.vehicle, undefined, 'no 3D model for vehicles');
+});

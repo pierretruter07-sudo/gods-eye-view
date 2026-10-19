@@ -6,6 +6,18 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Defence tour.** After the opening descent the Director tours military
+  aircraft (named types such as Black Hawks, P-8s, E-3s and tankers first),
+  the world's busiest airports and well-known military airfields, with ships
+  and satellites in between. Alerts show at most once every 10 minutes.
+- **Descent checklist.** A side checklist lists the seven levels from
+  geostationary orbit to street cameras and ticks them off live, then fades.
+- **Welcome card.** Five picture tiles with one short sentence each replace
+  the paragraphs.
+- **Ground vehicles drawn as vehicles.** Airport ADS-B vehicles now show as
+  wheeled vehicles on the ground (no aircraft model), and the descent never
+  substitutes an aircraft for the vehicle step. Street cameras the descent
+  turned on are turned off when it ends.
 - **Analyst sheets.** The action buttons under a focused asset now open
   sheets in a drawer on the right, so the asset stays in view. Each asset
   opens as an object: type and key, a data-lineage strip, properties, linked

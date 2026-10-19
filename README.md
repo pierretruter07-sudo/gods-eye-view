@@ -22,7 +22,7 @@ Developed by **Digital Dynamics Group**. This is a fork of
 | Capability | Summary |
 |---|---|
 | **Live layers** | Flights, military aircraft, AIS vessels, satellites, earthquakes, NASA FIRMS fires, NOAA cyclones, OSM military installations, submarine cables. |
-| **Director** | Hands-free tour. It interrupts for emergency squawks (7500/7700/7600) and M4.5+ quakes. Otherwise it rotates through airports, military aircraft, naval/state vessels, satellites and cities, with spoken commentary. It starts automatically 10 s after the welcome card, and its first run opens with a descent from the geostationary belt to a live street camera; alerts wait until the descent ends. |
+| **Director** | Hands-free tour with spoken commentary. Its first run descends from the geostationary belt to live street cameras, with a checklist of each level. It then tours military aircraft, the busiest airports and military airfields, ships and satellites, and shows at most one alert (emergency squawk or M4.5+ quake) every 10 minutes. It starts 10 s after the welcome card. |
 | **Intel HUD** | Click any asset (or let the Director pick one) to see a "constellation" of up to four cards, a follow camera and analyst actions. Actions open analyst sheets in a side drawer (object properties, lineage, linked objects, timeline and per-action tables). Every value is tagged **FEED** (from the live source) or **SIMULATED** (illustrative). |
 | **Analyst actions** | Real: satellite pass predictions, downlink windows, conjunction screening, Esri archive imagery, nearby infrastructure. Simulated, and labelled as such: cargo manifests, filed flight plans, drafted messages. |
 | **Triage, watchlist, AOI** | A queue of feed-driven alerts, a pinned watchlist, and areas of interest. |
