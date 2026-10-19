@@ -5,7 +5,7 @@
  * Visual only: nothing here touches data. sensors.js decides when.
  * @module tour/sensorLook
  */
-import { SENSOR_LABELS } from './sensors.js';
+import { SENSOR_LABELS, SENSOR_NOTES } from './sensors.js';
 
 const COMMON = `
 uniform sampler2D colorTexture;
@@ -51,15 +51,28 @@ void main() {
   out_FragColor = vec4(phosphor * clamp(l, 0.0, 1.0), 1.0);
 }`;
 
-/** Show the tag (or hide it) wherever the intel HUD has one. */
+/**
+ * Show the view-mode badge (or hide it): under the asset title in the intel
+ * HUD, and on the Director's caption, which is on screen at every stop,
+ * including views with no asset (the night side).
+ */
 export function showSensorTag(mode, root = globalThis.document) {
   if (!root?.body) return;
   root.body.dataset.gevSensor = mode || '';
-  for (const tag of root.querySelectorAll('.gev-hud__sensor')) {
-    tag.textContent = mode ? SENSOR_LABELS[mode] || '' : '';
+  const label = mode ? SENSOR_LABELS[mode] || '' : '';
+  const note = mode ? SENSOR_NOTES[mode] || '' : '';
+  for (const tag of root.querySelectorAll(
+    '.gev-hud__sensor, .gev-caption__mode',
+  )) {
+    tag.textContent = label;
+    tag.title = note;
     tag.hidden = !mode;
     if (mode) tag.dataset.mode = mode;
     else delete tag.dataset.mode;
+  }
+  for (const why of root.querySelectorAll('.gev-caption__why')) {
+    why.textContent = note;
+    why.hidden = !mode;
   }
 }
 
@@ -75,14 +88,16 @@ export function createSensorLook({ viewer, Cesium }) {
   let current = null;
 
   function set(mode) {
-    const next = mode === 'flir' || mode === 'nvg' ? mode : null;
+    const next = ['flir', 'nvg', 'lights'].includes(mode) ? mode : null;
     if (next === current) return;
     if (stage) {
       stages.remove(stage); // destroys the stage
       stage = null;
     }
     current = next;
-    if (next) {
+    // 'lights' is a badge only: the day/night shell already draws the city
+    // lights; no screen effect.
+    if (next && next !== 'lights') {
       try {
         stage = new Cesium.PostProcessStage({
           name: `gev-sensor-${next}`,

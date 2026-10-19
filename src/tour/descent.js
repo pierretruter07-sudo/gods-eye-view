@@ -24,6 +24,8 @@ import {
   lowLevelLine,
   satelliteLine,
   streetLine,
+  nightCityLine,
+  nightStreetLine,
   vesselLine,
 } from './lines.js';
 
@@ -65,6 +67,7 @@ export function descentDetail(stop) {
     return stop.aircraft.callsign || 'Airport vehicle';
   if (stop.kind === 'vessel') return stop.vessel.name || 'Vessel';
   if (stop.kind === 'camera') return stop.camera.name || 'Camera';
+  if (stop.kind === 'region') return `${stop.region.label} at night`;
   return '';
 }
 
@@ -80,6 +83,10 @@ export const DESCENT_STEPS = Object.freeze([
   'ground',
   'street',
   ...Array.from({ length: DESCENT_RULES.nearbyCameras }, () => 'nearby'),
+  // The night side (Pierre, 20 Oct): a city at night with its lights, then
+  // one of its streets in night vision.
+  'nightCity',
+  'nightStreet',
 ]);
 
 /**
@@ -126,6 +133,12 @@ export const DESCENT_LEVELS = Object.freeze(
         ),
       ],
     },
+    {
+      id: 'night',
+      label: 'City at night',
+      nominal: 'Night side',
+      steps: ['nightCity', 'nightStreet'],
+    },
   ].map((l) => Object.freeze(l)),
 );
 
@@ -147,6 +160,32 @@ export function pickDescentRegion(now, regions = DESCENT_REGIONS) {
   let bestScore = Infinity;
   for (const region of regions) {
     const score = Math.abs(solarHour(region.lon, now) - 12.5);
+    if (score < bestScore) {
+      best = region;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
+/**
+ * The night city: the camera region where it is dark now, nearest the
+ * evening hour (lights on, streets still lit). Null when it is daytime in
+ * every region; the day region is never picked.
+ */
+export function pickNightRegion(
+  now,
+  { exclude = null, regions = DESCENT_REGIONS, rules = DESCENT_RULES } = {},
+) {
+  let best = null;
+  let bestScore = Infinity;
+  for (const region of regions) {
+    if (exclude && region.id === exclude.id) continue;
+    const h = solarHour(region.lon, now);
+    if (h < rules.nightFromH && h > rules.nightToH) continue;
+    // Hours from the target, wrapping past midnight.
+    const d = Math.abs(h - rules.nightTargetH);
+    const score = Math.min(d, 24 - d);
     if (score < bestScore) {
       best = region;
       bestScore = score;
@@ -192,11 +231,30 @@ function aircraftPool(data) {
   return [...live, ...staged];
 }
 
+/** A camera with live video near the centre beats a nearer still. */
+function pickStreetCamera(cameras, center) {
+  const video = cameras.filter(
+    (c) =>
+      ['hls', 'mp4', 'webm'].includes(c.feedType) &&
+      distanceKm(center.lat, center.lon, c.lat, c.lon) <=
+        DESCENT_RULES.streetVideoRadiusKm,
+  );
+  const pool = video.some((c) => c.feedType === 'hls')
+    ? video.filter((c) => c.feedType === 'hls')
+    : video.length
+      ? video
+      : cameras;
+  return nearest(pool, center.lat, center.lon);
+}
+
 /**
- * @param {{region?: object, rules?: object}} [options]
+ * @param {{region?: object, nightRegion?: object|null, now?: number,
+ *   rules?: object}} [options]
  */
 export function createDescentPlanner({
   region = DESCENT_REGIONS[0],
+  nightRegion = null,
+  now = Date.now(),
   rules = DESCENT_RULES,
 } = {}) {
   let index = 0;
@@ -388,21 +446,42 @@ export function createDescentPlanner({
     street(data) {
       const cameras = (data.cameras || []).filter(placed);
       if (!cameras.length) return DESCENT_WAIT;
-      // A camera with live video near the centre beats a nearer still.
-      const video = cameras.filter(
-        (c) =>
-          ['hls', 'mp4', 'webm'].includes(c.feedType) &&
-          distanceKm(region.lat, region.lon, c.lat, c.lon) <=
-            DESCENT_RULES.streetVideoRadiusKm,
-      );
-      const pool = video.some((c) => c.feedType === 'hls')
-        ? video.filter((c) => c.feedType === 'hls')
-        : video.length
-          ? video
-          : cameras;
-      const camera = nearest(pool, region.lat, region.lon);
+      const camera = pickStreetCamera(cameras, region);
       streetCamera = camera;
       return cameraStop('street', camera, true);
+    },
+
+    nightCity() {
+      if (!nightRegion) return null;
+      return stop(
+        'nightCity',
+        'region',
+        { region: nightRegion },
+        {
+          lat: nightRegion.lat,
+          lon: nightRegion.lon,
+          heightM: 0,
+          ...DESCENT_CAMERA.nightCity,
+        },
+        nightCityLine(nightRegion, solarHour(nightRegion.lon, now)),
+      );
+    },
+
+    nightStreet(data) {
+      if (!nightRegion) return null;
+      const cameras = (data.cameras || []).filter(
+        (c) =>
+          placed(c) &&
+          !visitedCameras.has(c.id) &&
+          distanceKm(nightRegion.lat, nightRegion.lon, c.lat, c.lon) <=
+            rules.nightCameraMaxKm,
+      );
+      if (!cameras.length)
+        return (data.cameras || []).length ? null : DESCENT_WAIT;
+      const camera = pickStreetCamera(cameras, nightRegion);
+      const stopped = cameraStop('nightStreet', camera, true);
+      stopped.line = nightStreetLine(camera);
+      return stopped;
     },
 
     nearby(data) {
@@ -421,6 +500,7 @@ export function createDescentPlanner({
 
   return {
     region,
+    nightRegion,
     /** The step the next call to next() will try, or null when finished. */
     peekStep: () => DESCENT_STEPS[index] ?? null,
     isDone: () => index >= DESCENT_STEPS.length,
