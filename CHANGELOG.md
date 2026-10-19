@@ -16,11 +16,12 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   tables copy as CSV, and the drawer follows the Director from stop to stop.
 - **Director opening descent.** The first Director run after the dashboard
   opens steps down from the geostationary belt to the ISS, an airliner near
-  40,000 ft, a low-level helicopter, an airport ground vehicle and a live
-  street camera, then turns slowly at street level past nearby cameras before
+  40,000 ft, a low-level helicopter, a ship, an airport ground vehicle and a
+  live street camera, then turns slowly at street level past nearby cameras before
   the normal tour starts. It stays over whichever camera city (Sydney, London,
   Helsinki, Vancouver, Calgary or Toronto) is in daylight. Every subject is
-  live; a step with nothing live is skipped.
+  live; a step with nothing live is skipped. Alerts that arrive during the
+  descent wait until it ends, then show first.
 - **Street cameras.** A new layer restores the public traffic cameras from
   the original God's Eye View: up to about 2,300 cameras (per-network caps) from Live Traffic NSW,
   TfL London, Fintraffic, DriveBC, Open Calgary and Ontario 511 (with a free developer key). Clicking one

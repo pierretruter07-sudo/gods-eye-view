@@ -61,8 +61,11 @@ const camera = (id, lat, lon) => ({
   lon,
 });
 
+const ferry = { mmsi: '503000001', name: 'HARBOUR FERRY', shipType: 'Passenger', lat: -33.86, lon: 151.23, speedKts: 11 };
+const moored = { mmsi: '503000002', name: 'MOORED', shipType: 'Cargo', lat: -33.87, lon: 151.21, speedKts: 0 };
 const fullData = () => ({
   satellites: [geoSat(1), geoSat(2), geoSat(3), iss],
+  vessels: [moored, ferry, { ...ferry, mmsi: 'far', lat: 1, lon: 104 }],
   flights: [
     jet('far1', 10, 100, 11_900), // in band but far away
     jet('qfa1', -34.5, 150.5, 11_600), // in band, nearest Sydney
@@ -93,15 +96,18 @@ test('the descent steps down from GEO to street level, then ends', () => {
     stops.push(stop);
   assert.deepEqual(
     stops.map((s) => s.descent),
-    ['geo', 'satellite', 'cruise', 'low', 'ground', 'street', 'nearby', 'nearby'],
+    ['geo', 'satellite', 'cruise', 'low', 'ship', 'ground', 'street', 'nearby', 'nearby'],
   );
   assert.equal(stops.length, DESCENT_STEPS.length);
   assert.ok(planner.isDone());
   // Each step is lower than the one before it.
-  const heights = stops.slice(0, 6).map((s) => s.view.heightM + s.view.rangeM);
+  const heights = stops.slice(0, 7).map((s) => s.view.heightM + s.view.rangeM);
   for (let i = 1; i < heights.length; i += 1)
     assert.ok(heights[i] < heights[i - 1], `step ${i} should be lower`);
-  const [geo, sat, cruise, low, ground, street, n1, n2] = stops;
+  const [geo, sat, cruise, low, ship, ground, street, n1, n2] = stops;
+  assert.equal(ship.vessel.mmsi, '503000001', 'nearest ship under way, not the moored one');
+  assert.equal(ship.kind, 'vessel');
+  assert.match(ship.line, /^Passenger Harbour Ferry, making 11 knots\./);
   assert.equal(geo.count, 3);
   assert.match(geo.line, /3 satellites tracked/);
   assert.equal(sat.satellite.isIss, true);
@@ -148,7 +154,7 @@ test('a step with nothing live is skipped, never faked', () => {
   const steps = [];
   for (let stop = planner.next(data); stop; stop = planner.next(data))
     steps.push(stop.descent);
-  assert.deepEqual(steps, ['geo', 'satellite', 'street', 'nearby', 'nearby']);
+  assert.deepEqual(steps, ['geo', 'satellite', 'ship', 'street', 'nearby', 'nearby']);
 });
 
 test('a step waits while its source is still loading, and can be skipped', () => {
