@@ -681,6 +681,8 @@
       "src/tour/tileWarmer.js",
       "src/tour/sensors.js",
       "src/tour/sensorLook.js",
+      "src/tour/spaceGeometry.js",
+      "src/tour/spaceOverlay.js",
       "src/intel/place.js",
       "src/app/layers/cctv.js",
       "src/cctvFocusRequest.js",
