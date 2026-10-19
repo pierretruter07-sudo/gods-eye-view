@@ -143,7 +143,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   function placeCards() {
     const stacked =
       !narrow?.matches &&
-      ['sheets', 'alert'].includes(document.body.dataset.gevRight || '');
+      (['sheets', 'alert'].includes(document.body.dataset.gevRight || '') ||
+        document.body.dataset.gevLeft === 'layers');
     if (stacked === (cards[0].parentElement === stack)) return;
     if (stacked) stack.append(...cards);
     else for (const c of cards) view.insertBefore(c, stack);
@@ -152,7 +153,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const placeObserver = new MutationObserver(placeCards);
   placeObserver.observe(document.body, {
     attributes: true,
-    attributeFilter: ['data-gev-right'],
+    attributeFilter: ['data-gev-right', 'data-gev-left'],
   });
 
   // Camera video: one persistent <video> per slot (card / large view), moved
@@ -446,8 +447,12 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       }
       const r = node.getBoundingClientRect();
       const slot = SLOTS[i];
+      const onRight = document.body.dataset.gevLeft === 'layers';
       anchors[i] = stacked
-        ? { x: r.right.toFixed(1), y: (r.top + r.height / 2).toFixed(1) }
+        ? {
+            x: (onRight ? r.left : r.right).toFixed(1),
+            y: (r.top + r.height / 2).toFixed(1),
+          }
         : {
             x: (slot.endsWith('l') ? r.right : r.left).toFixed(1),
             y: (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1),

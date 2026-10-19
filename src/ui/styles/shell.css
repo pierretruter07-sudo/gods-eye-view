@@ -1690,10 +1690,16 @@ body[data-gev-right='sheets'] .gev-alert { display: none; }
 
 /* Desktop: a column owner other than the asset cards pushes them aside. */
 @media (min-width: 901px) {
-  body[data-gev-left='layers'] .gev-hud__card--tl,
-  body[data-gev-left='layers'] .gev-hud__card--bl { display: none; }
-  body[data-gev-left='layers'] .gev-hud__leaders g:nth-of-type(1),
-  body[data-gev-left='layers'] .gev-hud__leaders g:nth-of-type(3) { display: none; }
+  /* Layers takes the left column: the asset view moves beside it and all
+     four cards stack on the right. */
+  body[data-gev-left='layers'] .gev-hud {
+    left: calc(var(--gev-edge-l) + 290px + 12px);
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  body[data-gev-left='layers'] .gev-hud__cards { display: flex; grid-column: 2; grid-row: 1; }
+  body[data-gev-left='layers'] .gev-hud__header { grid-column: 1; grid-row: 1; }
+  body[data-gev-left='layers'] .gev-hud__bottom { grid-column: 1 / -1; grid-row: 2; }
   /* The drawer takes the right column: the asset view shrinks to the space
      beside it, so the button bar wraps instead of running underneath. */
   body[data-gev-right='sheets'] .gev-hud {
