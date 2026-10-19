@@ -93,6 +93,7 @@ test('open-licence camera networks are on by default; courtesy-only ones are off
       'fintraffic',
       'drivebc',
       'calgary',
+      'iowa',
     ]);
     // Ontario 511 needs a developer key; with one set it joins the defaults.
     process.env.ONTARIO_511_API_KEY = 'test-key';
@@ -122,4 +123,15 @@ test('a camera that publishes video shows a looping clip, labelled as a clip, wi
   const still = buildCameraHud(o, { frameUrl: '/api/cctv/frame/tfl-1?ts=1' });
   assert.equal(still.cards[0].frame.badge, 'LIVE STILL');
   assert.equal(still.cards[0].frame.video, null);
+});
+
+test('a camera with a live stream plays live video, labelled LIVE VIDEO, with the still as its fallback', () => {
+  const o = toIntelObject('cctv', { id: 'ia-1', name: 'I-235 at 42nd St', city: 'Des Moines', provider: 'Iowa DOT', lat: 41.6, lon: -93.7, feedType: 'hls' });
+  const hud = buildCameraHud(o, { frameUrl: '/api/cctv/frame/ia-1?ts=1', mediaUrl: '/api/cctv/media/ia-1', mediaType: 'hls' });
+  const live = hud.cards[0];
+  assert.equal(live.frame.videoType, 'hls');
+  assert.equal(live.frame.badge, 'LIVE VIDEO');
+  assert.equal(live.frame.url, '/api/cctv/frame/ia-1?ts=1', 'the still stays as the fallback');
+  assert.match(hud.status, /live video/);
+  assert.ok(live.rows.every((r) => r.sim === false));
 });

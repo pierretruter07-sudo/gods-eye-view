@@ -4,6 +4,7 @@ import {
   createHlsPuller,
   fetchHlsBytes,
   parseHlsMedia,
+  parseHlsMap,
   HLS_LIMITS,
 } from '../../server/providers/cctv/stream.js';
 const playlist =
@@ -221,5 +222,46 @@ test('an abandoned consumer expires while a renewed consumer keeps the session',
   assert.equal(entry.leases.has('abandoned'), false);
   assert.equal(entry.leases.has('active'), true);
   assert.equal(entry.controller.signal.aborted, false);
+  await manager.shutdown();
+});
+
+test('fragmented-MP4 streams (Iowa DOT) relay with their init segment; MP4 without a map still fails closed', async () => {
+  const master =
+    '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=900000\nchunklist_w1.m3u8\n';
+  const media =
+    '#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-MAP:URI="init_w1.mp4"\n#EXT-X-MEDIA-SEQUENCE:40\n' +
+    '#EXTINF:2,\nseg_w1_40.m4s\n#EXTINF:2,\nseg_w1_41.m4s\n#EXTINF:2,\nseg_w1_42.m4s\n';
+  const root = 'https://video.example:8888/ankeny/cam1/playlist.m3u8';
+  assert.equal(parseHlsMap(media, root), 'https://video.example:8888/ankeny/cam1/init_w1.mp4');
+  assert.deepEqual(
+    parseHlsMedia(media, root, 12, { fmp4: true }).map((x) => x.seq),
+    [40, 41, 42],
+  );
+  assert.throws(() => parseHlsMedia(media, root), 'a map is refused unless fMP4 is expected');
+  assert.throws(() => parseHlsMap(media.replace('init_w1.mp4', 'https://evil.example/i.mp4'), root));
+  assert.throws(() => parseHlsMap(media.replace('"init_w1.mp4"', '"i.mp4",BYTERANGE="10@0"'), root));
+  assert.throws(() =>
+    parseHlsMedia(playlist.replace('a.ts', 'a.m4s'), base),
+  );
+  const fetched = [];
+  const manager = createHlsPuller({
+    limits: { ...HLS_LIMITS, pollMs: 100000 },
+    fetchImpl: async (url) => {
+      fetched.push(url.split('/').pop());
+      if (url.endsWith('playlist.m3u8')) return new Response(master);
+      if (url.endsWith('chunklist_w1.m3u8')) return new Response(media);
+      return new Response(url.endsWith('.mp4') ? 'INIT' : 'MOOF');
+    },
+  });
+  const entry = await manager.ensure('ia-1', root, 'lease-1');
+  assert.equal(await manager.waitReady(entry), true);
+  const list = await manager.buildPlaylist(entry, 'ia-1', 'lease-1');
+  assert.match(list, /#EXT-X-VERSION:7/);
+  assert.match(list, /#EXT-X-MAP:URI="\/api\/cctv\/media\/ia-1\/init\.mp4\?session=[^"&]+&lease=lease-1"/);
+  assert.match(list, /\/seg_\d+\.m4s\?session=/);
+  assert.doesNotMatch(list, /\.ts\?/);
+  assert.equal(String(manager.getInit('ia-1', entry.token, 'lease-1')), 'INIT');
+  assert.equal(manager.getInit('ia-1', 'wrong-token', 'lease-1'), null);
+  assert.equal(fetched.filter((f) => f === 'init_w1.mp4').length, 1, 'init fetched once');
   await manager.shutdown();
 });

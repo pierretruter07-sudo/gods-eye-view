@@ -17,6 +17,7 @@ import {
   loadWarendorfSourcesFromCatalog,
   loadNswSourcesFromOpenData,
   loadCalgarySourcesFromOpenData,
+  loadIowaSourcesFromOpenData,
 } from './sources.js';
 
 /**
@@ -67,6 +68,12 @@ const LIVE_PACKS = [
     name: 'calgary',
     enabled: open('CCTV_CALGARY_ENABLED'),
     load: loadCalgarySourcesFromOpenData,
+  },
+  {
+    // Live HLS video (CC BY 4.0, Iowa Department of Transportation).
+    name: 'iowa',
+    enabled: open('CCTV_IOWA_ENABLED'),
+    load: loadIowaSourcesFromOpenData,
   },
   {
     name: 'ontario',

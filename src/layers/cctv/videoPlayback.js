@@ -4,10 +4,10 @@ export function attachCctvVideo(
   url,
   feedType,
   {
-    // hls.js is not bundled: no shipped camera network publishes live HLS.
-    // Browsers with native HLS (Safari) still play it; others fall back to
-    // the still frame.
-    loadHls = async () => ({ default: { isSupported: () => false } }),
+    // hls.js loads on demand, only when a live stream is opened. Browsers
+    // with native HLS (Safari) play it directly; on failure the caller
+    // falls back to the still frame.
+    loadHls = () => import('hls.js'),
     onFailure = () => {},
     fetchImpl = globalThis.fetch,
   } = {},
@@ -41,16 +41,18 @@ export function attachCctvVideo(
     hls?.destroy();
     hls = null;
     video.removeEventListener('canplay', play);
-    video.removeEventListener('error', fail);
+    video.removeEventListener('error', onVideoError);
     video.pause();
     video.removeAttribute('src');
     video.load();
     release();
   };
-  const fail = () => {
+  const fail = (reason = 'unknown') => {
     if (disposed) return;
+    // One line for diagnosing a stream that falls back to its still.
+    console.warn(`[cctv] video fell back to still (${feedType}): ${reason}`);
     dispose();
-    onFailure();
+    onFailure(reason);
   };
   const play = () => {
     if (disposed) return;
@@ -58,8 +60,12 @@ export function attachCctvVideo(
     video.play().catch(() => {});
   };
   video.addEventListener('canplay', play);
-  video.addEventListener('error', fail);
-  startup = setTimeout(fail, 30000);
+  const onVideoError = () =>
+    fail(
+      `media error ${video.error?.code ?? '?'} ${video.error?.message || ''}`.trim(),
+    );
+  video.addEventListener('error', onVideoError);
+  startup = setTimeout(() => fail('no playable frames within 30 s'), 30000);
   const ready = (async () => {
     if (feedType !== 'hls') {
       video.src = mediaUrl;
@@ -71,7 +77,7 @@ export function attachCctvVideo(
       if (!Hls.isSupported()) {
         if (video.canPlayType('application/vnd.apple.mpegurl'))
           video.src = mediaUrl;
-        else fail();
+        else fail('no HLS support in this browser');
         return;
       }
       hls = new Hls({
@@ -84,8 +90,10 @@ export function attachCctvVideo(
       });
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (disposed || !data?.fatal) return;
+        const why = `hls ${data.type}/${data.details}${data.reason ? ` (${data.reason})` : ''}${data.response?.code ? ` HTTP ${data.response.code}` : ''}`;
+        console.warn(`[cctv] ${why}`);
         if (++retries > 2) {
-          fail();
+          fail(why);
           return;
         }
         clearTimeout(timer);
@@ -106,8 +114,8 @@ export function attachCctvVideo(
       }, 1000);
       hls.attachMedia(video);
       hls.loadSource(mediaUrl);
-    } catch {
-      fail();
+    } catch (error) {
+      fail(`player failed to load: ${error?.message || error}`);
     }
   })();
   return { dispose, ready };
