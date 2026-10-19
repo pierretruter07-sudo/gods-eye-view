@@ -92,6 +92,8 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-INT-016 | `src/intel/camera.js`, `src/intel/index.js` | T: `src/intel/camera.test.mjs` "a street camera opens as an all-feed card set with its live still" "a camera facing is shown only when the source published it with confidence" |
 | GEV-INT-017 | `src/intel/place.js`, `src/intel/index.js` `nearestCamera` | T: `src/intel/camera.test.mjs` "a Director place card shows the nearest camera still when one is within reach" |
 | GEV-INT-018 | `src/intel/hud.js` `surfaceVehicleHud` | T: `src/intel/hud.test.mjs` "an airport surface vehicle shows feed values only, never aircraft rows" |
+| GEV-INT-019 | `src/intel/sheets.js`, `src/intel/markup.js` `sheetDrawer`, `src/intel/index.js` `openSheet` | T: `src/intel/sheets.test.mjs` "an object opens with a typed identity, a stable id and a lineage from its feed" "properties keep feed values as feed and flag platform fields as simulated" "linked objects are feed labels or openable nearby assets, never people" "the timeline is newest first, with simulated events flagged" "the drawer shows identity, lineage, tabs and escapes feed strings" "an airport surface vehicle is typed as one, with no flight events" |
+| GEV-INT-020 | `src/intel/sheets.js` `trackHistory` | T: `src/intel/sheets.test.mjs` "track history: observed positions are feed; the reconstructed path is simulated" |
 | GEV-EXE-001 | `src/exercise/mode.js` | I |
 | GEV-EXE-002 | `src/exercise/package.js` | T: `src/exercise/package.test.mjs` "platforms stay generic classes, never real types" |
 | GEV-EXE-003 | `src/exercise/package.js` | T: `package.test.mjs` "authorisation is a checklist with a final command step left open" |

@@ -6,6 +6,14 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Analyst sheets.** The action buttons under a focused asset now open
+  sheets in a drawer on the right, so the asset stays in view. Each asset
+  opens as an object: type and key, a data-lineage strip, properties, linked
+  objects (nearby assets open on click) and a timeline, plus one tab per
+  action. New sheets: track history (aircraft, vessels), port calls, orbit
+  elements (computed from the orbit data), exposure estimate, and camera
+  network health and nearby incidents. Every value is tagged FEED or SIM,
+  tables copy as CSV, and the drawer follows the Director from stop to stop.
 - **Director opening descent.** The first Director run after the dashboard
   opens steps down from the geostationary belt to the ISS, an airliner near
   40,000 ft, a low-level helicopter, an airport ground vehicle and a live

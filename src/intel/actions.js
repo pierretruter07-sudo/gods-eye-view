@@ -2,6 +2,15 @@ import { rng, seedFrom } from './enrichment.js';
 import { distanceKm } from './objects.js';
 import { propagate } from 'satellite.js';
 import { findNextSatellitePass } from '../data/satellitePass.js';
+import {
+  cameraHealthRows,
+  exposureEstimate,
+  nearbyIncidents,
+  orbitElements,
+  portCalls,
+  trackHistory,
+  utcClock,
+} from './sheets.js';
 
 /**
  * Analyst actions that produce a result panel. Real where the data exists:
@@ -287,6 +296,29 @@ function counts(o, objects, km) {
   };
 }
 
+function trackSheet(o, ctx) {
+  const observations = ctx.observations?.(o.key) || [];
+  const table = trackHistory(o, { now: ctx.now, observations });
+  return {
+    title: 'Track history',
+    sources: [
+      { label: o.kind === 'vessel' ? 'AIS feed' : 'ADS-B feed', feed: true },
+      { label: 'Dead-reckoned path', feed: false },
+    ],
+    blocks: [
+      {
+        type: 'table',
+        title: `${o.callsign || o.name || 'Contact'}: observed this session, then reconstructed`,
+        ...table,
+      },
+      {
+        type: 'note',
+        text: 'FEED rows are positions seen this session. SIM rows are reconstructed backwards from the current track and speed in 5-minute steps; they are not recorded positions.',
+      },
+    ],
+  };
+}
+
 export const ACTIONS = {
   aircraft: {
     flightplan: (o) => ({
@@ -322,6 +354,7 @@ export const ACTIONS = {
       },
     }),
     imagery: imageryTasking,
+    track: trackSheet,
   },
   vessel: {
     manifest: (o) => ({
@@ -358,8 +391,46 @@ export const ACTIONS = {
       },
     }),
     imagery: imageryTasking,
+    track: trackSheet,
+    portcalls: (o, ctx) => ({
+      title: 'Port-call history',
+      sources: [{ label: 'Port-call records', feed: false }],
+      blocks: [
+        {
+          type: 'table',
+          title: `${o.name || 'Vessel'}: last five port calls`,
+          ...portCalls(o, ctx.now),
+        },
+        {
+          type: 'note',
+          text: 'Illustrative history; no port or carrier feed is connected.',
+        },
+      ],
+    }),
   },
   satellite: {
+    elements: (o, ctx) => {
+      const sat = ctx.satrecs().find((s) => s.noradId === String(o.noradId));
+      const rows = orbitElements(sat?.satrec);
+      return {
+        title: 'Orbit elements',
+        sources: [{ label: 'CelesTrak orbits', feed: true }],
+        blocks: rows
+          ? [
+              { type: 'rows', rows },
+              {
+                type: 'note',
+                text: 'Mean elements from the public orbit data; perigee and apogee are computed from mean motion and eccentricity.',
+              },
+            ]
+          : [
+              {
+                type: 'note',
+                text: 'Orbit data for this object is not loaded.',
+              },
+            ],
+      };
+    },
     passes: async (o, ctx) => {
       const sat = ctx.satrecs().find((s) => s.noradId === String(o.noradId));
       if (!sat)
@@ -561,6 +632,64 @@ export const ACTIONS = {
       };
     },
     imagery: imageryTasking,
+    exposure: (o) => ({
+      title: 'Exposure estimate',
+      sources: [
+        { label: 'USGS feed', feed: true },
+        { label: 'Population model', feed: false },
+      ],
+      blocks: [
+        {
+          type: 'table',
+          title: `M${fmt(o.magnitude, 1)}${o.place ? `, ${o.place}` : ''}`,
+          ...exposureEstimate(o),
+        },
+        {
+          type: 'note',
+          text: 'Distance bands are a rule-of-thumb estimate from magnitude and depth. Population figures are illustrative; no population layer is connected.',
+        },
+      ],
+    }),
+  },
+  camera: {
+    health: async (o, ctx) => {
+      const health = (await ctx.cameraHealth?.()) || [];
+      const cameras = ctx.objects.filter((x) => x.kind === 'camera');
+      return {
+        title: 'Network health',
+        sources: [{ label: 'Camera relay health log', feed: true }],
+        blocks: [{ type: 'rows', rows: cameraHealthRows(o, health, cameras) }],
+      };
+    },
+    incidents: (o, ctx) => {
+      const near = nearbyIncidents(o, ctx.flagged?.() || [], 50);
+      return {
+        title: 'Nearby incidents',
+        sources: [{ label: 'Live feeds', feed: true }],
+        blocks: near.length
+          ? [
+              {
+                type: 'table',
+                title: 'Flagged within 50 km',
+                head: ['Object', 'Why', 'Distance'],
+                rows: near.map((f) => [
+                  f.object.callsign ||
+                    f.object.name ||
+                    f.object.title ||
+                    f.object.key,
+                  f.reason || f.severity || 'Flagged',
+                  `${f.km < 10 ? f.km.toFixed(1) : Math.round(f.km)} km`,
+                ]),
+              },
+            ]
+          : [
+              {
+                type: 'note',
+                text: `Nothing flagged within 50 km at ${utcClock(ctx.now)}.`,
+              },
+            ],
+      };
+    },
   },
 };
 

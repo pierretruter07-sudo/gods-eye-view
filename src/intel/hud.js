@@ -469,21 +469,26 @@ export const HUD_ACTIONS = Object.freeze({
     { id: 'flightplan', label: 'Request flight plan' },
     { id: 'atc', label: 'Contact ATC sector' },
     { id: 'imagery', label: 'Task imagery pass' },
+    { id: 'track', label: 'Track history' },
   ],
   vessel: [
     { id: 'manifest', label: 'Request manifest' },
     { id: 'port', label: 'Notify port authority' },
     { id: 'imagery', label: 'Task imagery pass' },
+    { id: 'track', label: 'Track history' },
+    { id: 'portcalls', label: 'Port calls' },
   ],
   satellite: [
     { id: 'passes', label: 'Predict passes' },
     { id: 'conjunction', label: 'Conjunction check' },
     { id: 'downlink', label: 'Request downlink' },
+    { id: 'elements', label: 'Orbit elements' },
   ],
   earthquake: [
     { id: 'responders', label: 'Alert responders' },
     { id: 'infra', label: 'Infrastructure check' },
     { id: 'imagery', label: 'Request imagery' },
+    { id: 'exposure', label: 'Exposure estimate' },
   ],
 });
 
