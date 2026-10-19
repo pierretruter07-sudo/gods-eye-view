@@ -723,7 +723,7 @@
       "src/layers/cctv/testing.js",
       "src/layers/cctv/videoPlayback.js"
     ],
-    "external": ["cesium", "egm96-universal", "satellite.js"]
+    "external": ["cesium", "egm96-universal", "hls.js", "satellite.js"]
   },
   "application-catalog": {
     "exports": ["./application/catalog"],
@@ -964,7 +964,7 @@
       "src/layers/cctv/testing.js",
       "src/layers/cctv/videoPlayback.js"
     ],
-    "external": ["cesium", "egm96-universal", "satellite.js"]
+    "external": ["cesium", "egm96-universal", "hls.js", "satellite.js"]
   },
   "application-operations": {
     "exports": ["./application/operations"],

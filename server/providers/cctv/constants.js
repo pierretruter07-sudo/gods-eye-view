@@ -236,6 +236,21 @@ export const CALGARY_DOWNTOWN = { lat: 51.0461, lon: -114.0626 };
  * body cannot be buffered without limit. */
 export const CALGARY_MAX_CATALOG_BYTES = 4 * 1024 * 1024;
 
+/** Iowa DOT traffic cameras: the public ESRI feature service behind the
+ * data.iowadot.gov "Traffic Cameras" dataset (also data.iowa.gov 4bfg-n52x,
+ * CC BY 4.0). Keyless. Over half the cameras publish live HLS video. */
+export const DEFAULT_IOWA_CAMERAS_URL =
+  'https://services.arcgis.com/8lRhdTsQyJpO52F1/arcgis/rest/services/Traffic_Cameras_View/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&f=geojson';
+/** Iowa DOT snapshot host (stills and the video fallback). */
+export const IOWA_IMAGE_ORIGIN = 'https://atmsqf.iowadot.gov/';
+/** Iowa DOT video hosts: video.iowadot.gov and its numbered load-balanced
+ * peers (video4.iowadot.gov in 2026), on any port. */
+export const IOWA_VIDEO_HOST = /^video\d*\.iowadot\.gov$/;
+export const DEFAULT_IOWA_MAX_SOURCES = 250;
+/** Downtown Des Moines: the prioritization anchor. */
+export const IOWA_DES_MOINES = { lat: 41.5868, lon: -93.625 };
+export const IOWA_MAX_CATALOG_BYTES = 8 * 1024 * 1024;
+
 /** Camera CATALOGS change rarely; 15 min keeps multi-megabyte upstream list refetches (Austin rows.json + 4 Caltrans districts + TfL + Ontario 511) infrequent. Frames are fetched per-request and are unaffected. */
 export const CCTV_SOURCE_CACHE_MS = 15 * 60 * 1000;
 /** Per-provider catalog-fetch timeout. Bounds the worst-case refresh so one

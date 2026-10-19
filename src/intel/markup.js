@@ -108,7 +108,7 @@ function refFigure(ref, image) {
 export function frameFigure(frame, { size = 'card' } = {}) {
   const badge = `<figcaption><span class="gev-hud__live">${esc(frame.badge || 'LIVE STILL')}</span></figcaption>`;
   if (frame.video)
-    return `<figure class="gev-hud__frame gev-hud__frame--${size}" data-video="${esc(frame.video)}" data-video-slot="${size}" aria-label="${esc(frame.alt)}">${badge}</figure>`;
+    return `<figure class="gev-hud__frame gev-hud__frame--${size}" data-video="${esc(frame.video)}" data-video-slot="${size}" data-video-type="${esc(frame.videoType || 'clip')}" data-poster="${esc(frame.url || '')}" aria-label="${esc(frame.alt)}">${badge}</figure>`;
   return `<figure class="gev-hud__frame gev-hud__frame--${size}">
     <img src="${esc(frame.url)}" alt="${esc(frame.alt)}" decoding="async" data-still="${size}">
     ${badge}</figure>`;

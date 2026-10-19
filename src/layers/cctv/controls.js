@@ -285,8 +285,20 @@ export function createControls({ state: layerState, services, parts, source }) {
     mediaUrl(cameraId) {
       const record = layerState._recordById.get(cameraId);
       const type = String(record?.camera?.feedType || '');
-      if (!['mp4', 'webm'].includes(type)) return null;
+      if (!['mp4', 'webm', 'hls'].includes(type)) return null;
       return `/api/cctv/media/${encodeURIComponent(cameraId)}`;
+    },
+
+    /**
+     * How a camera's video is delivered: 'hls' (live stream), 'mp4' or
+     * 'webm' (clip), or null for still-image cameras.
+     * @param {string} cameraId
+     * @returns {string|null}
+     */
+    mediaType(cameraId) {
+      const record = layerState._recordById.get(cameraId);
+      const type = String(record?.camera?.feedType || '');
+      return ['mp4', 'webm', 'hls'].includes(type) ? type : null;
     },
 
     /** Id of the camera whose panel is shown in the scene, or null. */

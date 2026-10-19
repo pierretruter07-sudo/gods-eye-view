@@ -191,3 +191,23 @@ test('the checklist levels cover every step, and outcomes track shown and skippe
   for (let stop = p2.next(fullData()); stop; stop = p2.next(fullData())) all.push(stop);
   assert.equal(all.find((s) => s.descent === 'ground').view.sampleGround, true);
 });
+
+test('the street step prefers a camera with live video near the centre over a nearer still', () => {
+  const desMoines = DESCENT_REGIONS.find((r) => r.id === 'desmoines');
+  assert.ok(desMoines, 'Des Moines (Iowa DOT live video) is a descent region');
+  const still = { ...camera('ia-still', 41.587, -93.625), provider: 'Iowa Department of Transportation', feedType: 'image' };
+  const live = { ...camera('ia-live', 41.5953, -93.6245), provider: 'Iowa Department of Transportation', feedType: 'hls' };
+  const farLive = { ...camera('ia-far', 42.03, -93.62), provider: 'Iowa Department of Transportation', feedType: 'hls' };
+  const pick = (cameras) => {
+    const planner = createDescentPlanner({ region: desMoines });
+    const data = { ...fullData(), cameras };
+    let stop;
+    for (let s = planner.next(data); s; s = planner.next(data)) stop = s;
+    return stop;
+  };
+  const street = pick([still, live, farLive]);
+  assert.equal(street.camera.id, 'ia-live');
+  assert.match(street.line, /^Street level\. Camera ia-live, live video from Iowa Department of Transportation\./);
+  // Live video too far out (over 25 km): the nearest camera wins.
+  assert.equal(pick([still, farLive]).camera.id, 'ia-still');
+});

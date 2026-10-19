@@ -43,6 +43,7 @@ import {
   releaseContinuousRender,
 } from '../renderGovernor.js';
 import { assignLanes, orthogonalPath } from './leaderRoute.js';
+import { attachCctvVideo } from '../layers/cctv/videoPlayback.js';
 
 /**
  * Live-mode intelligence view — the Constellation HUD. Click any aircraft,
@@ -166,30 +167,72 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   // Camera video: one persistent <video> per slot (card / large view), moved
   // into each re-rendered placeholder so refreshes never restart playback.
   const players = new Map(); // slot -> HTMLVideoElement
+  const streams = new Map(); // slot -> live-stream playback (hls)
+  const failedStreams = new Set(); // stream URLs that fell back to stills
+  function stillFallback(fig) {
+    const poster = fig.dataset.poster;
+    fig.removeAttribute('data-video');
+    fig.querySelector('video')?.remove();
+    if (poster && !fig.querySelector('img')) {
+      const img = document.createElement('img');
+      img.src = poster;
+      img.alt = fig.getAttribute('aria-label') || '';
+      img.decoding = 'async';
+      fig.prepend(img);
+    }
+    const badge = fig.querySelector('.gev-hud__live');
+    if (badge) badge.textContent = 'LIVE STILL';
+  }
   function mountVideos(root) {
     for (const fig of root.querySelectorAll('[data-video]')) {
       const slot = fig.dataset.videoSlot || 'card';
       const src = fig.dataset.video;
+      const live = fig.dataset.videoType === 'hls';
+      if (live && failedStreams.has(src)) {
+        stillFallback(fig);
+        continue;
+      }
       let v = players.get(slot);
       if (!v) {
         v = document.createElement('video');
         v.muted = true;
-        v.loop = true;
         v.autoplay = true;
         v.playsInline = true;
         v.setAttribute('playsinline', '');
-        v.setAttribute('aria-label', fig.getAttribute('aria-label') || '');
         players.set(slot, v);
       }
+      v.setAttribute('aria-label', fig.getAttribute('aria-label') || '');
       if (v.dataset.src !== src) {
+        streams.get(slot)?.dispose();
+        streams.delete(slot);
         v.dataset.src = src;
-        v.src = src;
+        if (fig.dataset.poster) v.poster = fig.dataset.poster;
+        if (live) {
+          // Live stream through the server relay; hls.js loads on demand.
+          const playback = attachCctvVideo(v, src, 'hls', {
+            onFailure: () => {
+              failedStreams.add(src);
+              streams.delete(slot);
+              delete v.dataset.src;
+              for (const f of document.querySelectorAll(
+                `[data-video-slot="${slot}"][data-video]`,
+              ))
+                if (f.dataset.video === src) stillFallback(f);
+            },
+          });
+          streams.set(slot, playback);
+        } else {
+          v.loop = true;
+          v.src = src;
+        }
       }
       fig.prepend(v);
       v.play?.().catch(() => {});
     }
   }
   function stopVideos() {
+    for (const playback of streams.values()) playback.dispose();
+    streams.clear();
     for (const v of players.values()) {
       v.pause();
       v.removeAttribute('src');
@@ -383,6 +426,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       hud = buildCameraHud(selected, {
         frameUrl: cams?.frameUrl?.(selected.id) || null,
         mediaUrl: cams?.mediaUrl?.(selected.id) || null,
+        mediaType: cams?.mediaType?.(selected.id) || null,
         refreshedAt: Date.now(),
         nearby: all.items,
         radiusKm: all.radiusKm,
@@ -673,6 +717,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       observations: (key) => observations.get(key) || [],
       cameraFrame: (id) => layerModule('cctv')?.frameUrl?.(id) || null,
       cameraMedia: (id) => layerModule('cctv')?.mediaUrl?.(id) || null,
+      cameraMediaType: (id) => layerModule('cctv')?.mediaType?.(id) || null,
       flagged: () => buildTriage(collect(), { limit: 999 }),
       cameraHealth: async () => {
         try {

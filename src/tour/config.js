@@ -143,6 +143,14 @@ export const DESCENT_REGIONS = Object.freeze(
       groundM: 1080,
     },
     {
+      // Iowa DOT: live HLS video (CC BY 4.0).
+      id: 'desmoines',
+      label: 'Des Moines',
+      lat: 41.5868,
+      lon: -93.625,
+      groundM: 260,
+    },
+    {
       id: 'toronto',
       label: 'Toronto',
       lat: 43.6532,
@@ -153,6 +161,8 @@ export const DESCENT_REGIONS = Object.freeze(
 );
 
 export const DESCENT_RULES = Object.freeze({
+  /** The street step prefers a camera with live video within this radius. */
+  streetVideoRadiusKm: 25,
   /** Cruise band for the "airliner near 40,000 ft" step (metres, barometric). */
   cruiseMinM: 10_668, // 35,000 ft
   cruiseMaxM: 13_106, // 43,000 ft
