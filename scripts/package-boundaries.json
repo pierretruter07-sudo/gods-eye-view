@@ -645,6 +645,7 @@
       "src/shell/idleSpin.js",
       "src/shell/idleSpinPolicy.js",
       "src/shell/index.js",
+      "src/shell/layout.js",
       "src/shell/quality.js",
       "src/shell/qualityPolicy.js",
       "src/shell/welcome.js",

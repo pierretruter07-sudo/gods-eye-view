@@ -1331,7 +1331,6 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
 
 /* Director running: actions sit above the caption; the HUD header carries
    the incident headline, so the separate alert card steps aside. */
-body.gev-touring .gev-hud { bottom: 84px; }
 body.gev-touring.gev-intel-open .gev-alert { display: none; }
 
 @media (max-height: 760px) {
@@ -1496,10 +1495,6 @@ button.gev-sheet__link:hover { background: rgba(100, 210, 255, 0.1); border-colo
 .gev-sheet__timeline li.gev-sheet__simrow::before { background: #ffbe55; }
 .gev-sheet__timeline time { font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: rgba(255, 255, 255, 0.6); }
 /* While sheets are open, the right-hand cards step aside for the drawer. */
-body.gev-sheets-open .gev-hud__card--tr,
-body.gev-sheets-open .gev-hud__card--br { visibility: hidden; }
-body.gev-sheets-open .gev-hud__leaders g:nth-of-type(2),
-body.gev-sheets-open .gev-hud__leaders g:nth-of-type(4) { display: none; }
 @media (max-width: 760px) {
   /* Phones: the action dock wraps to several rows, so the drawer drops
      from the top instead, leaves the dock clear and stops above the
@@ -1571,4 +1566,179 @@ body.gev-sheets-open .gev-hud__leaders g:nth-of-type(4) { display: none; }
   .gev-descent__row[data-state='active'] { grid-template-columns: 21px auto; }
   .gev-descent__row[data-state='active'] .gev-descent__body { display: flex; }
   .gev-descent__row[data-state='active'] .gev-descent__detail { display: none; }
+}
+
+/* ══ Screen map ═════════════════════════════════════════════════════════
+   One map for every overlay (src/shell/layout.js, docs/UI-LAYOUT.md).
+   layout.js measures the top bar, caption and credits and publishes the
+   free space as --gev-top / --gev-bottom, and the owner of each side
+   column as body[data-gev-left] / body[data-gev-right]. Rules here read
+   only those; nothing positions itself against another panel. */
+:root {
+  --gev-top: 76px;
+  --gev-bottom: 16px;
+  --gev-credits-h: 0px;
+  --gev-caption-h: 0px;
+  --gev-header-h: 0px;
+  --gev-edge-l: max(16px, env(safe-area-inset-left, 0px));
+  --gev-edge-r: max(16px, env(safe-area-inset-right, 0px));
+  --gev-col: 280px;
+  --gev-drawer-w: min(420px, calc(100vw - 32px));
+  --gev-free-h: calc(100vh - var(--gev-top) - var(--gev-bottom));
+}
+
+/* Top bar and credits: fixed corners, always visible. */
+.gev-bar { z-index: var(--z-chrome, 220); }
+html #cesium-credits {
+  left: var(--gev-edge-l);
+  bottom: 8px;
+  z-index: var(--z-credits, 90);
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+}
+
+/* Caption: directly above the credits strip, centred. */
+.gev-caption {
+  bottom: calc(8px + var(--gev-credits-h));
+  z-index: var(--z-chrome, 220);
+}
+
+/* Asset view: everything between the top bar and the caption. */
+.gev-hud {
+  top: var(--gev-top);
+  bottom: var(--gev-bottom);
+  left: var(--gev-edge-l);
+  right: var(--gev-edge-r);
+  z-index: var(--z-stage, 190);
+}
+.gev-hud__toast {
+  top: calc(var(--gev-top) + var(--gev-header-h) + 8px);
+  z-index: var(--z-toast, 260);
+}
+.gev-exbanner { top: var(--gev-top); z-index: var(--z-stage, 190); }
+
+/* Left column: triage, layers, the descent checklist, staged-event chips. */
+.gev-layers,
+.gev-triage {
+  top: var(--gev-top);
+  left: var(--gev-edge-l);
+  max-height: var(--gev-free-h);
+  z-index: var(--z-panel, 200);
+}
+.gev-descent {
+  top: var(--gev-top);
+  left: var(--gev-edge-l);
+  width: var(--gev-col);
+  max-height: var(--gev-free-h);
+  overflow-y: auto;
+  transform: translateX(-12px);
+  z-index: var(--z-panel, 200);
+}
+.gev-descent.is-in { transform: none; }
+.gev-descent.is-leaving { transform: translateX(-12px); }
+body[data-gev-left='triage'] .gev-descent,
+body[data-gev-left='layers'] .gev-descent { visibility: hidden; }
+.gev-demo {
+  left: var(--gev-edge-l);
+  bottom: calc(var(--gev-bottom) + 4px);
+  z-index: var(--z-panel, 200);
+}
+body.gev-intel-open .gev-demo,
+body:not([data-gev-left='']):not([data-gev-left='cards']) .gev-demo { display: none; }
+
+/* Right column: the analyst-sheet drawer, the Director's alert card, the
+   exercise package. */
+.gev-sheet {
+  top: var(--gev-top);
+  bottom: var(--gev-bottom);
+  right: var(--gev-edge-r);
+  width: var(--gev-drawer-w);
+  z-index: var(--z-drawer, 210);
+}
+.gev-alert {
+  top: var(--gev-top);
+  right: var(--gev-edge-r);
+  bottom: auto;
+  max-height: var(--gev-free-h);
+  overflow-y: auto;
+  z-index: var(--z-panel, 200);
+}
+body[data-gev-right='sheets'] .gev-alert { display: none; }
+.gev-pkg {
+  top: calc(var(--gev-top) + 48px);
+  right: var(--gev-edge-r);
+  max-height: calc(var(--gev-free-h) - 48px);
+  overflow-y: auto;
+  z-index: var(--z-panel, 200);
+}
+
+/* Desktop: a column owner other than the asset cards pushes them aside. */
+@media (min-width: 901px) {
+  body[data-gev-left='descent'] .gev-hud__card--tl,
+  body[data-gev-left='descent'] .gev-hud__card--bl,
+  body[data-gev-left='layers'] .gev-hud__card--tl,
+  body[data-gev-left='layers'] .gev-hud__card--bl { display: none; }
+  body[data-gev-left='descent'] .gev-hud__leaders g:nth-of-type(1),
+  body[data-gev-left='descent'] .gev-hud__leaders g:nth-of-type(3),
+  body[data-gev-left='layers'] .gev-hud__leaders g:nth-of-type(1),
+  body[data-gev-left='layers'] .gev-hud__leaders g:nth-of-type(3) { display: none; }
+  /* The drawer takes the right column: the asset view shrinks to the space
+     beside it, so the button bar wraps instead of running underneath. */
+  body[data-gev-right='sheets'] .gev-hud {
+    right: calc(var(--gev-edge-r) + var(--gev-drawer-w) + 12px);
+    grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  }
+  body[data-gev-right='sheets'] .gev-hud__card--tr,
+  body[data-gev-right='sheets'] .gev-hud__card--br,
+  body[data-gev-right='alert'] .gev-hud__card--tr,
+  body[data-gev-right='alert'] .gev-hud__card--br { display: none; }
+  body[data-gev-right='sheets'] .gev-hud__leaders g:nth-of-type(2),
+  body[data-gev-right='sheets'] .gev-hud__leaders g:nth-of-type(4),
+  body[data-gev-right='alert'] .gev-hud__leaders g:nth-of-type(2),
+  body[data-gev-right='alert'] .gev-hud__leaders g:nth-of-type(4) { display: none; }
+}
+
+/* Tablet and phone: the drawer drops from the top; the asset view keeps
+   its title and button bar below it, and its cards wait. */
+@media (max-width: 900px) {
+  .gev-sheet {
+    bottom: auto;
+    left: var(--gev-edge-l);
+    right: var(--gev-edge-r);
+    width: auto;
+    max-height: min(40vh, 340px);
+  }
+  .gev-hud { top: max(30vh, calc(var(--gev-top) + 56px)); }
+  body[data-gev-right='sheets'] .gev-hud { top: calc(var(--gev-top) + min(40vh, 340px) + 10px); }
+  body[data-gev-right='sheets'] .gev-hud__card,
+  body[data-gev-right='sheets'] .gev-hud__leaders,
+  body[data-gev-right='sheets'] .gev-descent { display: none; }
+  .gev-alert { top: calc(var(--gev-top) + 52px); left: var(--gev-edge-l); right: var(--gev-edge-r); width: auto; }
+}
+@media (max-width: 760px) {
+  .gev-descent { top: var(--gev-top); left: 50%; width: auto; transform: translate(-50%, -8px); }
+  .gev-descent.is-in { transform: translate(-50%, 0); }
+  .gev-descent.is-leaving { transform: translate(-50%, -8px); }
+}
+/* Welcome card: below the top bar, never over it. */
+.gev-welcome {
+  padding-top: max(16px, var(--gev-top));
+  padding-bottom: calc(8px + var(--gev-credits-h));
+}
+.gev-welcome__card {
+  max-height: calc(100vh - max(16px, var(--gev-top)) - 8px - var(--gev-credits-h));
+}
+@media (max-width: 900px) {
+  /* Narrow screens have no room beside a side panel: Layers or Triage
+     takes the screen until it is closed, and the alert card sits just
+     above the caption so it never meets the descent checklist. */
+  body[data-gev-left='layers'] .gev-hud,
+  body[data-gev-left='triage'] .gev-hud { display: none; }
+  .gev-alert { top: auto; bottom: calc(var(--gev-bottom) + 4px); max-height: 40vh; }
+}
+@media (max-width: 760px) {
+  /* Phones: the top bar's buttons scroll sideways inside the bar instead of
+     running off the screen edge. */
+  .gev-bar { overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
+  .gev-bar::-webkit-scrollbar { display: none; }
 }

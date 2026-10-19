@@ -8,6 +8,7 @@ import { showWelcome, welcomeEnabled } from './welcome.js';
 import { installAdaptiveQuality } from './quality.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
 import { installAudit } from '../audit/index.js';
+import { installLayout } from './layout.js';
 
 /** Layers offered in the Layers panel, in display order. */
 export const SHELL_LAYERS = Object.freeze(
@@ -414,6 +415,10 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     isLive: () => mode === 'live',
   });
   intelRef = intel;
+  // Diagnostics and the UI layout check (as window.__gevTour for the Director).
+  window.__gevIntel = intel;
+  // The screen map: one place decides where every overlay goes.
+  const layout = installLayout();
   // Two small API calls resolve the whole type-photo catalogue; do it once
   // the default layers have had their head start.
   startupTimers.push(setTimeout(() => intel.warmReferenceImages(), 6000));
@@ -576,6 +581,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     startupTimers.forEach(clearTimeout);
     document.removeEventListener('visibilitychange', onVisibility);
     audit.destroy();
+    layout.destroy();
+    if (window.__gevIntel === intel) delete window.__gevIntel;
     intel.destroy();
     exercise.exit();
     exercise.destroy();
