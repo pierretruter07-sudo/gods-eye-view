@@ -17,11 +17,36 @@ import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
+import { createTileWarmer } from './tileWarmer.js';
 import { glassSphereSprite } from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
 import { AIRPORT_PROFILES } from '../airports/profiles.js';
 
 const RENDER_HOLD = 'tour-orbit';
+
+/** A short, stable name for a stop (tile log and warm-up matching). */
+export function stopLabel(stop) {
+  if (!stop) return '';
+  const id =
+    stop.stepKey ||
+    stop.airport?.id ||
+    stop.stop?.id ||
+    stop.event?.key ||
+    stop.base?.id ||
+    stop.base?.name ||
+    stop.focus?.id ||
+    '';
+  return `${stop.kind || 'stop'}:${id}`;
+}
+
+/** `?tilewarm=0` turns the Google tile warm-up off (for comparison runs). */
+function tileWarmFromUrl() {
+  try {
+    return !/[?&]tilewarm=0\b/.test(globalThis.location?.search || '');
+  } catch {
+    return true;
+  }
+}
 
 function sleep(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -57,6 +82,15 @@ export function createTourController({
   // The opening descent runs on the first start after the dashboard opens;
   // later starts go straight to the normal rotation.
   let descentPending = openingDescent;
+  // The descent's next step, worked out while dwelling at this one so its
+  // tiles can load before the camera leaves.
+  let descentAhead = null; // Promise<stop|null>
+  let descentAheadStop = null;
+  const warmer = createTileWarmer({
+    viewer,
+    Cesium,
+    enabled: tileWarmFromUrl(),
+  });
   let descent = null;
   let regionStaged = { aircraft: [], at: 0 };
   // Street cameras the descent switched on are switched off again when it
@@ -496,11 +530,42 @@ export function createTourController({
     }
   }
 
+  /** Start working out the descent's next step (and its ground height). */
+  function aheadDescent(signal) {
+    descentAheadStop = null;
+    const ahead = nextDescentStop(signal).then(async (stop) => {
+      if (stop?.view?.sampleGround) {
+        stop.view = {
+          ...stop.view,
+          heightM: await groundHeightAt(stop.view, signal),
+          sampleGround: false,
+        };
+      }
+      if (descentAhead === ahead) descentAheadStop = stop;
+      return stop;
+    });
+    ahead.catch(() => {}); // an abort is handled where it is awaited
+    descentAhead = ahead;
+  }
+
+  /** Where the Director goes next, if it already knows (for tile warm-up). */
+  function upcomingView() {
+    const stop = descentAhead ? descentAheadStop : queue.peek();
+    return stop?.view ? { view: stop.view, label: stopLabel(stop) } : null;
+  }
+
   /**
    * The opening descent runs start to finish first, ahead of incidents;
    * anything that came in meanwhile is shown straight after it.
    */
   async function takeNext(signal) {
+    if (descentAhead) {
+      const ahead = descentAhead;
+      descentAhead = null;
+      descentAheadStop = null;
+      const stop = await ahead;
+      if (stop) return stop;
+    }
     if (descent && !descent.isDone()) {
       const stop = await nextDescentStop(signal);
       if (stop) return stop;
@@ -545,12 +610,17 @@ export function createTourController({
         };
       onFocus?.(null);
       onTravel?.('depart', next.view, focusOf(next));
+      // A real flight preloads its own destination from here on.
+      warmer.stop();
       await flyTo(next.view, signal);
       startOrbit(next.view);
       onTravel?.('arrive', next.view);
-      // Queue the next stop now: its data loads during this whole dwell
-      // (once the opening descent has no steps left).
-      if (!descent || descent.isDone()) queue.planAhead();
+      // Queue the next stop now: its data loads during this whole dwell,
+      // and its Google tiles once this stop's own tiles are in. A fresh
+      // alert still replaces it at departure and is flown to directly.
+      if (descent && !descent.isDone()) aheadDescent(signal);
+      else queue.planAhead();
+      warmer.arrived(stopLabel(next), upcomingView);
       onFocus?.(focusOf(next));
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);
@@ -620,6 +690,9 @@ export function createTourController({
     const { controller } = run;
     run = null;
     controller.abort(new DOMException(reason, 'AbortError'));
+    warmer.stop();
+    descentAhead = null;
+    descentAheadStop = null;
     narrator.stop();
     stopOrbit();
     clearMarker();
@@ -678,5 +751,12 @@ export function createTourController({
         : null,
     /** Diagnostics: the queued stop and recent look-ahead decisions. */
     queue: () => ({ next: queue.peek(), log: queue.log() }),
+    /** Diagnostics: per arrival, whether its tiles were warmed and ready. */
+    tileLog: () => warmer.log(),
+    /** Turn the Google tile warm-up on or off (comparison runs). */
+    tileWarm: (on) => {
+      if (on !== undefined) warmer.setEnabled(on);
+      return warmer.enabled();
+    },
   };
 }

@@ -142,7 +142,7 @@ export const DESCENT_RULES = Object.freeze({
   geoMinM: 34_000_000,
   geoMaxM: 37_500_000,
   /** Nearby cameras visited after the first street-level stop. */
-  nearbyCameras: 2,
+  nearbyCameras: 0, // one street camera ends the descent (Pierre, 20 Oct)
   nearbyCameraMaxKm: 8,
   /** Radius of the region's aircraft load at the start of the descent. */
   regionRadiusKm: 450,

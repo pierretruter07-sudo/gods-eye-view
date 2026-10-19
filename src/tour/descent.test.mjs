@@ -98,7 +98,7 @@ test('the descent steps down from GEO to street level, then ends', () => {
     stops.push(stop);
   assert.deepEqual(
     stops.map((s) => s.descent),
-    ['geo', 'iss', 'cruise', 'low', 'ship', 'ground', 'street', 'nearby', 'nearby'],
+    ['geo', 'iss', 'cruise', 'low', 'ship', 'ground', 'street'],
   );
   assert.equal(stops.length, DESCENT_STEPS.length);
   assert.ok(planner.isDone());
@@ -106,7 +106,7 @@ test('the descent steps down from GEO to street level, then ends', () => {
   const heights = stops.slice(0, 7).map((s) => s.view.heightM + s.view.rangeM);
   for (let i = 1; i < heights.length; i += 1)
     assert.ok(heights[i] < heights[i - 1], `step ${i} should be lower`);
-  const [geo, sat, cruise, low, ship, ground, street, n1, n2] = stops;
+  const [geo, sat, cruise, low, ship, ground, street] = stops;
   assert.equal(ship.vessel.mmsi, '503000001', 'nearest ship under way, not the moored one');
   assert.equal(ship.kind, 'vessel');
   assert.match(ship.line, /^Passenger Harbour Ferry, making 11 knots\./);
@@ -122,11 +122,7 @@ test('the descent steps down from GEO to street level, then ends', () => {
   assert.equal(street.camera.id, 'c1');
   assert.match(street.line, /^Street level\. Camera c1, a live Transport for NSW camera\./);
   assert.ok(street.view.orbitDegPerS > 0, 'street level turns faster');
-  assert.deepEqual(
-    [n1.camera.id, n2.camera.id].sort(),
-    ['c2', 'c3'],
-    'nearby cameras, never the far one or a repeat',
-  );
+  // One street camera ends the descent: one asset per level.
   assert.equal(planner.next(data), null);
 });
 
@@ -158,7 +154,7 @@ test('a step with nothing live is skipped, never faked', () => {
   const steps = [];
   for (let stop = planner.next(data); stop; stop = planner.next(data))
     steps.push(stop.descent);
-  assert.deepEqual(steps, ['geo', 'iss', 'ship', 'street', 'nearby', 'nearby']);
+  assert.deepEqual(steps, ['geo', 'iss', 'ship', 'street']);
 });
 
 test('a step waits while its source is still loading, and can be skipped', () => {

@@ -41,14 +41,42 @@ export function createStopQueue({
   let upcoming = null; // { stop, staged: Promise, result }
   const log = []; // recent decisions, for diagnostics
 
-  function plan() {
+  const isEmpty = (entry) => {
+    const r = entry.result;
+    return entry.stop.kind === 'airport' && (!r || !r.ready || !(r.count > 0));
+  };
+  function record(entry, skipped) {
+    const r = entry.result;
+    log.push({
+      kind: entry.stop.kind,
+      id:
+        entry.stop.airport?.id ||
+        entry.stop.stop?.id ||
+        entry.stop.event?.key ||
+        null,
+      count: r?.count ?? null,
+      skipped,
+    });
+    if (log.length > 20) log.shift();
+  }
+
+  function plan(skips = 0) {
     const stop = planner.next(liveData());
     const entry = { stop, result: null };
     entry.staged =
       stage && needsAircraft(stop)
         ? Promise.resolve(stage(stop.view, stop))
             .catch(() => ({ ready: false, count: 0 }))
-            .then((r) => (entry.result = r))
+            .then((r) => {
+              entry.result = r;
+              // Still queued and empty: choose the replacement now, during
+              // the dwell, so its data and map tiles load ahead too.
+              if (upcoming === entry && isEmpty(entry) && skips < maxSkips) {
+                record(entry, true);
+                upcoming = plan(skips + 1);
+              }
+              return r;
+            })
         : Promise.resolve((entry.result = { ready: true, count: null }));
     return entry;
   }
@@ -73,19 +101,8 @@ export function createStopQueue({
       for (let skips = 0; ; skips += 1) {
         if (!entry.result) await Promise.race([entry.staged, wait(maxWaitMs)]);
         const r = entry.result;
-        const empty =
-          entry.stop.kind === 'airport' && (!r || !r.ready || !(r.count > 0));
-        log.push({
-          kind: entry.stop.kind,
-          id:
-            entry.stop.airport?.id ||
-            entry.stop.stop?.id ||
-            entry.stop.event?.key ||
-            null,
-          count: r?.count ?? null,
-          skipped: empty && skips < maxSkips,
-        });
-        if (log.length > 20) log.shift();
+        const empty = isEmpty(entry);
+        record(entry, empty && skips < maxSkips);
         if (!empty || skips >= maxSkips) {
           // The loaded data travels with the stop, so the arrival can draw
           // it at once, before the live layer's own refresh lands.

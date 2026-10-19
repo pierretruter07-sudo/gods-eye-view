@@ -677,6 +677,7 @@
       "src/audit/progress.js",
       "src/audit/impact.js",
       "src/tour/queue.js",
+      "src/tour/tileWarmer.js",
       "src/intel/place.js",
       "src/app/layers/cctv.js",
       "src/cctvFocusRequest.js",
