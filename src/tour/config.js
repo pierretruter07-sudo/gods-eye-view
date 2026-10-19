@@ -38,8 +38,10 @@ export const STOP_CAMERA = Object.freeze({
   vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -40 }),
   military: Object.freeze({ rangeM: 45_000, pitchDeg: -42 }),
   satellite: Object.freeze({ rangeM: 2_500_000, pitchDeg: -35 }),
-  // Geostationary: far enough back to see the satellite against the Earth.
-  geoSatellite: Object.freeze({ rangeM: 9_000_000, pitchDeg: -25 }),
+  // High orbits look down past the satellite at the Earth behind it, so
+  // its coverage cone and footprint are in frame.
+  geoSatellite: Object.freeze({ rangeM: 14_000_000, pitchDeg: -72 }),
+  meoSatellite: Object.freeze({ rangeM: 9_000_000, pitchDeg: -68 }),
 });
 
 export const EVENT_RULES = Object.freeze({
