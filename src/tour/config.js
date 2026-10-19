@@ -193,6 +193,23 @@ export const DESCENT_DWELL_S = Object.freeze({
   nearby: 12,
 });
 
+/**
+ * Sensor looks the Director uses at a stop (Pierre, 20 Oct): thermal
+ * (FLIR, white-hot) for military aircraft, airfields and naval ships, night
+ * vision (NVG) where the sun is down at the stop, the normal look otherwise.
+ * Never for space or planet-scale views, the descent's GEO and ISS steps,
+ * or street cameras (their pictures must stay readable). Visual only.
+ */
+export const DIRECTOR_SENSORS = Object.freeze({
+  /** Wider views than this see regions, not an asset: normal look. */
+  maxRangeM: 600_000,
+  /** Night vision when the sun is below this elevation at the stop. */
+  nightBelowDeg: 0,
+  flirKinds: Object.freeze(['military', 'base']),
+  noneKinds: Object.freeze(['satellite', 'geo', 'camera']),
+  noneDescentSteps: Object.freeze(['geo', 'iss', 'street']),
+});
+
 /** Layers the Director switches on when it starts. */
 export const TOUR_LAYERS = Object.freeze([
   'flights',

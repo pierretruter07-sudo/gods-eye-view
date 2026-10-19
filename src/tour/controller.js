@@ -18,6 +18,8 @@ import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
 import { createTileWarmer } from './tileWarmer.js';
+import { sensorFor } from './sensors.js';
+import { createSensorLook } from './sensorLook.js';
 import { glassSphereSprite } from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
 import { AIRPORT_PROFILES } from '../airports/profiles.js';
@@ -91,6 +93,8 @@ export function createTourController({
     Cesium,
     enabled: tileWarmFromUrl(),
   });
+  // Thermal / night-vision looks at stops that suit them (sensors.js).
+  const sensorLook = createSensorLook({ viewer, Cesium });
   let descent = null;
   let regionStaged = { aircraft: [], at: 0 };
   // Street cameras the descent switched on are switched off again when it
@@ -612,9 +616,12 @@ export function createTourController({
       onTravel?.('depart', next.view, focusOf(next));
       // A real flight preloads its own destination from here on.
       warmer.stop();
+      // Flights are always shown in the normal look.
+      sensorLook.set(null);
       await flyTo(next.view, signal);
       startOrbit(next.view);
       onTravel?.('arrive', next.view);
+      sensorLook.set(sensorFor(next, Date.now()));
       // Queue the next stop now: its data loads during this whole dwell,
       // and its Google tiles once this stop's own tiles are in. A fresh
       // alert still replaces it at departure and is flown to directly.
@@ -691,6 +698,7 @@ export function createTourController({
     run = null;
     controller.abort(new DOMException(reason, 'AbortError'));
     warmer.stop();
+    sensorLook.set(null);
     descentAhead = null;
     descentAheadStop = null;
     narrator.stop();
@@ -758,5 +766,7 @@ export function createTourController({
       if (on !== undefined) warmer.setEnabled(on);
       return warmer.enabled();
     },
+    /** Diagnostics: the sensor look in use ('flir', 'nvg' or null). */
+    sensor: () => sensorLook.mode(),
   };
 }
