@@ -1720,3 +1720,25 @@ body[data-gev-right='sheets'] .gev-alert { display: none; }
   .gev-descent.is-in { transform: translate(-50%, 0); }
   .gev-descent.is-leaving { transform: translate(-50%, -8px); }
 }
+/* Welcome card: below the top bar, never over it. */
+.gev-welcome {
+  padding-top: max(16px, var(--gev-top));
+  padding-bottom: calc(8px + var(--gev-credits-h));
+}
+.gev-welcome__card {
+  max-height: calc(100vh - max(16px, var(--gev-top)) - 8px - var(--gev-credits-h));
+}
+@media (max-width: 900px) {
+  /* Narrow screens have no room beside a side panel: Layers or Triage
+     takes the screen until it is closed, and the alert card sits just
+     above the caption so it never meets the descent checklist. */
+  body[data-gev-left='layers'] .gev-hud,
+  body[data-gev-left='triage'] .gev-hud { display: none; }
+  .gev-alert { top: auto; bottom: calc(var(--gev-bottom) + 4px); max-height: 40vh; }
+}
+@media (max-width: 760px) {
+  /* Phones: the top bar's buttons scroll sideways inside the bar instead of
+     running off the screen edge. */
+  .gev-bar { overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
+  .gev-bar::-webkit-scrollbar { display: none; }
+}
