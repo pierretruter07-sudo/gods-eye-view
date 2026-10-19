@@ -342,6 +342,13 @@ export async function loadTflSourcesFromOpenData() {
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
       const imageUrl = String(props.imageUrl || '');
       if (!imageUrl.startsWith(TFL_IMAGE_ORIGIN)) continue; // official-bucket pin
+      // JamCams also publish a short MP4 clip (about 10 s, refreshed every
+      // few minutes) in the same official bucket. Played as a looping clip;
+      // the still stays the frame and fallback.
+      const videoUrl = String(props.videoUrl || '');
+      const hasClip =
+        videoUrl.startsWith(TFL_IMAGE_ORIGIN) &&
+        /\.mp4(?:\?|$)/i.test(videoUrl);
 
       // "JamCams_00002.00865" → "tfl-00002.00865" (provider-stable id).
       const rawId = String(place?.id || '').replace(/^JamCams_/, '');
@@ -365,8 +372,8 @@ export async function loadTflSourcesFromOpenData() {
         rangeM: 145,
         mountHeightM: 8,
         groundElevationM: 15, // Thames-basin prior; one-shot snap corrects.
-        feedType: 'image', // stills-first (owner decision); props.videoUrl deliberately unused
-        url: imageUrl,
+        feedType: hasClip ? 'mp4' : 'image',
+        url: hasClip ? videoUrl : imageUrl,
         snapshotUrl: imageUrl,
         sourceKind: 'tfl-open-data',
         license: 'Powered by TfL Open Data',

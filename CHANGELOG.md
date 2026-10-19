@@ -6,6 +6,13 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Camera video and a bigger view.** London's TfL cameras now play their
+  published video clips (about 10 s, refreshed every few minutes) in the
+  card and the city panel, labelled "VIDEO CLIP"; stills-only networks stay
+  labelled "LIVE STILL". "Expand view" opens a camera in a wide drawer.
+- **All four asset cards stay on screen.** The descent checklist moved to a
+  strip under the top bar, and with the drawer open the four cards stack in
+  the left column instead of two hiding.
 - **Defence tour.** After the opening descent the Director tours military
   aircraft (named types such as Black Hawks, P-8s, E-3s and tankers first),
   the world's busiest airports and well-known military airfields, with ships

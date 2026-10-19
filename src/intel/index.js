@@ -135,7 +135,63 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const toast = el('div', 'gev-hud__toast gev-glass');
   toast.setAttribute('role', 'status');
   toast.hidden = true;
-  view.append(leaders, header, ...cards, bottom, drawer);
+  // When the drawer (or alert) takes the right column, all four cards stack
+  // in one scrolling column on the left instead of two of them hiding.
+  const stack = el('div', 'gev-hud__cards');
+  view.append(leaders, header, ...cards, stack, bottom, drawer);
+  const narrow = window.matchMedia?.('(max-width: 900px)');
+  function placeCards() {
+    const stacked =
+      !narrow?.matches &&
+      (['sheets', 'alert'].includes(document.body.dataset.gevRight || '') ||
+        document.body.dataset.gevLeft === 'layers');
+    if (stacked === (cards[0].parentElement === stack)) return;
+    if (stacked) stack.append(...cards);
+    else for (const c of cards) view.insertBefore(c, stack);
+    measureCards?.();
+  }
+  const placeObserver = new MutationObserver(placeCards);
+  placeObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['data-gev-right', 'data-gev-left'],
+  });
+
+  // Camera video: one persistent <video> per slot (card / large view), moved
+  // into each re-rendered placeholder so refreshes never restart playback.
+  const players = new Map(); // slot -> HTMLVideoElement
+  function mountVideos(root) {
+    for (const fig of root.querySelectorAll('[data-video]')) {
+      const slot = fig.dataset.videoSlot || 'card';
+      const src = fig.dataset.video;
+      let v = players.get(slot);
+      if (!v) {
+        v = document.createElement('video');
+        v.muted = true;
+        v.loop = true;
+        v.autoplay = true;
+        v.playsInline = true;
+        v.setAttribute('playsinline', '');
+        v.setAttribute('aria-label', fig.getAttribute('aria-label') || '');
+        players.set(slot, v);
+      }
+      if (v.dataset.src !== src) {
+        v.dataset.src = src;
+        v.src = src;
+      }
+      fig.prepend(v);
+      v.play?.().catch(() => {});
+    }
+  }
+  function stopVideos() {
+    for (const v of players.values()) {
+      v.pause();
+      v.removeAttribute('src');
+      delete v.dataset.src;
+      v.load();
+      v.remove();
+    }
+    players.clear();
+  }
   document.body.append(toast);
 
   const triage = el('section', 'gev-triage gev-glass');
@@ -319,6 +375,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       const all = nearbyObjects(collect(), selected, { limit: Infinity });
       hud = buildCameraHud(selected, {
         frameUrl: cams?.frameUrl?.(selected.id) || null,
+        mediaUrl: cams?.mediaUrl?.(selected.id) || null,
         refreshedAt: Date.now(),
         nearby: all.items,
         radiusKm: all.radiusKm,
@@ -344,6 +401,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
           c ? hudCard(c, i, { image: c.ref ? refs.get(c.ref) : null }) : '',
         ) || changed;
     });
+    mountVideos(view);
     renderActions();
     if (changed) measureCards();
     requestAnimationFrame(updateLeaders);
@@ -381,17 +439,24 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   // resizes — never per frame (a layout read every frame stalls rendering).
   const anchors = cards.map(() => null);
   function measureCards() {
+    const stacked = cards[0].parentElement === stack;
     cards.forEach((node, i) => {
-      if (node.hidden) {
+      if (node.hidden || !node.getClientRects().length) {
         anchors[i] = null;
         return;
       }
       const r = node.getBoundingClientRect();
       const slot = SLOTS[i];
-      anchors[i] = {
-        x: (slot.endsWith('l') ? r.right : r.left).toFixed(1),
-        y: (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1),
-      };
+      const onRight = document.body.dataset.gevLeft === 'layers';
+      anchors[i] = stacked
+        ? {
+            x: (onRight ? r.left : r.right).toFixed(1),
+            y: (r.top + r.height / 2).toFixed(1),
+          }
+        : {
+            x: (slot.endsWith('l') ? r.right : r.left).toFixed(1),
+            y: (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1),
+          };
     });
   }
   const cardObserver =
@@ -441,6 +506,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   }
   const removeLeaderHook = scene.postRender.addEventListener(updateLeaders);
   const onResize = () => {
+    placeCards();
     measureCards();
     updateLeaders();
   };
@@ -593,6 +659,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       now: Date.now(),
       objects: collect(),
       observations: (key) => observations.get(key) || [],
+      cameraFrame: (id) => layerModule('cctv')?.frameUrl?.(id) || null,
+      cameraMedia: (id) => layerModule('cctv')?.mediaUrl?.(id) || null,
       flagged: () => buildTriage(collect(), { limit: 999 }),
       cameraHealth: async () => {
         try {
@@ -628,6 +696,10 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   }
   function renderSheets() {
     if (!selected || !sheetTabs.length) return;
+    // The live view gets a wide drawer (about half the screen).
+    const wide = sheetActive === 'liveview' ? 'wide' : '';
+    if ((document.body.dataset.gevDrawer || '') !== wide)
+      document.body.dataset.gevDrawer = wide;
     drawer.innerHTML = sheetDrawer({
       identity: objectIdentity(selected),
       lineage: objectLineage(selected),
@@ -636,7 +708,15 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       sheet: sheetResults.get(sheetActive) || null,
       busy: !sheetResults.has(sheetActive),
     });
+    mountVideos(drawer);
   }
+  // A still in the large view refreshes with the camera's own cadence.
+  const stillTimer = setInterval(() => {
+    const img = drawer.querySelector('img[data-still="large"]');
+    if (!img || selected?.kind !== 'camera') return;
+    const next = layerModule('cctv')?.frameUrl?.(selected.id);
+    if (next && img.getAttribute('src') !== next) img.src = next;
+  }, CAMERA_FRAME_REFRESH_MS);
   async function runSheet(id, o) {
     const token = sheetToken;
     if (id === 'overview') {
@@ -692,6 +772,8 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     sheetResults.clear();
     drawer.hidden = true;
     drawer.innerHTML = '';
+    players.get('large')?.remove();
+    if (document.body.dataset.gevDrawer) document.body.dataset.gevDrawer = '';
     document.body.classList.remove('gev-sheets-open');
   }
   /** A new object is in focus: keep the drawer, re-run what still applies. */
@@ -760,6 +842,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       cams?.deactivateActiveCamera?.();
     }
     hideResult({ keep: keepSheets });
+    stopVideos();
     stopFollow();
     stopOrbit();
     stopBrief();
@@ -1330,6 +1413,9 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     destroy() {
       close();
       clearInterval(observeTimer);
+      clearInterval(stillTimer);
+      placeObserver.disconnect();
+      stopVideos();
       setTriage(false);
       handler.destroy();
       disposeCameraClicks();

@@ -108,3 +108,18 @@ test('open-licence camera networks are on by default; courtesy-only ones are off
     Object.assign(process.env, saved);
   }
 });
+
+test('a camera that publishes video shows a looping clip, labelled as a clip, with an Expand view', () => {
+  const o = toIntelObject('cctv', { id: 'tfl-1', name: 'Tower Bridge', city: 'London', provider: 'Transport for London', lat: 51.5, lon: -0.07, feedType: 'mp4' });
+  const hud = buildCameraHud(o, { frameUrl: '/api/cctv/frame/tfl-1?ts=1', mediaUrl: '/api/cctv/media/tfl-1' });
+  const live = hud.cards[0];
+  assert.equal(live.frame.video, '/api/cctv/media/tfl-1');
+  assert.equal(live.frame.badge, 'VIDEO CLIP');
+  assert.ok(live.rows.every((r) => r.sim === false));
+  assert.match(hud.status, /video clip/);
+  assert.equal(hud.actions[0].id, 'liveview');
+  // Stills-only networks stay labelled as stills.
+  const still = buildCameraHud(o, { frameUrl: '/api/cctv/frame/tfl-1?ts=1' });
+  assert.equal(still.cards[0].frame.badge, 'LIVE STILL');
+  assert.equal(still.cards[0].frame.video, null);
+});

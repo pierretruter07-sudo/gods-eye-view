@@ -20,6 +20,7 @@
 export const ZONES = Object.freeze({
   top: 'Top bar',
   header: 'Title (below the top bar, centre)',
+  band: 'Band (a slim strip directly under the top bar)',
   left: 'Left column',
   right: 'Right column',
   stage: 'Asset view (cards around a clear centre, button bar along its foot)',
@@ -64,7 +65,7 @@ export const OVERLAYS = Object.freeze(
     { selector: '.gev-alert', zone: 'right', layer: 'panel' },
     { selector: '.gev-sheet', zone: 'right', layer: 'drawer' },
     { selector: '.gev-pkg', zone: 'right', layer: 'panel' },
-    { selector: '.gev-descent', zone: 'left', layer: 'panel' },
+    { selector: '.gev-descent', zone: 'band', layer: 'panel' },
     { selector: '.gev-layers', zone: 'left', layer: 'panel' },
     { selector: '.gev-triage', zone: 'left', layer: 'panel' },
     { selector: '.gev-demo', zone: 'left', layer: 'panel' },
@@ -101,13 +102,13 @@ export const OVERLAYS = Object.freeze(
  * anything else in their column.
  */
 export const OWNER_PRIORITY = Object.freeze({
-  left: Object.freeze(['triage', 'layers', 'descent', 'cards']),
+  left: Object.freeze(['triage', 'layers', 'cards']),
   right: Object.freeze(['sheets', 'alert', 'cards']),
 });
 
 /**
  * The owner of each column for what is on screen.
- * @param {{triage?: boolean, layers?: boolean, descent?: boolean,
+ * @param {{triage?: boolean, layers?: boolean,
  *   sheets?: boolean, alert?: boolean, hud?: boolean}} open
  * @returns {{left: string, right: string}} '' when nothing claims a column
  */
@@ -120,12 +121,16 @@ export function resolveOwners(open = {}) {
 /** The reserved heights, from measured sizes (px). */
 export function reservedSpace({
   barBottom = 0,
+  bandH = 0,
   creditsH = 0,
   captionH = 0,
   gap = 10,
   edge = 8,
 }) {
-  const top = Math.ceil(barBottom > 0 ? barBottom + gap : edge * 2);
+  // The band (descent checklist) sits under the top bar and pushes
+  // everything below it down; nothing is hidden to make room for it.
+  const band = Math.ceil(bandH > 0 ? bandH + gap : 0);
+  const top = Math.ceil(barBottom > 0 ? barBottom + gap : edge * 2) + band;
   const credits = Math.ceil(creditsH > 0 ? creditsH + edge : 0);
   const caption = Math.ceil(captionH > 0 ? captionH + gap : 0);
   return { top, credits, caption, bottom: edge + credits + caption + gap };
@@ -162,8 +167,12 @@ export function installLayout({ root = document } = {}) {
       (c) => c.dataset.visible === 'true' && shown(c),
     );
     const header = q('.gev-hud__header');
+    const band = q('.gev-descent.is-in');
+    const barBottom = shown(bar) ? bar.getBoundingClientRect().bottom : 0;
+    html.style.setProperty('--gev-bar-bottom', `${Math.ceil(barBottom)}px`);
     const space = reservedSpace({
-      barBottom: shown(bar) ? bar.getBoundingClientRect().bottom : 0,
+      barBottom,
+      bandH: shown(band) ? band.getBoundingClientRect().height : 0,
       creditsH: shown(credits) ? credits.getBoundingClientRect().height : 0,
       captionH: Math.max(
         0,
@@ -182,7 +191,6 @@ export function installLayout({ root = document } = {}) {
     const owners = resolveOwners({
       triage: shown(q('.gev-triage')),
       layers: shown(q('.gev-layers')),
-      descent: !!q('.gev-descent.is-in'),
       sheets: shown(q('.gev-sheet')),
       alert: shown(q('.gev-alert')),
       hud: shown(hud),
@@ -208,6 +216,7 @@ export function installLayout({ root = document } = {}) {
   const sizes = new ResizeObserver(schedule);
   const watchSizes = () => {
     for (const sel of [
+      '.gev-descent',
       '.gev-bar',
       '#cesium-credits',
       '.gev-caption',

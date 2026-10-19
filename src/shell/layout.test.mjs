@@ -47,15 +47,24 @@ test('every fixed overlay in the style sheets is on the screen map', () => {
 
 test('the viewer’s own panels win a column; the asset cards give way to anything', () => {
   assert.deepEqual(resolveOwners({ hud: true }), { left: 'cards', right: 'cards' });
+  // The descent checklist is a band under the top bar, never a column
+  // owner: the asset cards keep the left column while it runs.
   assert.deepEqual(resolveOwners({ hud: true, descent: true, sheets: true }), {
-    left: 'descent',
+    left: 'cards',
     right: 'sheets',
   });
-  assert.equal(resolveOwners({ descent: true, layers: true }).left, 'layers');
+  assert.equal(resolveOwners({ hud: true, layers: true }).left, 'layers');
   assert.equal(resolveOwners({ alert: true, sheets: true }).right, 'sheets');
   assert.deepEqual(resolveOwners({}), { left: '', right: '' });
   assert.equal(OWNER_PRIORITY.left.at(-1), 'cards');
   assert.equal(OWNER_PRIORITY.right.at(-1), 'cards');
+});
+
+test('the descent band pushes the asset view down instead of hiding cards', () => {
+  const plain = reservedSpace({ barBottom: 64 });
+  const banded = reservedSpace({ barBottom: 64, bandH: 38 });
+  assert.equal(banded.top - plain.top, 48);
+  assert.equal(banded.bottom, plain.bottom);
 });
 
 test('the bottom reserve stacks credits, then caption, so neither covers the other', () => {

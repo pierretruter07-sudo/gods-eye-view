@@ -275,6 +275,20 @@ export function createControls({ state: layerState, services, parts, source }) {
       return record ? source.getFrameUrl(record.camera) : null;
     },
 
+    /**
+     * Stable video URL for a camera that publishes video (clip or stream),
+     * or null for still-image cameras. Stable so a playing element is not
+     * reloaded on every card refresh.
+     * @param {string} cameraId
+     * @returns {string|null}
+     */
+    mediaUrl(cameraId) {
+      const record = layerState._recordById.get(cameraId);
+      const type = String(record?.camera?.feedType || '');
+      if (!['mp4', 'webm'].includes(type)) return null;
+      return `/api/cctv/media/${encodeURIComponent(cameraId)}`;
+    },
+
     /** Id of the camera whose panel is shown in the scene, or null. */
     getActiveCameraId() {
       return parts.selection.getActiveRecord()?.camera.id || null;

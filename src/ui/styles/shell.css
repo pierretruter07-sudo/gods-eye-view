@@ -1625,26 +1625,42 @@ html #cesium-credits {
   max-height: var(--gev-free-h);
   z-index: var(--z-panel, 200);
 }
+/* Band: the opening-descent checklist is a slim strip directly under the
+   top bar. It pushes everything below it down (layout.js adds its height
+   to --gev-top); it never takes a column, so all four asset cards stay. */
 .gev-descent {
-  top: var(--gev-top);
-  left: var(--gev-edge-l);
-  width: var(--gev-col);
-  max-height: var(--gev-free-h);
-  overflow-y: auto;
-  transform: translateX(-12px);
+  top: calc(var(--gev-bar-bottom, 64px) + 8px);
+  left: 50%;
+  width: auto;
+  max-width: calc(100vw - 32px);
+  max-height: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translate(-50%, -8px);
   z-index: var(--z-panel, 200);
 }
-.gev-descent.is-in { transform: none; }
-.gev-descent.is-leaving { transform: translateX(-12px); }
-body[data-gev-left='triage'] .gev-descent,
-body[data-gev-left='layers'] .gev-descent { visibility: hidden; }
+.gev-descent.is-in { transform: translate(-50%, 0); }
+.gev-descent.is-leaving { transform: translate(-50%, -8px); }
+.gev-descent .gev-descent__head { margin: 0; flex: none; display: flex; flex-direction: column; gap: 0; }
+.gev-descent .gev-descent__list { flex-direction: row; align-items: center; gap: 6px; }
+.gev-descent .gev-descent__list::before { display: none; }
+.gev-descent .gev-descent__row { grid-template-columns: 21px; min-height: 0; }
+.gev-descent .gev-descent__row .gev-descent__body { display: none; }
+.gev-descent .gev-descent__row[data-state='active'] { grid-template-columns: 21px auto; gap: 7px; }
+.gev-descent .gev-descent__row[data-state='active'] .gev-descent__body { display: flex; }
+.gev-descent .gev-descent__row[data-state='active'] .gev-descent__detail { display: block; }
 .gev-demo {
   left: var(--gev-edge-l);
   bottom: calc(var(--gev-bottom) + 4px);
   z-index: var(--z-panel, 200);
 }
 body.gev-intel-open .gev-demo,
-body:not([data-gev-left='']):not([data-gev-left='cards']) .gev-demo { display: none; }
+body[data-gev-left='layers'] .gev-demo,
+body[data-gev-left='triage'] .gev-demo,
+body:has(.gev-descent.is-in) .gev-demo { display: none; }
 
 /* Right column: the analyst-sheet drawer, the Director's alert card, the
    exercise package. */
@@ -1674,28 +1690,36 @@ body[data-gev-right='sheets'] .gev-alert { display: none; }
 
 /* Desktop: a column owner other than the asset cards pushes them aside. */
 @media (min-width: 901px) {
-  body[data-gev-left='descent'] .gev-hud__card--tl,
-  body[data-gev-left='descent'] .gev-hud__card--bl,
-  body[data-gev-left='layers'] .gev-hud__card--tl,
-  body[data-gev-left='layers'] .gev-hud__card--bl { display: none; }
-  body[data-gev-left='descent'] .gev-hud__leaders g:nth-of-type(1),
-  body[data-gev-left='descent'] .gev-hud__leaders g:nth-of-type(3),
-  body[data-gev-left='layers'] .gev-hud__leaders g:nth-of-type(1),
-  body[data-gev-left='layers'] .gev-hud__leaders g:nth-of-type(3) { display: none; }
+  /* Layers takes the left column: the asset view moves beside it and all
+     four cards stack on the right. */
+  body[data-gev-left='layers'] .gev-hud {
+    left: calc(var(--gev-edge-l) + 290px + 12px);
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  body[data-gev-left='layers'] .gev-hud__cards { display: flex; grid-column: 2; grid-row: 1; }
+  body[data-gev-left='layers'] .gev-hud__header { grid-column: 1; grid-row: 1; }
+  body[data-gev-left='layers'] .gev-hud__bottom { grid-column: 1 / -1; grid-row: 2; }
   /* The drawer takes the right column: the asset view shrinks to the space
      beside it, so the button bar wraps instead of running underneath. */
   body[data-gev-right='sheets'] .gev-hud {
     right: calc(var(--gev-edge-r) + var(--gev-drawer-w) + 12px);
     grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
   }
-  body[data-gev-right='sheets'] .gev-hud__card--tr,
-  body[data-gev-right='sheets'] .gev-hud__card--br,
-  body[data-gev-right='alert'] .gev-hud__card--tr,
-  body[data-gev-right='alert'] .gev-hud__card--br { display: none; }
-  body[data-gev-right='sheets'] .gev-hud__leaders g:nth-of-type(2),
-  body[data-gev-right='sheets'] .gev-hud__leaders g:nth-of-type(4),
-  body[data-gev-right='alert'] .gev-hud__leaders g:nth-of-type(2),
-  body[data-gev-right='alert'] .gev-hud__leaders g:nth-of-type(4) { display: none; }
+  /* All four cards stay: the right-hand two join the left column, which
+     scrolls if they do not all fit. */
+  body[data-gev-right='sheets'] .gev-hud,
+  body[data-gev-right='alert'] .gev-hud {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  body[data-gev-right='alert'] .gev-hud { right: calc(var(--gev-edge-r) + 332px); }
+  body[data-gev-right='sheets'] .gev-hud__cards,
+  body[data-gev-right='alert'] .gev-hud__cards { display: flex; }
+  body[data-gev-right='sheets'] .gev-hud__header,
+  body[data-gev-right='alert'] .gev-hud__header { grid-column: 2; grid-row: 1; }
+  body[data-gev-right='sheets'] .gev-hud__bottom,
+  body[data-gev-right='alert'] .gev-hud__bottom { grid-column: 1 / -1; grid-row: 2; }
 }
 
 /* Tablet and phone: the drawer drops from the top; the asset view keeps
@@ -1716,9 +1740,9 @@ body[data-gev-right='sheets'] .gev-alert { display: none; }
   .gev-alert { top: calc(var(--gev-top) + 52px); left: var(--gev-edge-l); right: var(--gev-edge-r); width: auto; }
 }
 @media (max-width: 760px) {
-  .gev-descent { top: var(--gev-top); left: 50%; width: auto; transform: translate(-50%, -8px); }
-  .gev-descent.is-in { transform: translate(-50%, 0); }
-  .gev-descent.is-leaving { transform: translate(-50%, -8px); }
+  /* Phones: dots only; the current level is named in the caption. */
+  .gev-descent .gev-descent__head { display: none; }
+  .gev-descent .gev-descent__row[data-state='active'] .gev-descent__detail { display: none; }
 }
 /* Welcome card: below the top bar, never over it. */
 .gev-welcome {
@@ -1742,3 +1766,30 @@ body[data-gev-right='sheets'] .gev-alert { display: none; }
   .gev-bar { overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
   .gev-bar::-webkit-scrollbar { display: none; }
 }
+/* Stacked cards (drawer or alert open): one scrolling column on the left. */
+.gev-hud__cards {
+  display: none;
+  grid-column: 1;
+  grid-row: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  pointer-events: auto;
+}
+.gev-hud__cards > .gev-hud__card { max-height: none; flex: none; }
+/* The live camera view gets a wide drawer (about half the screen). */
+body[data-gev-drawer='wide'] { --gev-drawer-w: min(56vw, 920px); }
+@media (max-width: 900px) {
+  body[data-gev-drawer='wide'] .gev-sheet { max-height: min(56vh, 520px); }
+  body[data-gev-drawer='wide'][data-gev-right='sheets'] .gev-hud { top: calc(var(--gev-top) + min(56vh, 520px) + 10px); }
+}
+.gev-hud__frame video { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
+.gev-hud__frame--large { aspect-ratio: 16 / 9; width: 100%; margin: 0; border-radius: 10px; }
+.gev-hud__frame--large img, .gev-hud__frame--large video { object-fit: contain; background: #000; }
+
+/* Stacked cards are a touch more compact so more of them fit. */
+.gev-hud__cards { font-size: 0.94em; }
+.gev-hud__cards > .gev-hud__card { padding: 9px 12px 10px; gap: 6px; }
+.gev-hud__cards > .gev-hud__card { width: 100%; max-width: none; margin: 0; align-self: stretch; }
