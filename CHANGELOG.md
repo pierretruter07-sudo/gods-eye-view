@@ -6,6 +6,13 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **Google tiles load before the camera arrives.** The Director knows its
+  next stop while it dwells at this one, and now starts loading that
+  place's 3D map tiles a few seconds early. A genuine real-time alert still
+  goes straight there. `window.__gevTour.tileLog()` shows, per stop, whether
+  it was warmed and how long its tiles took; `?tilewarm=0` turns it off.
+- **One street camera ends the descent.** The opening descent now finishes
+  on the nearest street camera instead of visiting three.
 - **Camera video and a bigger view.** London's TfL cameras now play their
   published video clips (about 10 s, refreshed every few minutes) in the
   card and the city panel, labelled "VIDEO CLIP"; stills-only networks stay

@@ -92,3 +92,29 @@ test('a slow source is waited for only briefly; a fresh incident jumps the queue
   assert.ok(needsAircraft(airport('X')));
   assert.ok(!needsAircraft(ship));
 });
+
+test('an empty airport is replaced during the dwell, so the replacement loads ahead too', async () => {
+  const planner = fakePlanner([airport('EMPTY'), airport('SYD')]);
+  const q = createStopQueue({
+    planner,
+    liveData: () => ({}),
+    incidents: () => ({}),
+    stage: (view, stop) =>
+      Promise.resolve({
+        ready: true,
+        count: stop.airport.id === 'SYD' ? 8 : 0,
+      }),
+    wait: noWait,
+  });
+  q.planAhead();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(q.peek().airport.id, 'SYD', 'known before departure');
+  assert.equal((await q.take()).airport.id, 'SYD');
+  assert.deepEqual(
+    q.log().map((e) => [e.id, e.skipped]),
+    [
+      ['EMPTY', true],
+      ['SYD', false],
+    ],
+  );
+});

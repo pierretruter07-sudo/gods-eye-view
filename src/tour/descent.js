@@ -4,7 +4,7 @@
  * On the first Director run after the dashboard opens, the camera steps down
  * from the geostationary belt to street level: GEO belt → ISS → an airliner
  * near 40,000 ft → a low-level helicopter → a ship → a ground vehicle → a
- * street camera → nearby cameras. Incidents wait until it ends. Steps from the airliner down stay over one region,
+ * street camera. Incidents wait until it ends. Steps from the airliner down stay over one region,
  * chosen where it is daytime. Every subject is a live record; a step with
  * nothing live is skipped, never faked. Pure: no Cesium, no DOM.
  * @module tour/descent
