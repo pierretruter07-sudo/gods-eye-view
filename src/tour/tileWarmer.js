@@ -26,6 +26,10 @@ export const WARM_AFTER_ARRIVAL_MS = 4000;
 /** Stop timing an arrival's tile load after this long. */
 const LOAD_TIMEOUT_MS = 30_000;
 const POLL_MS = 250;
+/** Longest the Director holds at departure for the next stop's tiles. */
+export const SETTLE_MAX_MS = 5000;
+/** No tile requests in flight for this long counts as loaded. */
+const SETTLE_QUIET_MS = 500;
 
 /** Every loaded 3D tileset in the scene (Google's, in practice). */
 export function sceneTilesets(viewer) {
@@ -69,6 +73,7 @@ export function createTileWarmer({
   let lastWarmed = null; // label of the stop warmed before this departure
   let timer = 0;
   let arrival = null; // { label, at, warmed, readyOnArrival }
+  let lastHold = null; // { label, heldMs }: the wait at the last departure
   const log = [];
 
   const allLoaded = () => {
@@ -138,7 +143,9 @@ export function createTileWarmer({
       warmed: Boolean(lastWarmed) && lastWarmed === label,
       readyOnArrival: allLoaded(),
       loadedAfterMs: null,
+      heldMs: lastHold?.label === label ? lastHold.heldMs : 0,
     };
+    lastHold = null;
     arrival = entry;
     log.push(entry);
     if (log.length > 30) log.shift();
@@ -159,10 +166,78 @@ export function createTileWarmer({
     timer = setTimeout(tick, entry.readyOnArrival ? 0 : POLL_MS);
   }
 
+  /** Tile requests still in flight across the scene's 3D tilesets. */
+  function pendingTiles() {
+    let n = 0;
+    for (const t of tilesets()) {
+      const st = t.statistics ?? t._statistics;
+      n +=
+        (st?.numberOfPendingRequests ?? 0) + (st?.numberOfTilesProcessing ?? 0);
+    }
+    return n;
+  }
+
+  /**
+   * Before leaving for the stop being warmed: wait (at most `maxMs`) until
+   * its tiles have finished loading, so they are on screen when the camera
+   * arrives (Pierre, 20 Oct: "load the Google tiles before we get there").
+   * Resolves at once when nothing is being warmed for that stop (a fresh
+   * alert goes straight away) or there are no 3D tiles at all.
+   * @param {string} label the stop about to be flown to
+   * @param {{maxMs?: number, quietMs?: number, sleep?: Function}} [opts]
+   * @returns {Promise<{waitedMs: number, settled: boolean}>}
+   */
+  async function settle(
+    label,
+    { maxMs = SETTLE_MAX_MS, quietMs = SETTLE_QUIET_MS, sleep } = {},
+  ) {
+    const wait =
+      sleep || ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+    const started = now();
+    if (!on || !warming || warming.label !== label || !tilesets().length) {
+      lastHold = { label, heldMs: 0 };
+      return { waitedMs: 0, settled: false };
+    }
+    let quietSince = null;
+    for (;;) {
+      const t = now();
+      if (pendingTiles() === 0) {
+        quietSince ??= t;
+        if (t - quietSince >= quietMs) {
+          lastHold = { label, heldMs: t - started };
+          return { waitedMs: t - started, settled: true };
+        }
+      } else quietSince = null;
+      if (t - started >= maxMs) {
+        lastHold = { label, heldMs: t - started };
+        return { waitedMs: t - started, settled: false };
+      }
+      await wait(POLL_MS);
+    }
+  }
+
+  /** While the Director runs, tiles are not skipped because the camera is
+   * moving (it always is: it orbits), so the view fills in sooner. */
+  const held = new Map();
+  function holdDetail(onOff) {
+    for (const t of tilesets()) {
+      if (onOff && !held.has(t)) {
+        held.set(t, t.cullRequestsWhileMoving);
+        t.cullRequestsWhileMoving = false;
+      } else if (!onOff && held.has(t)) {
+        t.cullRequestsWhileMoving = held.get(t);
+        held.delete(t);
+      }
+    }
+  }
+
   return {
     warm,
     stop,
     arrived,
+    settle,
+    holdDetail,
+    pendingTiles,
     isWarming: () => Boolean(warming),
     setEnabled(value) {
       on = Boolean(value);

@@ -19,6 +19,7 @@ import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
 import { createTileWarmer } from './tileWarmer.js';
+import { flightSeconds, spinsGlobe } from './flight.js';
 import { sensorFor } from './sensors.js';
 import { createSensorLook } from './sensorLook.js';
 import { createSpaceOverlay } from './spaceOverlay.js';
@@ -243,32 +244,30 @@ export function createTourController({
         reject(signal.reason);
       };
       signal.addEventListener('abort', onAbort, { once: true });
-      viewer.camera.flyToBoundingSphere(
-        new Cesium.BoundingSphere(
-          Cesium.Cartesian3.fromDegrees(lon, lat, heightM),
-          0,
-        ),
-        {
-          offset: new Cesium.HeadingPitchRange(
-            // Planet-scale views arrive north-up so the globe spin starts clean.
-            rangeM >= TOUR_TIMING.globeSpinMinRangeM
-              ? 0
-              : viewer.camera.heading,
-            Cesium.Math.toRadians(pitchDeg),
-            rangeM,
-          ),
-          duration: TOUR_TIMING.flyInS,
-          complete: () => {
-            signal.removeEventListener('abort', onAbort);
-            resolve();
-          },
-          cancel: () => {
-            signal.removeEventListener('abort', onAbort);
-            if (signal.aborted) reject(signal.reason);
-            else resolve();
-          },
-        },
+      const center = Cesium.Cartesian3.fromDegrees(lon, lat, heightM);
+      // Longer jumps (street to orbit and back) take longer, so they ease.
+      const travelM = Cesium.Cartesian3.distance(
+        viewer.camera.positionWC,
+        center,
       );
+      viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(center, 0), {
+        offset: new Cesium.HeadingPitchRange(
+          // Planet-scale views arrive north-up so the globe spin starts clean.
+          spinsGlobe({ heightM, rangeM }) ? 0 : viewer.camera.heading,
+          Cesium.Math.toRadians(pitchDeg),
+          rangeM,
+        ),
+        duration: flightSeconds(travelM),
+        complete: () => {
+          signal.removeEventListener('abort', onAbort);
+          resolve();
+        },
+        cancel: () => {
+          signal.removeEventListener('abort', onAbort);
+          if (signal.aborted) reject(signal.reason);
+          else resolve();
+        },
+      });
     });
   }
 
@@ -290,7 +289,7 @@ export function createTourController({
     // Planet-scale views are shot near straight down, where turning the
     // heading only spins the picture in place. Turn the globe instead: walk
     // the look-at point westward so the Earth rolls eastward, as from space.
-    if (rangeM >= TOUR_TIMING.globeSpinMinRangeM) {
+    if (spinsGlobe({ heightM, rangeM })) {
       const spin = TOUR_TIMING.globeSpinDegPerS;
       let centreLon = lon;
       const north = new Cesium.HeadingPitchRange(0, pitch, rangeM);
@@ -314,6 +313,27 @@ export function createTourController({
         new Cesium.HeadingPitchRange(heading, pitch, rangeM),
       );
     });
+  }
+
+  /** Move a planned stop's view onto its subject's latest live position. */
+  function refreshTarget(stop) {
+    const pick = (layerId, key, value) =>
+      value == null ? null : records(layerId).find((r) => r?.[key] === value);
+    let live = null;
+    if (stop.kind === 'satellite')
+      live = pick('satellites', 'noradId', stop.satellite?.noradId);
+    else if (stop.kind === 'aircraft' && stop.descent !== 'ground')
+      live = pick('flights', 'icao24', stop.aircraft?.icao24);
+    else if (stop.kind === 'military')
+      live =
+        pick('military', 'icao24', stop.aircraft?.icao24) ||
+        pick('flights', 'icao24', stop.aircraft?.icao24);
+    if (!live || !Number.isFinite(live.lat) || !Number.isFinite(live.lon))
+      return;
+    const heightM = Number.isFinite(live.altitudeM)
+      ? live.altitudeM
+      : stop.view.heightM;
+    stop.view = { ...stop.view, lat: live.lat, lon: live.lon, heightM };
   }
 
   function incidentData() {
@@ -594,6 +614,12 @@ export function createTourController({
     for (;;) {
       // Keep orbiting here until the next stop's data is in (or briefly).
       const next = await takeNext(signal);
+      // Hold here (still orbiting) until the next stop's Google tiles are
+      // in, at most a few seconds. A fresh alert is not being warmed, so it
+      // goes at once.
+      await warmer.settle(stopLabel(next), {
+        sleep: (ms) => sleep(ms, signal),
+      });
       stagedAircraft = next.staged?.aircraft || [];
       stagedAt = next.staged?.at || Date.now();
       // The airport picture fades out as the camera leaves.
@@ -623,6 +649,10 @@ export function createTourController({
           ...next.view,
           heightM: await groundHeightAt(next.view, signal),
         };
+      // A stop planned a dwell ahead aims where its subject WAS; satellites
+      // and aircraft have moved since (the ISS by ~100 km). Re-aim at the
+      // live position just before the flight so it arrives centred.
+      refreshTarget(next);
       onFocus?.(null);
       onTravel?.('depart', next.view, focusOf(next));
       // A real flight preloads its own destination from here on.
@@ -640,6 +670,7 @@ export function createTourController({
       // alert still replaces it at departure and is flown to directly.
       if (descent && !descent.isDone()) aheadDescent(signal);
       else queue.planAhead();
+      warmer.holdDetail(true);
       warmer.arrived(stopLabel(next), upcomingView);
       onFocus?.(focusOf(next));
       if (profile) {
@@ -717,6 +748,7 @@ export function createTourController({
     run = null;
     controller.abort(new DOMException(reason, 'AbortError'));
     warmer.stop();
+    warmer.holdDetail(false);
     sensorLook.set(null);
     space.clear();
     descentAhead = null;

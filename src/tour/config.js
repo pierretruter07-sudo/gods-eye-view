@@ -16,6 +16,11 @@ export const TOUR_TIMING = Object.freeze({
   globeSpinDegPerS: 3,
   /** Views at least this far out count as planet-scale. */
   globeSpinMinRangeM: 5_000_000,
+  /** ...centred on the ground: a target higher than this (a satellite) is
+   * orbited, never spun past. */
+  globeSpinMaxTargetM: 100_000,
+  /** Flight time for the longest jumps (orbit to street), seconds. */
+  flyLongS: 7,
   /** How often to check for a brand-new incident while dwelling. */
   interruptCheckS: 2,
   /** An incident already shown may be revisited after this long. */
