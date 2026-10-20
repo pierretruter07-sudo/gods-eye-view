@@ -881,7 +881,7 @@ body.gev-exercise .gev-demo {
   justify-content: center;
   gap: 6px;
   padding: 6px;
-  border-radius: 999px;
+  border-radius: 24px; /* a pill on one row, a soft box when it wraps */
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 .gev-act {
@@ -1146,8 +1146,9 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
 }
 
 /* ══ Constellation HUD (intel view) ══════════════════════════════════════
-   Header top-centre, up to four cards in the corners joined to the asset
-   by leader lines, actions along the bottom. Centre stays clear. */
+   Header top-centre; two data sheets at the bottom left and bottom right
+   (each holds up to two sections), joined to the asset by leader lines;
+   actions along the bottom between them. Centre stays clear. */
 .gev-hud {
   position: fixed;
   inset: 76px 16px 16px;
@@ -1294,8 +1295,10 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
 .gev-hud__card {
   box-sizing: border-box;
   max-height: 100%;
-  overflow: hidden;
-  padding: 11px 14px 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 12px 14px 13px;
   border-radius: 16px;
   background: rgba(16, 20, 28, 0.36);
   backdrop-filter: blur(20px) saturate(160%);
@@ -1303,13 +1306,29 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
+.gev-hud__card::-webkit-scrollbar { display: none; }
 .gev-hud__card[hidden] { display: none; }
-.gev-hud__card--tl { grid-column: 1; grid-row: 1; align-self: start; }
-.gev-hud__card--tr { grid-column: 3; grid-row: 1; align-self: start; }
-.gev-hud__card--bl { grid-column: 1; grid-row: 2; align-self: end; }
-.gev-hud__card--br { grid-column: 3; grid-row: 2; align-self: end; }
+/* The two sheets sit at the foot of the asset view, beside the button bar. */
+.gev-hud__card--l { grid-column: 1; grid-row: 2 / 4; align-self: end; }
+.gev-hud__card--r { grid-column: 3; grid-row: 2 / 4; align-self: end; }
+/* Wide screens: the caption is narrow and centred, so the sheets drop down
+   beside it, close to the bottom edge. */
+@media (min-width: 1240px) {
+  .gev-hud > .gev-hud__card--l,
+  .gev-hud > .gev-hud__card--r {
+    margin-bottom: calc(-1 * var(--gev-caption-h, 0px));
+    max-height: calc(100% + var(--gev-caption-h, 0px));
+  }
+}
+/* A section inside a sheet; sections are divided by a hairline. */
+.gev-hud__part { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.gev-hud__part[hidden] { display: none; }
+.gev-hud__part:not([hidden]) ~ .gev-hud__part:not([hidden]) {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 12px;
+}
 
 .gev-hud__head {
   display: flex;
@@ -1366,8 +1385,9 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
 .gev-hud__route text { fill: rgba(255, 255, 255, 0.85); font-size: 10px; }
 
 .gev-hud__bottom {
-  grid-column: 1 / -1;
+  grid-column: 2;
   grid-row: 3;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1403,11 +1423,9 @@ body.gev-touring.gev-intel-open .gev-alert { display: none; }
 @media (max-width: 900px) {
   .gev-hud { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto auto; top: 30vh; }
   .gev-hud__header { grid-column: 1 / -1; grid-row: 1; }
-  .gev-hud__card--tl, .gev-hud__card--bl { grid-column: 1; }
-  .gev-hud__card--tr, .gev-hud__card--br { grid-column: 2; }
-  .gev-hud__card--tl, .gev-hud__card--tr { grid-row: 2; }
-  .gev-hud__card--bl, .gev-hud__card--br { grid-row: 3; }
-  .gev-hud__bottom { grid-row: 4; }
+  .gev-hud__card--l { grid-column: 1; grid-row: 2 / 4; }
+  .gev-hud__card--r { grid-column: 2; grid-row: 2 / 4; }
+  .gev-hud__bottom { grid-column: 1 / -1; grid-row: 4; }
   .gev-hud__leaders { display: none; }
 }
 /* The HUD title sits where the live-data status chip lives: hide the chip
@@ -1523,20 +1541,15 @@ body.gev-intel-open #global-loading-status { display: none !important; }
 .gev-hud.is-entering .gev-hud__card {
   animation: gev-card-in-left 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-.gev-hud.is-entering .gev-hud__card--tr,
-.gev-hud.is-entering .gev-hud__card--br {
+.gev-hud.is-entering .gev-hud__card--r {
   animation-name: gev-card-in-right;
+  animation-delay: 90ms;
 }
 .gev-hud.is-entering .gev-hud__cards .gev-hud__card { animation-name: gev-card-in-left; }
-.gev-hud.is-entering .gev-hud__card--tl { animation-delay: 0ms; }
-.gev-hud.is-entering .gev-hud__card--tr { animation-delay: 70ms; }
-.gev-hud.is-entering .gev-hud__card--bl { animation-delay: 140ms; }
-.gev-hud.is-entering .gev-hud__card--br { animation-delay: 210ms; }
 .gev-hud.is-entering .gev-hud__header { animation: gev-hud-drop 380ms ease-out both; }
 .gev-hud.is-entering .gev-hud__bottom { animation: gev-hud-rise 420ms 160ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .gev-hud.is-leaving .gev-hud__card { animation: gev-card-out-left 220ms ease-in both; }
-.gev-hud.is-leaving .gev-hud__card--tr,
-.gev-hud.is-leaving .gev-hud__card--br { animation-name: gev-card-out-right; }
+.gev-hud.is-leaving .gev-hud__card--r { animation-name: gev-card-out-right; }
 .gev-hud.is-leaving .gev-hud__cards .gev-hud__card { animation-name: gev-card-out-left; }
 .gev-hud.is-leaving .gev-hud__header,
 .gev-hud.is-leaving .gev-hud__bottom,

@@ -1,8 +1,9 @@
 /**
  * @file World visuals: live day/night with city lights, comet trails behind
- * aircraft and ships, and shockwave rings for earthquakes the Director
- * shows. Each part can be switched off from the URL (`?daynight=0`,
- * `?trails=0`, `?quakerings=0`) or at run time through `window.__gevWorld`.
+ * aircraft and ships, and (on request only, `?quakerings=1`) shockwave
+ * rings for earthquakes the Director shows. Day/night and trails can be
+ * switched off from the URL (`?daynight=0`, `?trails=0`) or at run time
+ * through `window.__gevWorld`.
  * @module visuals
  */
 import * as Cesium from 'cesium';

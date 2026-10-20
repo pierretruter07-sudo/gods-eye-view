@@ -64,6 +64,79 @@ export function glassSphereSprite(hex) {
   );
 }
 
+/** The alert pulse's timing: one sphere, grown and faded, repeating. */
+export const ALERT_PULSE = Object.freeze({
+  periodS: 3.6,
+  fromPx: 24,
+  toPx: 300,
+});
+
+/**
+ * The alert sphere at time `tS` (seconds): its size and opacity. It starts
+ * small and fully opaque, eases out to full size, and fades to zero as it
+ * gets there (Pierre, 21 Oct).
+ * @returns {{sizePx: number, alpha: number, p: number}}
+ */
+export function pulseFrame(tS, rules = ALERT_PULSE) {
+  const p =
+    (((tS % rules.periodS) + rules.periodS) % rules.periodS) / rules.periodS;
+  const grow = 1 - (1 - p) ** 3; // fast start, slowing as it spreads
+  return {
+    p,
+    sizePx: rules.fromPx + (rules.toPx - rules.fromPx) * grow,
+    alpha: (1 - p) ** 1.6,
+  };
+}
+
+/**
+ * A frosted glass sphere, tinted `hex`: a soft blurred body (more opaque
+ * than the clear glass sphere, so it reads at full opacity), a blurred
+ * light rim and a faint highlight. No hard lines.
+ */
+export function frostedSphereSprite(hex) {
+  return sprite(
+    `frost:${hex}`,
+    (ctx, s) => {
+      const r = s / 2;
+      const body = ctx.createRadialGradient(r * 0.85, r * 0.78, 0, r, r, r - 8);
+      body.addColorStop(0, hexAlpha(hex, 0.34));
+      body.addColorStop(0.55, hexAlpha(hex, 0.22));
+      body.addColorStop(0.86, hexAlpha(hex, 0.42));
+      body.addColorStop(1, hexAlpha(hex, 0));
+      ctx.fillStyle = body;
+      ctx.beginPath();
+      ctx.arc(r, r, r - 8, 0, Math.PI * 2);
+      ctx.fill();
+      // Soft rim: a light edge with its own blur, no crisp stroke.
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.85)';
+      ctx.shadowBlur = 6;
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.beginPath();
+      ctx.arc(r, r, r - 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      // A faint frosted highlight, top left.
+      const hi = ctx.createRadialGradient(
+        r * 0.68,
+        r * 0.6,
+        0,
+        r * 0.68,
+        r * 0.6,
+        r * 0.42,
+      );
+      hi.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
+      hi.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = hi;
+      ctx.beginPath();
+      ctx.arc(r, r, r - 10, 0, Math.PI * 2);
+      ctx.fill();
+    },
+    384,
+  );
+}
+
 /** A clean double ring: a steady scope rim (no corner brackets). */
 export function reticleSprite(hex) {
   return sprite(`reticle:${hex}`, (ctx, s) => {

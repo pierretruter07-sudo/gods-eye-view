@@ -15,10 +15,10 @@ the "Screen map" section at the end of `src/ui/styles/shell.css`.
 │ layers      │              clear centre              │ drawer   │
 │ descent     │            (the asset itself)          │ alert    │
 │ checklist   │                                        │ exercise │
-│ asset cards │                                        │ package  │
-│ (tl, bl)    │                                        │ asset    │
-│             │                                        │ cards    │
-│             │         button bar (actions)           │ (tr, br) │
+│             │                                        │ package  │
+│ asset sheet │                                        │ asset    │
+│ (left,      │                                        │ sheet    │
+│  bottom)    │         button bar (actions)           │ (right)  │
 ├─────────────┴──────────── caption ─────────────────────┴──────────┤
 │ credits (Cesium / Esri / Google, always visible)                 │
 └──────────────────────────────────────────────────────────────────┘
@@ -29,8 +29,8 @@ the "Screen map" section at the end of `src/ui/styles/shell.css`.
 | Top bar | The bar with mode, search, Layers, Triage, Director and Audit |
 | Band | The opening-descent checklist: a slim strip directly under the top bar that pushes everything below it down |
 | Title | The focused asset's name and status, the Exercise banner, toasts |
-| Left column | Triage, Layers, the asset view's left cards |
-| Right column | The analyst-sheet drawer, the Director's alert card, the exercise package, the asset view's right cards |
+| Left column | Triage, Layers, the asset view's left sheet (at the bottom) |
+| Right column | The analyst-sheet drawer, the Director's alert card, the exercise package, the asset view's right sheet (at the bottom) |
 | Button bar | The focused asset's actions (at the foot of the asset view) |
 | Caption | The Director's spoken line, directly above the credits |
 | Credits | Map and data credits, bottom-left, always visible. The provider terms require them. |
@@ -46,9 +46,14 @@ Each side column has one owner at a time. Highest priority first:
 A panel that loses its column hides until the column is free again. Panels
 you opened yourself always beat the Director's own panels.
 
-- **No asset card is ever hidden on screens wider than 900 px.** The descent
+- **Two asset sheets, at the bottom** (Pierre, 21 Oct). The asset's data
+  (up to four sections) is split between a sheet at the bottom left and
+  one at the bottom right, each joined to the asset by one leader line,
+  with the button bar between them. From 1,240 px wide the sheets drop
+  down beside the caption, close to the bottom edge.
+- **No asset sheet is ever hidden on screens wider than 900 px.** The descent
   checklist takes the band, not a column. When the drawer opens, the asset
-  view shrinks to the space beside it, all four cards stack in its left
+  view shrinks to the space beside it, both sheets stack in its left
   column (which scrolls if needed), and the button bar wraps instead of
   running underneath. The camera's "Expand view" drawer is wide, about half
   the screen.

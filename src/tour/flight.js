@@ -192,3 +192,48 @@ export function smoothToward(
   out.z = current.z + dz * f;
   return out;
 }
+
+/**
+ * Where a moving subject will be after `seconds`, carried along its course
+ * at its speed (flat-earth step, fine over the few km of a hop).
+ * @param {{lat: number, lon: number, heightM?: number}} at
+ * @param {number} headingDeg course, degrees from north
+ * @param {number} speedMps
+ * @param {number} seconds
+ */
+export function leadPosition(at, headingDeg, speedMps, seconds) {
+  if (
+    !Number.isFinite(headingDeg) ||
+    !Number.isFinite(speedMps) ||
+    !Number.isFinite(seconds) ||
+    seconds <= 0
+  )
+    return { ...at };
+  const d = speedMps * seconds;
+  const R = 6_371_000;
+  const north = d * Math.cos(headingDeg * RAD);
+  const east = d * Math.sin(headingDeg * RAD);
+  return {
+    ...at,
+    lat: at.lat + north / R / RAD,
+    lon: at.lon + east / (R * Math.max(0.01, Math.cos(at.lat * RAD))) / RAD,
+  };
+}
+
+/**
+ * The heading (degrees) the camera will have on arriving at a stop:
+ * planet hops come in north-up (hopRig ends at heading 0), as do
+ * planet-scale views; a direct flight keeps the camera's own heading
+ * (null).
+ * @param {{via: object|null}} plan from planHop
+ * @param {{heightM?: number, rangeM: number}} view
+ * @param {{descent?: boolean, hasLastView?: boolean}} [how]
+ */
+export function arrivalHeadingDeg(
+  plan,
+  view,
+  { descent = false, hasLastView = true } = {},
+) {
+  if (!descent && plan?.via && hasLastView) return 0;
+  return spinsGlobe(view) ? 0 : null;
+}
