@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { QUALITY, START_LEVEL, nextQuality, qualityLevels } from './qualityPolicy.js';
-import { countStatesNear, shouldRefreshFlights, statesNear, PREFETCH_MAX_AGE_MS } from './flightPrefetchPolicy.js';
+import { countStatesNear, recordsNear, shouldRefreshFlights, statesNear, worldwideFresh, PREFETCH_MAX_AGE_MS, WORLDWIDE_FRESH_MS } from './flightPrefetchPolicy.js';
 
 test('quality ladder holds native resolution and never drops below CSS pixels', () => {
   const l = qualityLevels(1.5);
@@ -84,4 +84,27 @@ test('staged aircraft are counted near the destination only', () => {
     50,
   );
   assert.equal(heli.category, 8);
+});
+
+test('a Director stop is answered from memory only when a fresh worldwide snapshot is loaded', () => {
+  const now = 1_000_000;
+  const world = { coverage: 'worldwide upstream snapshot', lastUpdate: now - 20_000, stale: false };
+  assert.equal(worldwideFresh(world, now), true);
+  assert.equal(worldwideFresh({ ...world, lastUpdate: now - WORLDWIDE_FRESH_MS - 1 }, now), false, 'too old');
+  assert.equal(worldwideFresh({ ...world, stale: true }, now), false, 'source stale');
+  assert.equal(worldwideFresh({ ...world, coverage: '250nm regional fallback' }, now), false, 'regional only');
+  assert.equal(worldwideFresh(null, now), false);
+  const near = recordsNear(
+    [
+      { icao24: 'a', lat: -27.4, lon: 153.1, heading: 90, emitterCategory: 8, altitudeM: 300 },
+      { icao24: 'b', lat: -33.9, lon: 151.2 },
+      { icao24: 'c', lat: null, lon: 153 },
+    ],
+    -27.38,
+    153.12,
+    50,
+  );
+  assert.deepEqual(near.map((r) => r.icao24), ['a']);
+  assert.equal(near[0].headingDeg, 90);
+  assert.equal(near[0].category, 8);
 });

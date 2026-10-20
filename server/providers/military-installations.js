@@ -28,6 +28,17 @@ const _militaryInstallationsRateLimiter = makeRateLimiter({
 });
 
 const _militaryInstallationInFlight = new Map();
+/**
+ * After Overpass fails (every mirror, up to ~22 s each), no new upstream
+ * attempt for this long: requests go straight to stale data or a 503 with
+ * Retry-After instead of each waiting out the mirrors again (audit, 21 Oct).
+ */
+export const MILITARY_INSTALLATION_FAILURE_COOLDOWN_MS = 2 * 60_000;
+let _militaryInstallationCooldownUntil = 0;
+/** For tests. */
+export function resetMilitaryInstallationCooldown() {
+  _militaryInstallationCooldownUntil = 0;
+}
 
 function militaryInstallationsProxy() {
   async function refresh(box, key) {
@@ -140,12 +151,21 @@ function militaryInstallationsProxy() {
         );
         return;
       }
-      const request = coalesceProxyRequest(
-        _militaryInstallationInFlight,
-        key,
-        () => refresh(box, key),
-      );
       try {
+        if (now < _militaryInstallationCooldownUntil)
+          throw Object.assign(new Error('Overpass cooling down'), {
+            code: 'cooldown',
+          });
+        const request = coalesceProxyRequest(
+          _militaryInstallationInFlight,
+          key,
+          () =>
+            refresh(box, key).catch((error) => {
+              _militaryInstallationCooldownUntil =
+                Date.now() + MILITARY_INSTALLATION_FAILURE_COOLDOWN_MS;
+              throw error;
+            }),
+        );
         const payload = await request.promise;
         res.writeHead(200, {
           'Content-Type': 'application/json',
@@ -178,6 +198,14 @@ function militaryInstallationsProxy() {
         res.writeHead(503, {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-store',
+          'Retry-After': String(
+            Math.max(
+              1,
+              Math.ceil(
+                (_militaryInstallationCooldownUntil - Date.now()) / 1000,
+              ),
+            ),
+          ),
         });
         res.end(
           JSON.stringify({

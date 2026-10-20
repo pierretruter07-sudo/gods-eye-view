@@ -15,6 +15,7 @@ import { metarProxy } from './metar.js';
 import { cctvProxy } from './cctv.js';
 import { crossCheckPlugin } from './crosscheck.js';
 import { defaultSourceRoot } from './common/source-root.js';
+import { apiCompressionPlugin } from './common/compress.js';
 
 /**
  * The server endpoints God's Eye View uses — one per live feed or search
@@ -23,6 +24,8 @@ import { defaultSourceRoot } from './common/source-root.js';
  */
 function localProviderPlugins() {
   return [
+    // First, so it wraps every relay's response (gzip for large JSON).
+    apiCompressionPlugin(),
     openSkyProxy(),
     celestrakProxy(),
     firmsProxy(),
