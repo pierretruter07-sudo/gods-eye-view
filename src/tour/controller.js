@@ -5,6 +5,7 @@ import {
   releaseContinuousRender,
 } from '../renderGovernor.js';
 import { DESCENT_RULES, TOUR_LAYERS, TOUR_TIMING } from './config.js';
+import { aircraftIcon } from '../data/aircraftIcons.js';
 import {
   DESCENT_LEVELS,
   DESCENT_WAIT,
@@ -12,17 +13,29 @@ import {
   descentDetail,
   levelStates,
   pickDescentRegion,
+  isHelicopter,
   pickNightRegion,
+  surfaceVehicle,
 } from './descent.js';
 import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
 import { createTileWarmer } from './tileWarmer.js';
-import { flightSeconds, hopRig, planHop, spinsGlobe } from './flight.js';
+import {
+  flightSeconds,
+  hopRig,
+  planHop,
+  smoothToward,
+  spinsGlobe,
+} from './flight.js';
 import { sensorFor } from './sensors.js';
 import { createSensorLook } from './sensorLook.js';
-import { createSpaceOverlay } from './spaceOverlay.js';
+import {
+  createSpaceOverlay,
+  isGeoSatellite,
+  satrecPosition,
+} from './spaceOverlay.js';
 import { glassSphereSprite } from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
 import { AIRPORT_PROFILES } from '../airports/profiles.js';
@@ -99,14 +112,12 @@ export function createTourController({
   // Thermal / night-vision looks at stops that suit them (sensors.js).
   const sensorLook = createSensorLook({ viewer, Cesium });
   // Space stops: orbit ring, GEO belt and coverage footprint.
-  const space = createSpaceOverlay({
-    viewer,
-    satrecFor: (noradId) =>
-      dataManager.layers
-        ?.get?.('satellites')
-        ?.module?.getCatalogSatrecs?.()
-        ?.find((s) => s.noradId === noradId)?.satrec || null,
-  });
+  const satrecFor = (noradId) =>
+    dataManager.layers
+      ?.get?.('satellites')
+      ?.module?.getCatalogSatrecs?.()
+      ?.find((s) => s.noradId === noradId)?.satrec || null;
+  const space = createSpaceOverlay({ viewer, satrecFor });
   let descent = null;
   let regionStaged = { aircraft: [], at: 0 };
   // Street cameras the descent switched on are switched off again when it
@@ -117,6 +128,11 @@ export function createTourController({
   let run = null; // { controller: AbortController }
   let removeOrbit = null;
   let marker = null;
+  // The Director's own icon for a subject the live layer is not drawing.
+  let standIn = null;
+  // Where the camera is aimed now (it follows a moving subject), so the
+  // next hop starts from the subject's real position.
+  let lastAim = null;
   let airport = null; // created lazily; one CustomDataSource for the whole run
 
   const layerModule = (id) => dataManager.layers.get(id)?.module;
@@ -144,6 +160,112 @@ export function createTourController({
   function clearMarker() {
     for (const e of marker || []) viewer.entities.remove(e);
     marker = null;
+    if (standIn) viewer.entities.remove(standIn);
+    standIn = null;
+  }
+
+  /**
+   * Where a stop's moving subject is drawn right now, read every frame so
+   * the camera stays on it (Pierre, 20 Oct: the airliner flew off screen
+   * while the camera circled where it had been). Aircraft: exactly where the
+   * live layer draws the icon. Satellites below GEO: propagated from their
+   * orbit elements. Null when there is nothing to follow.
+   * @returns {((result: object) => object|null)|null}
+   */
+  function subjectTracker(stop) {
+    const icao =
+      stop?.aircraft?.icao24 ??
+      (stop?.event?.kind === 'aircraft' ? stop.event.facts?.icao24 : null);
+    if (icao) {
+      return (result) => {
+        for (const id of ['flights', 'military']) {
+          const p = layerModule(id)?.getDisplayPosition?.(icao);
+          if (p) return Cesium.Cartesian3.clone(p, result);
+        }
+        return null;
+      };
+    }
+    const sat = stop?.satellite;
+    if (sat?.noradId == null || isGeoSatellite(sat)) return null;
+    let satrec = null;
+    try {
+      satrec = satrecFor(String(sat.noradId));
+    } catch {
+      satrec = null;
+    }
+    if (!satrec) return null;
+    return (result) => {
+      const p = satrecPosition(satrec, new Date());
+      return p
+        ? Cesium.Cartesian3.fromDegrees(
+            p.lon,
+            p.lat,
+            p.altKm * 1000,
+            undefined,
+            result,
+          )
+        : null;
+    };
+  }
+
+  /**
+   * An aircraft or ground vehicle the live layer is not drawing (Pierre, 20
+   * Oct: the ground vehicle stop showed nothing) gets the Director's own
+   * icon at its reported position, carried forward on its reported course
+   * and speed. Hidden whenever the layer draws the real icon.
+   */
+  function showStandIn(stop, follow) {
+    const a = stop.aircraft;
+    if (!a || !Number.isFinite(stop.view?.lat)) return;
+    const kind =
+      stop.vehicle || surfaceVehicle(a)
+        ? 'vehicle'
+        : isHelicopter(a)
+          ? 'helicopter'
+          : 'airliner';
+    const start = Cesium.Cartesian3.fromDegrees(
+      stop.view.lon,
+      stop.view.lat,
+      (stop.view.heightM || 0) + 2,
+    );
+    const headingRad = Cesium.Math.toRadians(
+      Number.isFinite(a.heading) ? a.heading : 0,
+    );
+    const mps = Number.isFinite(a.speedMps) ? a.speedMps : 0;
+    const frame = Cesium.Transforms.eastNorthUpToFixedFrame(start);
+    const startedAt = performance.now();
+    const step = new Cesium.Cartesian3();
+    const probe = new Cesium.Cartesian3();
+    standIn = viewer.entities.add({
+      position: new Cesium.CallbackProperty((time, result) => {
+        const d = (mps * (performance.now() - startedAt)) / 1000;
+        step.x = Math.sin(headingRad) * d;
+        step.y = Math.cos(headingRad) * d;
+        step.z = 0;
+        Cesium.Matrix4.multiplyByPointAsVector(frame, step, step);
+        return Cesium.Cartesian3.add(
+          start,
+          step,
+          result ?? new Cesium.Cartesian3(),
+        );
+      }, false),
+      billboard: {
+        image: aircraftIcon(kind, 128),
+        width: 44,
+        height: 44,
+        color: Cesium.Color.fromCssColorString('#dff3ff'),
+        // Icons are drawn nose up: turn to the course, relative to the view.
+        rotation: new Cesium.CallbackProperty(
+          () => viewer.camera.heading - headingRad,
+          false,
+        ),
+        show: new Cesium.CallbackProperty(
+          () => !(follow && follow(probe)),
+          false,
+        ),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
   }
 
   /**
@@ -218,14 +340,17 @@ export function createTourController({
       position: pos,
       label: {
         text: event.simulated ? 'SIMULATED' : event.title,
-        font: '600 14px -apple-system, "Segoe UI", sans-serif',
+        // Rasterised at twice the size and drawn at half scale, so the text
+        // stays sharp instead of soft and pixelated (Pierre, 20 Oct).
+        font: '600 28px -apple-system, "Segoe UI", sans-serif',
+        scale: 0.5,
         fillColor: Cesium.Color.fromCssColorString(
           event.simulated ? '#ffd480' : '#ffffff',
         ),
         showBackground: true,
         backgroundColor:
           Cesium.Color.fromCssColorString('#0b1422').withAlpha(0.55),
-        backgroundPadding: new Cesium.Cartesian2(10, 6),
+        backgroundPadding: new Cesium.Cartesian2(20, 12),
         style: Cesium.LabelStyle.FILL,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         pixelOffset: new Cesium.Cartesian2(0, -56),
@@ -282,7 +407,7 @@ export function createTourController({
    * sat low and then shot up (it looked like a snap). The next stop's
    * tiles load all the way, through the warmer's preload camera.
    */
-  async function hopTo(next, signal) {
+  async function hopTo(next, signal, follow = null) {
     const cam = viewer.camera.positionCartographic;
     const plan = planHop(
       {
@@ -294,13 +419,15 @@ export function createTourController({
     );
     if (!plan.via || !lastView) {
       await flyTo(next.view, signal, { durationS: plan.inS ?? undefined });
-      return;
+      return null;
     }
     const from = {
       ...lastView,
+      ...(lastAim || {}),
       headingDeg: Cesium.Math.toDegrees(viewer.camera.heading),
     };
     const to = { ...next.view, headingDeg: 0 };
+    const live = new Cesium.Cartesian3();
     const totalMs = (plan.outS + plan.holdS + plan.inS) * 1000;
     stopOrbit();
     warmer.warm(next.view, stopLabel(next));
@@ -316,6 +443,15 @@ export function createTourController({
         signal.addEventListener('abort', onAbort, { once: true });
         remove = viewer.scene.preRender.addEventListener(() => {
           const u = Math.min(1, (performance.now() - started) / totalMs);
+          // A moving subject is met where it is now, not where it was.
+          if (follow && follow(live)) {
+            const c = Cesium.Cartographic.fromCartesian(live);
+            if (c) {
+              to.lat = Cesium.Math.toDegrees(c.latitude);
+              to.lon = Cesium.Math.toDegrees(c.longitude);
+              to.heightM = c.height;
+            }
+          }
           const r = hopRig(from, to, u);
           viewer.camera.lookAt(
             Cesium.Cartesian3.fromDegrees(r.lon, r.lat, r.heightM),
@@ -341,18 +477,23 @@ export function createTourController({
         /* viewer torn down */
       }
     }
+    return { lat: to.lat, lon: to.lon, heightM: to.heightM };
   }
 
-  function startOrbit({
-    lat,
-    lon,
-    heightM = 0,
-    rangeM,
-    pitchDeg,
-    orbitDegPerS = TOUR_TIMING.orbitDegPerS,
-  }) {
+  function startOrbit(
+    {
+      lat,
+      lon,
+      heightM = 0,
+      rangeM,
+      pitchDeg,
+      orbitDegPerS = TOUR_TIMING.orbitDegPerS,
+    },
+    follow = null,
+  ) {
     stopOrbit();
     const target = Cesium.Cartesian3.fromDegrees(lon, lat, heightM);
+    lastAim = { lat, lon, heightM };
     const rate = Cesium.Math.toRadians(orbitDegPerS);
     const pitch = Cesium.Math.toRadians(pitchDeg);
     let heading = viewer.camera.heading;
@@ -376,12 +517,34 @@ export function createTourController({
       });
       return;
     }
+    // A moving subject is followed: the aim eases onto its live position
+    // every frame, so it stays centred while the camera circles it.
+    const aim = Cesium.Cartesian3.clone(target);
+    const live = new Cesium.Cartesian3();
+    const easing = { tauS: TOUR_TIMING.followTauS };
+    let notedAt = 0;
     removeOrbit = viewer.scene.preRender.addEventListener(() => {
       const now = performance.now();
-      heading += rate * Math.min(0.25, (now - last) / 1000);
+      const elapsedS = (now - last) / 1000;
+      heading += rate * Math.min(0.25, elapsedS);
       last = now;
+      if (follow && follow(live)) {
+        // Real elapsed time here (not capped): on a slow frame the aim must
+        // still keep up with the subject.
+        smoothToward(aim, live, elapsedS, easing, aim);
+        if (now - notedAt > 250) {
+          notedAt = now;
+          const c = Cesium.Cartographic.fromCartesian(aim);
+          if (c)
+            lastAim = {
+              lat: Cesium.Math.toDegrees(c.latitude),
+              lon: Cesium.Math.toDegrees(c.longitude),
+              heightM: c.height,
+            };
+        }
+      }
       viewer.camera.lookAt(
-        target,
+        aim,
         new Cesium.HeadingPitchRange(heading, pitch, rangeM),
       );
     });
@@ -734,9 +897,12 @@ export function createTourController({
       // Flights are always shown in the normal look.
       sensorLook.set(null);
       space.clear();
+      const follow = subjectTracker(next);
+      let arrived = null;
       if (next.descent) await flyTo(next.view, signal);
-      else await hopTo(next, signal);
-      startOrbit(next.view);
+      else arrived = await hopTo(next, signal, follow);
+      startOrbit({ ...next.view, ...(arrived || {}) }, follow);
+      if (next.aircraft) showStandIn(next, follow);
       lastView = next.view;
       onTravel?.('arrive', next.view);
       sensorLook.set(sensorFor(next, Date.now()));
@@ -826,6 +992,7 @@ export function createTourController({
     warmer.stop();
     warmer.holdDetail(false);
     lastView = null; // the viewer moves the camera from here on
+    lastAim = null;
     sensorLook.set(null);
     space.clear();
     descentAhead = null;

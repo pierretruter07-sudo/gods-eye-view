@@ -113,10 +113,11 @@ export function installShell({ viewer, dataManager, placeSearch }) {
 
   // Smoothness first: adaptive render resolution + FXAA (see quality.js).
   const stopQuality = installAdaptiveQuality(viewer);
-  // Animated ocean: normal-mapped waves and sun glint wherever the terrain's
-  // water mask says sea (Cesium World Terrain, requested with a water mask).
+  // No animated-wave water effect: up close its normal-mapped waves were
+  // drawn far too large and read as white froth across the sea (owner
+  // request, 20 Oct). The sea keeps its real imagery colour.
   try {
-    viewer.scene.globe.showWaterEffect = true;
+    viewer.scene.globe.showWaterEffect = false;
   } catch {
     /* globe unavailable */
   }

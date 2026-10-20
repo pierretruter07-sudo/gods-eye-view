@@ -257,6 +257,22 @@ export function createFrames({ state: layerState, services, parts, source }) {
     )
       return;
     runtime.lastPlaceholderPaintAt = now;
+    // The same placeholder already on the canvas: leave it (and the bound
+    // texture) alone. Repainting it every 750 ms bumped the canvas stamp, so
+    // the plane re-uploaded its texture every second and flashed black each
+    // time (owner report, 20 Oct).
+    const placeholderKey = [
+      record.camera?.name,
+      record.camera?.city,
+      health?.message || health?.status || record.camera?.feedType || '',
+    ].join('|');
+    if (
+      runtime.placeholderKey === placeholderKey &&
+      runtime.lastFrameSignature === null &&
+      runtime.drawnImageStamp === -1
+    )
+      return;
+    runtime.placeholderKey = placeholderKey;
     runtime.drawnImageStamp = -1;
     // The placeholder overwrites the canvas, so the last real frame is no longer
     // on it. Drop the signature or an identical frame returning after an outage
@@ -343,6 +359,7 @@ export function createFrames({ state: layerState, services, parts, source }) {
         );
         runtime.canvasStamp = (runtime.canvasStamp || 0) + 1;
         runtime.lastPlaceholderPaintAt = 0;
+        runtime.placeholderKey = null;
       }
       return;
     }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createPlanner } from './planner.js';
-import { TOUR_TIMING } from './config.js';
+import { STOP_CAMERA, TOUR_TIMING } from './config.js';
 
 const t0 = Date.parse('2026-10-13T00:00:00Z');
 const min = 60_000;
@@ -185,4 +185,18 @@ test('at least one stop in every five is in space, cycling GEO, stations and nav
   }
   assert.ok(g.view.rangeM >= 4_000_000, 'GEO is seen from far enough back to show the Earth');
   assert.match(g.line, /geostationary orbit/);
+});
+
+test('a helicopter low over the ground is framed close; an emergency aircraft is framed at its altitude', () => {
+  const planner = createPlanner({ rotation: ['military'] });
+  const heli = { icao24: 'ae5678', callsign: 'THOR66', aircraftClass: 'helicopter', lat: 10, lon: 20, altitudeM: 244, onGround: false };
+  const stop = planner.next({ flights: [], quakes: [], vessels: [], satellites: [], military: [heli] }, t0);
+  assert.equal(stop.view.rangeM, STOP_CAMERA.lowAircraft.rangeM);
+  assert.ok(stop.view.rangeM < STOP_CAMERA.military.rangeM / 2);
+  const alert = createPlanner().next(
+    { flights: [{ ...emergency, altitudeM: 10_000 }], quakes: [], vessels: [], satellites: [] },
+    t0,
+  );
+  assert.equal(alert.kind, 'event');
+  assert.equal(alert.view.heightM, 10_000);
 });

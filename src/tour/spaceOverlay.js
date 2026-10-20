@@ -22,6 +22,7 @@ import {
   FOOTPRINT_MIN_ELEVATION_DEG,
   GEO_ALTITUDE_KM,
   circleAround,
+  closeRing,
   coverageAngle,
   coverageRadiusKm,
   fallbackRing,
@@ -36,8 +37,84 @@ const FADE_OUT_MS = 450;
 const UPDATE_MS = 1000;
 /** The footprint fill is rebuilt only after the satellite moves this far. */
 const FILL_MOVE_DEG = 0.5;
-const CONE_LINES = 16;
 const EDGE_HEIGHT_M = 1500;
+/** One sweep of the coverage scan (beam band and ground ring), ms. */
+const SCAN_MS = 4000;
+
+/**
+ * The coverage beam: a faint glass cone from the satellite to the edge of
+ * what it sees, brighter at its rim and near the satellite, with a soft band
+ * sweeping down it (Pierre, 20 Oct: coverage shown as more than lines, but
+ * not prominent). st.t runs 0 at the satellite to 1 at the Earth.
+ */
+const BEAM_SHADER = `
+uniform vec4 color;
+uniform float fade;
+uniform float sweep;
+czm_material czm_getMaterial(czm_materialInput materialInput) {
+  czm_material m = czm_getDefaultMaterial(materialInput);
+  float t = clamp(materialInput.st.t, 0.0, 1.0);
+  vec3 n = normalize(materialInput.normalEC);
+  vec3 v = normalize(materialInput.positionToEyeEC);
+  float rim = (1.0 - abs(dot(n, v))) * (1.0 - t);
+  float band = exp(-pow((t - sweep) / 0.05, 2.0));
+  m.diffuse = color.rgb;
+  m.emission = color.rgb * 0.3 * band;
+  // Seen side-on, the rim is brighter; seen down its axis (a high orbit)
+  // every face is edge-on, so the rim term is kept small there.
+  float body = (0.08 + 0.12 * rim * rim) * (1.0 - 0.85 * t);
+  m.alpha = clamp(color.a * fade * (body + 0.3 * band * (1.0 - 0.7 * t)), 0.0, 0.2);
+  return m;
+}`;
+
+/**
+ * Triangles from an apex to a ring of points, each with its own flat normal
+ * (positions in Earth-fixed metres).
+ */
+function beamGeometry(apex, edge) {
+  const n = edge.length - 1;
+  const positions = new Float64Array(n * 9);
+  const normals = new Float32Array(n * 9);
+  const st = new Float32Array(n * 6);
+  const a = new Cesium.Cartesian3();
+  const b = new Cesium.Cartesian3();
+  const normal = new Cesium.Cartesian3();
+  for (let i = 0; i < n; i += 1) {
+    const p1 = edge[i];
+    const p2 = edge[i + 1];
+    Cesium.Cartesian3.subtract(p1, apex, a);
+    Cesium.Cartesian3.subtract(p2, apex, b);
+    Cesium.Cartesian3.cross(a, b, normal);
+    if (Cesium.Cartesian3.magnitudeSquared(normal) > 0)
+      Cesium.Cartesian3.normalize(normal, normal);
+    [apex, p1, p2].forEach((p, k) => {
+      positions.set([p.x, p.y, p.z], i * 9 + k * 3);
+      normals.set([normal.x, normal.y, normal.z], i * 9 + k * 3);
+    });
+    st.set([(i + 0.5) / n, 0, i / n, 1, (i + 1) / n, 1], i * 6);
+  }
+  return new Cesium.Geometry({
+    attributes: {
+      position: new Cesium.GeometryAttribute({
+        componentDatatype: Cesium.ComponentDatatype.DOUBLE,
+        componentsPerAttribute: 3,
+        values: positions,
+      }),
+      normal: new Cesium.GeometryAttribute({
+        componentDatatype: Cesium.ComponentDatatype.FLOAT,
+        componentsPerAttribute: 3,
+        values: normals,
+      }),
+      st: new Cesium.GeometryAttribute({
+        componentDatatype: Cesium.ComponentDatatype.FLOAT,
+        componentsPerAttribute: 2,
+        values: st,
+      }),
+    },
+    primitiveType: Cesium.PrimitiveType.TRIANGLES,
+    boundingSphere: Cesium.BoundingSphere.fromPoints([apex, ...edge]),
+  });
+}
 
 /** Whether a stop's satellite is in (or near) geostationary orbit. */
 export function isGeoSatellite(sat) {
@@ -45,7 +122,7 @@ export function isGeoSatellite(sat) {
 }
 
 /** Geodetic position of a satrec at `date`, or null. */
-function satrecPosition(satrec, date, gmst = null) {
+export function satrecPosition(satrec, date, gmst = null) {
   try {
     const pv = propagate(satrec, date);
     if (!pv?.position || typeof pv.position === 'boolean') return null;
@@ -80,7 +157,8 @@ function satrecRing(satrec, date) {
     );
     if (p) out.push(p);
   }
-  return out.length > RING_STEPS / 2 ? out : null;
+  // Closed exactly, so the line never breaks where its ends meet.
+  return out.length > RING_STEPS / 2 ? closeRing(out) : null;
 }
 
 const toCartesians = (points, heightM = null) =>
@@ -109,7 +187,71 @@ export function createSpaceOverlay({
   let fadeTimer = 0;
   let token = 0;
   // Live geometry read by CallbackProperties (refreshed at ~1 Hz).
-  const live = { sat: null, edge: [], cone: [], nadir: [], label: null };
+  const live = { sat: null, edge: [], nadir: [], label: null, at: null };
+  // The coverage beam (one Primitive, swapped in whole when it moves) and
+  // its material, shared across rebuilds.
+  let beam = null;
+  const beamMaterial = new Cesium.Material({
+    fabric: {
+      uniforms: { color: HUD_BLUE.withAlpha(0.5), fade: 0, sweep: 0 },
+      source: BEAM_SHADER,
+    },
+    translucent: true,
+  });
+  const removeBeamTick = viewer.scene.preRender.addEventListener(() => {
+    if (!beam) return;
+    beamMaterial.uniforms.fade = alpha;
+    beamMaterial.uniforms.sweep = (performance.now() % SCAN_MS) / SCAN_MS;
+  });
+  // The beam being replaced stays on screen until its successor has drawn
+  // (removing it in the same frame could leave a one-frame gap: a flicker).
+  let outgoing = [];
+  let beamApex = null;
+  const removeBeam = (p) => {
+    if (p && !p.isDestroyed()) viewer.scene.primitives.remove(p);
+  };
+  const removeBeamSwap = viewer.scene.postRender.addEventListener(() => {
+    if (!outgoing.length || (beam && !beam.ready)) return;
+    outgoing.forEach(removeBeam);
+    outgoing = [];
+  });
+  function clearBeam() {
+    outgoing.forEach(removeBeam);
+    outgoing = [];
+    removeBeam(beam);
+    beam = null;
+    beamApex = null;
+  }
+  /** Build the beam for this apex and edge; the old one goes in the same frame. */
+  function drawBeam(apex, edge) {
+    // Rebuilt only once the satellite has moved (a GEO beam barely moves).
+    if (beam && beamApex && Cesium.Cartesian3.distance(beamApex, apex) < 1000)
+      return;
+    let next = null;
+    try {
+      next = new Cesium.Primitive({
+        geometryInstances: new Cesium.GeometryInstance({
+          geometry: beamGeometry(apex, edge),
+        }),
+        appearance: new Cesium.MaterialAppearance({
+          material: beamMaterial,
+          translucent: true,
+          faceForward: true,
+          closed: false,
+          materialSupport: Cesium.MaterialAppearance.MaterialSupport.TEXTURED,
+        }),
+        asynchronous: false,
+        allowPicking: false,
+        compressVertices: false,
+      });
+    } catch (error) {
+      console.warn('[tour] coverage beam unavailable', error);
+      return;
+    }
+    if (beam) outgoing.push(beam);
+    beam = viewer.scene.primitives.add(next);
+    beamApex = Cesium.Cartesian3.clone(apex);
+  }
 
   const withAlpha = (color, a) =>
     new Cesium.CallbackProperty(() => color.withAlpha(a * alpha), false);
@@ -160,10 +302,11 @@ export function createSpaceOverlay({
       ),
       label: {
         text: 'GEOSTATIONARY BELT · 35,786 KM',
-        font: '600 11px "JetBrains Mono", ui-monospace, monospace',
+        font: '600 22px "JetBrains Mono", ui-monospace, monospace',
+        scale: 0.5,
         fillColor: withAlpha(BELT_BLUE, 0.9),
         outlineColor: withAlpha(Cesium.Color.BLACK, 0.6),
-        outlineWidth: 3,
+        outlineWidth: 6,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         pixelOffset: new Cesium.Cartesian2(0, -14),
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
@@ -236,11 +379,9 @@ export function createSpaceOverlay({
       live.fillAt = { lat: at.lat, lon: at.lon };
       swapFill(live.fill);
     }
-    const step = Math.floor((edge.length - 1) / CONE_LINES);
-    live.cone = Array.from({ length: CONE_LINES }, (_, i) => [
-      apex,
-      live.edge[i * step],
-    ]);
+    live.at = at;
+    live.angle = coverageAngle(at.altKm, 0);
+    drawBeam(apex, live.edge);
     live.nadir = [apex, Cesium.Cartesian3.fromDegrees(at.lon, at.lat, 0)];
     // Label the usable ring on the viewer's right (bearing heading + 90°),
     // which stays on screen at every stop framing.
@@ -258,7 +399,7 @@ export function createSpaceOverlay({
         hierarchy,
         granularity: Cesium.Math.RADIANS_PER_DEGREE * 2,
         height: 0,
-        material: new Cesium.ColorMaterialProperty(withAlpha(HUD_BLUE, 0.16)),
+        material: new Cesium.ColorMaterialProperty(withAlpha(HUD_BLUE, 0.06)),
         arcType: Cesium.ArcType.GEODESIC,
       },
     });
@@ -313,15 +454,38 @@ export function createSpaceOverlay({
         }),
       },
     });
-    for (let i = 0; i < CONE_LINES; i += 1)
-      ds.entities.add({
-        polyline: {
-          positions: new Cesium.CallbackProperty(() => live.cone[i], false),
-          width: 1,
-          arcType: Cesium.ArcType.NONE,
-          material: new Cesium.ColorMaterialProperty(withAlpha(HUD_BLUE, 0.22)),
-        },
-      });
+    // A scan ring that widens from below the satellite to the footprint's
+    // edge and fades as it goes, in step with the band down the beam.
+    const scanPhase = () => (performance.now() % SCAN_MS) / SCAN_MS;
+    ds.entities.add({
+      polyline: {
+        positions: new Cesium.CallbackProperty(
+          () =>
+            live.at
+              ? toCartesians(
+                  circleAround(
+                    live.at.lat,
+                    live.at.lon,
+                    live.angle * Math.max(0.02, scanPhase()),
+                    72,
+                  ),
+                  EDGE_HEIGHT_M,
+                )
+              : [],
+          false,
+        ),
+        width: 4,
+        arcType: Cesium.ArcType.NONE,
+        material: new Cesium.PolylineGlowMaterialProperty({
+          glowPower: 0.3,
+          taperPower: 1,
+          color: new Cesium.CallbackProperty(
+            () => HUD_BLUE.withAlpha(0.55 * alpha * (1 - scanPhase()) ** 1.5),
+            false,
+          ),
+        }),
+      },
+    });
     ds.entities.add({
       polyline: {
         positions: new Cesium.CallbackProperty(() => live.nadir, false),
@@ -341,10 +505,11 @@ export function createSpaceOverlay({
             `FOOTPRINT · R ${Math.round(live.radiusKm || 0).toLocaleString('en-US')} KM · DASHED ≥${FOOTPRINT_MIN_ELEVATION_DEG}° ELEV`,
           false,
         ),
-        font: '600 11px "JetBrains Mono", ui-monospace, monospace',
+        font: '600 22px "JetBrains Mono", ui-monospace, monospace',
+        scale: 0.5,
         fillColor: withAlpha(HUD_BLUE, 1),
         outlineColor: withAlpha(Cesium.Color.BLACK, 0.6),
-        outlineWidth: 3,
+        outlineWidth: 6,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         pixelOffset: new Cesium.Cartesian2(-8, -12),
         horizontalOrigin: Cesium.HorizontalOrigin.RIGHT,
@@ -354,6 +519,8 @@ export function createSpaceOverlay({
 
   function reset() {
     token += 1;
+    clearBeam();
+    live.at = null;
     live.fillEntity = null;
     live.fillAt = null;
     clearInterval(timer);
@@ -403,17 +570,21 @@ export function createSpaceOverlay({
 
   /** Fade everything out (departure) and remove it. */
   function clear() {
-    if (!ds.entities.values.length) return;
+    if (!ds.entities.values.length && !beam) return;
     const mine = token;
     clearInterval(timer);
     timer = 0;
     animate(0, FADE_OUT_MS, () => {
-      if (mine === token) ds.entities.removeAll();
+      if (mine !== token) return;
+      ds.entities.removeAll();
+      clearBeam();
     });
   }
 
   function destroy() {
     reset();
+    removeBeamTick();
+    removeBeamSwap();
     viewer.dataSources.remove(ds, true);
   }
 

@@ -31,6 +31,9 @@ export const TOUR_TIMING = Object.freeze({
   militaryRepeatMin: 30,
   /** Longest wait, when leaving, for the next stop's aircraft to load. */
   stageMaxWaitS: 6,
+  /** The camera follows a moving subject, easing onto it over about this
+   * long (seconds), so it stays centred without jerks (Pierre, 20 Oct). */
+  followTauS: 0.6,
 });
 
 /** Camera framing per stop kind. Steep enough that the far field (coarse,
@@ -63,12 +66,19 @@ export const STOP_CAMERA = Object.freeze({
   base: Object.freeze({ rangeM: 4_200, pitchDeg: -42 }),
   vessel: Object.freeze({ rangeM: 3_200, pitchDeg: -40 }),
   military: Object.freeze({ rangeM: 15_700, pitchDeg: -42 }),
+  // Helicopters and other aircraft low over the ground: closer in, so the
+  // aircraft reads at a useful size (Pierre, 20 Oct).
+  lowAircraft: Object.freeze({ rangeM: 4_500, pitchDeg: -32 }),
   satellite: Object.freeze({ rangeM: 875_000, pitchDeg: -35 }),
-  // High orbits look down past the satellite at the Earth behind it, so
-  // its coverage cone and footprint are in frame.
-  geoSatellite: Object.freeze({ rangeM: 4_900_000, pitchDeg: -72 }),
-  meoSatellite: Object.freeze({ rangeM: 3_150_000, pitchDeg: -68 }),
+  // High orbits look down past the satellite at the Earth behind it. The
+  // Earth is the hero of the shot: steep enough that the whole disc sits
+  // just below the satellite, with its coverage cone and footprint in frame.
+  geoSatellite: Object.freeze({ rangeM: 4_900_000, pitchDeg: -82 }),
+  meoSatellite: Object.freeze({ rangeM: 3_150_000, pitchDeg: -86 }),
 });
+
+/** Aircraft at or below this height (m) use STOP_CAMERA.lowAircraft. */
+export const LOW_AIRCRAFT_MAX_M = 1_500;
 
 export const EVENT_RULES = Object.freeze({
   /** Squawk codes worth flying to, most serious first. */
@@ -172,6 +182,7 @@ export const DESCENT_REGIONS = Object.freeze(
       // Iowa DOT: live HLS video (CC BY 4.0).
       id: 'desmoines',
       label: 'Des Moines',
+      liveVideo: true,
       lat: 41.5868,
       lon: -93.625,
       groundM: 260,
@@ -192,6 +203,9 @@ export const DESCENT_RULES = Object.freeze({
   nightTargetH: 21.5,
   nightFromH: 19,
   nightToH: 4.5,
+  /** Regions with live street video count as this many hours closer to the
+   * target, so the night street shows moving video when it can. */
+  videoBonusH: 3,
   /** The street step prefers a camera with live video within this radius. */
   streetVideoRadiusKm: 25,
   /** The night street is a camera within this distance of the night city. */

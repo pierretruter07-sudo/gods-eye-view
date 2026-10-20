@@ -170,10 +170,12 @@ export function createAirportOverlay(viewer) {
         },
         label: {
           text: `${name}\n${label}`,
-          font: '500 12px sans-serif',
+          // Twice the size at half scale: sharp text (see tour controller).
+          font: '500 24px sans-serif',
+          scale: 0.5,
           fillColor: faded(color, key),
           outlineColor: faded(Cesium.Color.BLACK, key),
-          outlineWidth: 3,
+          outlineWidth: 6,
           style: Cesium.LabelStyle.FILL_AND_OUTLINE,
           pixelOffset: new Cesium.Cartesian2(10, -6),
           horizontalOrigin: Cesium.HorizontalOrigin.LEFT,

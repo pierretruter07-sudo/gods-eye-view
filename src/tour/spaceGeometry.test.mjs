@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   EARTH_RADIUS_KM,
   circleAround,
+  closeRing,
   coverageAngle,
   coverageRadiusKm,
   distanceKm,
@@ -48,4 +49,21 @@ test('the GEO belt sits on the equator at 35,786 km; a fallback orbit ring passe
   const maxLat = Math.max(...ring.map((p) => Math.abs(p.lat)));
   assert.ok(Math.abs(maxLat - 51.64) < 0.5, 'reaches the ISS inclination');
   assert.ok(ring.every((p) => p.altKm === 420));
+});
+
+test('an orbit ring is closed exactly, so the line has no break where its ends meet', () => {
+  // A ring whose last point lands 0.4 degrees and 2 km off its first.
+  const n = 90;
+  const ring = Array.from({ length: n + 1 }, (_, i) => ({
+    lat: 40 * Math.sin((i / n) * 2 * Math.PI) + (0.4 * i) / n,
+    lon: -180 + (i / n) * 360 + (0.4 * i) / n,
+    altKm: 420 + (2 * i) / n,
+  }));
+  const closed = closeRing(ring);
+  const [first, last] = [closed[0], closed[n]];
+  assert.ok(Math.abs(last.lat - first.lat) < 1e-9);
+  assert.ok(distanceKm(first, last) < 1e-6);
+  assert.ok(Math.abs(last.altKm - first.altKm) < 1e-9);
+  // The start (where the satellite is) does not move.
+  assert.deepEqual(closed[0], ring[0]);
 });

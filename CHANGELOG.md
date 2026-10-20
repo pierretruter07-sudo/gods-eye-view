@@ -6,6 +6,31 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **The Director keeps moving subjects centred.** The camera follows an
+  aircraft's drawn icon (and a satellite's live orbit position) through the
+  flight in and the whole dwell, instead of circling where it was. Aircraft
+  alerts are framed at the aircraft's altitude, and helicopters and other
+  low flyers are framed closer. A subject the live layer is not drawing
+  (such as an airport vehicle) gets the Director's own icon.
+- **Earth as the hero at satellite stops.** GEO and MEO stops now keep the
+  whole Earth in frame just below the satellite. Coverage is a faint glass
+  beam with a slow scan sweeping down it and across the footprint, in place
+  of the cone of lines.
+- **Live video at night.** The night city prefers Des Moines (live Iowa DOT
+  video) whenever it is dark there.
+
+### Fixed
+- Orbit rings no longer break or show a second, offset line: the Director's
+  ring is closed exactly and the layer's rings are re-baked every 10
+  minutes. The focused aircraft's tail now ends exactly at its icon.
+- The sea no longer looks white and frothy up close (the animated wave
+  effect is off).
+- The street camera's panel in the city no longer flashes black every
+  second while it waits for a picture.
+- Aircraft and ship icons are half the size on the zoomed-out globe.
+- Text drawn in the 3D view (alert labels, footprint and airport labels) is
+  sharper.
+
 - **A spoken introduction.** Through the opening descent the Director now
   explains each level: what it shows, where the data comes from, what is
   live and what is simulated, and what the platform does with it. The night

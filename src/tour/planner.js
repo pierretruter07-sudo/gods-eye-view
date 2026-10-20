@@ -1,6 +1,7 @@
 import { isStateVessel } from '../data/stateVessel.js';
 import {
   EVENT_RULES,
+  LOW_AIRCRAFT_MAX_M,
   MILITARY_TYPES,
   STOP_CAMERA,
   TOUR_AIRPORTS,
@@ -32,6 +33,18 @@ const ISS_NORAD = '25544';
  * TOUR_TIMING.alertGapMin; otherwise the rotation tours military aircraft,
  * busy airports, military airfields, ships, satellites and the planet.
  */
+/**
+ * Camera for an aircraft: low flyers (helicopters, aircraft near the
+ * ground) are framed closer than the usual view.
+ * @param {number} altitudeM
+ * @param {{rangeM: number, pitchDeg: number}} usual
+ */
+export function aircraftCamera(altitudeM, usual) {
+  return Number.isFinite(altitudeM) && altitudeM <= LOW_AIRCRAFT_MAX_M
+    ? STOP_CAMERA.lowAircraft
+    : usual;
+}
+
 export function createPlanner({
   rotation = TOUR_ROTATION,
   space = TOUR_SPACE,
@@ -71,8 +84,12 @@ export function createPlanner({
       view: {
         lat: event.lat,
         lon: event.lon,
-        heightM: 0,
-        ...STOP_CAMERA[event.kind],
+        // An aircraft is framed where it flies, not on the ground below it.
+        heightM:
+          event.kind === 'aircraft' && Number.isFinite(event.facts?.altitudeM)
+            ? event.facts.altitudeM
+            : 0,
+        ...aircraftCamera(event.facts?.altitudeM, STOP_CAMERA[event.kind]),
       },
       line: eventLine(event, now, { recent }),
       dwellS: dwell('event'),
@@ -196,7 +213,7 @@ export function createPlanner({
           lat: aircraft.lat,
           lon: aircraft.lon,
           heightM: Number.isFinite(aircraft.altitudeM) ? aircraft.altitudeM : 0,
-          ...STOP_CAMERA.military,
+          ...aircraftCamera(aircraft.altitudeM, STOP_CAMERA.military),
         },
         line: militaryLine(aircraft, { typeName }),
         dwellS: dwell('military'),
