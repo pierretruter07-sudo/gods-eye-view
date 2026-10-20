@@ -6,6 +6,10 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **The whole planet between stops.** After the opening descent, the
+  Director zooms out until the entire Earth is in view, pauses with the
+  globe turning, then zooms in to the next subject (about 10 s). Asset
+  stops are framed 65% closer, and the dwell orbit turns more slowly.
 - **The night side in the opening descent.** After the street camera, the
   Director flies to a camera city where it is dark, from 2,400 km with its
   city lights, then down to one of its streets in night vision. A view-mode

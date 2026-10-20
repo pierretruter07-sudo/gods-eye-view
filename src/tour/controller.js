@@ -19,7 +19,7 @@ import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
 import { createTileWarmer } from './tileWarmer.js';
-import { flightSeconds, spinsGlobe } from './flight.js';
+import { flightSeconds, planHop, spinsGlobe } from './flight.js';
 import { sensorFor } from './sensors.js';
 import { createSensorLook } from './sensorLook.js';
 import { createSpaceOverlay } from './spaceOverlay.js';
@@ -237,7 +237,11 @@ export function createTourController({
   }
 
   /** Fly so the target sits in view at the given range and pitch. */
-  function flyTo({ lat, lon, heightM = 0, rangeM, pitchDeg }, signal) {
+  function flyTo(
+    { lat, lon, heightM = 0, rangeM, pitchDeg },
+    signal,
+    { durationS = null } = {},
+  ) {
     return new Promise((resolve, reject) => {
       const onAbort = () => {
         viewer.camera.cancelFlight();
@@ -257,7 +261,7 @@ export function createTourController({
           Cesium.Math.toRadians(pitchDeg),
           rangeM,
         ),
-        duration: flightSeconds(travelM),
+        duration: durationS ?? flightSeconds(travelM),
         complete: () => {
           signal.removeEventListener('abort', onAbort);
           resolve();
@@ -269,6 +273,37 @@ export function createTourController({
         },
       });
     });
+  }
+
+  /**
+   * Normal stops: out to the whole planet, a pause with the globe turning,
+   * then in to the subject (TOUR_HOP, about 10 s). The next stop's tiles
+   * keep loading on the way out; the last leg preloads them as usual.
+   */
+  async function hopTo(next, signal) {
+    const cam = viewer.camera.positionCartographic;
+    const plan = planHop(
+      {
+        lat: Cesium.Math.toDegrees(cam.latitude),
+        lon: Cesium.Math.toDegrees(cam.longitude),
+        heightM: cam.height,
+      },
+      next.view,
+    );
+    if (plan.via) {
+      const out = flyTo(plan.via, signal, { durationS: plan.outS });
+      // flyTo aimed Cesium's preload at the planet view; keep it on the
+      // stop we are heading for.
+      warmer.warm(next.view, stopLabel(next));
+      await out;
+      if (plan.holdS > 0) {
+        startOrbit(plan.via);
+        await sleep(plan.holdS * 1000, signal);
+        stopOrbit();
+      }
+      warmer.stop();
+    }
+    await flyTo(next.view, signal, { durationS: plan.inS });
   }
 
   function startOrbit({
@@ -660,7 +695,8 @@ export function createTourController({
       // Flights are always shown in the normal look.
       sensorLook.set(null);
       space.clear();
-      await flyTo(next.view, signal);
+      if (next.descent) await flyTo(next.view, signal);
+      else await hopTo(next, signal);
       startOrbit(next.view);
       onTravel?.('arrive', next.view);
       sensorLook.set(sensorFor(next, Date.now()));
