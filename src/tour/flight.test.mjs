@@ -1,7 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TOUR_TIMING } from './config.js';
-import { flightSeconds, smoothToward, spinsGlobe } from './flight.js';
+import {
+  arrivalHeadingDeg,
+  flightSeconds,
+  leadPosition,
+  planHop,
+  smoothToward,
+  spinsGlobe,
+} from './flight.js';
 import { STOP_CAMERA } from './config.js';
 
 test('longer camera jumps take longer, up to the longest flight time', () => {
@@ -116,4 +123,30 @@ test('satellite stops keep the whole Earth in frame below a high satellite', () 
   // Half the vertical field of view on a wide (2:1) screen is about 16 deg.
   assert.ok(earthInView(35_786, STOP_CAMERA.geoSatellite) < 16);
   assert.ok(earthInView(20_200, STOP_CAMERA.meoSatellite) < 16.5);
+});
+
+test('tiles are warmed for the arrival pose: hops land north-up, direct flights keep the heading', () => {
+  const view = { lat: -27.4, lon: 153, heightM: 0, rangeM: 4500, pitchDeg: -32 };
+  const hop = planHop({ lat: 51.5, lon: 0, heightM: 3000 }, view);
+  assert.ok(hop.via, 'a city-to-city move is a planet hop');
+  assert.equal(arrivalHeadingDeg(hop, view), 0, 'the hop ends at heading 0');
+  assert.equal(arrivalHeadingDeg(hop, view, { descent: true }), null, 'descent flights keep the camera heading');
+  assert.equal(arrivalHeadingDeg(hop, view, { hasLastView: false }), null);
+  const direct = planHop({ lat: 0, lon: 0, heightM: 20_000_000 }, view);
+  assert.equal(arrivalHeadingDeg(direct, view), null);
+});
+
+test('a moving aircraft is warmed where it will be on arrival, not where it was queued', () => {
+  const at = { lat: -33.9, lon: 151.2, heightM: 11_000 };
+  // 240 m/s due east for 15 s: 3.6 km east.
+  const ahead = leadPosition(at, 90, 240, 15);
+  const kmEast = (ahead.lon - at.lon) * 111.32 * Math.cos((at.lat * Math.PI) / 180);
+  assert.ok(Math.abs(kmEast - 3.6) < 0.05, String(kmEast));
+  assert.ok(Math.abs(ahead.lat - at.lat) < 1e-6);
+  assert.equal(ahead.heightM, 11_000);
+  // Due north: latitude grows.
+  assert.ok(leadPosition(at, 0, 100, 10).lat > at.lat);
+  // No course or speed: stays put.
+  assert.deepEqual(leadPosition(at, null, 240, 15), at);
+  assert.deepEqual(leadPosition(at, 90, 240, 0), at);
 });

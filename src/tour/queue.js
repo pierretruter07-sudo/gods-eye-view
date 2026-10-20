@@ -87,8 +87,19 @@ export function createStopQueue({
       upcoming = plan();
       return upcoming.stop;
     },
-    /** The queued stop, if any (for diagnostics). */
+    /** The queued stop, if any (for diagnostics and tile warm-up). */
     peek: () => upcoming?.stop || null,
+    /**
+     * A brand-new incident takes the queued slot now (during the dwell)
+     * rather than at departure, so its data and map tiles load ahead too.
+     * Returns true when the queued stop changed.
+     */
+    preferFresh() {
+      if (!upcoming || upcoming.stop?.kind === 'event') return false;
+      if (!planner.hasFresh(incidents())) return false;
+      upcoming = plan();
+      return true;
+    },
     /**
      * The stop to fly to next. Waits up to `maxWaitMs` for its data; skips
      * an airport that has no aircraft so the Director never arrives at an

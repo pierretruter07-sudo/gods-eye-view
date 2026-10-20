@@ -128,16 +128,17 @@ test('quake rings grow with magnitude, pulse a few times, then settle', () => {
   }
 });
 
-test('each world visual can be switched off from the URL', () => {
+test('each world visual can be switched off from the URL; quake rings only on request', () => {
   assert.deepEqual(visualFlags(''), {
     dayNight: true,
     trails: true,
-    quakeRings: true,
+    quakeRings: false,
   });
   assert.deepEqual(visualFlags('?daynight=0&trails=0'), {
     dayNight: false,
     trails: false,
-    quakeRings: true,
+    quakeRings: false,
   });
-  assert.equal(visualFlags('?nointro&quakerings=0').quakeRings, false);
+  assert.equal(visualFlags('?nointro&quakerings=1').quakeRings, true);
+  assert.equal(visualFlags('?quakerings=0').quakeRings, false);
 });

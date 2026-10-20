@@ -179,3 +179,40 @@ test('while the Director runs, tiles are not skipped for camera movement; restor
   w.holdDetail(false);
   assert.equal(tiles.cullRequestsWhileMoving, true);
 });
+
+test('the warm aims with the arrival heading, and follows a moving subject every second', async () => {
+  const { viewer, pc } = fakeViewer();
+  let pos = { lat: 10, lon: 20, heightM: 9000 };
+  const w = createTileWarmer({ viewer, Cesium, tilesets: () => [] });
+  w.warm(city, 'aircraft:x', { headingDeg: 0, locate: () => pos });
+  assert.equal(pc.aimed.hpr.heading, 0, 'north-up, as the hop arrives (not the orbit heading 0.5)');
+  assert.deepEqual(pc.aimed.target, { lon: 20, lat: 10, h: 9000 });
+  assert.equal(pc.aimed.hpr.range, 900, 'framing from the stop view');
+  pos = { lat: 10.05, lon: 20.1, heightM: 9100 };
+  await new Promise((r) => setTimeout(r, 1100));
+  assert.deepEqual(pc.aimed.target, { lon: 20.1, lat: 10.05, h: 9100 }, 're-aimed at the new position');
+  assert.equal(w.warming().headingDeg, 0);
+  w.stop();
+  assert.equal(w.warming(), null);
+});
+
+test('the queued stop’s arrival heading and position reach the warm', async () => {
+  const { viewer, pc } = fakeViewer();
+  const w = createTileWarmer({ viewer, Cesium, tilesets: () => [{ tilesLoaded: true }] });
+  w.arrived('a', () => ({ view: city, label: 'b', headingDeg: 0, locate: () => ({ lat: 1, lon: 2 }) }));
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal(pc.aimed.hpr.heading, 0);
+  assert.deepEqual(pc.aimed.target, { lon: 2, lat: 1, h: 20 });
+  w.stop();
+});
+
+test('while the Director runs, the edges of the view are not kept coarse (foveated detail off); restored on exit', () => {
+  const { viewer } = fakeViewer();
+  const tiles = { tilesLoaded: true, cullRequestsWhileMoving: true, foveatedScreenSpaceError: true };
+  const w = createTileWarmer({ viewer, Cesium, tilesets: () => [tiles] });
+  w.holdDetail(true);
+  assert.equal(tiles.foveatedScreenSpaceError, false);
+  w.holdDetail(false);
+  assert.equal(tiles.foveatedScreenSpaceError, true);
+  assert.equal(tiles.cullRequestsWhileMoving, true);
+});

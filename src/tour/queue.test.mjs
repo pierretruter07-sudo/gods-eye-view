@@ -118,3 +118,36 @@ test('an empty airport is replaced during the dwell, so the replacement loads ah
     ],
   );
 });
+
+test('a fresh alert takes the queued slot during the dwell, so its tiles load before the camera leaves', async () => {
+  const quake = {
+    kind: 'event',
+    event: { key: 'q1' },
+    view: { lat: 2, lon: 2, rangeM: 90_000 },
+  };
+  let fresh = false;
+  const stops = [ship, quake];
+  let i = 0;
+  const planner = {
+    next: () => (fresh ? ((fresh = false), quake) : stops[i++ % 1]),
+    hasFresh: () => fresh,
+  };
+  const q = createStopQueue({
+    planner,
+    liveData: () => ({}),
+    incidents: () => ({}),
+    wait: noWait,
+  });
+  q.planAhead();
+  assert.equal(q.preferFresh(), false, 'nothing new: the queued ship stays');
+  assert.equal(q.peek().kind, 'vessel');
+  fresh = true;
+  assert.equal(q.preferFresh(), true);
+  assert.equal(
+    q.peek(),
+    quake,
+    'the alert is queued (and warmed) now, not at departure',
+  );
+  assert.equal(q.preferFresh(), false, 'an alert already queued is kept');
+  assert.equal(await q.take(), quake);
+});

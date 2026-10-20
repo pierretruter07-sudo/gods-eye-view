@@ -4,7 +4,7 @@ import {
   holdContinuousRender,
   releaseContinuousRender,
 } from '../renderGovernor.js';
-import { DESCENT_RULES, TOUR_LAYERS, TOUR_TIMING } from './config.js';
+import { DESCENT_RULES, TOUR_HOP, TOUR_LAYERS, TOUR_TIMING } from './config.js';
 import { aircraftIcon } from '../data/aircraftIcons.js';
 import {
   DESCENT_LEVELS,
@@ -23,8 +23,10 @@ import { createStopQueue } from './queue.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
 import { createTileWarmer } from './tileWarmer.js';
 import {
+  arrivalHeadingDeg,
   flightSeconds,
   hopRig,
+  leadPosition,
   planHop,
   smoothToward,
   spinsGlobe,
@@ -36,7 +38,11 @@ import {
   isGeoSatellite,
   satrecPosition,
 } from './spaceOverlay.js';
-import { glassSphereSprite } from './pulseGraphics.js';
+import {
+  frostedSphereSprite,
+  glassSphereSprite,
+  pulseFrame,
+} from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
 import { AIRPORT_PROFILES } from '../airports/profiles.js';
 
@@ -217,6 +223,58 @@ export function createTourController({
     };
   }
 
+  /** Seconds a planet hop takes, start to finish. */
+  const HOP_S = TOUR_HOP.outS + TOUR_HOP.holdS + TOUR_HOP.inS;
+
+  /**
+   * Where a moving aircraft will be when the camera lands on it: its live
+   * icon position carried `leadS()` seconds along its course. For the tile
+   * warm-up (an airliner covers 10-15 km during a dwell and a hop, so
+   * warming where it was queued loaded the wrong tiles). Null for a subject
+   * that does not move or has no live position.
+   * @param {object} stop
+   * @param {() => number} leadS
+   */
+  function arrivalLocate(stop, leadS) {
+    const track = stop?.aircraft || stop?.event?.facts;
+    if (!track || !(track.speedMps > 1)) return null;
+    const live = subjectTracker(stop);
+    if (!live) return null;
+    const scratch = new Cesium.Cartesian3();
+    return () => {
+      const p = live(scratch);
+      const c = p ? Cesium.Cartographic.fromCartesian(p) : null;
+      if (!c) return null;
+      return leadPosition(
+        {
+          lat: Cesium.Math.toDegrees(c.latitude),
+          lon: Cesium.Math.toDegrees(c.longitude),
+          heightM: c.height,
+        },
+        track.heading ?? track.headingDeg,
+        track.speedMps,
+        leadS(),
+      );
+    };
+  }
+
+  /** The camera heading a stop will be reached with (see arrivalHeadingDeg). */
+  function arrivalHeading(stop) {
+    const cam = viewer.camera.positionCartographic;
+    const plan = planHop(
+      {
+        lat: Cesium.Math.toDegrees(cam.latitude),
+        lon: Cesium.Math.toDegrees(cam.longitude),
+        heightM: cam.height,
+      },
+      stop.view,
+    );
+    return arrivalHeadingDeg(plan, stop.view, {
+      descent: Boolean(stop.descent),
+      hasLastView: Boolean(lastView),
+    });
+  }
+
   /**
    * An aircraft or ground vehicle the live layer is not drawing (Pierre, 20
    * Oct: the ground vehicle stop showed nothing) gets the Director's own
@@ -293,96 +351,34 @@ export function createTourController({
   }
 
   /**
-   * Glass alert pulse: a steady glass core on the event and two glass
-   * spheres that expand from it and fade as they grow (staggered half a
-   * period). Ice-blue for live events, warm amber for staged ones. Billboards
-   * stay crisp at any zoom and cost no ground tessellation; the orbit already
-   * holds continuous rendering, so the callbacks animate.
+   * Alert pulse (Pierre, 21 Oct: "just a minimalist sphere"): one frosted
+   * glass sphere grows from the event, starting fully opaque and fading to
+   * nothing as it spreads, then starts again. Nothing else is drawn on the
+   * globe: the title is in the header. Ice-blue for live events, amber for
+   * staged ones. A screen-facing billboard: crisp at any zoom, no ground
+   * tessellation; the orbit already holds continuous rendering.
    */
   function showMarker(event) {
     clearMarker();
-    const hex = event.simulated ? '#ffcf7a' : '#bfe6ff';
-    const sphere = glassSphereSprite(hex);
-    const pos = Cesium.Cartesian3.fromDegrees(event.lon, event.lat);
-    const common = {
-      disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      heightReference: Cesium.HeightReference.NONE,
-    };
-    const easeOut = (t) => 1 - (1 - t) ** 3;
-    const PERIOD_MS = 3200;
-    const phase = (offset) => (performance.now() / PERIOD_MS + offset) % 1;
+    const frame = pulseFrame;
+    const sprite = frostedSphereSprite(event.simulated ? '#ffcf7a' : '#bfe6ff');
     const white = Cesium.Color.WHITE;
-
-    const core = viewer.entities.add({
-      position: pos,
+    const now = () => frame(performance.now() / 1000);
+    const pulse = viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(event.lon, event.lat),
       billboard: {
-        image: sphere,
-        width: 26,
-        height: 26,
+        image: sprite,
+        width: new Cesium.CallbackProperty(() => now().sizePx, false),
+        height: new Cesium.CallbackProperty(() => now().sizePx, false),
         color: new Cesium.CallbackProperty(
-          () =>
-            white.withAlpha(0.88 + 0.12 * Math.sin(performance.now() / 700)),
+          () => white.withAlpha(now().alpha),
           false,
         ),
-        ...common,
-      },
-    });
-
-    // A crisp point at the exact event position, inside the glass core.
-    const dot = viewer.entities.add({
-      position: pos,
-      point: {
-        pixelSize: 5,
-        color: Cesium.Color.fromCssColorString(hex),
-        outlineColor: white.withAlpha(0.9),
-        outlineWidth: 1,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        heightReference: Cesium.HeightReference.NONE,
       },
     });
-
-    const wave = (offset) => {
-      const size = new Cesium.CallbackProperty(
-        () => 26 + 200 * easeOut(phase(offset)),
-        false,
-      );
-      return viewer.entities.add({
-        position: pos,
-        billboard: {
-          image: sphere,
-          width: size,
-          height: size,
-          color: new Cesium.CallbackProperty(
-            () => white.withAlpha(0.95 * (1 - phase(offset)) ** 1.6),
-            false,
-          ),
-          ...common,
-        },
-      });
-    };
-
-    const label = viewer.entities.add({
-      position: pos,
-      label: {
-        text: event.simulated ? 'SIMULATED' : event.title,
-        // Rasterised at twice the size and drawn at half scale, so the text
-        // stays sharp instead of soft and pixelated (Pierre, 20 Oct).
-        font: '600 28px -apple-system, "Segoe UI", sans-serif',
-        scale: 0.5,
-        fillColor: Cesium.Color.fromCssColorString(
-          event.simulated ? '#ffd480' : '#ffffff',
-        ),
-        showBackground: true,
-        backgroundColor:
-          Cesium.Color.fromCssColorString('#0b1422').withAlpha(0.55),
-        backgroundPadding: new Cesium.Cartesian2(20, 12),
-        style: Cesium.LabelStyle.FILL,
-        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        pixelOffset: new Cesium.Cartesian2(0, -56),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      },
-    });
-
-    marker = [wave(0), wave(0.5), core, dot, label];
+    marker = [pulse];
   }
 
   /** Fly so the target sits in view at the given range and pitch. */
@@ -454,7 +450,13 @@ export function createTourController({
     const live = new Cesium.Cartesian3();
     const totalMs = (plan.outS + plan.holdS + plan.inS) * 1000;
     stopOrbit();
-    warmer.warm(next.view, stopLabel(next));
+    // Keep loading the arrival view's tiles through the hop: north-up (how
+    // the hop arrives), at the subject's position on landing.
+    let leftS = totalMs / 1000;
+    warmer.warm(next.view, stopLabel(next), {
+      headingDeg: 0,
+      locate: arrivalLocate(next, () => leftS),
+    });
     holdContinuousRender(RENDER_HOLD);
     try {
       await new Promise((resolve, reject) => {
@@ -467,6 +469,7 @@ export function createTourController({
         signal.addEventListener('abort', onAbort, { once: true });
         remove = viewer.scene.preRender.addEventListener(() => {
           const u = Math.min(1, (performance.now() - started) / totalMs);
+          leftS = ((1 - u) * totalMs) / 1000;
           // A moving subject is met where it is now, not where it was.
           if (follow && follow(live)) {
             const c = Cesium.Cartographic.fromCartesian(live);
@@ -851,10 +854,32 @@ export function createTourController({
     descentAhead = ahead;
   }
 
-  /** Where the Director goes next, if it already knows (for tile warm-up). */
+  /**
+   * Where the Director goes next, if it already knows (for tile warm-up):
+   * the view, the heading it will arrive with and, for a moving aircraft,
+   * where it will be. A fresh alert that came in during the dwell takes
+   * the queued slot now, so its tiles load before the camera leaves
+   * instead of the camera arriving to a blur.
+   */
+  let freshCheckedAt = 0;
   function upcomingView() {
+    // Ranking incidents walks every flight: at most once a second.
+    if (
+      !descentAhead &&
+      !(descent && !descent.isDone()) &&
+      Date.now() - freshCheckedAt >= 1000
+    ) {
+      freshCheckedAt = Date.now();
+      queue.preferFresh();
+    }
     const stop = descentAhead ? descentAheadStop : queue.peek();
-    return stop?.view ? { view: stop.view, label: stopLabel(stop) } : null;
+    if (!stop?.view) return null;
+    return {
+      view: stop.view,
+      label: stopLabel(stop),
+      headingDeg: arrivalHeading(stop),
+      locate: arrivalLocate(stop, () => HOP_S + 1),
+    };
   }
 
   /**

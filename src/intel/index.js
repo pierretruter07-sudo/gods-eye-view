@@ -48,8 +48,9 @@ import { attachCctvVideo } from '../layers/cctv/videoPlayback.js';
 /**
  * Live-mode intelligence view — the Constellation HUD. Click any aircraft,
  * ship, satellite or quake (or let the Director focus one): a header names
- * it, up to four glass cards sit in the screen corners joined to the asset
- * by leader lines, and analyst actions run along the bottom. Nothing
+ * it, its (up to four) data sections sit in two glass sheets at the bottom
+ * left and right, joined to the asset by leader lines, and analyst
+ * actions run along the bottom between them. Nothing
  * scrolls. Real feed values are tagged FEED; illustrative content SIMULATED.
  */
 const CACHE_MS = 4000;
@@ -87,11 +88,46 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const sensorTag = el('p', 'gev-hud__sensor');
   sensorTag.hidden = true;
   header.append(headerBody, sensorTag);
-  // Four card slots around the asset: top-left, top-right, bottom-left, bottom-right.
-  const SLOTS = ['tl', 'tr', 'bl', 'br'];
-  const cards = SLOTS.slice(0, MAX_CARDS).map((slot) =>
-    el('section', `gev-hud__card gev-hud__card--${slot} gev-glass`),
+  // Two data sheets, bottom left and bottom right (Pierre, 21 Oct: four
+  // corner cards were too much). The HUD's sections (up to four) are split
+  // between them, the first half on the left.
+  const SIDES = ['l', 'r'];
+  const panels = SIDES.map((side) =>
+    el('section', `gev-hud__card gev-hud__card--${side} gev-glass`),
   );
+  const cards = Array.from({ length: MAX_CARDS }, (_, i) =>
+    el('div', `gev-hud__part gev-hud__part--${i + 1}`),
+  );
+  /** Put the visible sections in their sheets (first half left). */
+  function assignParts() {
+    const shown = cards.filter((c) => !c.hidden);
+    const leftCount = Math.ceil(shown.length / 2);
+    let moved = false;
+    cards.forEach((node) => {
+      const i = shown.indexOf(node);
+      const home = i === -1 ? panels[0] : i < leftCount ? panels[0] : panels[1];
+      // Keep the sections in order inside each sheet.
+      if (node.parentElement !== home) {
+        home.append(node);
+        moved = true;
+      }
+    });
+    for (const panel of panels) {
+      const parts = [...panel.children].sort(
+        (a, b) => cards.indexOf(a) - cards.indexOf(b),
+      );
+      if (parts.some((n, i) => panel.children[i] !== n)) {
+        panel.append(...parts);
+        moved = true;
+      }
+      const visible = parts.filter((n) => !n.hidden);
+      panel.hidden = visible.length === 0;
+      const sources = new Set(visible.map((n) => n.dataset.source || 'feed'));
+      panel.dataset.source =
+        sources.size === 1 ? [...sources][0] : sources.size ? 'mixed' : '';
+    }
+    return moved;
+  }
   const bottom = el('div', 'gev-hud__bottom');
   const brief = el('p', 'gev-iv__brief gev-glass');
   brief.hidden = true;
@@ -168,7 +204,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
     return n;
   };
-  const leaderEls = cards.map((_, i) => {
+  const leaderEls = panels.map((_, i) => {
     const gradId = `gev-lead-grad-${i}`;
     const grad = mk('linearGradient', {
       id: gradId,
@@ -193,19 +229,20 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   const toast = el('div', 'gev-hud__toast gev-glass');
   toast.setAttribute('role', 'status');
   toast.hidden = true;
-  // When the drawer (or alert) takes the right column, all four cards stack
-  // in one scrolling column on the left instead of two of them hiding.
+  // When the drawer (or alert) takes the right column, both sheets stack
+  // in one scrolling column on the left instead of one of them hiding.
   const stack = el('div', 'gev-hud__cards');
-  view.append(leaders, header, ...cards, stack, bottom, drawer);
+  for (const c of cards) panels[0].append(c);
+  view.append(leaders, header, ...panels, stack, bottom, drawer);
   const narrow = window.matchMedia?.('(max-width: 900px)');
   function placeCards() {
     const stacked =
       !narrow?.matches &&
       (['sheets', 'alert'].includes(document.body.dataset.gevRight || '') ||
         document.body.dataset.gevLeft === 'layers');
-    if (stacked === (cards[0].parentElement === stack)) return;
-    if (stacked) stack.append(...cards);
-    else for (const c of cards) view.insertBefore(c, stack);
+    if (stacked === (panels[0].parentElement === stack)) return;
+    if (stacked) stack.append(...panels);
+    else for (const p of panels) view.insertBefore(p, stack);
     measureCards?.();
   }
   const placeObserver = new MutationObserver(placeCards);
@@ -502,6 +539,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
           c ? hudCard(c, i, { image: c.ref ? refs.get(c.ref) : null }) : '',
         ) || changed;
     });
+    changed = assignParts() || changed;
     mountVideos(view);
     renderActions();
     if (changed) measureCards();
@@ -536,27 +574,27 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     Cesium.Ellipsoid.WGS84,
     Cesium.Cartesian3.ZERO,
   );
-  // Card anchor points, measured only when a card changes size or the window
-  // resizes — never per frame (a layout read every frame stalls rendering).
-  const anchors = cards.map(() => null);
+  // Sheet anchor points (inner top corner), measured only when a sheet
+  // changes size or the window resizes — never per frame (a layout read
+  // every frame stalls rendering).
+  const anchors = panels.map(() => null);
   function measureCards() {
-    const stacked = cards[0].parentElement === stack;
-    cards.forEach((node, i) => {
+    const stacked = panels[0].parentElement === stack;
+    panels.forEach((node, i) => {
       if (node.hidden || !node.getClientRects().length) {
         anchors[i] = null;
         return;
       }
       const r = node.getBoundingClientRect();
-      const slot = SLOTS[i];
       const onRight = document.body.dataset.gevLeft === 'layers';
       anchors[i] = stacked
         ? {
             x: (onRight ? r.left : r.right).toFixed(1),
-            y: (r.top + r.height / 2).toFixed(1),
+            y: (r.top + Math.min(28, r.height / 2)).toFixed(1),
           }
         : {
-            x: (slot.endsWith('l') ? r.right : r.left).toFixed(1),
-            y: (slot.startsWith('t') ? r.bottom - 18 : r.top + 18).toFixed(1),
+            x: (SIDES[i] === 'l' ? r.right : r.left).toFixed(1),
+            y: (r.top + 22).toFixed(1),
           };
     });
   }
@@ -564,19 +602,19 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     typeof ResizeObserver === 'function'
       ? new ResizeObserver(() => measureCards())
       : null;
-  for (const node of cards) cardObserver?.observe(node);
-  const lastD = cards.map(() => '');
+  for (const node of panels) cardObserver?.observe(node);
+  const lastD = panels.map(() => '');
   function updateLeaders() {
     if (view.hidden || !selected) return;
     const at = assetScreen();
     // Orthogonal routes (horizontal and vertical runs only), one lane each.
     const live = anchors.map((a, i) =>
-      at && a && !cards[i].hidden ? { x: Number(a.x), y: Number(a.y) } : null,
+      at && a && !panels[i].hidden ? { x: Number(a.x), y: Number(a.y) } : null,
     );
     const lanes = at ? assignLanes(at, live) : [];
     leaderEls.forEach(
       ({ g, grad, stopA, stopB, halo, line, pulse, dot }, i) => {
-        const node = cards[i];
+        const node = panels[i];
         const anchor = anchors[i];
         if (!live[i]) {
           if (g.style.display !== 'none') g.style.display = 'none';

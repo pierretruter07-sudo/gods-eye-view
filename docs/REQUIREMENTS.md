@@ -92,12 +92,14 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-027 | Satellite stops shall keep the Earth as the hero of the shot: at GEO and MEO the whole Earth disc shall be in frame below the satellite. Coverage shall be shown as a faint beam with a sweeping scan, and orbit rings shall be closed exactly so the line never breaks. | T |
 | GEV-DIR-028 | The night city shall prefer a city with live street video when it is dark there, so the night street shows moving video when available. | T |
 | GEV-DIR-029 | The opening descent's first view shall show the geostationary belt as a tilted ring around the Earth (viewed about 22° off the equatorial plane), not edge-on as a flat line. | T |
+| GEV-DIR-030 | The Director shall load the next stop's 3D tiles for the view the camera will actually arrive at: the heading it arrives with, and for a moving aircraft the position it will have on arrival. A fresh alert that comes in during a dwell shall be queued (and its tiles loaded) before the camera leaves. While the Director runs, the edges of the view shall not be held at reduced detail because the camera is moving. | T |
+| GEV-DIR-031 | An alert shall be marked on the globe by one frosted glass sphere that grows from the event, starting fully opaque and fading to nothing as it reaches full size, then repeats. No other rings, labels or markers shall be drawn for it by default. | T |
 
 ## 6. Intel HUD (INT)
 
 | ID | Requirement | V |
 |---|---|---|
-| GEV-INT-001 | An asset shall show at most four information cards, deterministic for the same input. | T |
+| GEV-INT-001 | An asset shall show at most four information sections, deterministic for the same input, presented in two sheets at the bottom left and bottom right of the screen. | T |
 | GEV-INT-002 | Each card and row shall be labelled FEED or SIMULATED according to its origin. Feed values shall never be labelled simulated. | T |
 | GEV-INT-003 | Ownership of real assets shall be a generic category labelled SIMULATED, never a named company. | T |
 | GEV-INT-004 | A missing operator shall appear as a simulated link, never as a feed value. | T |

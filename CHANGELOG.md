@@ -37,6 +37,23 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **The next stop's Google tiles now load for the view you actually get.**
+  The Director already queued the next stop and preloaded its tiles, but
+  two later changes made the preload miss: planet hops arrive facing north
+  while the preload used the orbit's heading (often the far side of the
+  subject), and moving aircraft are met where they are on arrival, not
+  where they were queued. The preload now uses the arrival heading and
+  follows the aircraft ahead along its course. Fresh alerts are queued and
+  preloaded during the dwell instead of at departure, the edges of the view
+  are no longer kept coarse while the camera orbits, and the Director waits
+  up to 8 s (still orbiting) for the tiles before it leaves.
+- **One glass sphere for an alert.** The alert marker is now a single
+  frosted sphere that grows from the event and fades from full opacity to
+  nothing, then repeats. The quake shockwave rings, the on-globe label and
+  the second wave are gone (rings: `?quakerings=1`).
+- **Two data sheets instead of four corner cards.** An asset's data sits
+  in two glass sheets at the bottom left and bottom right, with the button
+  bar between them; on wide screens they sit beside the caption.
 - Night vision no longer floods the screen with bright green. It is used
   only up close (30 km or nearer) and never on an alert. The look is now a
   dark scene where edges and bright surfaces stand out.
