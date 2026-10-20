@@ -280,6 +280,46 @@ export function createTileWarmer({
     }
   }
 
+  /**
+   * A watch over tile loading for the held arrival: `ready(now)` is true
+   * once no tile request has been in flight for `quietMs` (both the camera's
+   * own view and the warmed arrival view), or at once when there are no 3D
+   * tiles at all (no Google key).
+   */
+  function loadWatch({ quietMs = 300 } = {}) {
+    let quietSince = null;
+    return {
+      ready(t = now()) {
+        if (!on || !tilesets().length) return true;
+        if (pendingTiles() > 0) {
+          quietSince = null;
+          return false;
+        }
+        quietSince ??= t;
+        return t - quietSince >= quietMs && allLoaded();
+      },
+    };
+  }
+
+  /**
+   * After arrival: wait (at most `maxMs`) until the view's tiles are in, so
+   * the Director never starts talking over a blur. Resolves with how long
+   * it waited.
+   */
+  async function waitLoaded({ maxMs = 4000, quietMs = 300, sleep } = {}) {
+    const wait =
+      sleep || ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+    const started = now();
+    const watch = loadWatch({ quietMs });
+    for (;;) {
+      const t = now();
+      if (watch.ready(t)) return { waitedMs: t - started, settled: true };
+      if (t - started >= maxMs)
+        return { waitedMs: t - started, settled: false };
+      await wait(100);
+    }
+  }
+
   /** While the Director runs, tiles are not skipped or kept coarse because
    * the camera is moving (it always is: it orbits). Cesium's foveated
    * detail lowers the edges of the view and defers their tiles until the
@@ -309,6 +349,8 @@ export function createTileWarmer({
     stop,
     arrived,
     settle,
+    loadWatch,
+    waitLoaded,
     holdDetail,
     pendingTiles,
     isWarming: () => Boolean(warming),

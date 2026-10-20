@@ -56,22 +56,43 @@ export const TOUR_HOP = Object.freeze({
   minCameraM: 8_000_000,
   /** Direct flights (from high up, to a planet-scale view, or short). */
   directS: 6,
+  /**
+   * The arrival is held short of the subject until its Google tiles are in
+   * (Pierre, 21 Oct: the Director arrived and talked over a blurred view).
+   * The hop comes down to `approachFactor` × the final range, creeps in
+   * while the final view's tiles load (at most `holdMaxS`), then glides the
+   * last stretch in `glideS`.
+   */
+  approachFactor: 3,
+  holdMaxS: 6,
+  holdCreep: 0.35,
+  glideS: 1.8,
   /** Stops closer than this fly straight there, no planet zoom-out
    * (Pierre, 21 Oct: Brisbane to Amberley is 45 km). */
   directBelowKm: 300,
 });
 
 /** Stop framings, 65% closer than before (Pierre, 20 Oct). */
+/**
+ * Asset framings (Pierre, 21 Oct): half the distance (50% closer) and a low,
+ * cinematic angle that looks out towards the horizon, so the top fifth of
+ * the shot is sky and the rest is the asset and the ground below it. With
+ * the camera's vertical field of view (about 36° on a 16:9 screen) a pitch
+ * of about -12° puts the horizon 60% of the way from the centre to the top
+ * edge. Ships and ground vehicles sit a little higher (-14° to -16°) so the
+ * camera stays clear of nearby buildings.
+ */
+export const ASSET_PITCH_DEG = -12;
 export const STOP_CAMERA = Object.freeze({
-  aircraft: Object.freeze({ rangeM: 24_500, pitchDeg: -42 }),
+  aircraft: Object.freeze({ rangeM: 12_250, pitchDeg: ASSET_PITCH_DEG }),
   earthquake: Object.freeze({ rangeM: 122_500, pitchDeg: -50 }),
   airport: Object.freeze({ rangeM: 4_900, pitchDeg: -40 }),
   base: Object.freeze({ rangeM: 4_200, pitchDeg: -42 }),
-  vessel: Object.freeze({ rangeM: 3_200, pitchDeg: -40 }),
-  military: Object.freeze({ rangeM: 15_700, pitchDeg: -42 }),
+  vessel: Object.freeze({ rangeM: 1_600, pitchDeg: -14 }),
+  military: Object.freeze({ rangeM: 7_850, pitchDeg: ASSET_PITCH_DEG }),
   // Helicopters and other aircraft low over the ground: closer in, so the
   // aircraft reads at a useful size (Pierre, 20 Oct).
-  lowAircraft: Object.freeze({ rangeM: 4_500, pitchDeg: -32 }),
+  lowAircraft: Object.freeze({ rangeM: 2_250, pitchDeg: -14 }),
   satellite: Object.freeze({ rangeM: 875_000, pitchDeg: -35 }),
   // High orbits look down past the satellite at the Earth behind it. The
   // Earth is the hero of the shot: steep enough that the whole disc sits
@@ -242,10 +263,11 @@ export const DESCENT_CAMERA = Object.freeze({
   // across the screen; from about 22° off the equatorial plane it reads as
   // a tilted ring around the Earth (Pierre, 20 Oct).
   geo: Object.freeze({ rangeM: 95_000_000, pitchDeg: -90, tiltDeg: 22 }),
-  cruise: Object.freeze({ rangeM: 25_000, pitchDeg: -30 }),
-  low: Object.freeze({ rangeM: 3_000, pitchDeg: -25 }),
-  ship: Object.freeze({ rangeM: 2_500, pitchDeg: -30 }),
-  ground: Object.freeze({ rangeM: 900, pitchDeg: -35 }),
+  // Assets: 50% closer, low cinematic angle (see STOP_CAMERA).
+  cruise: Object.freeze({ rangeM: 12_500, pitchDeg: ASSET_PITCH_DEG }),
+  low: Object.freeze({ rangeM: 1_500, pitchDeg: -14 }),
+  ship: Object.freeze({ rangeM: 1_250, pitchDeg: -14 }),
+  ground: Object.freeze({ rangeM: 450, pitchDeg: -16 }),
   street: Object.freeze({ rangeM: 380, pitchDeg: -18, orbitDegPerS: 6 }),
   // The night side: high enough for the day/night shell and city lights.
   // The whole planet, centred on the night city (Pierre, 20 Oct).

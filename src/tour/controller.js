@@ -24,6 +24,7 @@ import { createTileWarmer } from './tileWarmer.js';
 import {
   arrivalHeadingDeg,
   flightSeconds,
+  arrivalRangeM,
   hopRig,
   leadPosition,
   planHop,
@@ -138,6 +139,9 @@ export function createTourController({
   // Where the camera is aimed now (it follows a moving subject), so the
   // next hop starts from the subject's real position.
   let lastAim = null;
+  // Diagnostics: how long each arrival was held for its tiles (s).
+  let arrivalHeld = null;
+  const arrivals = [];
   let airport = null; // created lazily; one CustomDataSource for the whole run
 
   const layerModule = (id) => dataManager.layers.get(id)?.module;
@@ -454,20 +458,31 @@ export function createTourController({
       headingDeg: Cesium.Math.toDegrees(viewer.camera.heading),
     };
     const to = { ...next.view, headingDeg: 0 };
+    // The hop comes down to an approach range above the subject, holds
+    // there (creeping in) until the final view's Google tiles are in, then
+    // glides the last stretch: the reveal is never a blur.
+    const approachM = to.rangeM * TOUR_HOP.approachFactor;
+    const toApproach = { ...to, rangeM: approachM };
     const live = new Cesium.Cartesian3();
     const totalMs = (plan.outS + plan.holdS + plan.inS) * 1000;
+    const holdMaxMs = TOUR_HOP.holdMaxS * 1000;
+    const glideMs = TOUR_HOP.glideS * 1000;
     stopOrbit();
     // Keep loading the arrival view's tiles through the hop: north-up (how
     // the hop arrives), at the subject's position on landing.
-    let leftS = totalMs / 1000;
+    let leftS = (totalMs + glideMs) / 1000;
     warmer.warm(next.view, stopLabel(next), {
       headingDeg: 0,
       locate: arrivalLocate(next, () => leftS),
     });
+    const loaded = warmer.loadWatch();
     holdContinuousRender(RENDER_HOLD);
     try {
       await new Promise((resolve, reject) => {
         const started = performance.now();
+        let phase = 'hop';
+        let phaseAt = started;
+        let glideFrom = approachM;
         let remove = null;
         const onAbort = () => {
           remove?.();
@@ -475,18 +490,46 @@ export function createTourController({
         };
         signal.addEventListener('abort', onAbort, { once: true });
         remove = viewer.scene.preRender.addEventListener(() => {
-          const u = Math.min(1, (performance.now() - started) / totalMs);
-          leftS = ((1 - u) * totalMs) / 1000;
+          const now = performance.now();
           // A moving subject is met where it is now, not where it was.
           if (follow && follow(live)) {
             const c = Cesium.Cartographic.fromCartesian(live);
             if (c) {
-              to.lat = Cesium.Math.toDegrees(c.latitude);
-              to.lon = Cesium.Math.toDegrees(c.longitude);
-              to.heightM = c.height;
+              to.lat = toApproach.lat = Cesium.Math.toDegrees(c.latitude);
+              to.lon = toApproach.lon = Cesium.Math.toDegrees(c.longitude);
+              to.heightM = toApproach.heightM = c.height;
             }
           }
-          const r = hopRig(from, to, u);
+          let r;
+          if (phase === 'hop') {
+            const u = Math.min(1, (now - started) / totalMs);
+            leftS = ((1 - u) * totalMs + glideMs) / 1000;
+            r = hopRig(from, toApproach, u);
+            if (u >= 1) {
+              phase = 'hold';
+              phaseAt = now;
+            }
+          } else {
+            r = { ...to, pitchDeg: to.pitchDeg, headingDeg: 0 };
+            if (phase === 'hold') {
+              const waitedS = (now - phaseAt) / 1000;
+              r.rangeM = arrivalRangeM(approachM, to.rangeM, { waitedS });
+              if (loaded.ready(now) || now - phaseAt >= holdMaxMs) {
+                phase = 'glide';
+                phaseAt = now;
+                glideFrom = r.rangeM;
+                arrivalHeld = Math.round(waitedS * 10) / 10;
+              }
+            } else {
+              const glideU = Math.min(1, (now - phaseAt) / glideMs);
+              leftS = ((1 - glideU) * glideMs) / 1000;
+              r.rangeM = arrivalRangeM(approachM, to.rangeM, {
+                glideU,
+                from: glideFrom,
+              });
+              if (glideU >= 1) phase = 'done';
+            }
+          }
           viewer.camera.lookAt(
             Cesium.Cartesian3.fromDegrees(r.lon, r.lat, r.heightM),
             new Cesium.HeadingPitchRange(
@@ -495,7 +538,7 @@ export function createTourController({
               r.rangeM,
             ),
           );
-          if (u >= 1) {
+          if (phase === 'done') {
             remove();
             signal.removeEventListener('abort', onAbort);
             resolve();
@@ -992,6 +1035,22 @@ export function createTourController({
       if (descent && !descent.isDone()) aheadDescent(signal);
       else queue.planAhead();
       warmer.holdDetail(true);
+      // Never talk over a blur: wait (still orbiting) until this view's
+      // tiles are in, before the caption, narration and asset sheets. The
+      // next stop's warm-up starts only after, so it does not compete.
+      const gate = await warmer.waitLoaded({
+        maxMs: next.kind === 'event' ? 2500 : 4000,
+        sleep: (ms) => sleep(ms, signal),
+      });
+      signal.throwIfAborted();
+      arrivals.push({
+        stop: stopLabel(next),
+        heldS: arrivalHeld,
+        gateMs: Math.round(gate.waitedMs),
+        settled: gate.settled,
+      });
+      if (arrivals.length > 30) arrivals.shift();
+      arrivalHeld = null;
       warmer.arrived(stopLabel(next), upcomingView);
       onFocus?.(focusOf(next));
       if (profile) {
@@ -1141,6 +1200,8 @@ export function createTourController({
     queue: () => ({ next: queue.peek(), log: queue.log() }),
     /** Diagnostics: per arrival, whether its tiles were warmed and ready. */
     tileLog: () => warmer.log(),
+    /** Diagnostics: per arrival, the hold for tiles and the gate before narration. */
+    arrivalLog: () => arrivals.map((a) => ({ ...a })),
     /** Turn the Google tile warm-up on or off (comparison runs). */
     tileWarm: (on) => {
       if (on !== undefined) warmer.setEnabled(on);

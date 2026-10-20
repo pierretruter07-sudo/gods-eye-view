@@ -14,6 +14,29 @@ export function selectMapStartupRoute({
   return 'osm';
 }
 
+/** Google's tile host serves HTTP/2, so it takes far more than Cesium's
+ * default 18 parallel requests per server; the Director's next-stop warm-up
+ * and the current view then load side by side instead of queuing (Pierre,
+ * 21 Oct: arrivals still blurred). */
+export const GOOGLE_TILE_HOST = 'tile.googleapis.com:443';
+export const GOOGLE_TILE_MAX_REQUESTS = 48;
+export const MAX_REQUESTS_TOTAL = 80;
+
+export function allowParallelGoogleTiles(Cesium) {
+  const scheduler = Cesium?.RequestScheduler;
+  if (!scheduler) return;
+  const byServer = scheduler.requestsByServer || {};
+  byServer[GOOGLE_TILE_HOST] = Math.max(
+    byServer[GOOGLE_TILE_HOST] || 0,
+    GOOGLE_TILE_MAX_REQUESTS,
+  );
+  scheduler.requestsByServer = byServer;
+  scheduler.maximumRequests = Math.max(
+    scheduler.maximumRequests || 0,
+    MAX_REQUESTS_TOTAL,
+  );
+}
+
 /**
  * Load Google Photorealistic 3D Tiles through direct Google access when
  * configured, otherwise through Cesium ion's hosted Google asset. If the
@@ -30,6 +53,7 @@ export async function loadPhotorealisticTileset(
   const googleKey = clean(googleApiKey);
   const ionToken = clean(cesiumToken);
   const errors = [];
+  allowParallelGoogleTiles(Cesium);
 
   const attempts = [];
   if (googleKey) attempts.push({ route: 'google-direct', googleKey });
