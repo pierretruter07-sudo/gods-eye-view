@@ -133,15 +133,12 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-027 | Iowa DOT traffic cameras shall be loaded from its public feature service (CC BY 4.0, credited "Iowa Department of Transportation"), with live video only from Iowa DOT video hosts and stills only from its snapshot host. | T |
 | GEV-INT-028 | The asset view's cards shall slide in from their own side of the screen, one after another, when it opens, and slide out when it closes; the sheets drawer shall slide out as it closes. Reduced-motion settings shall turn the movement off. | D |
 
-## 7. Exercise mode (EXE)
+## 7. Exercise mode (EXE): removed
 
-| ID | Requirement | V |
-|---|---|---|
-| GEV-EXE-001 | Exercise mode shall disconnect the live layers and read no live feed. | I |
-| GEV-EXE-002 | Exercise platforms shall be generic classes, never real platform types. | T |
-| GEV-EXE-003 | The authorisation checklist shall leave the final command step open. | T |
-| GEV-EXE-004 | The same scenario and seed shall produce the same package. | T |
-| GEV-EXE-005 | The timeline shall name only the fictional target. | T |
+The fictional Exercise theatre (GEV-EXE-001 to 005) and the staged-event
+demo buttons were removed on 21 Oct 2026 for the final version (Pierre: the
+Director and manual navigation are the product). No requirement in this
+section remains.
 
 ## 8. Performance (PRF)
 
@@ -201,4 +198,5 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-VIS-004 | The scene shall render with high dynamic range and a neutral tone map, a gentle bloom on the brightest light only, and a contrast-adaptive sharpening pass instead of FXAA. Each can be switched off from the URL (`?hdr=0`, `?bloom=0`, `?sharpen=0`). | T |
 | GEV-VIS-005 | Aircraft icons shall be drawn from a raster close to their on-screen size in device pixels (never magnified more than 10%), and the camera, ship, satellite and Director icons shall be rasterised for 2× and 3× screens. | T |
 | GEV-VIS-006 | The aircraft the Director or analyst focuses on shall be shown as its 3D model, first in line for a model slot, at least 96 px on screen, with its own materials lit by the sun and sky rather than the fleet's flat tint. | I |
+| GEV-VIS-007 | Mouse navigation shall pivot on the Earth's centre: a left drag turns the globe about its centre so the ground follows the cursor (north up), a right drag turns the heading about the line from the centre through the camera and zooms, the wheel and trackpad pinch zoom straight towards or away from the centre and never below the 3D city, and only a middle or Shift drag pans. Touch gestures and following a tracked aircraft keep Cesium's own controls. | T |
 | GEV-VIS-003 | When the Director shows an earthquake, rings shall expand from the epicentre three times, then settle into one ring and a marker until the Director moves on. The ring size is a display scale (30 km at M5, doubling per magnitude, 15–400 km), not a measured shaking area. `?quakerings=0` shall switch them off. | T |

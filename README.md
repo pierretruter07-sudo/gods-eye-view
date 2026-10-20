@@ -23,15 +23,14 @@ Developed by **Digital Dynamics Group**. This is a fork of
 |---|---|
 | **Live layers** | Flights, military aircraft, AIS vessels, satellites, earthquakes, NASA FIRMS fires, NOAA cyclones, OSM military installations, submarine cables. |
 | **Director** | Hands-free tour with spoken commentary. Its first run descends from the geostationary belt to live street cameras, with a checklist of each level. It then tours military aircraft, the busiest airports and military airfields, ships and satellites, and shows at most one alert (emergency squawk or M4.5+ quake) every 10 minutes. It starts 10 s after the welcome card. |
-| **Intel HUD** | Click any asset (or let the Director pick one) to see a "constellation" of up to four cards, a follow camera and analyst actions. Actions open analyst sheets in a side drawer (object properties, lineage, linked objects, timeline and per-action tables). Every value is tagged **FEED** (from the live source) or **SIMULATED** (illustrative). |
+| **Intel HUD** | Click any asset (or let the Director pick one) to see its data in two glass sheets at the bottom of the screen, a follow camera and analyst actions. Actions open analyst sheets in a side drawer (object properties, lineage, linked objects, timeline and per-action tables). Every value is tagged **FEED** (from the live source) or **SIMULATED** (illustrative). |
 | **Analyst actions** | Real: satellite pass predictions, downlink windows, conjunction screening, Esri archive imagery, nearby infrastructure. Simulated, and labelled as such: cargo manifests, filed flight plans, drafted messages. |
 | **Triage, watchlist, AOI** | A queue of feed-driven alerts, a pinned watchlist, and areas of interest. |
 | **Street cameras** | Up to about 2,300 public traffic cameras (Sydney and NSW, London, Finland, British Columbia, Calgary, Ontario). Click one for its live still, refreshed every 10 s, or see it as a panel in the 3D city. Open-licence networks only by default; nothing in a frame is recognised or recorded. |
-| **Exercise mode** | A separate, fully **fictional** theatre for planning-workflow demos. It reads no live feed. Platforms are generic classes and the final authorisation step is always left open. |
 | **AUDIT (CrossCheck)** | Press **AUDIT** to turn the globe into a 3D map of this software's own compliance: EUROCAE ED-153 (SWAL 3) safety objectives on the inner ring, OWASP ASVS 5.0 (L2) security requirements on the middle ring and ISO/IEC 42001 AI management clauses and controls on the outer ring. Must-fix gaps are raised pins; a guided tour explains it. The Evidence drawer shows the remediation pipeline, 40,000 ft first, down to each finding's history. Same pan, rotate and zoom as the globe. |
 
 **Ethics guardrails:** no person dossiers. Ownership on real assets is generic
-and labelled SIMULATED. Live mode has no kinetic actions.
+and labelled SIMULATED. There are no kinetic actions and no staged events.
 
 ## Quick start
 
@@ -64,7 +63,6 @@ Production build: `npm run build && npm run preview`.
 | Parameter | Effect |
 |---|---|
 | `?nointro` | Skip the welcome card and its 10 s countdown. |
-| `?demo` | Show the "Simulate 7700" / "Simulate quake" buttons. These are staged events marked SIMULATED. |
 | `?restore` | Restore the last camera and layer state instead of starting clean. |
 | `?fps` | Show the frame-rate readout (measure on the presentation laptop). |
 

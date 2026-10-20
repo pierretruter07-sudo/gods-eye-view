@@ -14,8 +14,8 @@ the "Screen map" section at the end of `src/ui/styles/shell.css`.
 │ triage      │                                        │ sheets   │
 │ layers      │              clear centre              │ drawer   │
 │ descent     │            (the asset itself)          │ alert    │
-│ checklist   │                                        │ exercise │
-│             │                                        │ package  │
+│ checklist   │                                        │          │
+│             │                                        │          │
 │ asset sheet │                                        │ asset    │
 │ (left,      │                                        │ sheet    │
 │  bottom)    │         button bar (actions)           │ (right)  │
@@ -28,9 +28,9 @@ the "Screen map" section at the end of `src/ui/styles/shell.css`.
 |---|---|
 | Top bar | The bar with mode, search, Layers, Triage, Director and Audit |
 | Band | The opening-descent checklist: a slim strip directly under the top bar that pushes everything below it down |
-| Title | The focused asset's name and status, the Exercise banner, toasts |
+| Title | The focused asset's name and status, toasts |
 | Left column | Triage, Layers, the asset view's left sheet (at the bottom) |
-| Right column | The analyst-sheet drawer, the Director's alert card, the exercise package, the asset view's right sheet (at the bottom) |
+| Right column | The analyst-sheet drawer, the Director's alert card, the asset view's right sheet (at the bottom) |
 | Button bar | The focused asset's actions (at the foot of the asset view) |
 | Caption | The Director's spoken line, directly above the credits |
 | Credits | Map and data credits, bottom-left, always visible. The provider terms require them. |
@@ -82,6 +82,6 @@ are published as `--z-*` CSS variables from `LAYERS` in `layout.js`.
 - **The overlap check runs before every UI review.** It renders the app at six
   screen sizes in about fourteen states (welcome, idle, layers, triage, asset
   cards, cards with drawer, camera, Director with caption, descent with
-  drawer, alert, Exercise, AUDIT). It measures every visible panel, fails on
+  drawer, alert, AUDIT). It measures every visible panel, fails on
   any overlap or panel off screen, and produces a contact sheet of
   screenshots.

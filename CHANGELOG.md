@@ -37,6 +37,20 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Globe navigation pivots on the Earth's centre** (Pierre, 21 Oct). A
+  left drag turns the globe about its centre so the ground follows the
+  cursor, with a little inertia; a right drag turns the heading and zooms;
+  the wheel and trackpad pinch zoom straight towards the centre and stop
+  above the 3D city; a middle or Shift drag pans. Before, Cesium pivoted on
+  whatever point was under the cursor (often a building, the horizon or
+  empty space), so drags swung the view in odd directions.
+
+### Removed
+- **Exercise mode and the staged-event buttons.** The fictional strike
+  theatre, its top-bar switch and panel, and the "Simulate 7700" /
+  "Simulate quake" buttons are gone for the final version. The Director and
+  manual navigation show live data only; illustrative values in the asset
+  sheets stay labelled SIMULATED.
 - **Sharper, richer graphics** (Pierre, 21 Oct):
   - High dynamic range with a neutral tone map, a gentle bloom on only the
     brightest light, and a contrast-adaptive sharpening pass instead of

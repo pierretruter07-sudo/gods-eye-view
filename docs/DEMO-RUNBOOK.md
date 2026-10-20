@@ -31,11 +31,10 @@ Target: 12–15 minute live demonstration for defence-prime executives.
 |---|---|---|---|
 | 0:00 | **Hook** | Welcome card counting down over the spinning globe | "Everything you are about to see is public data, fused live." |
 | 0:30 | **Director** | Click **Start now** (this enables the voice) | The system tours the planet on its own and interrupts for emergencies and major quakes. |
-| 2:00 | **Incident** | Let the Director land on an incident. If none is live, use the fallback tab and press **Simulate 7700**. | Point out the **SIMULATED** badge on staged events: "the system never blurs real and illustrative." |
-| 4:00 | **Intel HUD** | Click an aircraft or naval vessel. Use **Follow**. | Four cards, FEED vs SIMULATED chips, the dead-reckoned track. |
+| 2:00 | **Incident** | Let the Director land on a live incident (earthquakes and emergency squawks are shown as they happen; there are no staged events). | Point out the **SIMULATED** badge on staged events: "the system never blurs real and illustrative." |
+| 4:00 | **Intel HUD** | Click an aircraft or naval vessel. Use **Follow**. | Two data sheets, FEED vs SIMULATED chips, the dead-reckoned track. |
 | 6:00 | **Analyst actions** | Satellite: **Predict passes**, then **Conjunction check**. Vessel: **Task imagery pass** (real Esri archive mosaic). | These are computed live from orbital elements and imagery. They are not mock-ups. |
 | 8:00 | **Triage and watchlist** | Open **Triage**. Pin an item. Mark a 100 km area. | Feed-driven prioritisation plus the operator's own areas of interest. |
-| 10:00 | **Exercise mode** | Switch to **Exercise**. Generate a package. | A fictional theatre for planning workflows. No live data, generic platforms, and the final authorisation stays with a human. |
 | 12:00 | **Close** | Return to **Live**. The globe spins. | Roadmap: licensed feeds, the LLM analyst (HENRI), ED-153-aligned assurance. |
 
 ## Fallbacks

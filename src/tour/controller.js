@@ -20,7 +20,6 @@ import {
 import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
-import { simulatedAircraft, simulatedQuake } from './simulate.js';
 import { createTileWarmer } from './tileWarmer.js';
 import {
   arrivalHeadingDeg,
@@ -130,7 +129,6 @@ export function createTourController({
   // ends (left on, every later stop near a city filled with camera stills).
   let cctvByDescent = false;
   let descentWrapped = true;
-  const staged = { flights: [], quakes: [] };
   let run = null; // { controller: AbortController }
   let removeOrbit = null;
   let marker = null;
@@ -616,8 +614,8 @@ export function createTourController({
 
   function incidentData() {
     return {
-      flights: [...records('flights'), ...staged.flights],
-      quakes: [...records('earthquakes'), ...staged.quakes],
+      flights: records('flights'),
+      quakes: records('earthquakes'),
     };
   }
 
@@ -648,8 +646,8 @@ export function createTourController({
 
   function liveData() {
     return {
-      flights: [...records('flights'), ...staged.flights],
-      quakes: [...records('earthquakes'), ...staged.quakes],
+      flights: records('flights'),
+      quakes: records('earthquakes'),
       vessels: records('ais-live-vessels'),
       military: records('military'),
       satellites: records('satellites'),
@@ -1105,15 +1103,6 @@ export function createTourController({
     ui.setState('paused');
   }
 
-  /** Queue a staged event; it is shown next, and the tour starts if idle. */
-  function simulate(kind) {
-    const now = Date.now();
-    if (kind === 'earthquake') staged.quakes.push(simulatedQuake(now));
-    else staged.flights.push(simulatedAircraft(now));
-    // A running tour picks it up at its next check; an idle one starts.
-    if (!run) start();
-  }
-
   // Any manual camera input ends the tour.
   const canvas = viewer.scene.canvas;
   const onInput = () => exit('manual-input');
@@ -1137,7 +1126,6 @@ export function createTourController({
   return {
     start,
     exit,
-    simulate,
     destroy,
     isRunning: () => Boolean(run),
     /** Diagnostics: the opening descent's region and next step. */

@@ -18,7 +18,6 @@ export const PARTS = Object.freeze({
   maps: 'Maps and paid keys',
   server: 'Server proxies',
   director: 'Director and alerts',
-  exercise: 'Exercise mode',
   operators: 'People using it',
   release: 'Releases',
   evidence: 'Safety case',
@@ -30,12 +29,12 @@ const LIVE = ['aircraft', 'ships', 'satellites', 'hazards'];
 /** Statements for the must-fix items. */
 const ITEMS = Object.freeze({
   'V8.2.1': {
-    parts: ['maps', 'server', 'ships', 'exercise'],
-    text: 'Anyone who finds the link can run up the Google Maps and 3D-tile bill, use up the AIS and OpenSky quotas so live ships and aircraft stop for everyone, and open Exercise mode.',
+    parts: ['maps', 'server', 'ships', 'aircraft'],
+    text: 'Anyone who finds the link can run up the Google Maps and 3D-tile bill, and use up the AIS and OpenSky quotas so live ships and aircraft stop for everyone.',
   },
   'V8.1.1': {
-    parts: ['operators', 'exercise', 'server'],
-    text: 'Nothing says who may see military tracks, open Exercise mode or call the paid proxies, so there is no basis to restrict any of it, or to show later who could.',
+    parts: ['operators', 'aircraft', 'server'],
+    text: 'Nothing says who may see military tracks or call the paid proxies, so there is no basis to restrict any of it, or to show later who could.',
   },
   'V3.4.3': {
     parts: ['aircraft', 'ships', 'maps', 'operators'],
@@ -134,7 +133,7 @@ const ITEMS = Object.freeze({
     text: 'There is no process to check a new AI feature (such as HENRI narration) for its effect on people before it ships, so each one goes live unassessed.',
   },
   'A.9.4': {
-    parts: ['ai', 'operators', 'exercise'],
+    parts: ['ai', 'operators', 'director'],
     text: 'Without a formal intended-use statement, nothing says the picture must not be used to target, track individuals or make operational decisions, so misuse cannot be refused on paper.',
   },
   'A.10.3': {
@@ -255,7 +254,7 @@ const AREAS = Object.freeze({
     na: 'God’s Eye View takes no file uploads.',
   },
   V6: {
-    parts: ['operators', 'exercise'],
+    parts: ['operators', 'server'],
     risk: 'Weak sign-in would let others act as an operator.',
     na: 'There is no sign-in yet; it arrives in Wave 2 and is assessed then.',
   },
@@ -265,7 +264,7 @@ const AREAS = Object.freeze({
     na: 'There are no sessions until sign-in arrives in Wave 2.',
   },
   V8: {
-    parts: ['operators', 'exercise', 'server', 'maps'],
+    parts: ['operators', 'server', 'maps'],
     risk: 'Without access control, anyone can use every feature and every paid service.',
   },
   V9: {
@@ -366,7 +365,7 @@ const AREAS = Object.freeze({
     risk: 'Users are not told how the AI features choose what to show, or about AI incidents.',
   },
   'A.9': {
-    parts: ['ai', 'operators', 'exercise'],
+    parts: ['ai', 'operators', 'director'],
     risk: 'Responsible use of the AI features is not defined, so misuse has no line to cross.',
   },
   'A.10': {

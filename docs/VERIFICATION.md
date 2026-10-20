@@ -100,7 +100,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-INT-003 | `src/intel/hud.js` | T: `hud.test.mjs` "ownership is generic, never an invented company" |
 | GEV-INT-004 | `src/intel/enrichment.js` | T: `intel.test.mjs` "missing operator becomes a simulated link, never a feed one" |
 | GEV-INT-005 | `src/intel/objects.js` `buildTriage` | T: `intel.test.mjs` "triage is driven by feed fields only" |
-| GEV-INT-006 | `src/tour/simulate.js`, `src/intel/*` | T: `intel.test.mjs` "a staged demo event is never presented as feed data"; `hud.test.mjs` "staged demo objects are entirely simulated" |
+| GEV-INT-006 | `src/intel/*` | T: `intel.test.mjs` "a staged demo event is never presented as feed data"; `hud.test.mjs` "staged demo objects are entirely simulated" |
 | GEV-INT-007 | `src/intel/hud.js` | T: `hud.test.mjs` "orbit numbers are real physics" |
 | GEV-INT-008 | `src/intel/actions.js` | T: `src/intel/actions.test.mjs` "every HUD action has a runner, and results render" |
 | GEV-INT-009 | `src/intel/actions.js` | T: `actions.test.mjs` "drafted messages carry live values only", "simulated documents are deterministic and flagged" |
@@ -123,11 +123,6 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-INT-026 | `server/providers/cctv/stream.js` `parseHlsMap`, `parseHlsMedia`, `createHlsPuller` (`getInit`); `server/providers/cctv.js` media route; `src/layers/cctv/videoPlayback.js`; `src/intel/index.js` `mountVideos`; `src/intel/camera.js`; `src/intel/actions.js` `liveview` | T: `src/data/cctvHlsStream.test.mjs` "fragmented-MP4 streams (Iowa DOT) relay with their init segment; MP4 without a map still fails closed"; `src/intel/camera.test.mjs` "a camera with a live stream plays live video, labelled LIVE VIDEO, with the still as its fallback" |
 | GEV-INT-027 | `server/providers/cctv/sources.js` `iowaCameraToSource`, `loadIowaSourcesFromOpenData`; `server/providers/cctv/catalog.js` (`iowa` pack); `src/data/dataCredits.js` | T: `src/data/cctvIowa.test.mjs` "Iowa DOT cameras register as live HLS video with the snapshot as fallback, credited CC BY 4.0" "Iowa rows without video are stills; foreign hosts and bad positions are refused" |
 | GEV-INT-028 | `src/intel/index.js` `enterHud`, `leaveHud`, `openDrawer`, `closeDrawer`; `src/ui/styles/shell.css` (asset view and sheet animations) | D: harness overlap check after the animations settle (laptop and tablet); Replit visual check |
-| GEV-EXE-001 | `src/exercise/mode.js` | I |
-| GEV-EXE-002 | `src/exercise/package.js` | T: `src/exercise/package.test.mjs` "platforms stay generic classes, never real types" |
-| GEV-EXE-003 | `src/exercise/package.js` | T: `package.test.mjs` "authorisation is a checklist with a final command step left open" |
-| GEV-EXE-004 | `src/exercise/package.js` | T: `package.test.mjs` "the same scenario and seed produce the same package" |
-| GEV-EXE-005 | `src/exercise/package.js` | T: `package.test.mjs` "timeline ends at time on target then egress, naming the fictional target" |
 | GEV-PRF-001 | `src/shell/qualityPolicy.js`, `src/shell/quality.js` | T: `src/shell/shellPolicies.test.mjs` "quality ladder always keeps native resolution; it sheds bloom, then MSAA, then tile detail" |
 | GEV-PRF-002 | `src/shell/qualityPolicy.js` | T: `shellPolicies.test.mjs` "one slow window does not drop quality; sustained slowness does; recovery needs headroom" |
 | GEV-PRF-003 | `src/shell/idleSpinPolicy.js` | T: `src/intel/intel.test.mjs` "idle spin only when idle, zoomed out and unblocked" |
@@ -167,6 +162,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-VIS-004 | `src/shell/graphics.js` `installGraphics`, `graphicsFlags`; `src/shell/index.js` | T: `src/shell/graphics.test.mjs` "the scene look: HDR with a neutral tone map, gentle bloom, sharpening instead of FXAA", "each effect can be switched off from the URL for comparison" |
 | GEV-VIS-005 | `src/data/aircraftIcons.js` `iconTierPx`; `src/layers/flights/rendering.js`, `src/layers/military/rendering.js` fleet tick; `src/layers/cctv/policy.js` `CAMERA_ICON`; `src/layers/vessels/rendering.js` `shipIcon`; `src/intel/subjectVisual.js` | T: `src/shell/graphics.test.mjs` "icons are drawn from the raster closest to their size on screen, never magnified" |
 | GEV-VIS-006 | `src/layers/flights/rendering.js`, `src/layers/military/rendering.js` `setFocusModel`, `_applyModelLook`; `src/shell/index.js` `onFocus` | I: harness render of the focused 787 (own materials, 96 px minimum) |
+| GEV-VIS-007 | `src/shell/orbitControls.js` `installOrbitControls`, `radiansPerPixel`, `wheelStep`; `src/shell/index.js` | T: `src/shell/orbitControls.test.mjs` "a drag turns the globe so the ground follows the cursor, at any height", "the wheel zooms by a share of the height, never through the 3D city or out past the limit"; I: harness drags (distance to the centre unchanged through drags, radial wheel zoom) |
 | GEV-VIS-003 | `src/visuals/quakeRings.js` `ringRadiusKm`, `ringFrame`, `createQuakeRings`; `src/visuals/index.js` `onFocus` | T: `src/visuals/visuals.test.mjs` "quake rings grow with magnitude, pulse a few times, then settle" |
 
 ## 3. Coverage of code by requirements
