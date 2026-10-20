@@ -37,6 +37,10 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Director arrives on loaded tiles.** Each hop ends above the subject and holds
+  until its Google 3D tiles have loaded (at most 6 s), then glides in; narration
+  waits for the view to load. Google tiles may use 48 parallel requests.
+  Framing is 50% closer with the camera tilted towards the horizon (GEV-DIR-033).
 - **Globe navigation pivots on the Earth's centre** (Pierre, 21 Oct). A
   left drag turns the globe about its centre so the ground follows the
   cursor, with a little inertia; a right drag turns the heading and zooms;

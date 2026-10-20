@@ -216,3 +216,30 @@ test('while the Director runs, the edges of the view are not kept coarse (foveat
   assert.equal(tiles.foveatedScreenSpaceError, true);
   assert.equal(tiles.cullRequestsWhileMoving, true);
 });
+
+test('the Director waits for the arrival view to load before talking, at most a few seconds', async () => {
+  const { viewer } = fakeViewer();
+  let t = 0;
+  const stats = { numberOfPendingRequests: 4, numberOfTilesProcessing: 0 };
+  const tiles = { tilesLoaded: false, statistics: stats };
+  const w = createTileWarmer({ viewer, Cesium, now: () => t, tilesets: () => [tiles] });
+  const sleep = async (ms) => {
+    t += ms;
+    if (t >= 1200) {
+      stats.numberOfPendingRequests = 0;
+      tiles.tilesLoaded = true;
+    }
+  };
+  const done = await w.waitLoaded({ sleep });
+  assert.equal(done.settled, true);
+  assert.ok(done.waitedMs >= 1200 && done.waitedMs <= 1700, String(done.waitedMs));
+  stats.numberOfPendingRequests = 3;
+  tiles.tilesLoaded = false;
+  t = 0;
+  const capped = await w.waitLoaded({ maxMs: 2000, sleep: async (ms) => { t += ms; } });
+  assert.equal(capped.settled, false);
+  // No Google tiles at all: nothing to wait for.
+  const none = createTileWarmer({ viewer, Cesium, tilesets: () => [] });
+  assert.equal((await none.waitLoaded()).settled, true);
+  assert.equal(none.loadWatch().ready(), true);
+});

@@ -174,6 +174,27 @@ export function hopRig(from, to, u, hop = TOUR_HOP) {
 }
 
 /**
+ * The range during the held arrival: creeping in from the approach range
+ * while the final view's tiles load (`waitedS` into the hold), then gliding
+ * to the final range (`glideU` 0-1 once the tiles are in).
+ * @param {number} approachM range the hop came down to
+ * @param {number} finalM the stop's own range
+ * @param {{waitedS?: number, glideU?: number|null, from?: number}} t
+ */
+export function arrivalRangeM(
+  approachM,
+  finalM,
+  { waitedS = 0, glideU = null, from = null } = {},
+  hop = TOUR_HOP,
+) {
+  const crept = approachM * (1 - hop.holdCreep * (1 - Math.exp(-waitedS / 3)));
+  if (glideU == null) return Math.max(finalM, crept);
+  const start = from ?? crept;
+  const f = ease(glideU);
+  return Math.exp(Math.log(start) + (Math.log(finalM) - Math.log(start)) * f);
+}
+
+/**
  * One frame of easing a point toward a moving target (exponential, frame-
  * rate independent): after `tauS` seconds about 63% of the gap is closed.
  * Points are {x, y, z} (Earth-fixed metres); the result is written to `out`.

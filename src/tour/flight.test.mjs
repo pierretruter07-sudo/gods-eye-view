@@ -53,11 +53,23 @@ test('between normal stops the camera zooms out to the whole planet, pauses, and
   assert.ok(Math.abs(m.lat) < 1e-9 && Math.abs(m.lon - 45) < 1e-9);
 });
 
-test('normal stops are framed 65% closer than before', async () => {
-  const { STOP_CAMERA } = await import('./config.js');
-  assert.equal(STOP_CAMERA.aircraft.rangeM, 24_500); // was 70,000 m
-  assert.equal(STOP_CAMERA.vessel.rangeM, 3_200); // was 9,000 m
-  assert.equal(STOP_CAMERA.military.rangeM, 15_700); // was 45,000 m
+test('assets are framed 50% closer, from a low angle that shows a band of sky', async () => {
+  const { STOP_CAMERA, DESCENT_CAMERA } = await import('./config.js');
+  assert.equal(STOP_CAMERA.aircraft.rangeM, 12_250); // was 24,500 m
+  assert.equal(STOP_CAMERA.vessel.rangeM, 1_600); // was 3,200 m
+  assert.equal(STOP_CAMERA.military.rangeM, 7_850); // was 15,700 m
+  assert.equal(STOP_CAMERA.lowAircraft.rangeM, 2_250);
+  // Sky in the top fifth of a 16:9 frame (vertical fov about 36°): the
+  // horizon sits 60% of the way up from the centre, about 11-12° above the
+  // view direction; ground subjects a little steeper.
+  const halfV = Math.atan(Math.tan(Math.PI / 6) * (9 / 16));
+  const horizonDeg = (Math.atan(0.6 * Math.tan(halfV)) * 180) / Math.PI;
+  for (const v of [STOP_CAMERA.aircraft, STOP_CAMERA.military, DESCENT_CAMERA.cruise]) {
+    assert.ok(Math.abs(-v.pitchDeg - horizonDeg) < 1.5, `${v.pitchDeg} vs ${horizonDeg.toFixed(1)}`);
+  }
+  for (const v of [STOP_CAMERA.vessel, STOP_CAMERA.lowAircraft, DESCENT_CAMERA.low, DESCENT_CAMERA.ship, DESCENT_CAMERA.ground]) {
+    assert.ok(v.pitchDeg <= -12 && v.pitchDeg >= -18, String(v.pitchDeg));
+  }
 });
 
 test('the hop is one continuous move: it starts and ends exactly on the two framings and zooms evenly', async () => {
@@ -158,4 +170,16 @@ test('nearby stops glide straight across instead of zooming out to the planet', 
   assert.equal(near.via, null, 'Brisbane to Amberley (45 km) flies direct');
   const far = planHop(brisbane, { lat: -33.95, lon: 151.18, heightM: 0, rangeM: 4500, pitchDeg: -32 });
   assert.ok(far.via, 'Brisbane to Sydney (750 km) still shows the planet');
+});
+
+test('the arrival is held above the subject while its tiles load, then glides in', async () => {
+  const { arrivalRangeM } = await import('./flight.js');
+  const { TOUR_HOP } = await import('./config.js');
+  const finalM = 2_250;
+  const approachM = finalM * TOUR_HOP.approachFactor;
+  assert.equal(arrivalRangeM(approachM, finalM, { waitedS: 0 }), approachM, 'the hop ends at the approach range');
+  const crept = arrivalRangeM(approachM, finalM, { waitedS: TOUR_HOP.holdMaxS });
+  assert.ok(crept < approachM && crept > finalM, 'it creeps in while waiting, never to the final range');
+  assert.ok(Math.abs(arrivalRangeM(approachM, finalM, { glideU: 0, from: crept }) - crept) < 1e-6, 'the glide starts where the hold left off');
+  assert.ok(Math.abs(arrivalRangeM(approachM, finalM, { glideU: 1, from: crept }) - finalM) < 1e-6, 'and ends on the framing');
 });
