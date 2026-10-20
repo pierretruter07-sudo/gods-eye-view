@@ -11,7 +11,11 @@ import * as Cesium from 'cesium';
 import { selectModelEligible } from '../../data/modelEligibility.js';
 import { cyberSonarBaseAlpha } from '../../cyberSonar.js';
 import { cockpitContactDotImage } from '../../data/cockpitContactDot.js';
-import { aircraftIcon, TRACKED_ICON_PX } from '../../data/aircraftIcons.js';
+import {
+  aircraftIcon,
+  iconTierPx,
+  TRACKED_ICON_PX,
+} from '../../data/aircraftIcons.js';
 import {
   cameraPoseSignature,
   horizonOccluder,
@@ -169,7 +173,7 @@ export function createRendering({
     const meta = flightState.records.data.get(icao24);
     bb.image = aircraftIcon(
       _iconKind(icao24, meta?.klass),
-      bb._gevIconLarge ? TRACKED_ICON_PX : undefined,
+      bb._gevIconPx || undefined,
     );
     bb.width = icao24 === flightState._trackedIcao ? 24 : 20;
     bb.height = icao24 === flightState._trackedIcao ? 24 : 20;
@@ -522,6 +526,10 @@ export function createRendering({
     // Keep the pick identity explicit on the resolved primitive. This also
     // protects injected/custom loaders that do not copy the creation option.
     model.id = icao24;
+    // The fleet tint, restored when this aircraft stops being the focus.
+    model._gevBlend = _modelSpec(
+      flightState.records.data.get(icao24)?.klass,
+    ).blendAmount;
     model._gevSpecKey = specKey; // class-change sync compares against this
     model._gevIrBoost = loadIrBoost; // boost-flip reload queue compares against this
     // Admitted, not yet the visual. Cesium's default is show=true, which would let
@@ -531,7 +539,42 @@ export function createRendering({
     model.show = false;
     flightState._modelCollection.add(model);
     flightState._models.set(icao24, model);
+    _applyModelLook(icao24, model);
     flightState._planeModelLoaded = true; // GLB is cached now — the tracked entity's model can fade in its billboard
+  }
+
+  /**
+   * Graphics pass (Pierre, 21 Oct): the aircraft the Director or the
+   * analyst is focused on is always a 3D model (first for a model slot),
+   * drawn larger, with its own materials lit by the sun and the sky (the
+   * fleet keeps its flat class tint for legibility). No silhouette rim: in
+   * the harness it painted over the whole model instead of outlining it.
+   */
+  const FOCUS_MODEL_MIN_PX = 96;
+  const FOCUS_BLEND = 0.12;
+
+  function _applyModelLook(icao24, model) {
+    if (!model || model.isDestroyed?.()) return;
+    const focus = icao24 != null && icao24 === flightState._focusIcao;
+    try {
+      model.minimumPixelSize = focus ? FOCUS_MODEL_MIN_PX : MODEL_MIN_PX;
+      // Infrared boost draws flat white on purpose; leave it alone.
+      if (!model._gevIrBoost)
+        model.colorBlendAmount = focus
+          ? FOCUS_BLEND
+          : (model._gevBlend ?? model.colorBlendAmount);
+    } catch {
+      /* model torn down */
+    }
+  }
+
+  /** Mark one aircraft (or none) as the focused subject. */
+  function setFocusModel(icao24) {
+    const prev = flightState._focusIcao ?? null;
+    const next = icao24 ? String(icao24).toLowerCase() : null;
+    flightState._focusIcao = next;
+    for (const id of new Set([prev, next]))
+      if (id) _applyModelLook(id, flightState._models.get(id));
   }
 
   /** Remove the 3D model for ONE aircraft (removal / track handoff).
@@ -884,7 +927,8 @@ export function createRendering({
         );
         cand.push([
           icao,
-          d2,
+          // The focused aircraft is first in line for a model slot.
+          icao === flightState._focusIcao ? -1 : d2,
           cull.computeVisibility(flightState._scratchModelBS) !==
             Cesium.Intersect.OUTSIDE,
         ]);
@@ -1003,12 +1047,14 @@ export function createRendering({
           (bb.scale || 1) *
           distanceScale *
           (globalThis.devicePixelRatio || 1);
-        const wantLarge = bb._gevIconLarge ? glyphDevPx > 56 : glyphDevPx > 76;
-        if (wantLarge !== !!bb._gevIconLarge) {
-          bb._gevIconLarge = wantLarge;
+        // Drawn from the raster tier closest to its on-screen size (see
+        // iconTierPx): crisp at every zoom, on 1×, 2× and 3× screens.
+        const wantPx = iconTierPx(glyphDevPx, bb._gevIconPx || undefined);
+        if (wantPx !== bb._gevIconPx) {
+          bb._gevIconPx = wantPx;
           bb.image = aircraftIcon(
             _iconKind(icao24, flightState.records.data.get(icao24)?.klass),
-            wantLarge ? TRACKED_ICON_PX : undefined,
+            wantPx,
           );
         }
       }
@@ -1118,5 +1164,6 @@ export function createRendering({
     _releaseTrackedModel,
     _updateTrackedModel,
     _fleetTick,
+    setFocusModel,
   };
 }

@@ -5,7 +5,7 @@ import {
   releaseContinuousRender,
 } from '../renderGovernor.js';
 import { DESCENT_RULES, TOUR_HOP, TOUR_LAYERS, TOUR_TIMING } from './config.js';
-import { aircraftIcon } from '../data/aircraftIcons.js';
+import { aircraftIcon, iconTierPx } from '../data/aircraftIcons.js';
 import {
   DESCENT_LEVELS,
   DESCENT_WAIT,
@@ -337,7 +337,11 @@ export function createTourController({
     standIn = viewer.entities.add({
       position: where,
       billboard: {
-        image: aircraftIcon(kind, 128),
+        // Raster tier for 56 CSS px on this screen (crisp on 1× to 3×).
+        image: aircraftIcon(
+          kind,
+          iconTierPx(56 * Math.min(3, globalThis.devicePixelRatio || 1), 128),
+        ),
         width: 56,
         height: 56,
         color: Cesium.Color.fromCssColorString('#8fe3ff'),

@@ -268,6 +268,30 @@ const FLEET_RASTER_PX = 64;
  *  it stays crisp at its biggest on-screen sizes. */
 const TRACKED_RASTER_PX = 192;
 
+/**
+ * Raster sizes a fleet glyph is drawn from. The billboard atlas has no
+ * mipmaps, so a glyph should be drawn from a raster close to its size on
+ * screen in DEVICE pixels: never magnified (soft, pixelated) and never
+ * shrunk more than about 2× (aliased "mush"). Graphics pass, 21 Oct: on a
+ * 1× desktop screen the 64 px raster was shrunk 3–10× on the zoomed-out
+ * globe, and the tracked 192 px one magnified on 3× phones.
+ */
+export const ICON_TIERS_PX = Object.freeze([32, 64, 128, 192, 256]);
+
+/**
+ * The raster tier for a glyph drawn `glyphDevPx` device pixels wide. Keeps
+ * `currentPx` while it is still within range (no magnification beyond 10%,
+ * no shrinking beyond 2.2×), so zooming never thrashes the atlas.
+ */
+export function iconTierPx(glyphDevPx, currentPx = FLEET_RASTER_PX) {
+  if (!Number.isFinite(glyphDevPx) || glyphDevPx <= 0) return currentPx;
+  if (currentPx >= glyphDevPx * 0.9 && currentPx <= glyphDevPx * 2.2)
+    return currentPx;
+  return (
+    ICON_TIERS_PX.find((px) => px >= glyphDevPx * 0.95) ?? ICON_TIERS_PX.at(-1)
+  );
+}
+
 /** Data URI for a class silhouette (lazily built, cached per kind+size).
  *  Default size serves the fleet; pass `aircraftIcon(kind, TRACKED_ICON_PX)`
  *  (re-exported below) for the tracked billboard. */

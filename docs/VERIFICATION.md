@@ -128,7 +128,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-EXE-003 | `src/exercise/package.js` | T: `package.test.mjs` "authorisation is a checklist with a final command step left open" |
 | GEV-EXE-004 | `src/exercise/package.js` | T: `package.test.mjs` "the same scenario and seed produce the same package" |
 | GEV-EXE-005 | `src/exercise/package.js` | T: `package.test.mjs` "timeline ends at time on target then egress, naming the fictional target" |
-| GEV-PRF-001 | `src/shell/qualityPolicy.js` | T: `src/shell/shellPolicies.test.mjs` "quality ladder holds native resolution and never drops below CSS pixels" |
+| GEV-PRF-001 | `src/shell/qualityPolicy.js`, `src/shell/quality.js` | T: `src/shell/shellPolicies.test.mjs` "quality ladder always keeps native resolution; it sheds bloom, then MSAA, then tile detail" |
 | GEV-PRF-002 | `src/shell/qualityPolicy.js` | T: `shellPolicies.test.mjs` "one slow window does not drop quality; sustained slowness does; recovery needs headroom" |
 | GEV-PRF-003 | `src/shell/idleSpinPolicy.js` | T: `src/intel/intel.test.mjs` "idle spin only when idle, zoomed out and unblocked" |
 | GEV-PRF-004 | `src/shell/flightPrefetchPolicy.js` | T: `shellPolicies.test.mjs` "flight refresh on arrival: new place, stale data, not from space" |
@@ -137,7 +137,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-PRF-007 | `src/renderGovernor.js` `holdRenderCadence`, `src/layers/*/lifecycle.js` | T: `src/renderGovernor.test.mjs` "a cadence hold keeps render-on-demand and requests frames at the fastest cadence" |
 | GEV-PRF-008 | `src/data/lifecycle.js` `pausePolling`, `src/shell/index.js` | T: `src/data/pollPause.test.mjs` "paused polling skips periodic updates and catches up once on resume" |
 | GEV-PRF-009 | `build/cacheHeaders.js`, `build/vite.js` | T: `src/tooling/cacheHeaders.test.mjs` "hashed assets are cached for a year, the page always revalidates, APIs are left alone" "injected classic scripts are deferred; module scripts and other tags are untouched" |
-| GEV-PRF-010 | `src/maps/google3d.js` `tileCacheBudget`, `src/shell/qualityPolicy.js` | T: `src/maps/google3dBudget.test.mjs` "the 3D tile cache is sized to the device memory"; `src/shell/shellPolicies.test.mjs` "quality ladder holds native resolution and never drops below CSS pixels" |
+| GEV-PRF-010 | `src/maps/google3d.js` `tileCacheBudget`, `src/shell/qualityPolicy.js` | T: `src/maps/google3dBudget.test.mjs` "the 3D tile cache is sized to the device memory"; `src/shell/shellPolicies.test.mjs` "quality ladder always keeps native resolution; it sheds bloom, then MSAA, then tile detail" |
 | GEV-CM-001 | whole tree | A: `scripts/audit/import-graph.mjs` |
 | GEV-CM-002 | `.github/workflows/ci.yml` | I |
 | GEV-CM-003 | `package-lock.json` | I |
@@ -164,6 +164,9 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-AUD-021 | `crosscheck/tools/build-catalogues.mjs`; `crosscheck/catalogues/*.json` | T: `crosscheck/catalogues/catalogues.test.mjs` "the committed catalogues match a fresh build of crosscheck/tools/build-catalogues.mjs" "the library has seven standards, including the four added in Phase 5" "every catalogue item has an id and title, and references only known signals and facts" "licensed standards carry numbers and short paraphrased titles only" |
 | GEV-VIS-001 | `src/visuals/dayNight.js` `createDayNight`, `subsolarPoint`, `nightFade`; `src/data/dataCredits.js`; `DATA_SOURCES.md` | T: `src/visuals/visuals.test.mjs` "the day/night line follows the real Sun" "day/night shows at planet and regional scale only, never at city or street level" "each world visual can be switched off from the URL"; `src/data/dataCredits.test.mjs` "every shipped live source and bundled asset has an attribution entry"; D: harness screenshots 20 Oct (stub night-lights image; GIBS not reachable from the harness) |
 | GEV-VIS-002 | `src/visuals/trails.js` `createTrailStore`, `pickTrails`, `createTrails` | T: `src/visuals/visuals.test.mjs` "trails use only observed fixes, fade with age and drop when old" "tails are drawn for the focused asset and the nearest ones only, capped" |
+| GEV-VIS-004 | `src/shell/graphics.js` `installGraphics`, `graphicsFlags`; `src/shell/index.js` | T: `src/shell/graphics.test.mjs` "the scene look: HDR with a neutral tone map, gentle bloom, sharpening instead of FXAA", "each effect can be switched off from the URL for comparison" |
+| GEV-VIS-005 | `src/data/aircraftIcons.js` `iconTierPx`; `src/layers/flights/rendering.js`, `src/layers/military/rendering.js` fleet tick; `src/layers/cctv/policy.js` `CAMERA_ICON`; `src/layers/vessels/rendering.js` `shipIcon`; `src/intel/subjectVisual.js` | T: `src/shell/graphics.test.mjs` "icons are drawn from the raster closest to their size on screen, never magnified" |
+| GEV-VIS-006 | `src/layers/flights/rendering.js`, `src/layers/military/rendering.js` `setFocusModel`, `_applyModelLook`; `src/shell/index.js` `onFocus` | I: harness render of the focused 787 (own materials, 96 px minimum) |
 | GEV-VIS-003 | `src/visuals/quakeRings.js` `ringRadiusKm`, `ringFrame`, `createQuakeRings`; `src/visuals/index.js` `onFocus` | T: `src/visuals/visuals.test.mjs` "quake rings grow with magnitude, pulse a few times, then settle" |
 
 ## 3. Coverage of code by requirements

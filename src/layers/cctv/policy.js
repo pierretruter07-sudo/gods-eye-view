@@ -146,10 +146,12 @@ export const DEFAULT_CAMERA_CALIBRATION = Object.freeze({
   heightM: 0,
 });
 
-/** Base64-encoded SVG camera icon for billboard rendering. */
+/** Base64-encoded SVG camera icon for billboard rendering. Drawn at 24 CSS
+ * px; rasterised at 96 px so it stays sharp up to 4× screens (it was 36 px,
+ * magnified and soft on 2× screens). */
 
 export const CAMERA_ICON = (() => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 36 36">
     <defs>
       <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stop-color="#c9f6ff"/>

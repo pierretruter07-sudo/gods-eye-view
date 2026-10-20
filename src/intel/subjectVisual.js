@@ -20,10 +20,14 @@ const SHIP_LENGTH_M = 190;
 const SHIP_HEADING_OFFSET_DEG = 270;
 
 function satelliteGlyph() {
+  // Drawn on a 64-unit grid at 4×: shown at 46 CSS px, so it stays sharp on
+  // 2× and 3× screens (it was a 64 px canvas, magnified and pixelated).
+  const RES = 4;
   const c = document.createElement('canvas');
-  c.width = 64;
-  c.height = 64;
+  c.width = 64 * RES;
+  c.height = 64 * RES;
   const g = c.getContext('2d');
+  g.scale(RES, RES);
   g.translate(32, 32);
   g.rotate(-Math.PI / 8);
   // Solar wings
@@ -92,7 +96,8 @@ export function createSubjectVisual(viewer, { position, dataManager = null }) {
     model: {
       uri: SHIP_MODEL_URL,
       scale: SHIP_LENGTH_M / SHIP_NATIVE_LENGTH,
-      minimumPixelSize: 56,
+      // Graphics pass: drawn larger, like a focused aircraft.
+      minimumPixelSize: 96,
       maximumScale: 400,
       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
     },

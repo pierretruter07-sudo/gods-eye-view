@@ -1,9 +1,9 @@
 /**
- * Adaptive render quality as a ladder of levels, best first. Native device
- * resolution keeps text, icons and edges crisp, so it is held as long as
- * possible: the ladder first trades away multisample anti-aliasing, and only
- * drops below native resolution when the frame rate is really suffering —
- * and never below CSS resolution. The last rungs also coarsen 3D tile detail. Pure: no Cesium, no DOM.
+ * Adaptive render quality as a ladder of levels, best first. The display's
+ * native resolution is ALWAYS kept, so text, icons and edges stay crisp
+ * (Pierre, 21 Oct: "keep native resolution"). On slow frames the ladder
+ * sheds, in order: the bloom effect, then multisample anti-aliasing, then 3D
+ * tile detail. Pure: no Cesium, no DOM.
  */
 export const QUALITY = Object.freeze({
   /** Step down after this many windows below lowFps in a row. */
@@ -19,24 +19,18 @@ export const QUALITY = Object.freeze({
   failedLevelHoldMs: 3 * 60_000,
 });
 
-/** Quality levels for a display, best first. */
+/** Quality levels for a display, best first. All at native resolution. */
 export function qualityLevels(devicePixelRatio = 1) {
   const native = Math.min(QUALITY.maxRatio, Math.max(1, devicePixelRatio || 1));
-  const levels = [
-    { ratio: native, msaa: 4 },
-    { ratio: native, msaa: 2 },
-    { ratio: native, msaa: 1 },
+  // sse: 3D tile detail (maximumScreenSpaceError; Cesium's default is 16).
+  return [
+    { ratio: native, msaa: 4, effects: true, sse: 16 },
+    { ratio: native, msaa: 2, effects: true, sse: 16 },
+    { ratio: native, msaa: 2, effects: false, sse: 16 },
+    { ratio: native, msaa: 1, effects: false, sse: 16 },
+    { ratio: native, msaa: 1, effects: false, sse: 20 },
+    { ratio: native, msaa: 1, effects: false, sse: 24 },
   ];
-  if (native > 1.15)
-    levels.push({ ratio: +Math.max(1, native * 0.85).toFixed(2), msaa: 1 });
-  if (native > 1) levels.push({ ratio: 1, msaa: 1 });
-  // 3D tile detail (maximumScreenSpaceError; Cesium's default is 16). Lower
-  // resolution barely reduces tile loading, because Cesium scales the error
-  // by the pixel ratio, so the bottom rungs also ask for coarser tiles.
-  return levels.map((l, i) => ({
-    ...l,
-    sse: i === levels.length - 1 ? 24 : i >= 3 ? 20 : 16,
-  }));
 }
 
 /** Start one step below the best: crisp, anti-aliased, with headroom. */

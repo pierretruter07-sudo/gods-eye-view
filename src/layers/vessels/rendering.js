@@ -198,9 +198,9 @@ export function createRendering({
 
     const stroke = selected ? 'rgba(6,26,32,0.95)' : 'rgba(4,18,24,0.9)';
     const strokeWidth = selected ? 1.1 : 0.7;
-    // Rasterised at 2x and drawn at 32 px (billboard width/height) so the
-    // hull stays sharp on high-density screens.
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 32 32">
+    // Rasterised at 4x and drawn at 32 px (billboard width/height) so the
+    // hull stays sharp on 2× and 3× screens and when scaled up close.
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 32 32">
     <g transform="translate(16,16)">
       <path d="M0,-15 C3.6,-10 5,-5 5,0 L5,12 Q5,14 3,14 L-3,14 Q-5,14 -5,12 L-5,0 C-5,-5 -3.6,-10 0,-15 Z" fill="${cssColor}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>
       <rect x="-3.3" y="5.5" width="6.6" height="5.6" rx="1" fill="${stroke}" opacity="0.55"/>

@@ -5,7 +5,9 @@ import { createExerciseMode } from '../exercise/mode.js';
 import { installIntel } from '../intel/index.js';
 import { installIdleSpin } from './idleSpin.js';
 import { showWelcome, welcomeEnabled } from './welcome.js';
+import * as Cesium from 'cesium';
 import { installAdaptiveQuality } from './quality.js';
+import { graphicsFlags, installGraphics } from './graphics.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
 import { installAudit } from '../audit/index.js';
 import { installLayout } from './layout.js';
@@ -111,8 +113,15 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   document.body.classList.add('gev-clean');
   setScopeMaskEnabled(false);
 
-  // Smoothness first: adaptive render resolution + FXAA (see quality.js).
-  const stopQuality = installAdaptiveQuality(viewer);
+  // The scene look (HDR, gentle bloom, sharpening; graphics.js), then the
+  // quality ladder, which keeps native resolution and sheds bloom first.
+  const graphics = installGraphics(viewer, Cesium, {
+    flags: graphicsFlags(window.location.search),
+  });
+  window.__gevGraphics = graphics;
+  const stopQuality = installAdaptiveQuality(viewer, {
+    setEffects: (on) => graphics.setEffects(on),
+  });
   // No animated-wave water effect: up close its normal-mapped waves were
   // drawn far too large and read as white froth across the sea (owner
   // request, 20 Oct). The sea keeps its real imagery colour.
@@ -376,6 +385,21 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     onFocus(focus) {
       world.onFocus(focus);
       if (intelRef && mode === 'live') intelRef.showFocus(focus);
+      // The focused aircraft gets the full 3D model look (graphics pass).
+      const icao =
+        ['flights', 'military'].includes(focus?.layerId) &&
+        !focus?.record?.simulated
+          ? focus.record?.icao24 || null
+          : null;
+      for (const id of ['flights', 'military']) {
+        try {
+          dataManager
+            .getLayerModule?.(id)
+            ?.setFocusModel?.(focus?.layerId === id ? icao : null);
+        } catch {
+          /* layer not registered */
+        }
+      }
     },
     onState(state) {
       const live = state === 'running';
@@ -614,6 +638,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     clearInterval(badgeTimer);
     stopSpin();
     stopQuality();
+    graphics.destroy();
+    if (window.__gevGraphics === graphics) delete window.__gevGraphics;
     prefetch.destroy();
     startupTimers.forEach(clearTimeout);
     document.removeEventListener('visibilitychange', onVisibility);
