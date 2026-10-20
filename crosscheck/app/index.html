@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CrossCheck</title>
+    <meta
+      name="description"
+      content="Plug in any software and see where it falls short of your standards, with a remediation plan to close every gap."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b7a63'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <header class="cc-top">
+      <div class="cc-top__inner">
+        <a class="cc-brand" href="#assess" aria-label="CrossCheck home">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <rect width="32" height="32" rx="8" />
+            <path d="M9 16.5l4.5 4.5L23 11.5" />
+          </svg>
+          <span>CrossCheck</span>
+        </a>
+        <nav class="cc-nav" aria-label="Sections">
+          <a href="#assess" data-view="assess">Assess</a>
+          <a href="#report" data-view="report">Report</a>
+          <a href="#plan" data-view="plan">Plan</a>
+          <a href="#standards" data-view="standards">Standards</a>
+          <a href="#example" data-view="example">Worked example</a>
+        </nav>
+      </div>
+    </header>
+    <main id="view" class="cc-main" tabindex="-1"></main>
+    <footer class="cc-foot">
+      <p>
+        CrossCheck by Digital Dynamics Group. Licensed standards (ISO/IEC,
+        EUROCAE) are referenced by clause number with paraphrased titles only;
+        OWASP ASVS text is CC BY-SA 4.0. Ratings from code are evidence, not
+        certification: a reviewer confirms every claim.
+      </p>
+    </footer>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

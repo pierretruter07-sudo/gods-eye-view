@@ -6,6 +6,20 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **CrossCheck, a product of its own (Phases 2 to 6).** Open `/crosscheck/`:
+  - Plug in any codebase (a GitHub link or a zip) and answer what code
+    cannot show.
+  - Choose from seven standards. Four are new: NIST SSDF, Australian ISM and
+    Essential Eight, ISO/IEC 27001:2022 and MIL-STD-882E.
+  - Get a verdict per standard and every item rated with the file and line
+    it rests on.
+  - Get a remediation plan in four waves, with projected readiness and a
+    work package per fix for a team or a coding agent.
+  - Optional rating by an open-source model, kept only when it cites real
+    evidence.
+  - CrossCheck also runs on its own (`node crosscheck/server/standalone.mjs`)
+    and exports to a separate project
+    (`node crosscheck/tools/export-standalone.mjs <folder>`).
 - **A tilted GEO ring to open the tour.** The first view of the opening
   descent now looks at the Earth from about 22° off the equator, so the
   geostationary belt shows as a tilted ring rather than a flat line.

@@ -1,5 +1,14 @@
+import { fileURLToPath } from 'node:url';
 import cesium from 'vite-plugin-cesium';
 import { deferInjectedScripts, staticCachePlugin } from './cacheHeaders.js';
+
+const page = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
+
+/** The pages built: God's Eye View, and CrossCheck's page (pitch build). */
+export const BUILD_INPUTS = Object.freeze({
+  main: page('index.html'),
+  crosscheck: page('crosscheck/app/index.html'),
+});
 
 /** Build browser assets with explicit inputs; never load environment or providers. */
 export function createBrowserViteConfig({
@@ -46,6 +55,9 @@ export function createBrowserViteConfig({
       // Not a credential: the commit/date identity shown in the app.
       'import.meta.env.GEV_BUILD': JSON.stringify(buildId),
     },
-    build: { chunkSizeWarningLimit: 1500 },
+    build: {
+      chunkSizeWarningLimit: 1500,
+      rollupOptions: { input: { ...BUILD_INPUTS } },
+    },
   };
 }

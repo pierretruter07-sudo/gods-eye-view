@@ -1,0 +1,762 @@
+{
+ "id": "iso42001",
+ "name": "ISO/IEC 42001, AI management system",
+ "short": "ISO/IEC 42001",
+ "lens": "AI management",
+ "scale": "management",
+ "applies": "ai",
+ "licence": "Paid (ISO/IEC): clause numbers and paraphrased titles only",
+ "source": "ISO/IEC 42001:2023",
+ "claim": [
+  "ISO 42001 not met",
+  "ISO 42001 met with conditions",
+  "ISO 42001 met"
+ ],
+ "items": [
+  {
+   "id": "C4.1",
+   "group": "C4",
+   "groupName": "C4 Context",
+   "title": "Organisation and its context",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "purpose"
+   ]
+  },
+  {
+   "id": "C4.2",
+   "group": "C4",
+   "groupName": "C4 Context",
+   "title": "Interested parties and their needs",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "purpose"
+   ]
+  },
+  {
+   "id": "C4.3",
+   "group": "C4",
+   "groupName": "C4 Context",
+   "title": "Scope of the AI management system",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "purpose"
+   ]
+  },
+  {
+   "id": "C4.4",
+   "group": "C4",
+   "groupName": "C4 Context",
+   "title": "AI management system established",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "purpose"
+   ]
+  },
+  {
+   "id": "C5.1",
+   "group": "C5",
+   "groupName": "C5 Leadership",
+   "title": "Leadership and commitment",
+   "checks": [],
+   "facts": [
+    "owner"
+   ]
+  },
+  {
+   "id": "C5.2",
+   "group": "C5",
+   "groupName": "C5 Leadership",
+   "title": "AI policy",
+   "checks": [],
+   "facts": [
+    "owner"
+   ]
+  },
+  {
+   "id": "C5.3",
+   "group": "C5",
+   "groupName": "C5 Leadership",
+   "title": "Roles, responsibilities and authorities",
+   "checks": [],
+   "facts": [
+    "owner"
+   ]
+  },
+  {
+   "id": "C6.1.1",
+   "group": "C6",
+   "groupName": "C6 Planning",
+   "title": "Actions on AI risks and opportunities",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "C6.1.2",
+   "group": "C6",
+   "groupName": "C6 Planning",
+   "title": "AI risk assessment",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "C6.1.3",
+   "group": "C6",
+   "groupName": "C6 Planning",
+   "title": "AI risk treatment",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "C6.1.4",
+   "group": "C6",
+   "groupName": "C6 Planning",
+   "title": "AI system impact assessment",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "C6.2",
+   "group": "C6",
+   "groupName": "C6 Planning",
+   "title": "AI objectives and plans",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "C6.3",
+   "group": "C6",
+   "groupName": "C6 Planning",
+   "title": "Planning of changes",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "C7.1",
+   "group": "C7",
+   "groupName": "C7 Support",
+   "title": "Resources",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "training"
+   ]
+  },
+  {
+   "id": "C7.2",
+   "group": "C7",
+   "groupName": "C7 Support",
+   "title": "Competence",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "training"
+   ]
+  },
+  {
+   "id": "C7.3",
+   "group": "C7",
+   "groupName": "C7 Support",
+   "title": "Awareness",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "training"
+   ]
+  },
+  {
+   "id": "C7.4",
+   "group": "C7",
+   "groupName": "C7 Support",
+   "title": "Communication",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "training"
+   ]
+  },
+  {
+   "id": "C7.5",
+   "group": "C7",
+   "groupName": "C7 Support",
+   "title": "Documented information",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "training"
+   ]
+  },
+  {
+   "id": "C8.1",
+   "group": "C8",
+   "groupName": "C8 Operation",
+   "title": "Operational planning and control",
+   "checks": [
+    "doc.ai",
+    "doc.operations"
+   ],
+   "facts": []
+  },
+  {
+   "id": "C8.2",
+   "group": "C8",
+   "groupName": "C8 Operation",
+   "title": "AI risk assessment in operation",
+   "checks": [
+    "doc.ai",
+    "doc.operations"
+   ],
+   "facts": []
+  },
+  {
+   "id": "C8.3",
+   "group": "C8",
+   "groupName": "C8 Operation",
+   "title": "AI risk treatment in operation",
+   "checks": [
+    "doc.ai",
+    "doc.operations"
+   ],
+   "facts": []
+  },
+  {
+   "id": "C8.4",
+   "group": "C8",
+   "groupName": "C8 Operation",
+   "title": "AI system impact assessment in operation",
+   "checks": [
+    "doc.ai",
+    "doc.operations"
+   ],
+   "facts": []
+  },
+  {
+   "id": "C9.1",
+   "group": "C9",
+   "groupName": "C9 Performance evaluation",
+   "title": "Monitoring, measurement and evaluation",
+   "checks": [],
+   "facts": [
+    "monitoring"
+   ]
+  },
+  {
+   "id": "C9.2",
+   "group": "C9",
+   "groupName": "C9 Performance evaluation",
+   "title": "Internal audit",
+   "checks": [],
+   "facts": [
+    "monitoring"
+   ]
+  },
+  {
+   "id": "C9.3",
+   "group": "C9",
+   "groupName": "C9 Performance evaluation",
+   "title": "Management review",
+   "checks": [],
+   "facts": [
+    "monitoring"
+   ]
+  },
+  {
+   "id": "C10.1",
+   "group": "C10",
+   "groupName": "C10 Improvement",
+   "title": "Continual improvement",
+   "checks": [
+    "doc.incident"
+   ],
+   "facts": [
+    "incident_process"
+   ]
+  },
+  {
+   "id": "C10.2",
+   "group": "C10",
+   "groupName": "C10 Improvement",
+   "title": "Nonconformity and corrective action",
+   "checks": [
+    "doc.incident"
+   ],
+   "facts": [
+    "incident_process"
+   ]
+  },
+  {
+   "id": "A.2.2",
+   "group": "A.2",
+   "groupName": "A.2 Policies for AI",
+   "title": "AI policy",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.2.3",
+   "group": "A.2",
+   "groupName": "A.2 Policies for AI",
+   "title": "Alignment with other policies",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.2.4",
+   "group": "A.2",
+   "groupName": "A.2 Policies for AI",
+   "title": "Review of the AI policy",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.3.2",
+   "group": "A.3",
+   "groupName": "A.3 Internal organisation",
+   "title": "AI roles and responsibilities",
+   "checks": [],
+   "facts": [
+    "owner"
+   ]
+  },
+  {
+   "id": "A.3.3",
+   "group": "A.3",
+   "groupName": "A.3 Internal organisation",
+   "title": "Reporting of concerns",
+   "checks": [],
+   "facts": [
+    "owner"
+   ]
+  },
+  {
+   "id": "A.4.2",
+   "group": "A.4",
+   "groupName": "A.4 Resources for AI systems",
+   "title": "Resource documentation",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.4.3",
+   "group": "A.4",
+   "groupName": "A.4 Resources for AI systems",
+   "title": "Data resources",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.4.4",
+   "group": "A.4",
+   "groupName": "A.4 Resources for AI systems",
+   "title": "Tooling resources",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.4.5",
+   "group": "A.4",
+   "groupName": "A.4 Resources for AI systems",
+   "title": "System and computing resources",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.4.6",
+   "group": "A.4",
+   "groupName": "A.4 Resources for AI systems",
+   "title": "Human resources",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.2",
+   "group": "A.5",
+   "groupName": "A.5 Impact assessment",
+   "title": "Impact assessment process",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "A.5.3",
+   "group": "A.5",
+   "groupName": "A.5 Impact assessment",
+   "title": "Documented impact assessments",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "A.5.4",
+   "group": "A.5",
+   "groupName": "A.5 Impact assessment",
+   "title": "Impacts on individuals and groups",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "A.5.5",
+   "group": "A.5",
+   "groupName": "A.5 Impact assessment",
+   "title": "Societal impacts",
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "A.6.1.2",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Objectives for responsible development",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.1.3",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Responsible design and development processes",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.2.2",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Requirements and specification",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.2.3",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Design and development documentation",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.2.4",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Verification and validation",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.2.5",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Deployment",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.2.6",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Operation and monitoring",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.2.7",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Technical documentation",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.2.8",
+   "group": "A.6",
+   "groupName": "A.6 AI system life cycle",
+   "title": "Event logs",
+   "checks": [
+    "doc.ai",
+    "tests.present",
+    "doc.verification"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.7.2",
+   "group": "A.7",
+   "groupName": "A.7 Data for AI systems",
+   "title": "Data for development and enhancement",
+   "checks": [
+    "doc.privacy",
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.7.3",
+   "group": "A.7",
+   "groupName": "A.7 Data for AI systems",
+   "title": "Acquisition of data",
+   "checks": [
+    "doc.privacy",
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.7.4",
+   "group": "A.7",
+   "groupName": "A.7 Data for AI systems",
+   "title": "Data quality",
+   "checks": [
+    "doc.privacy",
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.7.5",
+   "group": "A.7",
+   "groupName": "A.7 Data for AI systems",
+   "title": "Data provenance",
+   "checks": [
+    "doc.privacy",
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.7.6",
+   "group": "A.7",
+   "groupName": "A.7 Data for AI systems",
+   "title": "Data preparation",
+   "checks": [
+    "doc.privacy",
+    "doc.ai"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.2",
+   "group": "A.8",
+   "groupName": "A.8 Information for interested parties",
+   "title": "Documentation and information for users",
+   "checks": [
+    "doc.ai",
+    "doc.readme"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.3",
+   "group": "A.8",
+   "groupName": "A.8 Information for interested parties",
+   "title": "External reporting",
+   "checks": [
+    "doc.ai",
+    "doc.readme"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.4",
+   "group": "A.8",
+   "groupName": "A.8 Information for interested parties",
+   "title": "Communication of incidents",
+   "checks": [
+    "doc.ai",
+    "doc.readme"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.5",
+   "group": "A.8",
+   "groupName": "A.8 Information for interested parties",
+   "title": "Information for interested parties",
+   "checks": [
+    "doc.ai",
+    "doc.readme"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.9.2",
+   "group": "A.9",
+   "groupName": "A.9 Use of AI systems",
+   "title": "Processes for responsible use",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "monitoring"
+   ]
+  },
+  {
+   "id": "A.9.3",
+   "group": "A.9",
+   "groupName": "A.9 Use of AI systems",
+   "title": "Objectives for responsible use",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "monitoring"
+   ]
+  },
+  {
+   "id": "A.9.4",
+   "group": "A.9",
+   "groupName": "A.9 Use of AI systems",
+   "title": "Intended use",
+   "checks": [
+    "doc.ai"
+   ],
+   "facts": [
+    "monitoring"
+   ]
+  },
+  {
+   "id": "A.10.2",
+   "group": "A.10",
+   "groupName": "A.10 Third parties and customers",
+   "title": "Allocation of responsibilities",
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ]
+  },
+  {
+   "id": "A.10.3",
+   "group": "A.10",
+   "groupName": "A.10 Third parties and customers",
+   "title": "Suppliers",
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ]
+  },
+  {
+   "id": "A.10.4",
+   "group": "A.10",
+   "groupName": "A.10 Third parties and customers",
+   "title": "Customers",
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ]
+  }
+ ]
+}

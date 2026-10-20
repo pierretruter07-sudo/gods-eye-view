@@ -1,0 +1,1242 @@
+{
+ "id": "iso27001",
+ "name": "ISO/IEC 27001:2022, information security management",
+ "short": "ISO/IEC 27001",
+ "lens": "Information security management",
+ "scale": "security",
+ "licence": "Paid (ISO/IEC): clause and control numbers with paraphrased titles only",
+ "source": "ISO/IEC 27001:2022",
+ "note": "CrossCheck assesses the software against the controls it can evidence; organisation-wide and physical controls are excluded and belong to the ISMS certification audit.",
+ "claim": [
+  "ISO 27001 controls not met",
+  "ISO 27001 controls met with conditions",
+  "ISO 27001 controls met"
+ ],
+ "items": [
+  {
+   "id": "C4.1",
+   "group": "C4",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "The organisation and its context are understood",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C4.2",
+   "group": "C4",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Interested parties and their needs are identified",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C4.3",
+   "group": "C4",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "The scope of the ISMS is set",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C4.4",
+   "group": "C4",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "The ISMS is established and maintained",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C5.1",
+   "group": "C5",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Leadership commits to the ISMS",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C5.2",
+   "group": "C5",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "An information security policy is set",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C5.3",
+   "group": "C5",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Roles, responsibilities and authorities are assigned",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C6.1",
+   "group": "C6",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Risks are assessed and treated",
+   "checks": [],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "C6.2",
+   "group": "C6",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Security objectives are set with plans to meet them",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C6.3",
+   "group": "C6",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Changes to the ISMS are planned",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C7.1",
+   "group": "C7",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Resources are provided",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C7.2",
+   "group": "C7",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "People are competent",
+   "checks": [],
+   "facts": [
+    "training"
+   ]
+  },
+  {
+   "id": "C7.3",
+   "group": "C7",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "People are aware of the policy and their part",
+   "checks": [],
+   "facts": [
+    "training"
+   ]
+  },
+  {
+   "id": "C7.4",
+   "group": "C7",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Communication is planned",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C7.5",
+   "group": "C7",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Documented information is controlled",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C8.1",
+   "group": "C8",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Operations are planned and controlled",
+   "checks": [
+    "doc.operations"
+   ],
+   "facts": []
+  },
+  {
+   "id": "C8.2",
+   "group": "C8",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Risk assessments are carried out",
+   "checks": [],
+   "facts": [
+    "risk_assessment"
+   ]
+  },
+  {
+   "id": "C8.3",
+   "group": "C8",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Risk treatment is carried out",
+   "checks": [],
+   "facts": [
+    "risk_assessment"
+   ]
+  },
+  {
+   "id": "C9.1",
+   "group": "C9",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Performance is monitored and measured",
+   "checks": [],
+   "facts": [
+    "monitoring"
+   ]
+  },
+  {
+   "id": "C9.2",
+   "group": "C9",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Internal audits are held",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C9.3",
+   "group": "C9",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Management reviews the ISMS",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C10.1",
+   "group": "C10",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "The ISMS is continually improved",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "C10.2",
+   "group": "C10",
+   "groupName": "Clauses 4–10 · Management system",
+   "title": "Nonconformities are corrected",
+   "checks": [
+    "doc.incident"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.1",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Security policies are defined and approved",
+   "checks": [
+    "doc.security_policy"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.2",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Security roles and responsibilities are assigned",
+   "checks": [
+    "doc.codeowners"
+   ],
+   "facts": [
+    "owner"
+   ]
+  },
+  {
+   "id": "A.5.3",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Conflicting duties are segregated",
+   "checks": [
+    "doc.contributing"
+   ],
+   "facts": [
+    "change_control"
+   ]
+  },
+  {
+   "id": "A.5.4",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Management requires staff to apply security",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.5",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Contact with authorities is maintained",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.6",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Contact with special interest groups is maintained",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.7",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Threat intelligence is gathered and used",
+   "checks": [
+    "deps.updates"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.8",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Security is part of project management",
+   "checks": [
+    "doc.requirements",
+    "doc.threat_model"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.9",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Information and assets are inventoried",
+   "checks": [
+    "sbom",
+    "deps.manifest"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.10",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Acceptable use of information is defined",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.11",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Assets are returned when people leave",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.12",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Information is classified",
+   "checks": [
+    "doc.privacy"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.13",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Information is labelled",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.14",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Information transfer is protected",
+   "checks": [
+    {
+     "id": "sec.tls",
+     "strength": "direct"
+    }
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.15",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Access control rules are set and applied",
+   "checks": [
+    "sec.authz",
+    "sec.authn"
+   ],
+   "facts": [],
+   "weight": "high"
+  },
+  {
+   "id": "A.5.16",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Identities are managed through their life cycle",
+   "checks": [
+    "sec.authn"
+   ],
+   "facts": [
+    "access_review"
+   ]
+  },
+  {
+   "id": "A.5.17",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Authentication information is managed",
+   "checks": [
+    "sec.authn",
+    {
+     "id": "secrets.clean",
+     "strength": "direct"
+    }
+   ],
+   "facts": [],
+   "weight": "high"
+  },
+  {
+   "id": "A.5.18",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Access rights are granted, reviewed and removed",
+   "checks": [],
+   "facts": [
+    "access_review"
+   ]
+  },
+  {
+   "id": "A.5.19",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Supplier security risks are managed",
+   "checks": [],
+   "facts": [
+    "supplier_review"
+   ]
+  },
+  {
+   "id": "A.5.20",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Security is addressed in supplier agreements",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.21",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "ICT supply chain security is managed",
+   "checks": [
+    "deps.lockfile",
+    "sbom"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.22",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Supplier services are monitored and changes reviewed",
+   "checks": [],
+   "facts": [
+    "supplier_review"
+   ]
+  },
+  {
+   "id": "A.5.23",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Cloud service use is secured",
+   "checks": [],
+   "facts": [
+    "hosting",
+    "supplier_review"
+   ]
+  },
+  {
+   "id": "A.5.24",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Incident management is planned and prepared",
+   "checks": [
+    "doc.incident"
+   ],
+   "facts": [
+    "incident_process"
+   ]
+  },
+  {
+   "id": "A.5.25",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Security events are assessed and decided on",
+   "checks": [],
+   "facts": [
+    "incident_process"
+   ]
+  },
+  {
+   "id": "A.5.26",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Incidents are responded to",
+   "checks": [
+    "doc.incident"
+   ],
+   "facts": [
+    "incident_process"
+   ]
+  },
+  {
+   "id": "A.5.27",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Lessons are learned from incidents",
+   "checks": [
+    "doc.incident"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.28",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Evidence is collected and preserved",
+   "checks": [
+    "sec.logging"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.29",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Security is maintained during disruption",
+   "checks": [],
+   "facts": [
+    "backups"
+   ]
+  },
+  {
+   "id": "A.5.30",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "ICT is ready for business continuity",
+   "checks": [
+    "doc.operations"
+   ],
+   "facts": [
+    "backups"
+   ]
+  },
+  {
+   "id": "A.5.31",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Legal and contractual requirements are identified",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.32",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Intellectual property rights are protected",
+   "checks": [
+    "doc.license"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.33",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Records are protected",
+   "checks": [
+    "sec.logging",
+    "doc.changelog"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.5.34",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Privacy and personal data are protected",
+   "checks": [
+    "doc.privacy"
+   ],
+   "facts": [
+    "sensitive_data"
+   ]
+  },
+  {
+   "id": "A.5.35",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Security is independently reviewed",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.36",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Compliance with security policies is checked",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.5.37",
+   "group": "A.5",
+   "groupName": "A.5 Organisational controls",
+   "title": "Operating procedures are documented",
+   "checks": [
+    "doc.operations"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.6.1",
+   "group": "A.6",
+   "groupName": "A.6 People controls",
+   "title": "Candidates are screened",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.6.2",
+   "group": "A.6",
+   "groupName": "A.6 People controls",
+   "title": "Employment terms cover security",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.6.3",
+   "group": "A.6",
+   "groupName": "A.6 People controls",
+   "title": "People are trained in security",
+   "checks": [],
+   "facts": [
+    "training"
+   ]
+  },
+  {
+   "id": "A.6.4",
+   "group": "A.6",
+   "groupName": "A.6 People controls",
+   "title": "A disciplinary process exists",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.6.5",
+   "group": "A.6",
+   "groupName": "A.6 People controls",
+   "title": "Duties continue after leaving or changing role",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.6.6",
+   "group": "A.6",
+   "groupName": "A.6 People controls",
+   "title": "Confidentiality agreements are in place",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.6.7",
+   "group": "A.6",
+   "groupName": "A.6 People controls",
+   "title": "Remote working is secured",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.6.8",
+   "group": "A.6",
+   "groupName": "A.6 People controls",
+   "title": "Security events are reported",
+   "checks": [
+    "doc.security_policy",
+    "doc.incident"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.7.1",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Physical security perimeters are defined",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.2",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Physical entry is controlled",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.3",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Offices, rooms and facilities are secured",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.4",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Premises are monitored",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.5",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Physical and environmental threats are guarded against",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.6",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Work in secure areas is controlled",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.7",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Desks and screens are kept clear",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.8",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Equipment is sited and protected",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.9",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Assets off premises are protected",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.10",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Storage media are managed",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.11",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Supporting utilities are protected",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.12",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Cabling is protected",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.13",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Equipment is maintained",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.7.14",
+   "group": "A.7",
+   "groupName": "A.7 Physical controls",
+   "title": "Equipment is disposed of or reused securely",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Physical control: assessed at the site, not in the software"
+  },
+  {
+   "id": "A.8.1",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "User end-point devices are protected",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.8.2",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Privileged access rights are restricted",
+   "checks": [
+    "sec.authz"
+   ],
+   "facts": [
+    "admin_mfa"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "A.8.3",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Access to information is restricted",
+   "checks": [
+    "sec.authz"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.4",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Access to source code is controlled",
+   "checks": [
+    "doc.codeowners"
+   ],
+   "facts": [
+    "change_control"
+   ]
+  },
+  {
+   "id": "A.8.5",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Authentication is secure",
+   "checks": [
+    "sec.authn",
+    "sec.mfa",
+    "sec.rate_limit"
+   ],
+   "facts": [],
+   "weight": "high"
+  },
+  {
+   "id": "A.8.6",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Capacity is managed",
+   "checks": [],
+   "facts": []
+  },
+  {
+   "id": "A.8.7",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Malware is guarded against",
+   "checks": [],
+   "facts": [
+    "hardening"
+   ]
+  },
+  {
+   "id": "A.8.8",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Technical vulnerabilities are managed",
+   "checks": [
+    {
+     "id": "deps.updates",
+     "strength": "direct"
+    },
+    "sast.tool"
+   ],
+   "facts": [
+    "patching"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "A.8.9",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Configurations are managed",
+   "checks": [
+    "config.documented",
+    "secrets.gitignore"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.10",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Information is deleted when no longer needed",
+   "checks": [
+    "doc.privacy"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.11",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Data is masked where required",
+   "checks": [],
+   "facts": []
+  },
+  {
+   "id": "A.8.12",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Data leakage is prevented",
+   "checks": [],
+   "facts": []
+  },
+  {
+   "id": "A.8.13",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Information is backed up",
+   "checks": [],
+   "facts": [
+    "backups"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "A.8.14",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Processing facilities are redundant",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.8.15",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Activities are logged",
+   "checks": [
+    {
+     "id": "sec.logging",
+     "strength": "direct"
+    }
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.16",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Activities are monitored",
+   "checks": [
+    "sec.logging"
+   ],
+   "facts": [
+    "monitoring"
+   ]
+  },
+  {
+   "id": "A.8.17",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Clocks are synchronised",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.8.18",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Privileged utility programs are restricted",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.8.19",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Software installation on operational systems is controlled",
+   "checks": [],
+   "facts": [
+    "app_control"
+   ]
+  },
+  {
+   "id": "A.8.20",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Networks are secured",
+   "checks": [],
+   "facts": [
+    "hardening"
+   ]
+  },
+  {
+   "id": "A.8.21",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Network services are secured",
+   "checks": [
+    "sec.tls"
+   ],
+   "facts": [
+    "hardening"
+   ]
+  },
+  {
+   "id": "A.8.22",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Networks are segregated",
+   "checks": [],
+   "facts": []
+  },
+  {
+   "id": "A.8.23",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Web access is filtered",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  },
+  {
+   "id": "A.8.24",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Cryptography is used correctly",
+   "checks": [
+    {
+     "id": "sec.crypto",
+     "strength": "direct"
+    },
+    "sec.tls"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.25",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Development follows a secure life cycle",
+   "checks": [
+    "ci.pipeline",
+    "doc.contributing",
+    "tests.present"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.26",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Application security requirements are identified",
+   "checks": [
+    "doc.requirements",
+    "doc.threat_model"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.27",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Secure architecture and engineering principles are applied",
+   "checks": [
+    "doc.architecture",
+    "doc.threat_model"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.28",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Code is written securely",
+   "checks": [
+    {
+     "id": "sec.no_dangerous",
+     "strength": "direct"
+    },
+    "sec.validation",
+    "lint.config",
+    "sast.tool"
+   ],
+   "facts": [],
+   "weight": "high"
+  },
+  {
+   "id": "A.8.29",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Security is tested in development and acceptance",
+   "checks": [
+    "sast.tool",
+    "ci.tests"
+   ],
+   "facts": []
+  },
+  {
+   "id": "A.8.30",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Outsourced development is directed and monitored",
+   "checks": [],
+   "facts": [
+    "supplier_review"
+   ]
+  },
+  {
+   "id": "A.8.31",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Development, test and production are separated",
+   "checks": [
+    "config.documented"
+   ],
+   "facts": [
+    "change_control"
+   ]
+  },
+  {
+   "id": "A.8.32",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Changes are managed",
+   "checks": [
+    "doc.changelog"
+   ],
+   "facts": [
+    "change_control"
+   ]
+  },
+  {
+   "id": "A.8.33",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Test information is protected",
+   "checks": [],
+   "facts": []
+  },
+  {
+   "id": "A.8.34",
+   "group": "A.8",
+   "groupName": "A.8 Technological controls",
+   "title": "Systems are protected during audit testing",
+   "checks": [],
+   "facts": [],
+   "out": true,
+   "outWhy": "Organisation-level (ISMS): assessed in the certification audit, not in the software"
+  }
+ ]
+}
