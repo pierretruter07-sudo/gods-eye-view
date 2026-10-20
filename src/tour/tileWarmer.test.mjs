@@ -142,7 +142,7 @@ test('if the queued stop changes during the dwell, warming follows it', async ()
   w.stop();
 });
 
-test('before leaving, the Director waits for the warmed stop's tiles, at most a few seconds; an alert does not wait', async () => {
+test("before leaving, the Director waits for the warmed stop's tiles, at most a few seconds; an alert does not wait", async () => {
   const { viewer } = fakeViewer();
   let t = 0;
   const stats = { numberOfPendingRequests: 6, numberOfTilesProcessing: 0 };
