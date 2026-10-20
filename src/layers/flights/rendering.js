@@ -939,6 +939,20 @@ export function createRendering({
     for (const [icao24, bb] of flightState._billboards) {
       if (icao24 === flightState._trackedIcao) continue; // tracked entity owns its own motion
 
+      // Already hidden behind the Earth and still there: skip the dead
+      // reckoning and the position write (which dirties the whole vertex
+      // buffer) — most of the fleet, most of the time (audit, 21 Oct).
+      if (
+        !bb.show &&
+        !occluder.isPointVisible(
+          flightState._cullPositions.get(icao24) || bb.position,
+        )
+      ) {
+        const hiddenModel = flightState._models.get(icao24);
+        if (hiddenModel && hiddenModel.show) hiddenModel.show = false;
+        continue;
+      }
+
       const info = flightState.records.data.get(icao24);
 
       const dr = parts.motion._deadReckon(icao24, flightState._scratchFleetPos);

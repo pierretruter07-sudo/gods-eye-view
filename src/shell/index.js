@@ -442,9 +442,26 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   // Two small API calls resolve the whole type-photo catalogue; do it once
   // the default layers have had their head start.
   startupTimers.push(setTimeout(() => intel.warmReferenceImages(), 6000));
+  // Speculative downloads wait until the opening descent is over: they
+  // competed with its Google tiles (audit, 21 Oct). `quietThen` runs `fn`
+  // once the descent is done, the Director is not running, or 5 minutes
+  // have passed, whichever comes first.
+  const quietThen = (fn, minMs) => {
+    const started = Date.now();
+    const check = () => {
+      const d = tour.controller.descent?.();
+      const quiet =
+        d?.done === true ||
+        (!tour.controller.isRunning() && Date.now() - started >= minMs) ||
+        Date.now() - started >= 5 * 60_000;
+      if (quiet) fn();
+      else startupTimers.push(setTimeout(check, 5000));
+    };
+    startupTimers.push(setTimeout(check, minMs));
+  };
   // Warm the 3D models (≈3 MB) into the HTTP cache at low priority, so the
   // first aircraft or ship of each class does not stall when it appears.
-  startupTimers.push(setTimeout(warmModels, 9000));
+  quietThen(warmModels, 9000);
   const badge = triageBtn.querySelector('.gev-badge');
   function refreshBadge() {
     if (mode !== 'live') return;
@@ -536,12 +553,12 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     once: true,
   });
   auditBtn.addEventListener('focus', () => audit.prefetch(), { once: true });
-  startupTimers.push(
-    setTimeout(() => {
-      const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1));
-      idle(() => audit.prefetch(), { timeout: 5000 });
-    }, 15000),
-  );
+  quietThen(() => {
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1));
+    idle(() => (audit.warm ? audit.warm() : audit.prefetch()), {
+      timeout: 5000,
+    });
+  }, 15000);
 
   async function setMode(next) {
     mode = next;

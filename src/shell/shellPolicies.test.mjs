@@ -108,3 +108,16 @@ test('a Director stop is answered from memory only when a fresh worldwide snapsh
   assert.equal(near[0].headingDeg, 90);
   assert.equal(near[0].category, 8);
 });
+
+test('a level that just proved too slow is not climbed back to for a few minutes', () => {
+  const n = qualityLevels(1.5).length;
+  let s = { level: START_LEVEL, good: 0, bad: 0 };
+  let t = 0;
+  for (let i = 0; i < QUALITY.badWindowsToDrop; i += 1) s = nextQuality(s, 30, n, (t += 4000));
+  assert.equal(s.level, START_LEVEL + 1);
+  for (let i = 0; i < QUALITY.goodWindowsToRaise * 3; i += 1) s = nextQuality(s, 60, n, (t += 4000));
+  assert.equal(s.level, START_LEVEL + 1, 'held below the level that failed');
+  t += QUALITY.failedLevelHoldMs;
+  for (let i = 0; i < QUALITY.goodWindowsToRaise; i += 1) s = nextQuality(s, 60, n, (t += 4000));
+  assert.equal(s.level, START_LEVEL, 'tried again after the hold');
+});

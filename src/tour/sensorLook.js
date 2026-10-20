@@ -95,30 +95,37 @@ export function showSensorTag(mode, root = globalThis.document) {
 export function createSensorLook({ viewer, Cesium }) {
   const stages = viewer.scene.postProcessStages;
   const started = performance.now();
-  let stage = null;
+  // Each look's stage is built (and its shader compiled) once, the first
+  // time it is used, then switched on and off: Director stops change looks
+  // often and a recompile each time cost a hitch (audit, 21 Oct).
+  const built = new Map(); // mode -> PostProcessStage
   let current = null;
+
+  function stageFor(mode) {
+    if (built.has(mode)) return built.get(mode);
+    const stage = new Cesium.PostProcessStage({
+      name: `gev-sensor-${mode}`,
+      fragmentShader: mode === 'flir' ? FLIR_SHADER : NVG_SHADER,
+      uniforms: { time: () => (performance.now() - started) / 1000 },
+    });
+    stage.enabled = false;
+    stages.add(stage);
+    built.set(mode, stage);
+    return stage;
+  }
 
   function set(mode) {
     const next = ['flir', 'nvg', 'lights'].includes(mode) ? mode : null;
     if (next === current) return;
-    if (stage) {
-      stages.remove(stage); // destroys the stage
-      stage = null;
-    }
+    for (const stage of built.values()) stage.enabled = false;
     current = next;
     // 'lights' is a badge only: the day/night shell already draws the city
     // lights; no screen effect.
     if (next && next !== 'lights') {
       try {
-        stage = new Cesium.PostProcessStage({
-          name: `gev-sensor-${next}`,
-          fragmentShader: next === 'flir' ? FLIR_SHADER : NVG_SHADER,
-          uniforms: { time: () => (performance.now() - started) / 1000 },
-        });
-        stages.add(stage);
+        stageFor(next).enabled = true;
       } catch (error) {
         console.warn('[tour] sensor look unavailable', error);
-        stage = null;
         current = null;
       }
     }
@@ -129,6 +136,16 @@ export function createSensorLook({ viewer, Cesium }) {
   return {
     set,
     mode: () => current,
-    destroy: () => set(null),
+    destroy() {
+      set(null);
+      for (const stage of built.values()) {
+        try {
+          stages.remove(stage); // destroys the stage
+        } catch {
+          /* viewer torn down */
+        }
+      }
+      built.clear();
+    },
   };
 }

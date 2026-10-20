@@ -102,6 +102,7 @@ export function createStopQueue({
      */
     preferFresh() {
       if (!upcoming || upcoming.stop?.kind === 'event') return false;
+      if (planner.canAlert && !planner.canAlert()) return false;
       if (!planner.hasFresh(incidents())) return false;
       upcoming = plan();
       return true;

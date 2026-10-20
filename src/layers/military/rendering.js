@@ -912,6 +912,19 @@ export function createRendering({
     for (const [icao24, bb] of flightState._billboards) {
       if (icao24 === flightState._trackedIcao) continue; // tracked entity owns its own motion
 
+      // Already hidden behind the Earth and still there: skip the dead
+      // reckoning and the position write (mirror of flights).
+      if (
+        !bb.show &&
+        !occluder.isPointVisible(
+          flightState.records.data.get(icao24)?.cullPosition || bb.position,
+        )
+      ) {
+        const hiddenModel = flightState._models.get(icao24);
+        if (hiddenModel && hiddenModel.show) hiddenModel.show = false;
+        continue;
+      }
+
       const dr = parts.motion._deadReckon(icao24, flightState._scratchFleetPos);
       // Gate the write — assigning Billboard.position dirties the whole
       // collection's vertex buffer, so skip sub-meter moves.

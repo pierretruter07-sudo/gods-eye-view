@@ -91,9 +91,22 @@ export function ingestAisStreamEnvelope(envelope) {
     aisEpochSeconds(metadata.time_utc ?? metadata.TimeUtc),
   );
 
-  pruneAisStreamCache();
+  // The prune walks every vessel: at most every few seconds, not on each of
+  // the hundreds of messages a second (audit, 21 Oct), unless over the cap.
+  const nowMs = Date.now();
+  if (
+    nowMs - _lastPruneAt >= AISSTREAM_PRUNE_EVERY_MS ||
+    _aisStreamVessels.size > AISSTREAM_CACHE_MAX
+  ) {
+    _lastPruneAt = nowMs;
+    pruneAisStreamCache();
+  }
   return true;
 }
+
+/** How often the vessel cache is pruned of stale rows. */
+export const AISSTREAM_PRUNE_EVERY_MS = 10_000;
+let _lastPruneAt = 0;
 
 /**
  * Parses an AISStream UTC timestamp into epoch seconds (fallback: now).
@@ -224,7 +237,8 @@ export function aisStreamRows(maxRows) {
   for (const row of _aisStreamVessels.values()) {
     if (row._updatedAt >= cutoff) rows.push(row);
   }
-  rows.sort((a, b) => b._updatedAt - a._updatedAt);
+  // Newest first only matters when rows must be dropped.
+  if (rows.length > maxRows) rows.sort((a, b) => b._updatedAt - a._updatedAt);
   return rows.slice(0, maxRows).map(({ _updatedAt, ...row }) => row);
 }
 

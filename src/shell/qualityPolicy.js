@@ -14,6 +14,9 @@ export const QUALITY = Object.freeze({
   goodWindowsToRaise: 4,
   /** Never render sharper than this many pixels per CSS pixel. */
   maxRatio: 2,
+  /** After a level proved too slow, don't climb back to it for this long
+   * (each change reallocates the framebuffers: a bounce is a hitch). */
+  failedLevelHoldMs: 3 * 60_000,
 });
 
 /** Quality levels for a display, best first. */
@@ -40,24 +43,40 @@ export function qualityLevels(devicePixelRatio = 1) {
 export const START_LEVEL = 1;
 
 /**
- * One measurement window → next state.
- * @param {{level:number, good:number, bad:number}} state
+ * One measurement window → next state. With `now` (ms), a level that was
+ * just dropped from is not climbed back to for QUALITY.failedLevelHoldMs,
+ * so a GPU on the edge settles instead of bouncing between two levels.
+ * @param {{level:number, good:number, bad:number, noRaise?: {level:number, until:number}}} state
  * @param {number} fps
  * @param {number} levelCount
+ * @param {number} [now]
  */
-export function nextQuality(state, fps, levelCount) {
+export function nextQuality(state, fps, levelCount, now) {
   const { level } = state;
+  const timed = Number.isFinite(now);
+  const noRaise = state.noRaise;
   if (fps < QUALITY.lowFps) {
     const bad = state.bad + 1;
     if (bad >= QUALITY.badWindowsToDrop && level < levelCount - 1)
-      return { level: level + 1, good: 0, bad: 0 };
-    return { level, good: 0, bad };
+      return {
+        level: level + 1,
+        good: 0,
+        bad: 0,
+        noRaise: timed
+          ? { level, until: now + QUALITY.failedLevelHoldMs }
+          : noRaise,
+      };
+    return { level, good: 0, bad, noRaise };
   }
   if (fps > QUALITY.highFps) {
     const good = state.good + 1;
-    if (good >= QUALITY.goodWindowsToRaise && level > 0)
-      return { level: level - 1, good: 0, bad: 0 };
-    return { level, good, bad: 0 };
+    if (good >= QUALITY.goodWindowsToRaise && level > 0) {
+      const target = level - 1;
+      if (timed && noRaise?.level === target && now < noRaise.until)
+        return { level, good: 0, bad: 0, noRaise };
+      return { level: target, good: 0, bad: 0, noRaise };
+    }
+    return { level, good, bad: 0, noRaise };
   }
-  return { level, good: 0, bad: 0 };
+  return { level, good: 0, bad: 0, noRaise };
 }

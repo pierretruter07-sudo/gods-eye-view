@@ -72,11 +72,32 @@ export function createRecords({ state, parts }) {
     };
   }
 
+  // Several timers ask for these every few seconds (intel nearby, the
+  // Director); one SGP4 pass over the whole catalogue is reused for 2 s
+  // (audit, 21 Oct). A LEO satellite moves ~15 km in that time, which no
+  // caller here needs closer than (the tracked one is propagated itself).
+  const RECORDS_REUSE_MS = 2000;
+  let reuse = null; // { limit, size, at, rows }
+
   function getAnalystRecords(maxCount = 2000) {
     if (!state._enabled || !state._catalog.size) return [];
     const limit = Number.isFinite(maxCount)
       ? Math.max(1, Math.floor(maxCount))
       : 2000;
+    const nowMs = Date.now();
+    if (
+      reuse &&
+      reuse.limit === limit &&
+      reuse.size === state._catalog.size &&
+      nowMs - reuse.at < RECORDS_REUSE_MS
+    )
+      return reuse.rows.slice();
+    const rows = buildRecords(limit);
+    reuse = { limit, size: state._catalog.size, at: nowMs, rows };
+    return rows.slice();
+  }
+
+  function buildRecords(limit) {
     const now = new Date();
     const result = [];
     const emit = (noradId, sat) => {
