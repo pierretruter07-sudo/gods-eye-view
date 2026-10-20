@@ -355,7 +355,22 @@ export function installShell({ viewer, dataManager, placeSearch }) {
       if (phase === 'depart' && focus) intelRef?.prefetch(focus);
       if (!view || !(view.rangeM <= 1_000_000)) return;
       if (phase === 'depart') prefetch.preload(view.lat, view.lon);
-      else prefetch.refreshHere();
+      else {
+        prefetch.refreshHere();
+        // Mapped installations load on camera move-end, which never fires
+        // while the Director orbits: ask on arrival at a close view.
+        try {
+          if (
+            view.rangeM <= 200_000 &&
+            dataManager.isEnabled('military-installations')
+          )
+            Promise.resolve(
+              dataManager.refreshLayer?.('military-installations'),
+            ).catch(() => {});
+        } catch {
+          /* layer not registered */
+        }
+      }
     },
     // The Director's current subject opens in the intel view, as if clicked.
     onFocus(focus) {

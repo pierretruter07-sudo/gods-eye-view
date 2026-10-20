@@ -167,3 +167,24 @@ test('a stopped tour forgets its queued stop, so a restart plans afresh', async 
   assert.equal(q.peek(), null);
   assert.equal(await q.take(), city, 'a new stop, not the stale one');
 });
+
+test('a military base with no aircraft is skipped like an empty airport', async () => {
+  const base = (name) => ({
+    kind: 'base',
+    base: { name },
+    view: { lat: 0, lon: 0, rangeM: 9_000 },
+  });
+  const planner = fakePlanner([base('EMPTY'), base('BUSY')]);
+  const q = createStopQueue({
+    planner,
+    liveData: () => ({}),
+    incidents: () => ({}),
+    stage: (view, stop) =>
+      Promise.resolve({
+        ready: true,
+        count: stop.base.name === 'BUSY' ? 4 : 0,
+      }),
+    wait: noWait,
+  });
+  assert.equal((await q.take()).base.name, 'BUSY');
+});

@@ -4,7 +4,7 @@
  * The next stop is chosen as soon as the camera arrives at the current one,
  * and its live data starts loading right then, a whole dwell ahead of the
  * flight. When it is time to leave, the queue waits briefly for that data;
- * an airport with no aircraft yet is skipped rather than shown empty.
+ * an airport or base with no aircraft yet is skipped rather than shown empty.
  * A brand-new incident always jumps the queue. Pure: no Cesium, no DOM.
  * @module tour/queue
  */
@@ -41,9 +41,15 @@ export function createStopQueue({
   let upcoming = null; // { stop, staged: Promise, result }
   const log = []; // recent decisions, for diagnostics
 
+  // An airport or a military base with no aircraft is skipped rather than
+  // shown empty (audit, 21 Oct: with the military feed down, 8 of 30 stops
+  // were empty bases).
   const isEmpty = (entry) => {
     const r = entry.result;
-    return entry.stop.kind === 'airport' && (!r || !r.ready || !(r.count > 0));
+    return (
+      (entry.stop.kind === 'airport' || entry.stop.kind === 'base') &&
+      (!r || !r.ready || !(r.count > 0))
+    );
   };
   function record(entry, skipped) {
     const r = entry.result;

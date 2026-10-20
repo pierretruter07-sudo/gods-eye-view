@@ -37,6 +37,21 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Data feeds hold up better on Replit** (audit wave 2):
+  - The military aircraft relay caches for 30 s (it was shorter than the
+    client poll, so every poll went upstream), shares one upstream call,
+    times out after 10 s, backs off after any failure, keeps its last good
+    answer on disk, and never serves military contacts older than 10
+    minutes as current.
+  - OpenSky's worldwide call is shared by everyone asking at once, and a
+    5xx or auth failure serves the last good snapshot instead of the error.
+  - Director stops reuse the worldwide flight snapshot already in memory
+    instead of downloading and parsing it two or three more times per stop.
+  - Large `/api` JSON is gzip-compressed.
+  - Mapped installations back off for 2 minutes after Overpass fails (503s
+    carry `Retry-After`), and load on arrival at a base during the
+    Director.
+  - An empty military base is skipped like an empty airport.
 - **Stopping the Director always hands the camera back.** Pressing Stop at
   the wrong moment (during the airport fade-out) or a Director error could
   leave the camera flying and orbiting with Esc and the mouse no longer

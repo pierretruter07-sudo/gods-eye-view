@@ -1,5 +1,10 @@
 import * as Cesium from 'cesium';
-import { shouldRefreshFlights, statesNear } from './flightPrefetchPolicy.js';
+import {
+  recordsNear,
+  shouldRefreshFlights,
+  statesNear,
+  worldwideFresh,
+} from './flightPrefetchPolicy.js';
 
 /**
  * Makes aircraft appear as soon as the camera arrives somewhere new instead of
@@ -20,6 +25,16 @@ export function installFlightPrefetch({ viewer, dataManager }) {
       return false;
     }
   };
+
+  /** The flights layer already has the whole world, recently. */
+  function haveWorld() {
+    try {
+      const flights = dataManager.getLayerModule?.('flights');
+      return worldwideFresh(flights?.getStats?.(), Date.now()) ? flights : null;
+    } catch {
+      return null;
+    }
+  }
 
   function centre() {
     const canvas = viewer.scene.canvas;
@@ -71,6 +86,11 @@ export function installFlightPrefetch({ viewer, dataManager }) {
   function preload(lat, lon) {
     if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon))
       return;
+    // The whole world is already loaded and fresh: nothing to fetch.
+    if (haveWorld()) {
+      last = { lat, lon, at: Date.now() };
+      return;
+    }
     const flights = dataManager.getLayerModule?.('flights');
     if (typeof flights?.setQueryAnchor !== 'function') return warm(lat, lon);
     flights.setQueryAnchor(lat, lon, 12000);
@@ -88,6 +108,17 @@ export function installFlightPrefetch({ viewer, dataManager }) {
     const { lat, lon } = view || {};
     if (!isOn('flights') || !Number.isFinite(lat) || !Number.isFinite(lon))
       return { ready: true, count: null };
+    // Answered from memory when the layer holds a fresh worldwide snapshot.
+    const world = haveWorld();
+    if (world) {
+      const aircraft = recordsNear(
+        world.getAnalystRecords?.(50_000),
+        lat,
+        lon,
+        radiusKm,
+      );
+      return { ready: true, count: aircraft.length, aircraft, at: Date.now() };
+    }
     const url = `/api/opensky?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
     try {
       const r = await fetch(url, { headers: { Accept: 'application/json' } });
@@ -107,7 +138,7 @@ export function installFlightPrefetch({ viewer, dataManager }) {
     /** After a fly-to: refresh unless the preload already covered this place. */
     refreshHere() {
       const here = centre();
-      if (!here || !isOn('flights')) return;
+      if (!here || !isOn('flights') || haveWorld()) return;
       const heightM = viewer.camera.positionCartographic?.height ?? Infinity;
       if (shouldRefreshFlights({ last, here, heightM, now: Date.now() }))
         refreshNow(here);
