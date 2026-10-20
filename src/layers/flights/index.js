@@ -71,6 +71,8 @@ export function createCivilFlightLayer({
     icao24 === flightState._trackedIcao
       ? parts.motion._trackedDisplayPosition(icao24)
       : (flightState._billboards.get(icao24)?.position ?? null);
+  /** The aircraft the Director or analyst is focused on (3D model look). */
+  layer.setFocusModel = (icao24) => parts.rendering.setFocusModel(icao24);
   Object.defineProperty(layer, 'testing', { value: parts.testing });
   return layer;
 }

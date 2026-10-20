@@ -3,13 +3,17 @@ import { START_LEVEL, nextQuality, qualityLevels } from './qualityPolicy.js';
 const WINDOW_MS = 1500;
 
 /**
- * Keeps the globe crisp AND smooth: renders at the display's native pixel
- * density with multisample anti-aliasing (FXAA only once MSAA is off), and walks a quality
- * ladder (see qualityPolicy.js) when the measured frame rate sags. Only
- * measures while the scene renders continuously — idle request-render frames
- * are sparse by design and say nothing about smoothness.
+ * Keeps the globe crisp AND smooth: always renders at the display's native
+ * pixel density with multisample anti-aliasing, and walks a quality ladder
+ * (see qualityPolicy.js) when the measured frame rate sags: effects first,
+ * then MSAA, then tile detail. Only measures while the scene renders
+ * continuously — idle request-render frames are sparse by design and say
+ * nothing about smoothness.
+ * @param {object} viewer
+ * @param {{setEffects?: (on: boolean) => void}} [options] the scene look's
+ *   effects switch (graphics.js)
  */
-export function installAdaptiveQuality(viewer) {
+export function installAdaptiveQuality(viewer, { setEffects = null } = {}) {
   const scene = viewer.scene;
   const dpr = window.devicePixelRatio || 1;
   const levels = qualityLevels(dpr);
@@ -20,7 +24,7 @@ export function installAdaptiveQuality(viewer) {
   };
 
   function apply() {
-    const { ratio, msaa, sse } = levels[state.level];
+    const { ratio, msaa, sse, effects } = levels[state.level];
     try {
       // With browser-recommended resolution OFF, Cesium renders at
       // devicePixelRatio × resolutionScale — so divide the DPR back out.
@@ -34,12 +38,12 @@ export function installAdaptiveQuality(viewer) {
     } catch {
       /* MSAA unsupported (WebGL1) */
     }
+    // No FXAA at any level: it blurs the whole frame. The sharpening pass
+    // (graphics.js) keeps detail; MSAA handles edges while it is on.
     try {
-      // FXAA only when multisampling is off: doing both blurs and costs a pass.
-      const fxaa = scene.postProcessStages?.fxaa;
-      if (fxaa) fxaa.enabled = msaa <= 1;
+      setEffects?.(effects !== false);
     } catch {
-      /* no FXAA */
+      /* effects unavailable */
     }
     // Photorealistic 3D tiles: coarser detail on the bottom rungs.
     const primitives = scene.primitives;

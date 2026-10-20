@@ -147,7 +147,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 
 | ID | Requirement | V |
 |---|---|---|
-| GEV-PRF-001 | Adaptive quality shall start at native resolution (DPR ≤ 2) and never render below CSS-pixel resolution. | T |
+| GEV-PRF-001 | Adaptive quality shall always render at native resolution (DPR ≤ 2). On sustained slow frames it shall shed, in order, the bloom effect, multisample anti-aliasing and 3D tile detail. | T |
 | GEV-PRF-002 | Quality shall drop only on sustained slow frames and recover only with headroom. | T |
 | GEV-PRF-003 | The idle globe spin shall run only when idle, zoomed out and not blocked by a focus or tour. | T |
 | GEV-PRF-004 | On arrival at a place, flights shall refresh only for a new place or stale data, and never from space. | T |
@@ -198,4 +198,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 |---|---|---|
 | GEV-VIS-001 | At planet and regional scale (camera above about 600 km, full above 2,000 km) the globe shall show the live day/night line from the real Sun position (wall clock), with a soft terminator and NASA Black Marble city lights on the night side. It shall never tint city or street-level views. The night-lights source shall be credited and listed with its licence. `?daynight=0` shall switch it off. | T |
 | GEV-VIS-002 | Aircraft and ships near the camera (and the Director's subject first) shall show a short trail through positions the feed reported this session, fading with age (3 min for aircraft, 10 min for ships), capped at 40 trails and hidden above 2,500 km camera height. Trails shall never extend beyond the newest reported fix. `?trails=0` shall switch them off. | T |
+| GEV-VIS-004 | The scene shall render with high dynamic range and a neutral tone map, a gentle bloom on the brightest light only, and a contrast-adaptive sharpening pass instead of FXAA. Each can be switched off from the URL (`?hdr=0`, `?bloom=0`, `?sharpen=0`). | T |
+| GEV-VIS-005 | Aircraft icons shall be drawn from a raster close to their on-screen size in device pixels (never magnified more than 10%), and the camera, ship, satellite and Director icons shall be rasterised for 2× and 3× screens. | T |
+| GEV-VIS-006 | The aircraft the Director or analyst focuses on shall be shown as its 3D model, first in line for a model slot, at least 96 px on screen, with its own materials lit by the sun and sky rather than the fleet's flat tint. | I |
 | GEV-VIS-003 | When the Director shows an earthquake, rings shall expand from the epicentre three times, then settle into one ring and a marker until the Director moves on. The ring size is a display scale (30 km at M5, doubling per magnitude, 15–400 km), not a measured shaking area. `?quakerings=0` shall switch them off. | T |

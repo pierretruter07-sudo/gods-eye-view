@@ -3,16 +3,17 @@ import assert from 'node:assert/strict';
 import { QUALITY, START_LEVEL, nextQuality, qualityLevels } from './qualityPolicy.js';
 import { countStatesNear, recordsNear, shouldRefreshFlights, statesNear, worldwideFresh, PREFETCH_MAX_AGE_MS, WORLDWIDE_FRESH_MS } from './flightPrefetchPolicy.js';
 
-test('quality ladder holds native resolution and never drops below CSS pixels', () => {
+test('quality ladder always keeps native resolution; it sheds bloom, then MSAA, then tile detail', () => {
+  for (const dpr of [1, 1.5, 2]) {
+    const l = qualityLevels(dpr);
+    assert.ok(l.every((x) => x.ratio === dpr), `native at every level (${dpr}×)`);
+  }
+  assert.equal(qualityLevels(3)[0].ratio, QUALITY.maxRatio, 'capped at 2× on 3× phones');
   const l = qualityLevels(1.5);
-  assert.deepEqual(l.slice(0, 3).map((x) => x.ratio), [1.5, 1.5, 1.5]);
-  assert.deepEqual(l.map((x) => x.msaa).slice(0, 3), [4, 2, 1]);
-  assert.ok(l.every((x) => x.ratio >= 1));
-  assert.equal(qualityLevels(3)[0].ratio, QUALITY.maxRatio);
-  assert.equal(qualityLevels(1).length, 3);
-  // Tile detail stays at Cesium's default until the last rungs.
-  assert.deepEqual(l.map((x) => x.sse), [16, 16, 16, 20, 24]);
-  assert.equal(qualityLevels(1).at(-1).sse, 24);
+  assert.deepEqual(l.map((x) => x.effects), [true, true, false, false, false, false]);
+  assert.deepEqual(l.map((x) => x.msaa), [4, 2, 2, 1, 1, 1]);
+  assert.deepEqual(l.map((x) => x.sse), [16, 16, 16, 16, 20, 24]);
+  assert.equal(l[START_LEVEL].effects, true, 'starts with effects on');
 });
 
 test('one slow window does not drop quality; sustained slowness does; recovery needs headroom', () => {

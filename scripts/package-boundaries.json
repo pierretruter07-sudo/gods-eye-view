@@ -644,6 +644,7 @@
       "src/intel/subjectVisual.js",
       "src/shell/flightPrefetch.js",
       "src/shell/flightPrefetchPolicy.js",
+      "src/shell/graphics.js",
       "src/shell/idleSpin.js",
       "src/shell/idleSpinPolicy.js",
       "src/shell/index.js",

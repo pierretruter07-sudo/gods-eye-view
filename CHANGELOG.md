@@ -37,6 +37,20 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Sharper, richer graphics** (Pierre, 21 Oct):
+  - High dynamic range with a neutral tone map, a gentle bloom on only the
+    brightest light, and a contrast-adaptive sharpening pass instead of
+    FXAA (which blurred the whole frame). Switches: `?hdr=0`, `?bloom=0`,
+    `?sharpen=0`.
+  - Native resolution is always kept: on slow frames the quality ladder
+    sheds bloom, then anti-aliasing, then tile detail.
+  - Aircraft icons are drawn from a raster close to their size on screen
+    (32 to 256 px), so they are crisp on 1×, 2× and 3× screens at every
+    zoom. Camera, ship, satellite and Director icons are rasterised for
+    high-density screens.
+  - The focused aircraft is always its 3D model, at least 96 px on screen,
+    with its own materials lit by the sun and sky instead of the fleet's
+    flat tint; the focused ship is drawn larger too.
 - **Lighter and smoother** (audit wave 3):
   - The AIS server prunes its vessel cache every 10 s instead of on every
     incoming message.
