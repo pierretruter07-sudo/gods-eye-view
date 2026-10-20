@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium';
+import { sharePicks } from './sharePicks.js';
 
 const PINCH_ZOOM_MULTIPLIER = 8;
 const MAX_PINCH_PIXEL_DELTA = 120;
@@ -136,6 +137,7 @@ export function createApplicationViewer({ container, creditContainer }) {
     // Director stops repeat (airports, cities): keep their tiles resident so
     // a revisit draws instantly instead of re-downloading (default 100).
     viewer.scene.globe.tileCacheSize = 300;
+    sharePicks(viewer.scene);
     return viewer;
   } catch (error) {
     viewer.destroy();

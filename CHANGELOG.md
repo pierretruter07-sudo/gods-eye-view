@@ -37,6 +37,19 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Lighter and smoother** (audit wave 3):
+  - The AIS server prunes its vessel cache every 10 s instead of on every
+    incoming message.
+  - Aircraft and satellite records are reused between timers instead of
+    being rebuilt for the whole fleet every few seconds, and the Director
+    skips its incident scan when no alert may be shown yet.
+  - Aircraft hidden behind the Earth are skipped in the fleet tick.
+  - One click runs one pick, shared by every layer (up to nine before).
+  - The 3D models and the AUDIT code download after the opening descent,
+    not during it, and the idle AUDIT warm-up no longer builds its scene.
+  - The quality ladder doesn't climb back to a level that just proved too
+    slow for 3 minutes (no hitch every few seconds on edge GPUs).
+  - Thermal and night-vision looks are built once and switched on and off.
 - **Data feeds hold up better on Replit** (audit wave 2):
   - The military aircraft relay caches for 30 s (it was shorter than the
     client poll, so every poll went upstream), shares one upstream call,

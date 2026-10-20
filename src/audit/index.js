@@ -31,6 +31,19 @@ export function installAudit({ viewer, onEnter, onExit }) {
     });
   }
 
+  /**
+   * Download the AUDIT code and data only, without building its scene (a
+   * second full-screen WebGL context that would stay in GPU memory all
+   * session for visitors who never press AUDIT). Used for the idle warm-up;
+   * hover and focus still prepare the whole view.
+   */
+  function warm() {
+    module ??= import('./runtime.js');
+    return module.catch(() => {
+      module = null;
+    });
+  }
+
   function load() {
     module ??= import('./runtime.js');
     loading ??= module
@@ -66,6 +79,7 @@ export function installAudit({ viewer, onEnter, onExit }) {
       await runtime?.exit();
     },
     prefetch,
+    warm,
     isActive: () => active,
     /** For diagnostics and the browser harness. */
     runtime: () => runtime,

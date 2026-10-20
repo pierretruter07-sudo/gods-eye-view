@@ -197,6 +197,10 @@ export function createQueries({
     };
   }
 
+  /** The last analyst-record build, reused for the same snapshot. */
+  const ANALYST_REUSE_MS = 5000;
+  let analystReuse = null; // { key, at, rows }
+
   function _normalizeTrackedIcao(candidate) {
     const normalized = String(candidate ?? '')
       .trim()
@@ -711,6 +715,17 @@ export function createQueries({
       const limit = Number.isFinite(maxCount)
         ? Math.max(1, Math.floor(maxCount))
         : 2000;
+      // Records only change when a snapshot lands (~30 s), but several
+      // timers rebuilt ~10k of them every 2-5 s (audit, 21 Oct). Reuse the
+      // last build for the same snapshot; at most 5 s, so enrichment that
+      // arrives in between (type, route) still shows.
+      const key = `${limit}|${flightState.feed?._lastUpdate}|${flightState.records.data.size}`;
+      const nowMs = Date.now();
+      if (
+        analystReuse?.key === key &&
+        nowMs - analystReuse.at < ANALYST_REUSE_MS
+      )
+        return analystReuse.rows.slice();
       const result = [];
       for (const [icao24, info] of flightState.records.data) {
         const routeOk =
@@ -723,7 +738,8 @@ export function createQueries({
         );
         if (result.length >= limit) break;
       }
-      return result;
+      analystReuse = { key, at: nowMs, rows: result };
+      return result.slice();
     },
 
     /**

@@ -65,7 +65,7 @@ export function installAdaptiveQuality(viewer) {
     const fps = (frames * 1000) / elapsed;
     frames = 0;
     windowStart = now;
-    const next = nextQuality(state, fps, levels.length);
+    const next = nextQuality(state, fps, levels.length, now);
     const changed = next.level !== state.level;
     state = next;
     if (changed) {

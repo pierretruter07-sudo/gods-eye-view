@@ -348,6 +348,11 @@ export function createPlanner({
       return alertAllowed(now) && freshEvents(data, now).length > 0;
     },
 
+    /** Whether an alert may be shown now at all (cheap: no data needed). */
+    canAlert(now = Date.now()) {
+      return alertAllowed(now);
+    },
+
     next(data, now = Date.now()) {
       const stop = pick(data, now);
       sinceSpace = stop?.kind === 'satellite' ? 0 : sinceSpace + 1;

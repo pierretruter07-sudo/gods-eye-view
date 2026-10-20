@@ -675,7 +675,10 @@ export function createTourController({
       // or the queue has already taken it (and is loading its tiles).
       if (
         interruptible &&
-        (queue.peek()?.kind === 'event' || planner.hasFresh(incidentData()))
+        (queue.peek()?.kind === 'event' ||
+          // Building the incident data walks every flight: only when an
+          // alert could be shown at all.
+          (planner.canAlert() && planner.hasFresh(incidentData())))
       )
         return;
     }
