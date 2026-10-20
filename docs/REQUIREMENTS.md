@@ -91,6 +91,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-026 | The Director shall keep a moving subject centred: the camera shall follow the aircraft's drawn position (or a satellite's propagated position) through the flight in and the whole dwell, an aircraft alert shall be framed at the aircraft's altitude, and aircraft at or below 1,500 m shall be framed closer than the usual view. A subject the live layer is not drawing shall get the Director's own icon at its reported position. | T |
 | GEV-DIR-027 | Satellite stops shall keep the Earth as the hero of the shot: at GEO and MEO the whole Earth disc shall be in frame below the satellite. Coverage shall be shown as a faint beam with a sweeping scan, and orbit rings shall be closed exactly so the line never breaks. | T |
 | GEV-DIR-028 | The night city shall prefer a city with live street video when it is dark there, so the night street shows moving video when available. | T |
+| GEV-DIR-029 | The opening descent's first view shall show the geostationary belt as a tilted ring around the Earth (viewed about 22° off the equatorial plane), not edge-on as a flat line. | T |
 
 ## 6. Intel HUD (INT)
 

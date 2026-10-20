@@ -270,3 +270,12 @@ test('the night city prefers a city with live street video when it is dark there
   const noon = Date.parse('2026-10-19T18:00:00Z');
   assert.notEqual(pickNightRegion(noon)?.id, 'desmoines');
 });
+
+test('the opening GEO view looks at the belt from off the equator, so it is a tilted ring, not a flat line', () => {
+  const stop = createDescentPlanner({ region: sydney }).next(fullData());
+  assert.equal(stop.descent, 'geo');
+  const tilt = Math.abs(stop.view.lat);
+  assert.ok(tilt >= 15 && tilt <= 30, `viewed ${tilt} deg off the equatorial plane`);
+  assert.ok(stop.view.lat < 0, 'on the day region (Sydney) side');
+  assert.equal(stop.view.pitchDeg, -90);
+});
