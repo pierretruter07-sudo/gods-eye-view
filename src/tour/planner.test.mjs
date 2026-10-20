@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createPlanner } from './planner.js';
-import { STOP_CAMERA, TOUR_TIMING } from './config.js';
+import { STOP_CAMERA, TOUR_AIRPORTS, TOUR_TIMING } from './config.js';
 
 const t0 = Date.parse('2026-10-13T00:00:00Z');
 const min = 60_000;
@@ -26,9 +26,10 @@ test('a new incident always comes first, then the rotation keeps moving', () => 
   assert.match(first.line, /^Alert\./);
   assert.equal(first.dwellS, TOUR_TIMING.eventDwellS);
   // The same quake is not repeated straight away: the defence rotation moves
-  // on (military slots with nothing airborne are skipped).
+  // on (military slots with nothing airborne are skipped); space comes from
+  // the space rule, about one stop in five.
   const kinds = [1, 2, 3, 4].map(() => planner.next(data, t0 + min).kind);
-  assert.deepEqual(kinds, ['airport', 'base', 'satellite', 'vessel']);
+  assert.deepEqual(kinds, ['airport', 'base', 'vessel', 'satellite']);
 });
 
 test('an emergency squawk interrupts and jumps the queue', () => {
@@ -146,12 +147,12 @@ test('placeholder AIS destinations are not read out', () => {
   assert.equal(planner.next({ flights: [], quakes: [], vessels: [v], satellites: [] }, t0).line, 'Cargo Broltus, making 12 knots.');
 });
 
-test('at least one stop in every five is in space, cycling GEO, stations and navigation satellites', () => {
+test('about one stop in five is in space (never fewer than one in six), cycling GEO, stations and navigation satellites', () => {
   const geo = { noradId: '40001', name: 'INTELSAT TEST', group: 'geo', lat: 0, lon: 60, altitudeM: 35_786_000 };
   const gps = { noradId: '40002', name: 'GPS TEST', group: 'gps-ops', lat: 30, lon: 10, altitudeM: 20_200_000 };
   const gal = { noradId: '40003', name: 'GALILEO TEST', group: 'galileo', lat: -20, lon: 90, altitudeM: 23_222_000 };
   const data = { flights: [], quakes: [], vessels: [ship], satellites: [gps, iss, geo, gal] };
-  // A rotation with no space in it at all still visits space every 5 stops.
+  // Space comes only from the space rule: one stop in five (Pierre, 21 Oct).
   for (const rotation of [undefined, ['vessel', 'city', 'airport']]) {
     const planner = createPlanner(rotation ? { rotation } : {});
     const stops = Array.from({ length: 40 }, (_, i) => planner.next(data, t0 + i * min));
@@ -160,11 +161,13 @@ test('at least one stop in every five is in space, cycling GEO, stations and nav
         stops.slice(i, i + 5).some((s) => s.kind === 'satellite'),
         `stops ${i}-${i + 4} include space`,
       );
+    const share = stops.filter((s) => s.kind === 'satellite').length / stops.length;
+    assert.ok(share >= 0.18 && share <= 0.22, `about one in five, got ${share}`);
     const groups = stops.filter((s) => s.kind === 'satellite').map((s) => s.satellite.group);
     assert.deepEqual(groups.slice(0, 5), ['geo', 'stations', 'gps-ops', 'geo', 'galileo']);
   }
   // An alert landing just as space falls due still leaves a satellite in
-  // every run of five stops (Replit run, 20 Oct: stops 7-11 had none).
+  // every run of six stops (Replit run, 20 Oct: stops 7-11 had none).
   for (let at = 0; at < 8; at += 1) {
     const planner = createPlanner();
     const kinds = Array.from({ length: 16 }, (_, i) => {
@@ -173,8 +176,8 @@ test('at least one stop in every five is in space, cycling GEO, stations and nav
         i === at + 4 ? [{ ...quake(`q${at}`, 6.0, 5), timeMs: now - 5 * min }] : [];
       return planner.next({ ...data, quakes }, now).kind;
     });
-    for (let i = 0; i + 5 <= kinds.length; i += 1)
-      assert.ok(kinds.slice(i, i + 5).includes('satellite'), `alert at ${at + 4}: ${kinds.join(',')}`);
+    for (let i = 0; i + 6 <= kinds.length; i += 1)
+      assert.ok(kinds.slice(i, i + 6).includes('satellite'), `alert at ${at + 4}: ${kinds.join(',')}`);
     assert.equal(kinds[at + 4], 'event', 'the alert still goes first');
   }
   const planner = createPlanner();
@@ -199,4 +202,15 @@ test('a helicopter low over the ground is framed close; an emergency aircraft is
   );
   assert.equal(alert.kind, 'event');
   assert.equal(alert.view.heightM, 10_000);
+});
+
+test('staged (simulated) aircraft are never counted as live traffic at a stop', () => {
+  const planner = createPlanner({ rotation: ['airport'] });
+  const at = TOUR_AIRPORTS[0];
+  const near = { lat: at.lat + 0.05, lon: at.lon, altitudeM: 3000, onGround: false, squawk: '1200' };
+  const sim = { ...near, icao24: 'sim770', callsign: 'SIM7700', simulated: true };
+  const real = { ...near, icao24: 'abc123', callsign: 'QFA1' };
+  const stop = planner.next({ flights: [sim, real], quakes: [], vessels: [], satellites: [] }, t0);
+  assert.equal(stop.kind, 'airport');
+  assert.match(stop.line, /\b1 aircraft airborne/, 'the real one only: ' + stop.line);
 });

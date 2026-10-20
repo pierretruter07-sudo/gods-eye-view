@@ -150,3 +150,12 @@ test('a moving aircraft is warmed where it will be on arrival, not where it was 
   assert.deepEqual(leadPosition(at, null, 240, 15), at);
   assert.deepEqual(leadPosition(at, 90, 240, 0), at);
 });
+
+test('nearby stops glide straight across instead of zooming out to the planet', () => {
+  const brisbane = { lat: -27.38, lon: 153.12, heightM: 3000 };
+  const amberley = { lat: -27.64, lon: 152.71, heightM: 0, rangeM: 4500, pitchDeg: -32 };
+  const near = planHop(brisbane, amberley);
+  assert.equal(near.via, null, 'Brisbane to Amberley (45 km) flies direct');
+  const far = planHop(brisbane, { lat: -33.95, lon: 151.18, heightM: 0, rangeM: 4500, pitchDeg: -32 });
+  assert.ok(far.via, 'Brisbane to Sydney (750 km) still shows the planet');
+});

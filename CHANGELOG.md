@@ -37,6 +37,21 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Stopping the Director always hands the camera back.** Pressing Stop at
+  the wrong moment (during the airport fade-out) or a Director error could
+  leave the camera flying and orbiting with Esc and the mouse no longer
+  stopping it. Every step now checks for a stop, and stop and error share
+  one clean-up. A restart plans a fresh stop instead of an old queued one.
+- **"FOCUS", not "LOCKED".** The asset header reads "FOCUS · AIRCRAFT · …"
+  (live mode is non-kinetic).
+- **Simulated aircraft are not counted as live traffic** in airport, base
+  and city narration.
+- **The right flight source is credited.** When airplanes.live or adsb.fi
+  answers the regional fallback, it is credited by name (their terms
+  differ from adsb.lol's).
+- **Pacing.** Space is about one stop in five (it had drifted to nearly one
+  in three), and stops closer than 300 km are flown to directly instead of
+  zooming out to the whole planet.
 - **The next stop's Google tiles now load for the view you actually get.**
   The Director already queued the next stop and preloaded its tiles, but
   two later changes made the preload miss: planet hops arrive facing north

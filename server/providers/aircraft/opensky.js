@@ -313,6 +313,12 @@ export async function fetchRegionalPayload(lat, lon, signal) {
         Array.isArray(payload.aircraft)
       )
         payload.ac = payload.aircraft;
+      // Which source answered, so the credit (and its licence) is right.
+      if (payload && typeof payload === 'object')
+        Object.defineProperty(payload, 'source', {
+          value: source.id,
+          enumerable: false,
+        });
       return payload;
     } catch (error) {
       if (signal?.aborted) throw error;
@@ -364,6 +370,7 @@ async function fetchAdsbLolPointFallback(req) {
           body: JSON.stringify(normalized),
           cachedAt: Date.now(),
           count: normalized.states.length,
+          source: payload?.source || 'adsb.lol',
         };
         _adsbLolPointCache.delete(cacheKey);
         _adsbLolPointCache.set(cacheKey, record);
@@ -401,7 +408,7 @@ async function serveAdsbLolPointFallback(req, res, requestedMode, reason) {
       usedMode: 'adsblol-regional',
       reason,
     }),
-    'X-Flight-Source': 'adsb.lol',
+    'X-Flight-Source': fallback.source || 'adsb.lol',
     'X-Flight-Coverage': `${ADSBLOL_POINT_RADIUS_NM}nm regional fallback`,
     'X-Flight-Count': String(fallback.count),
   });

@@ -78,7 +78,7 @@ function routeSvg(rt) {
 }
 
 export function hudHeader(h, headline = '') {
-  return `<p class="gev-hud__kicker">LOCKED · ${esc(KIND_LABEL[h.kind] || h.kind).toUpperCase()} · ${esc(h.source)}</p>
+  return `<p class="gev-hud__kicker">FOCUS · ${esc(KIND_LABEL[h.kind] || h.kind).toUpperCase()} · ${esc(h.source)}</p>
     <h2 class="gev-hud__title">${esc(h.title)}</h2>
     <p class="gev-hud__status">${esc([h.subtitle, h.status].filter(Boolean).join(' · '))}</p>
     ${headline ? `<p class="gev-hud__headline">${esc(headline)}</p>` : ''}`;
