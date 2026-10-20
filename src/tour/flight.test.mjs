@@ -52,3 +52,30 @@ test('normal stops are framed 65% closer than before', async () => {
   assert.equal(STOP_CAMERA.vessel.rangeM, 3_200); // was 9,000 m
   assert.equal(STOP_CAMERA.military.rangeM, 15_700); // was 45,000 m
 });
+
+test('the hop is one continuous move: it starts and ends exactly on the two framings and zooms evenly', async () => {
+  const { hopRig } = await import('./flight.js');
+  const { TOUR_HOP } = await import('./config.js');
+  const from = { lat: -27.6, lon: 152.7, heightM: 30, rangeM: 4_200, pitchDeg: -42, headingDeg: 350 };
+  const to = { lat: 51.5, lon: -0.1, heightM: 11_000, rangeM: 24_500, pitchDeg: -42, headingDeg: 0 };
+  const a = hopRig(from, to, 0);
+  assert.ok(Math.abs(a.rangeM - from.rangeM) < 1e-6 && Math.abs(a.lat - from.lat) < 1e-9);
+  assert.equal(a.pitchDeg, -42);
+  const z = hopRig(from, to, 1);
+  assert.ok(Math.abs(z.rangeM - to.rangeM) < 1e-6 && Math.abs(z.lon - to.lon) < 1e-6);
+  assert.ok(Math.abs(z.heightM - to.heightM) < 1e-6);
+  const total = TOUR_HOP.outS + TOUR_HOP.holdS + TOUR_HOP.inS;
+  const mid = hopRig(from, to, (TOUR_HOP.outS + TOUR_HOP.holdS / 2) / total);
+  assert.equal(mid.rangeM, TOUR_HOP.rangeM, 'the whole planet at the middle');
+  assert.equal(mid.pitchDeg, -90);
+  // No jumps: small steps in time are small steps on screen.
+  let prev = a;
+  for (let i = 1; i <= 400; i += 1) {
+    const r = hopRig(from, to, i / 400);
+    assert.ok(Math.abs(Math.log(r.rangeM / prev.rangeM)) < 0.12, `range step at ${i}`);
+    assert.ok(Math.abs(r.pitchDeg - prev.pitchDeg) < 1.5, `pitch step at ${i}`);
+    const dh = Math.abs(((r.headingDeg - prev.headingDeg + 540) % 360) - 180);
+    assert.ok(dh < 1.5, `heading step at ${i}`);
+    prev = r;
+  }
+});

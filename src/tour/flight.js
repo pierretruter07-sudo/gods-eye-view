@@ -86,3 +86,83 @@ export function planHop(from, to, hop = TOUR_HOP, timing = TOUR_TIMING) {
     inS: hop.inS,
   };
 }
+
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
+const wrap180 = (d) => ((((d + 180) % 360) + 360) % 360) - 180;
+/** Smooth start and finish (smootherstep). */
+export const ease = (x) => {
+  const t = clamp01(x);
+  return t * t * t * (t * (t * 6 - 15) + 10);
+};
+
+/** A point on the great circle from a to b, fraction f (degrees). */
+export function slerpLatLon(a, b, f) {
+  const toV = (p) => [
+    Math.cos(p.lat * RAD) * Math.cos(p.lon * RAD),
+    Math.cos(p.lat * RAD) * Math.sin(p.lon * RAD),
+    Math.sin(p.lat * RAD),
+  ];
+  const va = toV(a);
+  const vb = toV(b);
+  const dot = Math.min(
+    1,
+    Math.max(-1, va[0] * vb[0] + va[1] * vb[1] + va[2] * vb[2]),
+  );
+  const w = Math.acos(dot);
+  if (w < 1e-9) return { lat: a.lat, lon: a.lon };
+  const sa = Math.sin((1 - f) * w) / Math.sin(w);
+  const sb = Math.sin(f * w) / Math.sin(w);
+  const v = va.map((x, i) => sa * x + sb * vb[i]);
+  return {
+    lat: Math.atan2(v[2], Math.hypot(v[0], v[1])) / RAD,
+    lon: Math.atan2(v[1], v[0]) / RAD,
+  };
+}
+
+/**
+ * The camera rig part-way through a planet hop, u from 0 to 1: the look-at
+ * point glides along the great circle the whole time while the range
+ * climbs to the planet view (log scale, so the zoom speed looks even),
+ * holds there through the middle, and comes back down to the next subject.
+ * @param {{lat, lon, heightM, rangeM, pitchDeg, headingDeg}} from
+ * @param {{lat, lon, heightM, rangeM, pitchDeg, headingDeg}} to
+ */
+export function hopRig(from, to, u, hop = TOUR_HOP) {
+  const total = hop.outS + hop.holdS + hop.inS;
+  const outEnd = hop.outS / total;
+  const inStart = (hop.outS + hop.holdS) / total;
+  const where = slerpLatLon(from, to, ease(u));
+  const lerp = (a, b, f) => a + (b - a) * f;
+  const logLerp = (a, b, f) => Math.exp(lerp(Math.log(a), Math.log(b), f));
+  let rangeM;
+  let pitchDeg;
+  let heightM;
+  let headingDeg;
+  if (u <= outEnd) {
+    const f = ease(u / outEnd);
+    rangeM = logLerp(from.rangeM, hop.rangeM, f);
+    pitchDeg = lerp(from.pitchDeg, -90, f);
+    heightM = lerp(from.heightM || 0, 0, f);
+    headingDeg =
+      (from.headingDeg || 0) + wrap180(0 - (from.headingDeg || 0)) * f;
+  } else if (u < inStart) {
+    rangeM = hop.rangeM;
+    pitchDeg = -90;
+    heightM = 0;
+    headingDeg = 0;
+  } else {
+    const f = ease((u - inStart) / (1 - inStart));
+    rangeM = logLerp(hop.rangeM, to.rangeM, f);
+    pitchDeg = lerp(-90, to.pitchDeg, f);
+    heightM = lerp(0, to.heightM || 0, f);
+    headingDeg = wrap180(to.headingDeg || 0) * f;
+  }
+  return {
+    lat: where.lat,
+    lon: where.lon,
+    heightM,
+    rangeM,
+    pitchDeg,
+    headingDeg,
+  };
+}

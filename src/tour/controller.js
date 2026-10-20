@@ -19,7 +19,7 @@ import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
 import { simulatedAircraft, simulatedQuake } from './simulate.js';
 import { createTileWarmer } from './tileWarmer.js';
-import { flightSeconds, planHop, spinsGlobe } from './flight.js';
+import { flightSeconds, hopRig, planHop, spinsGlobe } from './flight.js';
 import { sensorFor } from './sensors.js';
 import { createSensorLook } from './sensorLook.js';
 import { createSpaceOverlay } from './spaceOverlay.js';
@@ -276,9 +276,11 @@ export function createTourController({
   }
 
   /**
-   * Normal stops: out to the whole planet, a pause with the globe turning,
-   * then in to the subject (TOUR_HOP, about 10 s). The next stop's tiles
-   * keep loading on the way out; the last leg preloads them as usual.
+   * Normal stops: one continuous move out until the whole planet is in
+   * view, a short hold, and back in to the next subject (TOUR_HOP, about
+   * 10 s). Our own animation rather than Cesium's flyTo, whose long climbs
+   * sat low and then shot up (it looked like a snap). The next stop's
+   * tiles load all the way, through the warmer's preload camera.
    */
   async function hopTo(next, signal) {
     const cam = viewer.camera.positionCartographic;
@@ -290,20 +292,55 @@ export function createTourController({
       },
       next.view,
     );
-    if (plan.via) {
-      const out = flyTo(plan.via, signal, { durationS: plan.outS });
-      // flyTo aimed Cesium's preload at the planet view; keep it on the
-      // stop we are heading for.
-      warmer.warm(next.view, stopLabel(next));
-      await out;
-      if (plan.holdS > 0) {
-        startOrbit(plan.via);
-        await sleep(plan.holdS * 1000, signal);
-        stopOrbit();
-      }
-      warmer.stop();
+    if (!plan.via || !lastView) {
+      await flyTo(next.view, signal, { durationS: plan.inS ?? undefined });
+      return;
     }
-    await flyTo(next.view, signal, { durationS: plan.inS });
+    const from = {
+      ...lastView,
+      headingDeg: Cesium.Math.toDegrees(viewer.camera.heading),
+    };
+    const to = { ...next.view, headingDeg: 0 };
+    const totalMs = (plan.outS + plan.holdS + plan.inS) * 1000;
+    stopOrbit();
+    warmer.warm(next.view, stopLabel(next));
+    holdContinuousRender(RENDER_HOLD);
+    try {
+      await new Promise((resolve, reject) => {
+        const started = performance.now();
+        let remove = null;
+        const onAbort = () => {
+          remove?.();
+          reject(signal.reason);
+        };
+        signal.addEventListener('abort', onAbort, { once: true });
+        remove = viewer.scene.preRender.addEventListener(() => {
+          const u = Math.min(1, (performance.now() - started) / totalMs);
+          const r = hopRig(from, to, u);
+          viewer.camera.lookAt(
+            Cesium.Cartesian3.fromDegrees(r.lon, r.lat, r.heightM),
+            new Cesium.HeadingPitchRange(
+              Cesium.Math.toRadians(r.headingDeg),
+              Cesium.Math.toRadians(r.pitchDeg),
+              r.rangeM,
+            ),
+          );
+          if (u >= 1) {
+            remove();
+            signal.removeEventListener('abort', onAbort);
+            resolve();
+          }
+        });
+      });
+    } finally {
+      releaseContinuousRender(RENDER_HOLD);
+      warmer.stop();
+      try {
+        viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+      } catch {
+        /* viewer torn down */
+      }
+    }
   }
 
   function startOrbit({
@@ -381,6 +418,8 @@ export function createTourController({
   // Look-ahead: the next stop is chosen on arrival at this one and its
   // aircraft start loading then, so they are on the globe when we get there.
   let runSignal = null;
+  // The view of the stop the camera is at (where the next hop starts).
+  let lastView = null;
   const queue = createStopQueue({
     planner,
     liveData: () => liveData(),
@@ -698,6 +737,7 @@ export function createTourController({
       if (next.descent) await flyTo(next.view, signal);
       else await hopTo(next, signal);
       startOrbit(next.view);
+      lastView = next.view;
       onTravel?.('arrive', next.view);
       sensorLook.set(sensorFor(next, Date.now()));
       space.show(next);
@@ -785,6 +825,7 @@ export function createTourController({
     controller.abort(new DOMException(reason, 'AbortError'));
     warmer.stop();
     warmer.holdDetail(false);
+    lastView = null; // the viewer moves the camera from here on
     sensorLook.set(null);
     space.clear();
     descentAhead = null;
