@@ -2,6 +2,9 @@ import * as Cesium from 'cesium';
 import { gstime } from 'satellite.js';
 import { ISS_NORAD, POSITION_UPDATE_MS, RING_ROTATION_MS } from './policy.js';
 
+/** Orbit rings are re-baked from fresh elements this often (ms). */
+const ORBIT_REBAKE_MS = 10 * 60_000;
+
 export function createRendering({
   state: layerState,
   services,
@@ -69,6 +72,8 @@ export function createRendering({
 
     layerState._orbitPaths.set(noradId, {
       primitive,
+      color: pathColor,
+      bakedAt: bakeDate.getTime(),
       // Same Date object as computeOrbitPath's internal fixedGmst → identical
       // GMST value (gstime is pure), so delta starts at exactly 0 and the
       // initial identity modelMatrix is correct until the first ring tick.
@@ -106,6 +111,15 @@ export function createRendering({
 
   function _updateOrbitPathRotations(nowDate) {
     if (layerState._orbitPaths.size === 0) return;
+    // A ring baked long ago drifts off the live orbit (the plane precesses
+    // a few tenths of a degree per orbit), so after a while the satellite
+    // sat beside its own ring as a second, offset line (Pierre, 20 Oct).
+    // Re-bake old rings; the new one is built in this same frame.
+    for (const [noradId, path] of [...layerState._orbitPaths]) {
+      if (nowDate.getTime() - (path.bakedAt || 0) < ORBIT_REBAKE_MS) continue;
+      _hideOrbitPath(noradId);
+      _showOrbitPath(noradId, path.color);
+    }
 
     for (const path of layerState._orbitPaths.values()) {
       if (!path.primitive) continue;

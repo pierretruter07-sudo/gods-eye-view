@@ -156,6 +156,65 @@ export function createTrails({
   let focusKey = null;
   let primitives = [];
   let drawn = 0;
+  // The focused aircraft's tail is drawn per frame and ends exactly at its
+  // icon (Pierre, 20 Oct: the tail stopped short of the aircraft and broke
+  // off to one side, because the icon is drawn moving smoothly between
+  // feed reports while the stored tail only had the reports).
+  const headings = new Map();
+  let focusFixes = [];
+  const scratchLive = new Cesium.Cartesian3();
+  const scratchRel = new Cesium.Cartesian3();
+  const scratchFwd = new Cesium.Cartesian3();
+  function focusDisplayPosition() {
+    const icao = focusKey?.startsWith('aircraft:') ? focusKey.slice(9) : null;
+    if (!icao) return null;
+    for (const id of ['flights', 'military']) {
+      try {
+        const p = dataManager.layers
+          .get(id)
+          ?.module?.getDisplayPosition?.(icao);
+        if (p) return Cesium.Cartesian3.clone(p, scratchLive);
+      } catch {
+        /* layer not ready */
+      }
+    }
+    return null;
+  }
+  /** Stored fixes behind the icon (none ahead of it), then the icon. */
+  function focusTail() {
+    if (!on || focusFixes.length < 1) return [];
+    const live = focusDisplayPosition();
+    if (!live) return [];
+    const h = (headings.get(focusKey) ?? NaN) * RAD;
+    let behind = focusFixes;
+    if (Number.isFinite(h)) {
+      const frame = Cesium.Transforms.eastNorthUpToFixedFrame(live);
+      scratchFwd.x = Math.sin(h);
+      scratchFwd.y = Math.cos(h);
+      scratchFwd.z = 0;
+      Cesium.Matrix4.multiplyByPointAsVector(frame, scratchFwd, scratchFwd);
+      behind = focusFixes.filter(
+        (p) =>
+          Cesium.Cartesian3.dot(
+            Cesium.Cartesian3.subtract(p, live, scratchRel),
+            scratchFwd,
+          ) < 0,
+      );
+    }
+    return behind.length ? [...behind, Cesium.Cartesian3.clone(live)] : [];
+  }
+  const focusEntity = viewer.entities.add({
+    polyline: {
+      positions: new Cesium.CallbackProperty(focusTail, false),
+      width: 7,
+      arcType: Cesium.ArcType.NONE,
+      material: new Cesium.PolylineGlowMaterialProperty({
+        glowPower: 0.22,
+        taperPower: 1,
+        color: new Cesium.Color(...COLORS.aircraft, 0.85),
+      }),
+    },
+  });
 
   function records(source) {
     try {
@@ -177,6 +236,7 @@ export function createTrails({
         // Taxiing aircraft would drape under the 3D city; skip them.
         if (source.kind === 'aircraft' && r.onGround) continue;
         const key = `${source.kind}:${id}`;
+        if (Number.isFinite(r.heading)) headings.set(key, r.heading);
         store.observe(key, source.kind, {
           t,
           lat: r.lat,
@@ -187,6 +247,7 @@ export function createTrails({
       }
     }
     store.prune(t);
+    if (headings.size > rules.maxAssets) headings.clear();
     return candidates;
   }
 
@@ -209,8 +270,17 @@ export function createTrails({
     });
     const now = Date.now();
     const byKind = { aircraft: [], vessel: [] };
+    focusFixes = [];
+    const liveFocus = focusDisplayPosition() !== null;
     for (const key of keys) {
       const pts = store.points(key, now);
+      // The focused aircraft's tail is the per-frame one above.
+      if (key === focusKey && liveFocus) {
+        focusFixes = pts.map((p) =>
+          Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.altM),
+        );
+        continue;
+      }
       if (pts.length < 2) continue;
       const kind = store.kind(key) === 'vessel' ? 'vessel' : 'aircraft';
       const [r, g, b] = COLORS[kind];
@@ -274,6 +344,8 @@ export function createTrails({
       const icao = record?.icao24;
       const mmsi = record?.mmsi;
       focusKey = icao ? `aircraft:${icao}` : mmsi ? `vessel:${mmsi}` : null;
+      focusFixes = [];
+      if (on) setTimeout(tick, 0);
     },
     setEnabled(value) {
       on = Boolean(value);
@@ -286,6 +358,7 @@ export function createTrails({
     destroy() {
       clearInterval(timer);
       clear();
+      viewer.entities.remove(focusEntity);
     },
   };
 }

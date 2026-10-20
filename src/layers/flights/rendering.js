@@ -97,7 +97,9 @@ export function createRendering({
   function _normalBillboardScaleByDistance() {
     // Preserve the established close-range 3× scale. Any smaller owner-visible
     // default belongs in a separate evidence-backed proposal.
-    return new Cesium.NearFarScalar(1000, 3.0, 8000000, 0.5);
+    // Half size at planet range (owner request, 20 Oct: icons on the
+    // zoomed-out globe were too large); close range is unchanged.
+    return new Cesium.NearFarScalar(1000, 3.0, 8000000, 0.25);
   }
 
   function _cockpitBillboardScaleByDistance() {

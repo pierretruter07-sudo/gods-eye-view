@@ -20,6 +20,14 @@ import {
   CARD_MIN_SEP_PX,
 } from './policy.js';
 
+/** Full size up to regional range, half size at planet range. */
+const VESSEL_SCALE_BY_DISTANCE = new Cesium.NearFarScalar(
+  2_000_000,
+  1,
+  12_000_000,
+  0.5,
+);
+
 export function createRendering({
   vesselState,
   services,
@@ -121,6 +129,8 @@ export function createRendering({
       width: 32,
       height: 32,
       scale: shipScale(record),
+      // Half size on the zoomed-out globe (owner request, 20 Oct).
+      scaleByDistance: VESSEL_SCALE_BY_DISTANCE,
       // Screen-projected rotation lands on the next visibility/rotation pass.
       rotation: 0,
       alignedAxis: Cesium.Cartesian3.ZERO,

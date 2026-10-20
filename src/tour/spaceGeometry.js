@@ -124,3 +124,29 @@ export function distanceKm(a, b) {
     Math.sin(p1) * Math.sin(p2) + Math.cos(p1) * Math.cos(p2) * Math.cos(dl);
   return Math.acos(Math.max(-1, Math.min(1, c))) * EARTH_RADIUS_KM;
 }
+
+/**
+ * Close an orbit ring exactly. One propagated period never ends where it
+ * began (the orbit plane drifts and drag shortens the period), so the ring
+ * showed a step: a break in the line (Pierre, 20 Oct). The mismatch is
+ * spread evenly along the ring so the last point lands on the first.
+ * @param {Array<{lat: number, lon: number, altKm?: number}>} points
+ */
+export function closeRing(points) {
+  const n = points.length - 1;
+  if (n < 2) return points;
+  const first = points[0];
+  const last = points[n];
+  const dLat = last.lat - first.lat;
+  const dLon = ((((last.lon - first.lon + 180) % 360) + 360) % 360) - 180;
+  const dAlt = (last.altKm ?? 0) - (first.altKm ?? 0);
+  return points.map((p, i) => {
+    const f = i / n;
+    return {
+      ...p,
+      lat: p.lat - dLat * f,
+      lon: wrapLon(p.lon - dLon * f),
+      ...(p.altKm != null ? { altKm: p.altKm - dAlt * f } : {}),
+    };
+  });
+}

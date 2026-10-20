@@ -917,12 +917,12 @@ test('real per-class models remain origin-centred for visual anchoring', () => {
   }
 });
 
-test('civilian and military globe-view aircraft retain the established 3.0 near scale and 0.5 floor', () => {
+test('civilian and military globe-view aircraft keep the 3.0 near scale with the owner-requested 0.25 planet floor', () => {
   for (const layer of LAYERS) {
     assert.deepEqual(
       normalBillboardScaleByDistance(layer.source),
-      [1000, 3, 8000000, 0.5],
-      `${layer.name}: owner-established close sizing and the orbital floor must remain readable`,
+      [1000, 3, 8000000, 0.25],
+      `${layer.name}: owner-established close sizing; half-size icons at planet range (owner request, 20 Oct)`,
     );
   }
 });

@@ -186,7 +186,9 @@ export function pickNightRegion(
     if (h < rules.nightFromH && h > rules.nightToH) continue;
     // Hours from the target, wrapping past midnight.
     const d = Math.abs(h - rules.nightTargetH);
-    const score = Math.min(d, 24 - d);
+    // Live street video beats a still: such a city wins when it is dark too.
+    const score =
+      Math.min(d, 24 - d) - (region.liveVideo ? rules.videoBonusH || 0 : 0);
     if (score < bestScore) {
       best = region;
       bestScore = score;

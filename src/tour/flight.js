@@ -166,3 +166,29 @@ export function hopRig(from, to, u, hop = TOUR_HOP) {
     headingDeg,
   };
 }
+
+/**
+ * One frame of easing a point toward a moving target (exponential, frame-
+ * rate independent): after `tauS` seconds about 63% of the gap is closed.
+ * Points are {x, y, z} (Earth-fixed metres); the result is written to `out`.
+ * A gap larger than `snapM` (a different subject, a feed jump) is taken at
+ * once rather than drifted across.
+ */
+export function smoothToward(
+  current,
+  target,
+  dtS,
+  { tauS = 0.6, snapM = 50_000 } = {},
+  out = { x: 0, y: 0, z: 0 },
+) {
+  const dx = target.x - current.x;
+  const dy = target.y - current.y;
+  const dz = target.z - current.z;
+  const gap = Math.hypot(dx, dy, dz);
+  const f =
+    gap > snapM || !(tauS > 0) ? 1 : 1 - Math.exp(-Math.max(0, dtS) / tauS);
+  out.x = current.x + dx * f;
+  out.y = current.y + dy * f;
+  out.z = current.z + dz * f;
+  return out;
+}

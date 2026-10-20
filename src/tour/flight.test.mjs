@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TOUR_TIMING } from './config.js';
-import { flightSeconds, spinsGlobe } from './flight.js';
+import { flightSeconds, smoothToward, spinsGlobe } from './flight.js';
 import { STOP_CAMERA } from './config.js';
 
 test('longer camera jumps take longer, up to the longest flight time', () => {
@@ -78,4 +78,42 @@ test('the hop is one continuous move: it starts and ends exactly on the two fram
     assert.ok(dh < 1.5, `heading step at ${i}`);
     prev = r;
   }
+});
+
+test('the camera eases onto a moving subject without lag building up, and jumps to a new one', () => {
+  const at = { x: 0, y: 0, z: 0 };
+  // A subject moving 250 m/s, followed at 60 frames a second for 20 s.
+  let aim = { ...at };
+  let subject = { ...at };
+  for (let i = 0; i < 1200; i += 1) {
+    subject = { x: subject.x + 250 / 60, y: 0, z: 0 };
+    aim = smoothToward(aim, subject, 1 / 60, { tauS: TOUR_TIMING.followTauS });
+  }
+  const lagM = subject.x - aim.x;
+  assert.ok(lagM > 0 && lagM < 250 * TOUR_TIMING.followTauS * 1.1, `lag ${lagM} m`);
+  // Frame rate does not change where it ends up.
+  const a = smoothToward(at, { x: 1000, y: 0, z: 0 }, 1, { tauS: 0.6 });
+  let b = { ...at };
+  for (let i = 0; i < 4; i += 1) b = smoothToward(b, { x: 1000, y: 0, z: 0 }, 0.25, { tauS: 0.6 });
+  assert.ok(Math.abs(a.x - b.x) < 1e-6);
+  // Far away (another subject): taken at once.
+  assert.deepEqual(smoothToward(at, { x: 90_000, y: 0, z: 0 }, 1 / 60), { x: 90_000, y: 0, z: 0 });
+});
+
+test('satellite stops keep the whole Earth in frame below a high satellite', () => {
+  const R = 6371;
+  // Angle of the Earth's centre from the view axis and its angular radius,
+  // for a camera rangeKm behind the satellite at the stop's pitch.
+  const earthInView = (altKm, { rangeM, pitchDeg }) => {
+    const p = (pitchDeg * Math.PI) / 180;
+    const range = rangeM / 1000;
+    const v = [Math.cos(p), Math.sin(p)];
+    const toEarth = [range * v[0], -(R + altKm) + range * v[1]];
+    const dist = Math.hypot(...toEarth);
+    const off = Math.acos((toEarth[0] * v[0] + toEarth[1] * v[1]) / dist);
+    return ((off + Math.asin(R / dist)) * 180) / Math.PI;
+  };
+  // Half the vertical field of view on a wide (2:1) screen is about 16 deg.
+  assert.ok(earthInView(35_786, STOP_CAMERA.geoSatellite) < 16);
+  assert.ok(earthInView(20_200, STOP_CAMERA.meoSatellite) < 16.5);
 });

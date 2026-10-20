@@ -219,7 +219,11 @@ test('the descent ends on the night side: a city at night, then one of its stree
   const now = Date.parse('2026-10-19T02:00:00Z');
   const day = pickDescentRegion(now);
   assert.equal(day.id, 'sydney');
-  const night = pickNightRegion(now, { exclude: day });
+  // (Stills-only cities here; live video is preferred, see the next test.)
+  const night = pickNightRegion(now, {
+    exclude: day,
+    regions: DESCENT_REGIONS.filter((r) => !r.liveVideo),
+  });
   assert.equal(night.id, 'toronto');
   assert.ok(solarHour(night.lon, now) >= 19 || solarHour(night.lon, now) <= 4.5, 'dark there');
   const torontoCam = { ...camera('on-1', 43.65, -79.38), provider: 'City of Toronto', feedType: 'image' };
@@ -253,4 +257,16 @@ test('the introduction script covers every descent level and speaks only live va
   assert.equal(clockWords(19.4), '7:24 pm');
   assert.equal(clockWords(0.5), '12:30 am');
   assert.equal(introLine({ descent: 'unknown' }), null);
+});
+
+test('the night city prefers a city with live street video when it is dark there', () => {
+  // 02:00 UTC: evening in Des Moines (live Iowa DOT video) and in Toronto.
+  const now = Date.parse('2026-10-19T02:00:00Z');
+  const day = pickDescentRegion(now);
+  const night = pickNightRegion(now, { exclude: day });
+  assert.equal(night.id, 'desmoines');
+  assert.equal(night.liveVideo, true);
+  // In daylight there it is never chosen, video or not.
+  const noon = Date.parse('2026-10-19T18:00:00Z');
+  assert.notEqual(pickNightRegion(noon)?.id, 'desmoines');
 });
