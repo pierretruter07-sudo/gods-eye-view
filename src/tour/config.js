@@ -226,7 +226,8 @@ export const DESCENT_CAMERA = Object.freeze({
   ground: Object.freeze({ rangeM: 900, pitchDeg: -35 }),
   street: Object.freeze({ rangeM: 380, pitchDeg: -18, orbitDegPerS: 6 }),
   // The night side: high enough for the day/night shell and city lights.
-  nightCity: Object.freeze({ rangeM: 2_400_000, pitchDeg: -70 }),
+  // The whole planet, centred on the night city (Pierre, 20 Oct).
+  nightCity: Object.freeze({ rangeM: 18_000_000, pitchDeg: -90 }),
 });
 
 export const DESCENT_DWELL_S = Object.freeze({

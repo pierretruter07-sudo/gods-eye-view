@@ -6,6 +6,10 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **A spoken introduction.** Through the opening descent the Director now
+  explains each level: what it shows, where the data comes from, what is
+  live and what is simulated, and what the platform does with it. The night
+  city is now shown with the whole planet in view.
 - **The whole planet between stops.** After the opening descent, the
   Director zooms out until the entire Earth is in view, pauses with the
   globe turning, then zooms in to the next subject (about 10 s). Asset

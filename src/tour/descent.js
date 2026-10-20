@@ -17,6 +17,7 @@ import {
   STOP_CAMERA,
 } from './config.js';
 import { distanceKm } from './events.js';
+import { introLine } from './introScript.js';
 import {
   cruiseLine,
   geoBeltLine,
@@ -388,13 +389,15 @@ export function createDescentPlanner({
         : pool.filter(isLight).filter(airborneBelow(rules.lightMaxM));
       const a = nearest(candidates, region.lat, region.lon);
       if (!a) return null;
-      return aircraftStop(
+      const low = aircraftStop(
         'low',
         a,
         lowLevelLine(a, { helicopter }),
         DESCENT_CAMERA.low,
         a.altitudeM,
       );
+      low.helicopter = helicopter;
+      return low;
     },
 
     ship(data) {
@@ -440,6 +443,7 @@ export function createDescentPlanner({
       );
       // Aim at the real ground height there (sampled on the way in).
       stopped.view.sampleGround = true;
+      stopped.vehicle = surfaceVehicle(a);
       return stopped;
     },
 
@@ -524,7 +528,15 @@ export function createDescentPlanner({
         const result = builders[DESCENT_STEPS[index]](data);
         if (result === DESCENT_WAIT) return DESCENT_WAIT;
         outcomes.set(stepKey(index), result ? 'shown' : 'skipped');
-        if (result) result.stepKey = stepKey(index);
+        if (result) {
+          result.stepKey = stepKey(index);
+          // The introduction script: what this level shows and how.
+          const scripted = introLine(result, {
+            hour: nightRegion ? solarHour(nightRegion.lon, now) : null,
+            city: nightRegion?.label,
+          });
+          if (scripted) result.line = scripted;
+        }
         index += 1;
         if (result) return result;
       }

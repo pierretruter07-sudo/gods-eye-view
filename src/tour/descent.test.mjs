@@ -111,18 +111,18 @@ test('the descent steps down from GEO to street level, then ends', () => {
   const [geo, sat, cruise, low, ship, ground, street] = stops;
   assert.equal(ship.vessel.mmsi, '503000001', 'nearest ship under way, not the moored one');
   assert.equal(ship.kind, 'vessel');
-  assert.match(ship.line, /^Passenger Harbour Ferry, making 11 knots\./);
+  assert.match(ship.line, /^Down to sea level\. Passenger Harbour Ferry, making 11 knots\. Ships report/);
   assert.equal(geo.count, 3);
-  assert.match(geo.line, /3 satellites tracked/);
+  assert.match(geo.line, /^Welcome to God's Eye View\..* where 3 satellites hold their place/);
   assert.equal(sat.satellite.isIss, true);
   assert.equal(cruise.aircraft.icao24, 'qfa1', 'nearest in-band airliner');
-  assert.match(cruise.line, /^Flight QFA1 at 38,100 feet/);
+  assert.match(cruise.line, /^Another level down, into the airspace: flight QFA1 at 38,100 feet.*marked feed.*marked simulated\.$/);
   assert.equal(low.aircraft.icao24, 'heli1');
-  assert.match(low.line, /^A helicopter at 1,500 feet/);
+  assert.match(low.line, /^Lower still\. A helicopter at 1,500 feet/);
   assert.equal(ground.aircraft.icao24, 'veh1');
-  assert.match(ground.line, /^An airport emergency vehicle/);
+  assert.match(ground.line, /^Now on the ground\. An airport emergency vehicle/);
   assert.equal(street.camera.id, 'c1');
-  assert.match(street.line, /^Street level\. Camera c1, a live Transport for NSW camera\./);
+  assert.match(street.line, /^And finally, street level: Camera c1, a live Transport for NSW camera, refreshed every ten seconds\./);
   assert.ok(street.view.orbitDegPerS > 0, 'street level turns faster');
   // One street camera ends the descent: one asset per level.
   assert.equal(planner.next(data), null);
@@ -142,7 +142,7 @@ test('fallbacks: a light aircraft for the helicopter; never an aircraft for the 
     stops.push(stop);
   const by = Object.fromEntries(stops.map((s) => [s.descent, s]));
   assert.equal(by.low.aircraft.icao24, 'vh1');
-  assert.match(by.low.line, /^A light aircraft at 3,000 feet/);
+  assert.match(by.low.line, /^Lower still\. A light aircraft at 3,000 feet/);
   // A taxiing aircraft is not a ground vehicle: with no wheeled vehicle
   // broadcasting, the step is skipped.
   assert.equal(by.ground, undefined);
@@ -209,7 +209,7 @@ test('the street step prefers a camera with live video near the centre over a ne
   };
   const street = pick([still, live, farLive]);
   assert.equal(street.camera.id, 'ia-live');
-  assert.match(street.line, /^Street level\. Camera ia-live, live video from Iowa Department of Transportation\./);
+  assert.match(street.line, /^And finally, street level: Camera ia-live, streaming live video from Iowa Department of Transportation\./);
   // Live video too far out (over 25 km): the nearest camera wins.
   assert.equal(pick([still, farLive]).camera.id, 'ia-still');
 });
@@ -231,11 +231,26 @@ test('the descent ends on the night side: a city at night, then one of its stree
   const [city, street] = stops.slice(-2);
   assert.equal(city.kind, 'region');
   assert.ok(city.view.rangeM >= 2_000_000, 'high enough for the city lights');
-  assert.match(city.line, /^The night side\. Toronto after dark/);
+  assert.match(city.line, /^Now the other half of the planet: the night side, where it's around \d+:\d\d pm in Toronto\./);
   assert.equal(street.camera.id, 'on-1');
-  assert.match(street.line, /^Street level at night\. Camera on-1/);
+  assert.match(street.line, /^And down into Toronto at night: Camera on-1, a live City of Toronto camera/);
+  assert.ok(city.view.rangeM >= 15_000_000 && city.view.pitchDeg === -90, 'the whole planet in view');
   assert.equal(DIRECTOR_SENSORS.descentModes.nightCity, 'lights');
   assert.equal(DIRECTOR_SENSORS.descentModes.nightStreet, 'nvg');
   // Daytime everywhere it could be night: no night steps, and none faked.
   assert.equal(pickNightRegion(now, { regions: [day] }), null);
+});
+
+test('the introduction script covers every descent level and speaks only live values', async () => {
+  const { SCRIPTED_STEPS, introLine, clockWords } = await import('./introScript.js');
+  assert.deepEqual(SCRIPTED_STEPS, ['geo', 'iss', 'cruise', 'low', 'ship', 'ground', 'street', 'nightCity', 'nightStreet']);
+  for (const step of DESCENT_STEPS) assert.ok(SCRIPTED_STEPS.includes(step), step);
+  // No numbered steps in the narration.
+  const planner = createDescentPlanner({ region: sydney });
+  const lines = [];
+  for (let s = planner.next(fullData()); s; s = planner.next(fullData())) lines.push(s.line);
+  for (const line of lines) assert.doesNotMatch(line, /\bstep \d|\bstep one\b/i);
+  assert.equal(clockWords(19.4), '7:24 pm');
+  assert.equal(clockWords(0.5), '12:30 am');
+  assert.equal(introLine({ descent: 'unknown' }), null);
 });
