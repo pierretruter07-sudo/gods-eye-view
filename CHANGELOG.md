@@ -21,6 +21,15 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   moved there from the AUDIT view, which now uses it. A test keeps the
   folder free of God's Eye View imports, so it can be copied into its own
   project later.
+- **Smoother Director camera.** Jumps between the street and orbit now
+  take up to 7 s and ease, high-orbit satellite stops orbit the satellite
+  (they used to jump to a ground point on arrival), and moving subjects are
+  re-aimed at their live position just before the flight.
+- **Panels slide.** The asset cards slide in from their own side one after
+  another and slide out when the view closes; the sheets drawer slides out.
+- **Google tiles before arrival, harder.** The Director now keeps orbiting
+  for up to 5 s until the next stop's tiles are in before it leaves (alerts
+  never wait), and tiles are no longer skipped because the camera is moving.
 - **Thermal and night-vision looks.** At military stops the Director
   switches to a white-hot thermal look, and on the night side to night
   vision, tagged "SENSOR · FLIR" or "SENSOR · NVG". Space, wide views and

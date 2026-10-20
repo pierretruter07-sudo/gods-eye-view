@@ -680,6 +680,7 @@
       "src/audit/impact.js",
       "src/tour/queue.js",
       "src/tour/tileWarmer.js",
+      "src/tour/flight.js",
       "src/tour/sensors.js",
       "src/tour/sensorLook.js",
       "src/tour/spaceGeometry.js",
