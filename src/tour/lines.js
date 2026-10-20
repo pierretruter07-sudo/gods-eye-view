@@ -197,6 +197,18 @@ export function groundLine(a, { vehicle }) {
   return `${parts.join(' ')}.`;
 }
 
+export function nightCityLine(region, hour) {
+  const h = Math.floor(hour);
+  const m = Math.floor((hour - h) * 60);
+  const clock = `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`;
+  return `The night side. ${region.label} after dark, around ${clock} local time, its city lights traced from NASA's night-time satellite imagery.`;
+}
+
+export function nightStreetLine(camera) {
+  const name = camera.name || 'A street camera';
+  return `Street level at night. ${name}, ${camera.provider ? `a live ${camera.provider} camera` : 'a live public camera'}. The view switches to night-vision mode.`;
+}
+
 export function streetLine(camera, { first }) {
   const name = camera.name || 'A street camera';
   if (!first) return `${name}.`;
