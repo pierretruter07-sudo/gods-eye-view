@@ -223,6 +223,8 @@ export function createTourController({
     };
   }
 
+  /** Longest hold for an alert's tiles before flying to it. */
+  const ALERT_SETTLE_MAX_MS = 3000;
   /** Seconds a planet hop takes, start to finish. */
   const HOP_S = TOUR_HOP.outS + TOUR_HOP.holdS + TOUR_HOP.inS;
 
@@ -666,7 +668,13 @@ export function createTourController({
       );
       await sleep(step, signal);
       if (profile) airport?.update(profile, airportFlights());
-      if (interruptible && planner.hasFresh(incidentData())) return;
+      // A fresh incident cuts the dwell short, whether it is still waiting
+      // or the queue has already taken it (and is loading its tiles).
+      if (
+        interruptible &&
+        (queue.peek()?.kind === 'event' || planner.hasFresh(incidentData()))
+      )
+        return;
     }
   }
 
@@ -912,6 +920,8 @@ export function createTourController({
       // goes at once.
       await warmer.settle(stopLabel(next), {
         sleep: (ms) => sleep(ms, signal),
+        // An alert is time-critical: a shorter hold for its tiles.
+        ...(next.kind === 'event' ? { maxMs: ALERT_SETTLE_MAX_MS } : {}),
       });
       stagedAircraft = next.staged?.aircraft || [];
       stagedAt = next.staged?.at || Date.now();
