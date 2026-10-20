@@ -168,6 +168,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-AUD-011 | Every item shall say how it affects God’s Eye View (which feeds, services or people, and what would go wrong); every must-fix item in its own words. | T |
 | GEV-AUD-012 | Playing the timeline shall explain each stop in turn: what the wave fixes, which gaps it closes, how readiness moves, and what it makes possible next. | T |
 | GEV-AUD-013 | The AUDIT view shall show ISO/IEC 42001 as a third ring with its own readiness, verdict, must-fix list, impact statements and journey, rolled up with the same rules as the evidence ledger at every timeline stop. | T |
+| GEV-AUD-014 | CrossCheck shall live in its own folder (`crosscheck/`) that imports nothing from God's Eye View, so it can be copied into its own project. Its scoring engine shall be the one used by the AUDIT view, and shall reproduce the God's Eye View baseline (safety 38%, security 62%, AI 24%, 28 must-fix). | T |
 
 ## 11. World visuals (VIS)
 

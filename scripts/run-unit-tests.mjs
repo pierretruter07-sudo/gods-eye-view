@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -34,6 +34,9 @@ export function discoverUnitTestFiles(root = process.cwd()) {
     }
   };
   visit(sourceRoot);
+  // CrossCheck is developed here as a self-contained folder (crosscheck/).
+  const crossCheckRoot = path.join(root, 'crosscheck');
+  if (existsSync(crossCheckRoot)) visit(crossCheckRoot);
   return files.sort();
 }
 

@@ -15,6 +15,12 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   coverage fill was rebuilt every second and vanished while rebuilding; it
   now rebuilds only when the satellite moves, keeping the old fill until the
   new one is ready.
+- **CrossCheck gets its own folder (Phase 1).** The assessment kit
+  (standard catalogues, ratings, ledger, re-audit and plan tools) now lives
+  in `crosscheck/` with portable paths, and CrossCheck's scoring engine
+  moved there from the AUDIT view, which now uses it. A test keeps the
+  folder free of God's Eye View imports, so it can be copied into its own
+  project later.
 - **Thermal and night-vision looks.** At military stops the Director
   switches to a white-hot thermal look, and on the night side to night
   vision, tagged "SENSOR · FLIR" or "SENSOR · NVG". Space, wide views and
