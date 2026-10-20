@@ -99,6 +99,56 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
   actions.setAttribute('aria-label', 'Analyst actions');
   // Analyst sheets: a drawer on the right so the asset stays in view.
   const drawer = el('aside', 'gev-sheet gev-glass');
+  // Panels slide in and out instead of popping (Pierre, 20 Oct).
+  const reduceMotion = () =>
+    globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ===
+    true;
+  const HUD_LEAVE_MS = 240;
+  const DRAWER_LEAVE_MS = 200;
+  let hudLeaveTimer = 0;
+  let drawerLeaveTimer = 0;
+  /** Show the asset view, its cards sliding in from their sides. */
+  function enterHud() {
+    clearTimeout(hudLeaveTimer);
+    view.classList.remove('is-leaving', 'is-entering');
+    view.hidden = false;
+    if (reduceMotion()) return;
+    void view.offsetWidth; // restart the entrance animation
+    view.classList.add('is-entering');
+  }
+  /** Hide the asset view, its cards sliding out first. */
+  function leaveHud() {
+    clearTimeout(hudLeaveTimer);
+    view.classList.remove('is-entering');
+    if (view.hidden || reduceMotion()) {
+      view.hidden = true;
+      view.classList.remove('is-leaving');
+      return;
+    }
+    view.classList.add('is-leaving');
+    hudLeaveTimer = setTimeout(() => {
+      view.hidden = true;
+      view.classList.remove('is-leaving');
+    }, HUD_LEAVE_MS);
+  }
+  function openDrawer() {
+    clearTimeout(drawerLeaveTimer);
+    drawer.classList.remove('is-leaving');
+    drawer.hidden = false;
+  }
+  /** Close the sheets drawer, sliding it out, then clear it. */
+  function closeDrawer(done) {
+    clearTimeout(drawerLeaveTimer);
+    const finish = () => {
+      drawer.hidden = true;
+      drawer.classList.remove('is-leaving');
+      drawer.innerHTML = '';
+      done?.();
+    };
+    if (drawer.hidden || reduceMotion()) return finish();
+    drawer.classList.add('is-leaving');
+    drawerLeaveTimer = setTimeout(finish, DRAWER_LEAVE_MS);
+  }
   drawer.setAttribute('aria-label', 'Analyst sheets');
   drawer.hidden = true;
   bottom.append(brief, actions);
@@ -599,7 +649,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     observe(o);
     syncSheets(o);
     setTriage(false);
-    view.hidden = false;
+    enterHud();
     measureCards();
     document.body.classList.add('gev-intel-open');
     onOpen?.();
@@ -809,7 +859,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     if (!sheetTabs.length) sheetTabs = [{ id: 'overview', label: 'Object' }];
     if (!sheetTabs.some((t) => t.id === id)) sheetTabs.push({ id, label });
     sheetActive = id;
-    drawer.hidden = false;
+    openDrawer();
     document.body.classList.add('gev-sheets-open');
     renderSheets();
     if (!sheetResults.has('overview')) runSheet('overview', selected);
@@ -827,11 +877,13 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     sheetTabs = [];
     sheetActive = null;
     sheetResults.clear();
-    drawer.hidden = true;
-    drawer.innerHTML = '';
-    players.get('large')?.remove();
-    if (document.body.dataset.gevDrawer) document.body.dataset.gevDrawer = '';
-    document.body.classList.remove('gev-sheets-open');
+    closeDrawer(() => {
+      // Reopened meanwhile (the next subject): keep its layout.
+      if (!drawer.hidden) return;
+      players.get('large')?.remove();
+      if (document.body.dataset.gevDrawer) document.body.dataset.gevDrawer = '';
+      document.body.classList.remove('gev-sheets-open');
+    });
   }
   /** A new object is in focus: keep the drawer, re-run what still applies. */
   function syncSheets(o) {
@@ -839,7 +891,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       sheetTabs = parked.tabs;
       sheetActive = parked.active;
       parked = null;
-      drawer.hidden = false;
+      openDrawer();
       document.body.classList.add('gev-sheets-open');
     }
     if (!sheetTabs.length) return;
@@ -905,7 +957,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     stopBrief();
     selected = null;
     clearInterval(followTimer);
-    view.hidden = true;
+    leaveHud();
     document.body.classList.remove('gev-intel-open');
     marker.show = false;
     visual.hide();

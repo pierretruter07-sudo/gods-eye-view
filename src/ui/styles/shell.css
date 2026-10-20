@@ -1472,7 +1472,50 @@ body.gev-intel-open #global-loading-status { display: none !important; }
 }
 .gev-sheet[hidden] { display: none; }
 @keyframes gev-sheet-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .gev-sheet { animation: none; } }
+.gev-sheet.is-leaving { animation: gev-sheet-out 200ms ease-in both; pointer-events: none; }
+@keyframes gev-sheet-out { to { transform: translateX(28px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .gev-sheet, .gev-sheet.is-leaving { animation: none; } }
+
+/* Asset view: cards slide in from their own side, one after another, and
+   slide back out when the view closes (Pierre, 20 Oct). */
+.gev-hud.is-entering .gev-hud__card {
+  animation: gev-card-in-left 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.gev-hud.is-entering .gev-hud__card--tr,
+.gev-hud.is-entering .gev-hud__card--br {
+  animation-name: gev-card-in-right;
+}
+.gev-hud.is-entering .gev-hud__cards .gev-hud__card { animation-name: gev-card-in-left; }
+.gev-hud.is-entering .gev-hud__card--tl { animation-delay: 0ms; }
+.gev-hud.is-entering .gev-hud__card--tr { animation-delay: 70ms; }
+.gev-hud.is-entering .gev-hud__card--bl { animation-delay: 140ms; }
+.gev-hud.is-entering .gev-hud__card--br { animation-delay: 210ms; }
+.gev-hud.is-entering .gev-hud__header { animation: gev-hud-drop 380ms ease-out both; }
+.gev-hud.is-entering .gev-hud__bottom { animation: gev-hud-rise 420ms 160ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.gev-hud.is-leaving .gev-hud__card { animation: gev-card-out-left 220ms ease-in both; }
+.gev-hud.is-leaving .gev-hud__card--tr,
+.gev-hud.is-leaving .gev-hud__card--br { animation-name: gev-card-out-right; }
+.gev-hud.is-leaving .gev-hud__cards .gev-hud__card { animation-name: gev-card-out-left; }
+.gev-hud.is-leaving .gev-hud__header,
+.gev-hud.is-leaving .gev-hud__bottom,
+.gev-hud.is-leaving .gev-hud__leaders { animation: gev-hud-fade-out 200ms ease-in both; }
+.gev-hud.is-leaving { pointer-events: none; }
+@keyframes gev-card-in-left { from { transform: translateX(-36px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes gev-card-in-right { from { transform: translateX(36px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes gev-card-out-left { to { transform: translateX(-36px); opacity: 0; } }
+@keyframes gev-card-out-right { to { transform: translateX(36px); opacity: 0; } }
+@keyframes gev-hud-drop { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes gev-hud-rise { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes gev-hud-fade-out { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .gev-hud.is-entering .gev-hud__card,
+  .gev-hud.is-entering .gev-hud__header,
+  .gev-hud.is-entering .gev-hud__bottom,
+  .gev-hud.is-leaving .gev-hud__card,
+  .gev-hud.is-leaving .gev-hud__header,
+  .gev-hud.is-leaving .gev-hud__bottom,
+  .gev-hud.is-leaving .gev-hud__leaders { animation: none; }
+}
 .gev-sheet__head { position: relative; padding: 14px 48px 10px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
 .gev-sheet__id { display: flex; gap: 8px; align-items: center; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #64d2ff; font-weight: 650; }
 .gev-sheet__key { color: rgba(255, 255, 255, 0.6); letter-spacing: 0.06em; font-family: 'SF Mono', ui-monospace, Menlo, monospace; text-transform: none; }

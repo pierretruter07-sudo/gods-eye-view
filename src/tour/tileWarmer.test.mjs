@@ -90,6 +90,7 @@ test('after arrival it waits for this stop’s tiles, then warms the next; the l
     warmed: false,
     readyOnArrival: false,
     loadedAfterMs: 1200,
+    heldMs: 0,
   });
   assert.equal(log[1].warmed, true);
   assert.equal(log[1].readyOnArrival, true);
@@ -139,4 +140,42 @@ test('if the queued stop changes during the dwell, warming follows it', async ()
   w.arrived('base:yamb', () => null);
   assert.equal(w.log().at(-1).warmed, true);
   w.stop();
+});
+
+test('before leaving, the Director waits for the warmed stop's tiles, at most a few seconds; an alert does not wait', async () => {
+  const { viewer } = fakeViewer();
+  let t = 0;
+  const stats = { numberOfPendingRequests: 6, numberOfTilesProcessing: 0 };
+  const tiles = { tilesLoaded: true, statistics: stats };
+  const sleep = async (ms) => {
+    t += ms;
+    if (t >= 1500) stats.numberOfPendingRequests = 0;
+  };
+  const w = createTileWarmer({ viewer, Cesium, now: () => t, tilesets: () => [tiles] });
+  w.warm(city, 'camera:b');
+  const done = await w.settle('camera:b', { sleep });
+  assert.equal(done.settled, true);
+  assert.ok(done.waitedMs >= 1500 && done.waitedMs <= 2500, String(done.waitedMs));
+  // Never longer than the cap.
+  stats.numberOfPendingRequests = 9;
+  t = 0;
+  const capped = await w.settle('camera:b', { sleep: async (ms) => { t += ms; }, maxMs: 3000 });
+  assert.equal(capped.settled, false);
+  assert.ok(capped.waitedMs >= 3000 && capped.waitedMs < 3500);
+  // A fresh alert replaced the warmed stop: no wait at all.
+  assert.deepEqual(await w.settle('event:quake', { sleep }), { waitedMs: 0, settled: false });
+  w.stop();
+  w.arrived('camera:b', () => null);
+  w.stop();
+});
+
+test('while the Director runs, tiles are not skipped for camera movement; restored on exit', () => {
+  const { viewer } = fakeViewer();
+  const tiles = { tilesLoaded: true, cullRequestsWhileMoving: true };
+  const w = createTileWarmer({ viewer, Cesium, tilesets: () => [tiles] });
+  w.holdDetail(true);
+  assert.equal(tiles.cullRequestsWhileMoving, false);
+  w.holdDetail(true);
+  w.holdDetail(false);
+  assert.equal(tiles.cullRequestsWhileMoving, true);
 });
