@@ -134,7 +134,11 @@ export function createApiCompression({ gzip = createGzipCache() } = {}) {
 
 /** @returns {import('vite').Plugin} */
 export function apiCompressionPlugin() {
-  const install = (server) => server.middlewares.use(createApiCompression());
+  // A block body on purpose: a function returned from configureServer /
+  // configurePreviewServer is run by Vite as a post-middleware hook.
+  const install = (server) => {
+    server.middlewares.use(createApiCompression());
+  };
   return {
     name: 'gev-api-compression',
     configureServer: install,

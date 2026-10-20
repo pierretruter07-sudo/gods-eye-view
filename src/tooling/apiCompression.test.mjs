@@ -73,3 +73,12 @@ test('the same cached body is compressed once', () => {
   const body = JSON.stringify({ a: 'x'.repeat(5000) });
   assert.equal(gzip(body), gzip(body));
 });
+
+test('the plugin hooks return nothing, so Vite never runs connect as a post hook', () => {
+  return import('../../server/providers/common/compress.js').then(({ apiCompressionPlugin }) => {
+    const plugin = apiCompressionPlugin();
+    const server = { middlewares: { use: () => function connectApp() {} } };
+    assert.equal(plugin.configureServer(server), undefined);
+    assert.equal(plugin.configurePreviewServer(server), undefined);
+  });
+});
