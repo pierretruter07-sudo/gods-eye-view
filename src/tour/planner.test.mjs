@@ -183,6 +183,6 @@ test('at least one stop in every five is in space, cycling GEO, stations and nav
     const s = planner.next(data, t0 + i * min);
     if (s.kind === 'satellite' && s.satellite.group === 'geo') g = s;
   }
-  assert.ok(g.view.rangeM > 5_000_000, 'GEO is seen from far enough back to show the Earth');
+  assert.ok(g.view.rangeM >= 4_000_000, 'GEO is seen from far enough back to show the Earth');
   assert.match(g.line, /geostationary orbit/);
 });

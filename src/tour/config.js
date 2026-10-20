@@ -10,8 +10,8 @@ export const TOUR_TIMING = Object.freeze({
   stopDwellS: 12,
   /** The whole-planet overview is kept brief and always rotating. */
   globeDwellS: 5,
-  /** Orbit speed while dwelling. */
-  orbitDegPerS: 3,
+  /** Orbit speed while dwelling (slowed, Pierre 20 Oct). */
+  orbitDegPerS: 2,
   /** Wide (planet-scale) views turn the globe instead, at this rate. */
   globeSpinDegPerS: 3,
   /** Views at least this far out count as planet-scale. */
@@ -35,18 +35,39 @@ export const TOUR_TIMING = Object.freeze({
 
 /** Camera framing per stop kind. Steep enough that the far field (coarse,
  * differently-coloured imagery tiles) stays out of frame and fewer tiles load. */
+/**
+ * Travel between normal stops (Pierre, 20 Oct): zoom out until the whole
+ * planet is in view, turn the globe, zoom in to the next subject, about
+ * 10 s in all, so the viewer keeps seeing the entire Earth. The opening
+ * descent keeps its step-down flights.
+ */
+export const TOUR_HOP = Object.freeze({
+  enabled: true,
+  /** Seconds out to the planet view, pausing there, and in to the subject. */
+  outS: 4,
+  holdS: 1.5,
+  inS: 4.5,
+  /** Planet view: straight down from this far, centred between the stops. */
+  rangeM: 18_000_000,
+  /** A camera already this high sees the planet: fly straight in. */
+  minCameraM: 8_000_000,
+  /** Direct flights (from high up, or to a planet-scale view). */
+  directS: 6,
+});
+
+/** Stop framings, 65% closer than before (Pierre, 20 Oct). */
 export const STOP_CAMERA = Object.freeze({
-  aircraft: Object.freeze({ rangeM: 70_000, pitchDeg: -42 }),
-  earthquake: Object.freeze({ rangeM: 350_000, pitchDeg: -50 }),
-  airport: Object.freeze({ rangeM: 14_000, pitchDeg: -40 }),
-  base: Object.freeze({ rangeM: 12_000, pitchDeg: -42 }),
-  vessel: Object.freeze({ rangeM: 9_000, pitchDeg: -40 }),
-  military: Object.freeze({ rangeM: 45_000, pitchDeg: -42 }),
-  satellite: Object.freeze({ rangeM: 2_500_000, pitchDeg: -35 }),
+  aircraft: Object.freeze({ rangeM: 24_500, pitchDeg: -42 }),
+  earthquake: Object.freeze({ rangeM: 122_500, pitchDeg: -50 }),
+  airport: Object.freeze({ rangeM: 4_900, pitchDeg: -40 }),
+  base: Object.freeze({ rangeM: 4_200, pitchDeg: -42 }),
+  vessel: Object.freeze({ rangeM: 3_200, pitchDeg: -40 }),
+  military: Object.freeze({ rangeM: 15_700, pitchDeg: -42 }),
+  satellite: Object.freeze({ rangeM: 875_000, pitchDeg: -35 }),
   // High orbits look down past the satellite at the Earth behind it, so
   // its coverage cone and footprint are in frame.
-  geoSatellite: Object.freeze({ rangeM: 14_000_000, pitchDeg: -72 }),
-  meoSatellite: Object.freeze({ rangeM: 9_000_000, pitchDeg: -68 }),
+  geoSatellite: Object.freeze({ rangeM: 4_900_000, pitchDeg: -72 }),
+  meoSatellite: Object.freeze({ rangeM: 3_150_000, pitchDeg: -68 }),
 });
 
 export const EVENT_RULES = Object.freeze({
