@@ -57,6 +57,16 @@ export function createTourUi({
     'aria-live': 'assertive',
   });
   card.hidden = true;
+  // The view-mode badge (night vision, thermal, night side) rides on the
+  // caption so it is on screen at every stop; tour/sensorLook.js fills it.
+  const mode = el('span', { class: 'gev-caption__mode' });
+  const why = el('span', { class: 'gev-caption__why' });
+  mode.hidden = true;
+  why.hidden = true;
+  const modeLine = el('p', { class: 'gev-caption__modeline' });
+  modeLine.append(mode, why);
+  const text = el('span', { class: 'gev-caption__text' });
+  caption.append(modeLine, text);
   root.append(caption, card);
 
   return {
@@ -67,9 +77,9 @@ export function createTourUi({
       }
       onState(state);
     },
-    setCaption(text) {
-      caption.textContent = text;
-      caption.dataset.visible = text ? 'true' : 'false';
+    setCaption(line) {
+      text.textContent = line;
+      caption.dataset.visible = line ? 'true' : 'false';
     },
     showStop() {
       card.hidden = true;

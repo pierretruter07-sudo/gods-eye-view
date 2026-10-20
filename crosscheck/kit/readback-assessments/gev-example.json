@@ -1,0 +1,648 @@
+{
+  "assessor": "Digital Dynamics Group engineering (self-assessment)",
+  "createdAt": "2026-10-14T10:00:00Z",
+  "independence": "Not independent: assessed by the development team with AI assistance.",
+  "intake": {
+    "composition": "Developed: ~7k lines (fork modules). Previously developed: ~65k lines inherited upstream. COTS/OSS: CesiumJS 1.138, satellite.js, egm96-universal, Vite, Node 24. Data: OpenSky, adsb.lol, airplanes.live, adsb.fi, AISStream, CelesTrak, USGS, NASA FIRMS, NOAA, OSM. Tools: Prettier, Node test runner, AI coding assistant.",
+    "evidence": "REQUIREMENTS.md (56), VERIFICATION.md with CI-checked traceability, CONFIGURATION-INDEX.md, SECURITY.md, DATA_SOURCES.md, KNOWN-LIMITATIONS.md, 1,086 automated tests, CI gates.",
+    "function": "Browser-based situational-awareness demonstrator: live public aircraft, vessels, satellites, quakes, fires, cyclones on a 3D globe, with an automated narrator and an analyst HUD. Advisory only; no ATC or separation function.",
+    "hazards": "No hazard assessment yet. Candidate hazard: an operator acts on stale or wrong public data shown as current. Mitigation in design: FEED / SIMULATED labelling.",
+    "history": "Forked 24 Sep 2026; demo deployments on Replit; no in-service monitoring.",
+    "isolation": "First-level components: feed proxies, layer engine, Director, intel HUD, Exercise mode. Boundaries enforced by import-direction checks; no formal isolation argument.",
+    "item": "God's Eye View, GitHub main 799ff53 (14 Oct 2026). In-house development; fork of an MIT open-source project.",
+    "novelty": "Novel: AI-assisted development, continuous deployment to cloud hosting, public non-authoritative feeds, planned LLM commentary.",
+    "phase": "Development / verification (demo baseline).",
+    "route": "Voluntary. Outside EU 2023/1768–1769 and CASA Part 171/172 unless an ANSP integrates it."
+  },
+  "likelihood": null,
+  "name": "God's Eye View (example)",
+  "ratings": {
+    "8": {
+      "evidence": "Folder index in the gap analysis.",
+      "note": "Software Safety Folder / SSAR.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.1": {
+      "evidence": "No documented software safety assurance system.",
+      "note": "Write the SSAS into a software safety assessment plan.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.0.10": {
+      "evidence": "No safety argument.",
+      "note": "Direct and back-up arguments in the SSAR.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.0.11": {
+      "evidence": "No in-service malfunction monitoring.",
+      "note": "Telemetry and incident log mapped to SWAL.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.0.12": {
+      "evidence": "Branch, clean-clone verify, merge, deploy. No safety impact analysis.",
+      "note": "Per-change impact analysis template.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.13": {
+      "evidence": "Licence inventory and data-source register; no COTS dossiers.",
+      "note": "COTS dossiers: CesiumJS, satellite.js, Node, browser, host, feeds.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.14": {
+      "evidence": "Import-direction and package-boundary checks enforce structure.",
+      "note": "Isolation argument per first-level component.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.15": {
+      "evidence": "Gated deploy procedure; rollback untested.",
+      "note": "Documented and tested rollback.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.16": {
+      "evidence": "No supervising authority; ED-153 alignment is voluntary.",
+      "note": "Applies once an ANSP or authority is involved.",
+      "status": "NA"
+    },
+    "3.0.17": {
+      "evidence": "No argument that SWAL objectives are met.",
+      "note": "GSN-style argument in the SSAR.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.0.2": {
+      "evidence": "GEV-SRS 0.1 (56 requirements), reverse-engineered, unreviewed.",
+      "note": "Review and approve the SRS; derive safety requirements.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.3": {
+      "evidence": "56/56 requirements traced; trace-check in CI. Inherited engine not traced.",
+      "note": "Trace or trim the inherited layer engine.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.4": {
+      "evidence": "0 orphan files (import-graph gate). /api/route reachable but unused.",
+      "note": "Deactivated-code review; remove /api/route.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.5": {
+      "evidence": "SWAL set top-down; no hazard analysis.",
+      "note": "Hazard log and severity x likelihood allocation.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.0.6": {
+      "evidence": "42 of 56 requirements tested; 1,086 tests pass.",
+      "note": "Procedures and records for 13 inspection/demonstration items.",
+      "status": "L"
+    },
+    "3.0.7": {
+      "evidence": "Build stamp, lockfile, config index. Hosted demo not a clean checkout; no tags.",
+      "note": "Tag releases; deploy a CI-built artifact.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.8": {
+      "evidence": "Verification plan exists; rigour not tied to SWAL.",
+      "note": "State SWAL-scaled rigour in the plan.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.0.9": {
+      "evidence": "Verification method per requirement (T/A/I/D).",
+      "note": "Per-objective I/R/D classification in the plan.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.1.1": {
+      "evidence": "README and ARCHITECTURE describe the system.",
+      "status": "C"
+    },
+    "3.1.2": {
+      "evidence": "Demo use described; no operational concept.",
+      "note": "ConOps: users, environment, advisory-only boundary.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.1.3": {
+      "evidence": "Regulatory note: 2017/373 AMC/GM, 2023/1768-1769, CASA.",
+      "note": "Confirm with a customer ANSP.",
+      "status": "L"
+    },
+    "3.1.4": {
+      "evidence": "Standards and tailoring stated in the gap analysis.",
+      "note": "Formal standards list in the plan.",
+      "status": "L"
+    },
+    "3.1.5": {
+      "evidence": "No FHA/PSSA.",
+      "note": "FHA with the customer.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.2.1": {
+      "evidence": "Approach in VERIFICATION.md.",
+      "note": "Software safety assessment approach.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.2.2": {
+      "evidence": "Verification plan only.",
+      "note": "Software safety assessment plan.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.2.3": {
+      "evidence": "No independent plan review.",
+      "note": "Named reviewer signs off the plan.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.2.4": {
+      "evidence": "Plans in the repo.",
+      "note": "Distribution record.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.3.1": {
+      "evidence": "No software failure-mode list.",
+      "note": "Failure modes per component.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.3.2": {
+      "evidence": "No effects analysis.",
+      "note": "Effects of each failure on users.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.3.3": {
+      "evidence": "No risk assessment.",
+      "note": "Likelihood justification.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.3.4": {
+      "evidence": "Functional requirements exist; no safety requirements.",
+      "note": "GEV-SAF tier traced into the SRS.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.3.5": {
+      "evidence": "No allocation record.",
+      "note": "Allocation per failure.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.4.1": {
+      "evidence": "Safety requirements not validated (none exist).",
+      "note": "Validate GEV-SAF with users.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.4.2": {
+      "evidence": "Functional requirements verified by tests.",
+      "note": "Verify safety requirements.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.4.3": {
+      "evidence": "No process audit.",
+      "note": "QA audit of the process.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "3.4.4": {
+      "evidence": "Gap analysis and readiness report.",
+      "note": "Safety assessment report.",
+      "severity": "S3",
+      "status": "P"
+    },
+    "3.5.1": {
+      "evidence": "Results log per commit.",
+      "note": "Assessment report per release.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "3.5.2": {
+      "evidence": "All documents under git.",
+      "status": "C"
+    },
+    "3.5.3": {
+      "evidence": "Docs in the repo and project.",
+      "note": "Distribution record.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.1.1": {
+      "evidence": "In-house development; no acquirer.",
+      "note": "Applies when an ANSP procures it.",
+      "status": "NA"
+    },
+    "4.1.2": {
+      "evidence": "No FHA.",
+      "note": "FHA (shared with 3.1.5).",
+      "severity": "S2",
+      "status": "N"
+    },
+    "4.1.3": {
+      "evidence": "No PSSA.",
+      "note": "PSSA after the FHA.",
+      "severity": "S2",
+      "status": "N"
+    },
+    "4.1.4": {
+      "evidence": "No tender.",
+      "status": "NA"
+    },
+    "4.1.5": {
+      "evidence": "No contract.",
+      "status": "NA"
+    },
+    "4.1.6": {
+      "evidence": "No supplier.",
+      "status": "NA"
+    },
+    "4.1.7": {
+      "evidence": "No acceptance.",
+      "status": "NA"
+    },
+    "4.2.1": {
+      "evidence": "No supply contract yet.",
+      "note": "Applies at first customer.",
+      "status": "NA"
+    },
+    "4.2.2": {
+      "evidence": "No proposal.",
+      "note": "Proposal with SWAL declaration.",
+      "status": "NA"
+    },
+    "4.2.3": {
+      "evidence": "No contract.",
+      "status": "NA"
+    },
+    "4.2.4": {
+      "evidence": "Readiness report and remediation plan.",
+      "note": "Project and development plans.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.2.5": {
+      "evidence": "No contract.",
+      "status": "NA"
+    },
+    "4.2.6": {
+      "evidence": "No contract.",
+      "status": "NA"
+    },
+    "4.2.7": {
+      "evidence": "No contract.",
+      "status": "NA"
+    },
+    "4.3.1": {
+      "evidence": "System scope in README/ARCHITECTURE.",
+      "note": "System requirements spec.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.3.10": {
+      "evidence": "Inherited code follows upstream conventions.",
+      "note": "Reference PDS/COTS standards and deviations.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.3.11": {
+      "evidence": "Requirements in git; no change control.",
+      "note": "Requirement change control via issues.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.3.12": {
+      "evidence": "Discretionary at SWAL 3.",
+      "status": "NA"
+    },
+    "4.3.13": {
+      "evidence": "Benchmark, adaptive quality ladder, caps.",
+      "note": "Resource budgets (frame time, memory, latency).",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.3.14": {
+      "evidence": "Rationale in code comments and docs.",
+      "note": "Design decision records.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.3.15": {
+      "evidence": "Requirement to code to test, checked in CI.",
+      "note": "Extend to inherited components.",
+      "status": "L"
+    },
+    "4.3.16": {
+      "evidence": "CI gates: format, boundaries, trace, orphans, tests, build.",
+      "note": "Protect main so gates are mandatory.",
+      "status": "L"
+    },
+    "4.3.17": {
+      "evidence": "Discretionary at SWAL 3.",
+      "status": "NA"
+    },
+    "4.3.18": {
+      "evidence": "Discretionary at SWAL 3.",
+      "status": "NA"
+    },
+    "4.3.19": {
+      "evidence": "Discretionary at SWAL 3 (AI assistant noted under ch. 7).",
+      "status": "NA"
+    },
+    "4.3.2": {
+      "evidence": "ARCHITECTURE.md: components, flows, trust boundaries.",
+      "note": "Component-to-requirement mapping.",
+      "status": "L"
+    },
+    "4.3.20": {
+      "evidence": "Discretionary at SWAL 3.",
+      "status": "NA"
+    },
+    "4.3.3": {
+      "evidence": "CONTRIBUTING and TESTING define the process.",
+      "note": "Development plan incl. COTS scope and AI-use policy.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.3.4": {
+      "evidence": "SRS 0.1, 56 requirements.",
+      "note": "Reviewed SRS covering the layer engine.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.3.5": {
+      "evidence": "Architecture documented; boundaries enforced in CI.",
+      "note": "Interface specs for /api and components.",
+      "status": "L"
+    },
+    "4.3.6": {
+      "evidence": "Discretionary at SWAL 3.",
+      "status": "NA"
+    },
+    "4.3.7": {
+      "evidence": "CI build and test integrate all modules.",
+      "note": "Integration test plan per component boundary.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.3.8": {
+      "evidence": "Deploy procedure and setup doctor.",
+      "note": "Release checklist.",
+      "status": "L"
+    },
+    "4.3.9": {
+      "evidence": "Prettier, import-direction and boundary rules in CI.",
+      "note": "Written coding standard.",
+      "status": "L"
+    },
+    "4.4.1": {
+      "evidence": "Demo runbook.",
+      "note": "Operations plan.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.4.2": {
+      "evidence": "Setup doctor; configuration index.",
+      "note": "Supported-browser and host definition.",
+      "status": "L"
+    },
+    "4.4.3": {
+      "evidence": "README, runbook.",
+      "note": "User guide and support route.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.4.4": {
+      "evidence": "Server logs only.",
+      "note": "Operating procedures and logs.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.4.5": {
+      "evidence": "No performance or feed-health monitoring.",
+      "note": "Telemetry and feed-health indicators.",
+      "severity": "S3",
+      "status": "N"
+    },
+    "4.5.1": {
+      "evidence": "Changelog and change process.",
+      "note": "Maintenance plan.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "4.5.2": {
+      "evidence": "No SWAL re-check per change.",
+      "note": "Impact analysis per release.",
+      "severity": "S3",
+      "status": "N"
+    },
+    "4.5.3": {
+      "evidence": "No per-change SWAL evidence.",
+      "note": "Release evidence pack.",
+      "severity": "S3",
+      "status": "N"
+    },
+    "4.5.4": {
+      "evidence": "No migration planned.",
+      "status": "NA"
+    },
+    "4.5.5": {
+      "evidence": "Not being decommissioned.",
+      "status": "NA"
+    },
+    "5.1.1": {
+      "evidence": "Documentation set defined (README index).",
+      "note": "Documentation plan.",
+      "status": "L"
+    },
+    "5.1.2": {
+      "evidence": "Consistent doc structure with IDs and versions.",
+      "note": "Templates.",
+      "status": "L"
+    },
+    "5.1.3": {
+      "evidence": "Documents issued in the repo.",
+      "status": "C"
+    },
+    "5.1.4": {
+      "evidence": "Revision control via git.",
+      "status": "C"
+    },
+    "5.2.1": {
+      "evidence": "Configuration index.",
+      "note": "CM plan.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.2.2": {
+      "evidence": "Lockfile, build stamp, config index.",
+      "note": "Release tags.",
+      "status": "L"
+    },
+    "5.2.3": {
+      "evidence": "Branch workflow; main unprotected.",
+      "note": "Protected main with reviews.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.2.x": {
+      "evidence": "Results log.",
+      "note": "Status accounting and release records.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.3.x": {
+      "evidence": "No QA role or audits.",
+      "note": "QA role, plan and audits.",
+      "severity": "S3",
+      "status": "N"
+    },
+    "5.4.10": {
+      "evidence": "trace-check runs in CI and npm test.",
+      "status": "C"
+    },
+    "5.4.11": {
+      "evidence": "Discretionary at SWAL 3.",
+      "status": "NA"
+    },
+    "5.4.12": {
+      "evidence": "Results log per commit.",
+      "note": "Verification report.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.4.13": {
+      "evidence": "Clean-clone rebuild verified; no tags.",
+      "note": "Tagged, reproducible releases.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.4.1–5.4.2": {
+      "evidence": "Titles not recovered.",
+      "status": "NA"
+    },
+    "5.4.3": {
+      "evidence": "Requirement-based tests pass; independence contested at SWAL 3.",
+      "note": "Independent review of functional tests.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.4.4": {
+      "evidence": "Server proxy and fallback tests.",
+      "note": "Interface tests for every component boundary.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.4.5": {
+      "evidence": "Boundaries verified automatically.",
+      "note": "Architecture review record.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.4.6": {
+      "evidence": "Discretionary at SWAL 3.",
+      "status": "NA"
+    },
+    "5.4.7–5.4.8": {
+      "evidence": "Titles not recovered.",
+      "status": "NA"
+    },
+    "5.4.9": {
+      "evidence": "FEED/SIMULATED tagging and injection tests; no feed integrity checks.",
+      "note": "Feed integrity and outage tests.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.5.x": {
+      "evidence": "No operational validation.",
+      "note": "Validation with operational users.",
+      "severity": "S3",
+      "status": "N"
+    },
+    "5.6.x": {
+      "evidence": "No joint reviews.",
+      "note": "Review minutes with the customer.",
+      "severity": "S3",
+      "status": "N"
+    },
+    "5.7.2–5.7.4": {
+      "evidence": "Self-assessment only.",
+      "note": "Independent audit.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "5.8.x": {
+      "evidence": "Issue template exists; no reports raised.",
+      "note": "Log all known limitations as issues.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "6.1.x": {
+      "evidence": "Plans and tasks tracked informally.",
+      "note": "Project management records.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "6.2.x": {
+      "evidence": "CI and hosting defined in the config index.",
+      "note": "Infrastructure definition.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "6.3.x": {
+      "evidence": "Lessons fed back into gates.",
+      "note": "Improvement records.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "6.4.x": {
+      "evidence": "No competence records.",
+      "note": "Training and competence records.",
+      "severity": "S3",
+      "status": "N"
+    },
+    "7.x COTS": {
+      "evidence": "Licence inventory only.",
+      "note": "COTS dossiers, SBOM, wrappers.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "7.x DE": {
+      "evidence": "Lockfile; Node pinned in engines.",
+      "note": "Environment under CM, incl. AI agent configuration.",
+      "severity": "S4",
+      "status": "P"
+    },
+    "7.x SE": {
+      "evidence": "No service history.",
+      "note": "Service history argument where COTS credit claimed.",
+      "severity": "S3",
+      "status": "N"
+    },
+    "7.x TQ": {
+      "evidence": "Tools identified; AI assistant not formally controlled.",
+      "note": "AI-use policy: no tool credit, human review.",
+      "severity": "S4",
+      "status": "P"
+    }
+  },
+  "severity": null,
+  "swal": 3,
+  "swalNote": "SWAL 3 rigour adopted voluntarily. Allocated SWAL pending a hazard assessment with a customer ANSP; an advisory public-data tool would probably derive SWAL 4.",
+  "updatedAt": "2026-10-14T10:00:00Z"
+}

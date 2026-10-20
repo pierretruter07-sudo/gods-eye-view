@@ -31,8 +31,13 @@ test('thermal for military aircraft, airfields and naval ships; night vision whe
   assert.equal(sensorFor(at('vessel', { vessel: { name: 'EVER TEST', shipType: 'Cargo' } }), NIGHT_SYD), 'nvg');
   assert.equal(sensorFor(at('airport'), NIGHT_SYD), 'nvg');
   assert.equal(sensorFor(at('airport'), DAY_SYD), null);
-  assert.equal(SENSOR_LABELS.flir, 'SENSOR · FLIR');
-  assert.equal(SENSOR_LABELS.nvg, 'SENSOR · NVG');
+  assert.equal(SENSOR_LABELS.flir, 'VIEW MODE · THERMAL (FLIR)');
+  assert.equal(SENSOR_LABELS.nvg, 'VIEW MODE · NIGHT VISION (NVG)');
+  assert.equal(SENSOR_LABELS.lights, 'VIEW MODE · NIGHT SIDE');
+  // The night side of the descent has fixed modes, whatever the sun.
+  const noon = Date.parse('2026-06-21T12:00:00Z');
+  assert.equal(sensorFor({ kind: 'region', descent: 'nightCity', view: { lat: 51.5, lon: 0, rangeM: 2_400_000 } }, noon), 'lights');
+  assert.equal(sensorFor({ kind: 'camera', descent: 'nightStreet', view: { lat: 51.5, lon: 0, rangeM: 380 } }, noon), 'nvg');
 });
 
 test('never a sensor look for space, planet-scale views, the descent’s GEO and ISS steps, or street cameras', () => {

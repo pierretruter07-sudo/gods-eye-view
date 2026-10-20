@@ -34,6 +34,8 @@ const RING_STEPS = 180;
 const FADE_IN_MS = 900;
 const FADE_OUT_MS = 450;
 const UPDATE_MS = 1000;
+/** The footprint fill is rebuilt only after the satellite moves this far. */
+const FILL_MOVE_DEG = 0.5;
 const CONE_LINES = 16;
 const EDGE_HEIGHT_M = 1500;
 
@@ -219,10 +221,21 @@ export function createSpaceOverlay({
     live.sat = apex;
     live.edge = toCartesians(edge, EDGE_HEIGHT_M);
     live.fill = new Cesium.PolygonHierarchy(toCartesians(edge, 0));
-    if (live.fillEntity?.polygon)
-      live.fillEntity.polygon.hierarchy = new Cesium.ConstantProperty(
-        live.fill,
-      );
+    // Replacing a polygon's geometry rebuilds it over a few frames, and it
+    // is not drawn meanwhile: at a GEO stop the fill covers the visible
+    // Earth, so the night side flickered every refresh (Pierre, 20 Oct).
+    // Rebuild only when the sub-satellite point has moved, and keep the old
+    // fill on screen until the new one is ready.
+    if (
+      live.fillEntity &&
+      (!live.fillAt ||
+        Math.abs(at.lat - live.fillAt.lat) > FILL_MOVE_DEG ||
+        Math.abs(((at.lon - live.fillAt.lon + 540) % 360) - 180) >
+          FILL_MOVE_DEG)
+    ) {
+      live.fillAt = { lat: at.lat, lon: at.lon };
+      swapFill(live.fill);
+    }
     const step = Math.floor((edge.length - 1) / CONE_LINES);
     live.cone = Array.from({ length: CONE_LINES }, (_, i) => [
       apex,
@@ -239,18 +252,44 @@ export function createSpaceOverlay({
     render();
   }
 
-  function addFootprint() {
-    // Fill geometry is rebuilt only when refresh() replaces it (about once a
-    // second), never per frame; a coarse granularity keeps it light.
-    live.fillEntity = ds.entities.add({
+  const fillEntity = (hierarchy) =>
+    ds.entities.add({
       polygon: {
-        hierarchy: live.fill,
+        hierarchy,
         granularity: Cesium.Math.RADIANS_PER_DEGREE * 2,
         height: 0,
         material: new Cesium.ColorMaterialProperty(withAlpha(HUD_BLUE, 0.16)),
         arcType: Cesium.ArcType.GEODESIC,
       },
     });
+
+  /** Double buffer: the old fill stays until the new one can be drawn. */
+  function swapFill(hierarchy) {
+    const prev = live.fillEntity;
+    const next = fillEntity(hierarchy);
+    live.fillEntity = next;
+    if (!prev) return;
+    const sphere = new Cesium.BoundingSphere();
+    const started = performance.now();
+    const removeHook = viewer.scene.preRender.addEventListener(() => {
+      const state = viewer.dataSourceDisplay?.getBoundingSphere?.(
+        next,
+        false,
+        sphere,
+      );
+      const ready =
+        state !== Cesium.BoundingSphereState.PENDING ||
+        performance.now() - started > 5000;
+      if (!ready && live.fillEntity === next) return;
+      removeHook();
+      if (ds.entities.contains(prev)) ds.entities.remove(prev);
+    });
+  }
+
+  function addFootprint() {
+    // The fill is rebuilt only when the satellite has moved (swapFill), never
+    // per frame; a coarse granularity keeps it light.
+    live.fillEntity = fillEntity(live.fill);
     ds.entities.add({
       polyline: {
         positions: new Cesium.CallbackProperty(() => live.edge, false),
@@ -316,6 +355,7 @@ export function createSpaceOverlay({
   function reset() {
     token += 1;
     live.fillEntity = null;
+    live.fillAt = null;
     clearInterval(timer);
     clearInterval(fadeTimer);
     timer = 0;
@@ -351,6 +391,8 @@ export function createSpaceOverlay({
       else addRing(satrecRing(satrec, now()) || fallbackRing(sat, RING_STEPS));
       refresh(sat, satrec);
       addFootprint();
+      const first = locate(sat, satrec);
+      live.fillAt = { lat: first.lat, lon: first.lon };
       timer = setInterval(() => refresh(sat, satrec), UPDATE_MS);
     } else {
       return false;

@@ -1249,6 +1249,48 @@ body.gev-touring .gev-iv__card { max-height: 100%; }
 }
 .gev-hud__sensor[hidden] { display: none; }
 
+/* The view-mode badge on the Director's caption (no badge in the normal look). */
+.gev-caption__modeline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+}
+.gev-caption__modeline:not(:has(> :not([hidden]))) { display: none; }
+.gev-caption__mode {
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.78em;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+.gev-caption__mode[data-mode='nvg'] {
+  color: #b9ffc6;
+  border-color: rgba(120, 255, 150, 0.6);
+}
+.gev-caption__mode[data-mode='lights'] {
+  color: #ffe2a8;
+  border-color: rgba(255, 200, 120, 0.6);
+}
+.gev-caption__why {
+  font-size: 0.82em;
+  opacity: 0.85;
+}
+.gev-caption__mode[hidden],
+.gev-caption__why[hidden] { display: none; }
+.gev-caption__text { display: block; }
+.gev-caption__modeline:has(> :not([hidden])) + .gev-caption__text { margin-top: 6px; }
+.gev-hud__sensor[data-mode='lights'] {
+  color: #ffe2a8;
+  border-color: rgba(255, 200, 120, 0.6);
+}
+
 .gev-hud__card {
   box-sizing: border-box;
   max-height: 100%;

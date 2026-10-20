@@ -166,8 +166,15 @@ export const DESCENT_REGIONS = Object.freeze(
 );
 
 export const DESCENT_RULES = Object.freeze({
+  /** The night city is the camera region whose local solar time is nearest
+   * this hour, as long as it is dark there (from nightFromH to nightToH). */
+  nightTargetH: 21.5,
+  nightFromH: 19,
+  nightToH: 4.5,
   /** The street step prefers a camera with live video within this radius. */
   streetVideoRadiusKm: 25,
+  /** The night street is a camera within this distance of the night city. */
+  nightCameraMaxKm: 60,
   /** Cruise band for the "airliner near 40,000 ft" step (metres, barometric). */
   cruiseMinM: 10_668, // 35,000 ft
   cruiseMaxM: 13_106, // 43,000 ft
@@ -197,6 +204,8 @@ export const DESCENT_CAMERA = Object.freeze({
   ship: Object.freeze({ rangeM: 2_500, pitchDeg: -30 }),
   ground: Object.freeze({ rangeM: 900, pitchDeg: -35 }),
   street: Object.freeze({ rangeM: 380, pitchDeg: -18, orbitDegPerS: 6 }),
+  // The night side: high enough for the day/night shell and city lights.
+  nightCity: Object.freeze({ rangeM: 2_400_000, pitchDeg: -70 }),
 });
 
 export const DESCENT_DWELL_S = Object.freeze({
@@ -208,6 +217,8 @@ export const DESCENT_DWELL_S = Object.freeze({
   ground: 10,
   street: 20,
   nearby: 12,
+  nightCity: 12,
+  nightStreet: 18,
 });
 
 /**
@@ -225,6 +236,9 @@ export const DIRECTOR_SENSORS = Object.freeze({
   flirKinds: Object.freeze(['military', 'base']),
   noneKinds: Object.freeze(['satellite', 'geo', 'camera']),
   noneDescentSteps: Object.freeze(['geo', 'iss', 'street']),
+  /** Descent steps with a fixed view mode: the night city shows its city
+   * lights; the night street is shown in night vision. */
+  descentModes: Object.freeze({ nightCity: 'lights', nightStreet: 'nvg' }),
 });
 
 /** Layers the Director switches on when it starts. */

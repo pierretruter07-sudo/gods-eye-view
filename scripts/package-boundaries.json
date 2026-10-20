@@ -665,6 +665,7 @@
       "src/audit/index.js",
       "src/audit/runtime.js",
       "src/audit/model.js",
+      "crosscheck/engine/scoring.js",
       "src/audit/cameraMath.js",
       "src/audit/plain.js",
       "src/audit/scene.js",

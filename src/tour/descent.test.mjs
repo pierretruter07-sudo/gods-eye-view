@@ -7,9 +7,10 @@ import {
   DESCENT_WAIT,
   createDescentPlanner,
   pickDescentRegion,
+  pickNightRegion,
   solarHour,
 } from './descent.js';
-import { DESCENT_REGIONS } from './config.js';
+import { DESCENT_REGIONS, DIRECTOR_SENSORS } from './config.js';
 
 const sydney = DESCENT_REGIONS.find((r) => r.id === 'sydney');
 const at = (iso) => Date.parse(iso);
@@ -100,7 +101,8 @@ test('the descent steps down from GEO to street level, then ends', () => {
     stops.map((s) => s.descent),
     ['geo', 'iss', 'cruise', 'low', 'ship', 'ground', 'street'],
   );
-  assert.equal(stops.length, DESCENT_STEPS.length);
+  // With no night region given, the two night steps are skipped.
+  assert.equal(stops.length, DESCENT_STEPS.length - 2);
   assert.ok(planner.isDone());
   // Each step is lower than the one before it.
   const heights = stops.slice(0, 7).map((s) => s.view.heightM + s.view.rangeM);
@@ -182,7 +184,7 @@ test('the checklist levels cover every step, and outcomes track shown and skippe
   assert.equal(outcomes.get('street'), 'shown');
   const covered = DESCENT_LEVELS.flatMap((l) => l.steps).sort();
   assert.deepEqual(covered, [...outcomes.keys()].sort());
-  assert.equal(DESCENT_LEVELS.length, 7);
+  assert.equal(DESCENT_LEVELS.length, 8);
   assert.equal(descentDetail(stops.find((s) => s.descent === 'cruise')), 'QFA1 · 38,100 ft');
   assert.equal(descentDetail(stops.find((s) => s.descent === 'geo')), '3 satellites');
   // The ground vehicle stop asks the controller to aim at sampled terrain.
@@ -210,4 +212,30 @@ test('the street step prefers a camera with live video near the centre over a ne
   assert.match(street.line, /^Street level\. Camera ia-live, live video from Iowa Department of Transportation\./);
   // Live video too far out (over 25 km): the nearest camera wins.
   assert.equal(pick([still, farLive]).camera.id, 'ia-still');
+});
+
+test('the descent ends on the night side: a city at night, then one of its streets in night vision', () => {
+  // 02:00 UTC: early afternoon in Sydney (the day region), evening in Toronto.
+  const now = Date.parse('2026-10-19T02:00:00Z');
+  const day = pickDescentRegion(now);
+  assert.equal(day.id, 'sydney');
+  const night = pickNightRegion(now, { exclude: day });
+  assert.equal(night.id, 'toronto');
+  assert.ok(solarHour(night.lon, now) >= 19 || solarHour(night.lon, now) <= 4.5, 'dark there');
+  const torontoCam = { ...camera('on-1', 43.65, -79.38), provider: 'City of Toronto', feedType: 'image' };
+  const planner = createDescentPlanner({ region: day, nightRegion: night, now });
+  const data = { ...fullData(), cameras: [...fullData().cameras, torontoCam] };
+  const stops = [];
+  for (let s = planner.next(data); s; s = planner.next(data)) stops.push(s);
+  assert.deepEqual(stops.map((s) => s.descent).slice(-3), ['street', 'nightCity', 'nightStreet']);
+  const [city, street] = stops.slice(-2);
+  assert.equal(city.kind, 'region');
+  assert.ok(city.view.rangeM >= 2_000_000, 'high enough for the city lights');
+  assert.match(city.line, /^The night side\. Toronto after dark/);
+  assert.equal(street.camera.id, 'on-1');
+  assert.match(street.line, /^Street level at night\. Camera on-1/);
+  assert.equal(DIRECTOR_SENSORS.descentModes.nightCity, 'lights');
+  assert.equal(DIRECTOR_SENSORS.descentModes.nightStreet, 'nvg');
+  // Daytime everywhere it could be night: no night steps, and none faked.
+  assert.equal(pickNightRegion(now, { regions: [day] }), null);
 });
