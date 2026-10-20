@@ -151,3 +151,19 @@ test('a fresh alert takes the queued slot during the dwell, so its tiles load be
   assert.equal(q.preferFresh(), false, 'an alert already queued is kept');
   assert.equal(await q.take(), quake);
 });
+
+test('a stopped tour forgets its queued stop, so a restart plans afresh', async () => {
+  const city = { kind: 'city', view: { lat: 2, lon: 2, rangeM: 2_000_000 } };
+  const planner = fakePlanner([ship, city]);
+  const q = createStopQueue({
+    planner,
+    liveData: () => ({}),
+    incidents: () => ({}),
+    wait: noWait,
+  });
+  q.planAhead();
+  assert.equal(q.peek(), ship);
+  q.reset();
+  assert.equal(q.peek(), null);
+  assert.equal(await q.take(), city, 'a new stop, not the stale one');
+});

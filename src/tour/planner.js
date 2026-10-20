@@ -312,9 +312,15 @@ export function createPlanner({
     },
   };
 
-  function pick(data, now) {
-    const [fresh] = alertAllowed(now) ? freshEvents(data, now) : [];
+  function pick(all, now) {
+    const [fresh] = alertAllowed(now) ? freshEvents(all, now) : [];
     if (fresh) return eventStop(fresh, now, false);
+    // Staged (simulated) aircraft are alerts only: they are never counted
+    // or shown as live traffic at an airport, base or city stop.
+    const data = {
+      ...all,
+      flights: (all.flights || []).filter((f) => !f?.simulated),
+    };
     // Space is due: at least one stop in every `space.every`. It falls due
     // one stop early, so an alert arriving at that moment (alerts always go
     // first) still leaves a satellite inside every run of `every` stops.

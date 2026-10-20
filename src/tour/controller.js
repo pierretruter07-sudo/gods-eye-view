@@ -389,6 +389,8 @@ export function createTourController({
     signal,
     { durationS = null } = {},
   ) {
+    // Stopped already (e.g. during the airport fade-out): never fly.
+    if (signal.aborted) return Promise.reject(signal.reason);
     return new Promise((resolve, reject) => {
       const onAbort = () => {
         viewer.camera.cancelFlight();
@@ -430,6 +432,7 @@ export function createTourController({
    * tiles load all the way, through the warmer's preload camera.
    */
   async function hopTo(next, signal, follow = null) {
+    signal.throwIfAborted();
     const cam = viewer.camera.positionCartographic;
     const plan = planHop(
       {
@@ -927,6 +930,9 @@ export function createTourController({
       stagedAt = next.staged?.at || Date.now();
       // The airport picture fades out as the camera leaves.
       await airport?.fadeOut();
+      // Each await is a point where the tour may have been stopped; carry
+      // on and the camera would fly and orbit with nobody able to stop it.
+      signal.throwIfAborted();
       stopOrbit();
       clearMarker();
       airport?.clear();
@@ -952,6 +958,7 @@ export function createTourController({
           ...next.view,
           heightM: await groundHeightAt(next.view, signal),
         };
+      signal.throwIfAborted();
       // A stop planned a dwell ahead aims where its subject WAS; satellites
       // and aircraft have moved since (the ISS by ~100 km). Re-aim at the
       // live position just before the flight so it arrives centred.
@@ -967,6 +974,7 @@ export function createTourController({
       let arrived = null;
       if (next.descent) await flyTo(next.view, signal);
       else arrived = await hopTo(next, signal, follow);
+      signal.throwIfAborted();
       startOrbit({ ...next.view, ...(arrived || {}) }, follow);
       if (next.aircraft) showStandIn(next, follow);
       lastView = next.view;
@@ -989,6 +997,7 @@ export function createTourController({
       ui.setCaption(next.line);
       const started = Date.now();
       await narrator.speak(next.line, { signal });
+      signal.throwIfAborted();
       const spokenS = (Date.now() - started) / 1000;
       // The whole-planet overview is held briefly and left rotating; every
       // other stop keeps its own dwell.
@@ -1045,7 +1054,14 @@ export function createTourController({
     } catch (error) {
       if (!controller.signal.aborted) console.error('[tour] stopped', error);
     } finally {
-      if (run?.controller === controller) run = null;
+      // The loop ended on its own (an error, not exit()): hand the camera
+      // back exactly as exit() does, so Stop, Esc and the mouse work again.
+      if (run?.controller === controller) {
+        run = null;
+        if (!controller.signal.aborted)
+          controller.abort(new DOMException('error', 'AbortError'));
+        teardown();
+      }
     }
   }
 
@@ -1055,6 +1071,12 @@ export function createTourController({
     const { controller } = run;
     run = null;
     controller.abort(new DOMException(reason, 'AbortError'));
+    teardown();
+  }
+
+  /** Everything a stopped tour leaves behind, cleared (one place). */
+  function teardown() {
+    queue.reset();
     warmer.stop();
     warmer.holdDetail(false);
     lastView = null; // the viewer moves the camera from here on

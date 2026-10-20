@@ -123,6 +123,10 @@ export function createStopQueue({
         entry = plan();
       }
     },
+    /** Forget the queued stop (the tour stopped; a restart plans afresh). */
+    reset() {
+      upcoming = null;
+    },
     log: () => [...log],
   };
 }

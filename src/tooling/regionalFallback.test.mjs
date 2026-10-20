@@ -37,6 +37,7 @@ test('a rate-limited source is skipped and stays on cooldown for the next reques
   const first = await fetchRegionalPayload(-27.5, 153, undefined);
   assert.deepEqual(calls, ['adsb.lol', 'airplanes.live']);
   assert.deepEqual(first.ac, [{ hex: 'airplanes.live' }], 'aircraft[] is normalised to ac[]');
+  assert.equal(first.source, 'airplanes.live', 'the source that answered is credited, not adsb.lol');
   calls.length = 0;
   await fetchRegionalPayload(-27.5, 153, undefined);
   assert.deepEqual(calls, ['airplanes.live'], 'cooled-down source is not retried');

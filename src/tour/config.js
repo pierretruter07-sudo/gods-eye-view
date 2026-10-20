@@ -54,8 +54,11 @@ export const TOUR_HOP = Object.freeze({
   rangeM: 18_000_000,
   /** A camera already this high sees the planet: fly straight in. */
   minCameraM: 8_000_000,
-  /** Direct flights (from high up, or to a planet-scale view). */
+  /** Direct flights (from high up, to a planet-scale view, or short). */
   directS: 6,
+  /** Stops closer than this fly straight there, no planet zoom-out
+   * (Pierre, 21 Oct: Brisbane to Amberley is 45 km). */
+  directBelowKm: 300,
 });
 
 /** Stop framings, 65% closer than before (Pierre, 20 Oct). */
@@ -110,23 +113,25 @@ export const TOUR_ROTATION = Object.freeze([
   'military',
   'airport',
   'base',
-  'satellite',
   'vessel',
   'military',
   'airport',
   'base',
-  'satellite',
   'city',
 ]);
 
 /**
- * Space stays in the tour: at least one stop in every `every` is a
- * satellite (Pierre, 20 Oct), whatever the rotation falls back to. Space
- * stops cycle through these groups so the tour shows geostationary
- * satellites, crewed stations and navigation constellations in turn.
+ * Space stays in the tour: satellites come only from this rule (the
+ * rotation has no satellite slots), about one stop in five (Pierre, 21
+ * Oct; the extra rotation slots made it nearly one in three). It falls due
+ * one stop early so an alert arriving then still leaves a satellite inside
+ * every run of `every` stops: normally one in five, never fewer than one
+ * in six. Space stops cycle through these groups so the tour shows
+ * geostationary satellites, crewed stations and navigation constellations
+ * in turn.
  */
 export const TOUR_SPACE = Object.freeze({
-  every: 5,
+  every: 6,
   groups: Object.freeze([
     'geo',
     'stations',

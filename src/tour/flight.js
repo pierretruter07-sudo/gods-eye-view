@@ -11,6 +11,7 @@
  * @module tour/flight
  */
 import { TOUR_HOP, TOUR_TIMING } from './config.js';
+import { distanceKm } from './events.js';
 
 /** Flight seconds for a camera move of `distanceM` metres. */
 export function flightSeconds(distanceM, timing = TOUR_TIMING) {
@@ -55,7 +56,8 @@ export function midpoint(a, b) {
  * How the Director travels between two normal stops (Pierre, 20 Oct): out
  * until the whole planet is in view, a short pause turning the globe, then
  * in to the next subject, about 10 s in all. A camera already high enough
- * to see the planet, or a planet-scale destination, flies straight there.
+ * to see the planet, a planet-scale destination, or a stop closer than
+ * `hop.directBelowKm`, flies straight there.
  * @param {{lat: number, lon: number, heightM: number}} from camera position
  * @param {{lat: number, lon: number, heightM?: number, rangeM: number}} to
  * @returns {{via: object|null, outS: number, holdS: number, inS: number}}
@@ -69,7 +71,11 @@ export function planHop(from, to, hop = TOUR_HOP, timing = TOUR_TIMING) {
     planetTarget ||
     !Number.isFinite(from?.lat) ||
     !Number.isFinite(from?.lon) ||
-    from.heightM >= hop.minCameraM
+    from.heightM >= hop.minCameraM ||
+    // Nearby stops glide straight across; no zoom out to the planet.
+    (Number.isFinite(to?.lat) &&
+      Number.isFinite(to?.lon) &&
+      distanceKm(from.lat, from.lon, to.lat, to.lon) < (hop.directBelowKm ?? 0))
   )
     return direct;
   const mid = midpoint(from, to);
