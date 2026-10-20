@@ -6,6 +6,15 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **The night side in the opening descent.** After the street camera, the
+  Director flies to a camera city where it is dark, from 2,400 km with its
+  city lights, then down to one of its streets in night vision. A view-mode
+  badge on the caption says which mode is on and why (night vision,
+  thermal, night side).
+- **Fixed: the night side flickered in Director mode.** The satellite
+  coverage fill was rebuilt every second and vanished while rebuilding; it
+  now rebuilds only when the satellite moves, keeping the old fill until the
+  new one is ready.
 - **Thermal and night-vision looks.** At military stops the Director
   switches to a white-hot thermal look, and on the night side to night
   vision, tagged "SENSOR · FLIR" or "SENSOR · NVG". Space, wide views and

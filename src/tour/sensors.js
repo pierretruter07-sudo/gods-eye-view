@@ -38,12 +38,14 @@ export function solarElevationDeg(when, latDeg, lonDeg) {
  * @param {object} stop a planner or descent stop
  * @param {Date|number} [now]
  * @param {typeof DIRECTOR_SENSORS} [rules]
- * @returns {'flir'|'nvg'|null}
+ * @returns {'flir'|'nvg'|'lights'|null}
  */
 export function sensorFor(stop, now = Date.now(), rules = DIRECTOR_SENSORS) {
   const view = stop?.view;
   if (!view || !Number.isFinite(view.lat) || !Number.isFinite(view.lon))
     return null;
+  const fixed = stop.descent && rules.descentModes?.[stop.descent];
+  if (fixed) return fixed;
   if (rules.noneKinds.includes(stop.kind)) return null;
   if (stop.descent && rules.noneDescentSteps.includes(stop.descent))
     return null;
@@ -58,8 +60,14 @@ export function sensorFor(stop, now = Date.now(), rules = DIRECTOR_SENSORS) {
   return null;
 }
 
-/** The tag shown under the asset title. */
+/** The view-mode badge: the mode, and in a few words why it looks so. */
 export const SENSOR_LABELS = Object.freeze({
-  flir: 'SENSOR · FLIR',
-  nvg: 'SENSOR · NVG',
+  flir: 'VIEW MODE · THERMAL (FLIR)',
+  nvg: 'VIEW MODE · NIGHT VISION (NVG)',
+  lights: 'VIEW MODE · NIGHT SIDE',
+});
+export const SENSOR_NOTES = Object.freeze({
+  flir: 'Heat shown white, cool shown dark',
+  nvg: "It's night here, so the view switches to night vision",
+  lights: "City lights from NASA's night-time satellite imagery",
 });

@@ -12,6 +12,7 @@ import {
   descentDetail,
   levelStates,
   pickDescentRegion,
+  pickNightRegion,
 } from './descent.js';
 import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
@@ -416,7 +417,7 @@ export function createTourController({
     if (next.kind === 'aircraft')
       return { layerId: 'flights', record: next.aircraft };
     if (next.kind === 'camera') return { layerId: 'cctv', record: next.camera };
-    if (next.kind === 'geo') return null;
+    if (next.kind === 'geo' || next.kind === 'region') return null;
     // Airports and city stops open the place view: live traffic, weather,
     // incidents nearby and what else is around (never an empty screen).
     const place = placeOf(next);
@@ -683,7 +684,13 @@ export function createTourController({
     descent = null;
     if (descentPending) {
       descentPending = false;
-      descent = createDescentPlanner({ region: pickDescentRegion(Date.now()) });
+      const startedAt = Date.now();
+      const region = pickDescentRegion(startedAt);
+      descent = createDescentPlanner({
+        region,
+        nightRegion: pickNightRegion(startedAt, { exclude: region }),
+        now: startedAt,
+      });
       regionStaged = { aircraft: [], at: 0 };
       descentWrapped = false;
       try {
