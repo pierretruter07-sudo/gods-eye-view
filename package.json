@@ -1,0 +1,17 @@
+{
+  "name": "crosscheck",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plug in any software; see where it falls short of your standards, with a remediation plan.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/standalone.mjs",
+    "test": "node --test \"engine/*.test.mjs\" \"server/*.test.mjs\" \"catalogues/*.test.mjs\"",
+    "build:catalogues": "node tools/build-catalogues.mjs",
+    "check:catalogues": "node tools/build-catalogues.mjs --check",
+    "assess": "node tools/assess-dir.mjs"
+  }
+}

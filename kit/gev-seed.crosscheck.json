@@ -1,0 +1,4466 @@
+{
+ "name": "God's Eye View (example)",
+ "swal": 3,
+ "severity": null,
+ "likelihood": null,
+ "swalNote": "SWAL 3 rigour adopted voluntarily. Allocated SWAL pending a hazard assessment with a customer ANSP; an advisory public-data tool would probably derive SWAL 4.",
+ "assessor": "Digital Dynamics Group engineering (self-assessment)",
+ "independence": "Not independent: assessed by the development team with AI assistance.",
+ "intake": {
+  "item": "God's Eye View, GitHub main 799ff53 (14 Oct 2026). In-house development; fork of an MIT open-source project.",
+  "function": "Browser-based situational-awareness demonstrator: live public aircraft, vessels, satellites, quakes, fires, cyclones on a 3D globe, with an automated narrator and an analyst HUD. Advisory only; no ATC or separation function.",
+  "hazards": "No hazard assessment yet. Candidate hazard: an operator acts on stale or wrong public data shown as current. Mitigation in design: FEED / SIMULATED labelling.",
+  "isolation": "First-level components: feed proxies, layer engine, Director, intel HUD, Exercise mode. Boundaries enforced by import-direction checks; no formal isolation argument.",
+  "composition": "Developed: ~7k lines (fork modules). Previously developed: ~65k lines inherited upstream. COTS/OSS: CesiumJS 1.138, satellite.js, egm96-universal, Vite, Node 24. Data: OpenSky, adsb.lol, airplanes.live, adsb.fi, AISStream, CelesTrak, USGS, NASA FIRMS, NOAA, OSM. Tools: Prettier, Node test runner, AI coding assistant.",
+  "phase": "Development / verification (demo baseline).",
+  "route": "Voluntary. Outside EU 2023/1768–1769 and CASA Part 171/172 unless an ANSP integrates it.",
+  "novelty": "Novel: AI-assisted development, continuous deployment to cloud hosting, public non-authoritative feeds, planned LLM commentary.",
+  "evidence": "REQUIREMENTS.md (56), VERIFICATION.md with CI-checked traceability, CONFIGURATION-INDEX.md, SECURITY.md, DATA_SOURCES.md, KNOWN-LIMITATIONS.md, 1,086 automated tests, CI gates.",
+  "history": "Forked 24 Sep 2026; demo deployments on Replit; no in-service monitoring.",
+  "surface": "Public URL on Replit, no login. Entry points: SPA plus ~15 GET JSON proxy endpoints (aircraft, vessels, places, routes, Overpass, terrain, cyclones, FIRMS, CelesTrak). Server-side secrets: AISSTREAM_API_KEY, Google Places key. Browser-bundled by design: GOOGLE_MAPS_API_KEY, CESIUM_ION_TOKEN. Single Node process (vite preview); no database, no uploads, no user data. Repository public; main unprotected."
+ },
+ "ratings": {
+  "3.0.1": {
+   "status": "N",
+   "evidence": "No documented software safety assurance system.",
+   "note": "Write the SSAS into a software safety assessment plan.",
+   "severity": "S2"
+  },
+  "3.0.2": {
+   "status": "P",
+   "evidence": "GEV-SRS 0.1 (56 requirements), reverse-engineered, unreviewed.",
+   "note": "Review and approve the SRS; derive safety requirements.",
+   "severity": "S3"
+  },
+  "3.0.3": {
+   "status": "P",
+   "evidence": "56/56 requirements traced; trace-check in CI. Inherited engine not traced.",
+   "note": "Trace or trim the inherited layer engine.",
+   "severity": "S3"
+  },
+  "3.0.4": {
+   "status": "P",
+   "evidence": "0 orphan files (import-graph gate). /api/route reachable but unused.",
+   "note": "Deactivated-code review; remove /api/route.",
+   "severity": "S3"
+  },
+  "3.0.5": {
+   "status": "N",
+   "evidence": "SWAL set top-down; no hazard analysis.",
+   "note": "Hazard log and severity x likelihood allocation.",
+   "severity": "S2"
+  },
+  "3.0.6": {
+   "status": "L",
+   "evidence": "42 of 56 requirements tested; 1,086 tests pass.",
+   "note": "Procedures and records for 13 inspection/demonstration items."
+  },
+  "3.0.7": {
+   "status": "P",
+   "evidence": "Build stamp, lockfile, config index. Hosted demo not a clean checkout; no tags.",
+   "note": "Tag releases; deploy a CI-built artifact.",
+   "severity": "S3"
+  },
+  "3.0.8": {
+   "status": "P",
+   "evidence": "Verification plan exists; rigour not tied to SWAL.",
+   "note": "State SWAL-scaled rigour in the plan.",
+   "severity": "S3"
+  },
+  "3.0.9": {
+   "status": "P",
+   "evidence": "Verification method per requirement (T/A/I/D).",
+   "note": "Per-objective I/R/D classification in the plan.",
+   "severity": "S3"
+  },
+  "3.0.10": {
+   "status": "N",
+   "evidence": "No safety argument.",
+   "note": "Direct and back-up arguments in the SSAR.",
+   "severity": "S2"
+  },
+  "3.0.11": {
+   "status": "N",
+   "evidence": "No in-service malfunction monitoring.",
+   "note": "Telemetry and incident log mapped to SWAL.",
+   "severity": "S2"
+  },
+  "3.0.12": {
+   "status": "P",
+   "evidence": "Branch, clean-clone verify, merge, deploy. No safety impact analysis.",
+   "note": "Per-change impact analysis template.",
+   "severity": "S3"
+  },
+  "3.0.13": {
+   "status": "P",
+   "evidence": "Licence inventory and data-source register; no COTS dossiers.",
+   "note": "COTS dossiers: CesiumJS, satellite.js, Node, browser, host, feeds.",
+   "severity": "S3"
+  },
+  "3.0.14": {
+   "status": "P",
+   "evidence": "Import-direction and package-boundary checks enforce structure.",
+   "note": "Isolation argument per first-level component.",
+   "severity": "S3"
+  },
+  "3.0.15": {
+   "status": "P",
+   "evidence": "Gated deploy procedure; rollback untested.",
+   "note": "Documented and tested rollback.",
+   "severity": "S3"
+  },
+  "3.0.16": {
+   "status": "NA",
+   "evidence": "No supervising authority; ED-153 alignment is voluntary.",
+   "note": "Applies once an ANSP or authority is involved."
+  },
+  "3.0.17": {
+   "status": "N",
+   "evidence": "No argument that SWAL objectives are met.",
+   "note": "GSN-style argument in the SSAR.",
+   "severity": "S2"
+  },
+  "3.1.1": {
+   "status": "C",
+   "evidence": "README and ARCHITECTURE describe the system."
+  },
+  "3.1.2": {
+   "status": "P",
+   "evidence": "Demo use described; no operational concept.",
+   "note": "ConOps: users, environment, advisory-only boundary.",
+   "severity": "S3"
+  },
+  "3.1.3": {
+   "status": "L",
+   "evidence": "Regulatory note: 2017/373 AMC/GM, 2023/1768-1769, CASA.",
+   "note": "Confirm with a customer ANSP."
+  },
+  "3.1.4": {
+   "status": "L",
+   "evidence": "Standards and tailoring stated in the gap analysis.",
+   "note": "Formal standards list in the plan."
+  },
+  "3.1.5": {
+   "status": "N",
+   "evidence": "No FHA/PSSA.",
+   "note": "FHA with the customer.",
+   "severity": "S2"
+  },
+  "3.2.1": {
+   "status": "P",
+   "evidence": "Approach in VERIFICATION.md.",
+   "note": "Software safety assessment approach.",
+   "severity": "S3"
+  },
+  "3.2.2": {
+   "status": "P",
+   "evidence": "Verification plan only.",
+   "note": "Software safety assessment plan.",
+   "severity": "S3"
+  },
+  "3.2.3": {
+   "status": "N",
+   "evidence": "No independent plan review.",
+   "note": "Named reviewer signs off the plan.",
+   "severity": "S2"
+  },
+  "3.2.4": {
+   "status": "P",
+   "evidence": "Plans in the repo.",
+   "note": "Distribution record.",
+   "severity": "S3"
+  },
+  "3.3.1": {
+   "status": "N",
+   "evidence": "No software failure-mode list.",
+   "note": "Failure modes per component.",
+   "severity": "S2"
+  },
+  "3.3.2": {
+   "status": "N",
+   "evidence": "No effects analysis.",
+   "note": "Effects of each failure on users.",
+   "severity": "S2"
+  },
+  "3.3.3": {
+   "status": "N",
+   "evidence": "No risk assessment.",
+   "note": "Likelihood justification.",
+   "severity": "S2"
+  },
+  "3.3.4": {
+   "status": "P",
+   "evidence": "Functional requirements exist; no safety requirements.",
+   "note": "GEV-SAF tier traced into the SRS.",
+   "severity": "S3"
+  },
+  "3.3.5": {
+   "status": "N",
+   "evidence": "No allocation record.",
+   "note": "Allocation per failure.",
+   "severity": "S2"
+  },
+  "3.4.1": {
+   "status": "N",
+   "evidence": "Safety requirements not validated (none exist).",
+   "note": "Validate GEV-SAF with users.",
+   "severity": "S2"
+  },
+  "3.4.2": {
+   "status": "P",
+   "evidence": "Functional requirements verified by tests.",
+   "note": "Verify safety requirements.",
+   "severity": "S3"
+  },
+  "3.4.3": {
+   "status": "N",
+   "evidence": "No process audit.",
+   "note": "QA audit of the process.",
+   "severity": "S2"
+  },
+  "3.4.4": {
+   "status": "P",
+   "evidence": "Gap analysis and readiness report.",
+   "note": "Safety assessment report.",
+   "severity": "S3"
+  },
+  "3.5.1": {
+   "status": "P",
+   "evidence": "Results log per commit.",
+   "note": "Assessment report per release.",
+   "severity": "S4"
+  },
+  "3.5.2": {
+   "status": "C",
+   "evidence": "All documents under git."
+  },
+  "3.5.3": {
+   "status": "P",
+   "evidence": "Docs in the repo and project.",
+   "note": "Distribution record.",
+   "severity": "S4"
+  },
+  "4.1.1": {
+   "status": "NA",
+   "evidence": "In-house development; no acquirer.",
+   "note": "Applies when an ANSP procures it."
+  },
+  "4.1.2": {
+   "status": "N",
+   "evidence": "No FHA.",
+   "note": "FHA (shared with 3.1.5).",
+   "severity": "S2"
+  },
+  "4.1.3": {
+   "status": "N",
+   "evidence": "No PSSA.",
+   "note": "PSSA after the FHA.",
+   "severity": "S2"
+  },
+  "4.1.4": {
+   "status": "NA",
+   "evidence": "No tender."
+  },
+  "4.1.5": {
+   "status": "NA",
+   "evidence": "No contract."
+  },
+  "4.1.6": {
+   "status": "NA",
+   "evidence": "No supplier."
+  },
+  "4.1.7": {
+   "status": "NA",
+   "evidence": "No acceptance."
+  },
+  "4.2.1": {
+   "status": "NA",
+   "evidence": "No supply contract yet.",
+   "note": "Applies at first customer."
+  },
+  "4.2.2": {
+   "status": "NA",
+   "evidence": "No proposal.",
+   "note": "Proposal with SWAL declaration."
+  },
+  "4.2.3": {
+   "status": "NA",
+   "evidence": "No contract."
+  },
+  "4.2.4": {
+   "status": "P",
+   "evidence": "Readiness report and remediation plan.",
+   "note": "Project and development plans.",
+   "severity": "S4"
+  },
+  "4.2.5": {
+   "status": "NA",
+   "evidence": "No contract."
+  },
+  "4.2.6": {
+   "status": "NA",
+   "evidence": "No contract."
+  },
+  "4.2.7": {
+   "status": "NA",
+   "evidence": "No contract."
+  },
+  "4.3.1": {
+   "status": "P",
+   "evidence": "System scope in README/ARCHITECTURE.",
+   "note": "System requirements spec.",
+   "severity": "S4"
+  },
+  "4.3.2": {
+   "status": "L",
+   "evidence": "ARCHITECTURE.md: components, flows, trust boundaries.",
+   "note": "Component-to-requirement mapping."
+  },
+  "4.3.3": {
+   "status": "P",
+   "evidence": "CONTRIBUTING and TESTING define the process.",
+   "note": "Development plan incl. COTS scope and AI-use policy.",
+   "severity": "S4"
+  },
+  "4.3.4": {
+   "status": "P",
+   "evidence": "SRS 0.1, 56 requirements.",
+   "note": "Reviewed SRS covering the layer engine.",
+   "severity": "S4"
+  },
+  "4.3.5": {
+   "status": "L",
+   "evidence": "Architecture documented; boundaries enforced in CI.",
+   "note": "Interface specs for /api and components."
+  },
+  "4.3.6": {
+   "status": "NA",
+   "evidence": "Discretionary at SWAL 3."
+  },
+  "4.3.7": {
+   "status": "P",
+   "evidence": "CI build and test integrate all modules.",
+   "note": "Integration test plan per component boundary.",
+   "severity": "S4"
+  },
+  "4.3.8": {
+   "status": "L",
+   "evidence": "Deploy procedure and setup doctor.",
+   "note": "Release checklist."
+  },
+  "4.3.9": {
+   "status": "L",
+   "evidence": "Prettier, import-direction and boundary rules in CI.",
+   "note": "Written coding standard."
+  },
+  "4.3.10": {
+   "status": "P",
+   "evidence": "Inherited code follows upstream conventions.",
+   "note": "Reference PDS/COTS standards and deviations.",
+   "severity": "S4"
+  },
+  "4.3.11": {
+   "status": "P",
+   "evidence": "Requirements in git; no change control.",
+   "note": "Requirement change control via issues.",
+   "severity": "S4"
+  },
+  "4.3.12": {
+   "status": "NA",
+   "evidence": "Discretionary at SWAL 3."
+  },
+  "4.3.13": {
+   "status": "P",
+   "evidence": "Benchmark, adaptive quality ladder, caps.",
+   "note": "Resource budgets (frame time, memory, latency).",
+   "severity": "S4"
+  },
+  "4.3.14": {
+   "status": "P",
+   "evidence": "Rationale in code comments and docs.",
+   "note": "Design decision records.",
+   "severity": "S4"
+  },
+  "4.3.15": {
+   "status": "L",
+   "evidence": "Requirement to code to test, checked in CI.",
+   "note": "Extend to inherited components."
+  },
+  "4.3.16": {
+   "status": "L",
+   "evidence": "CI gates: format, boundaries, trace, orphans, tests, build.",
+   "note": "Protect main so gates are mandatory."
+  },
+  "4.3.17": {
+   "status": "NA",
+   "evidence": "Discretionary at SWAL 3."
+  },
+  "4.3.18": {
+   "status": "NA",
+   "evidence": "Discretionary at SWAL 3."
+  },
+  "4.3.19": {
+   "status": "NA",
+   "evidence": "Discretionary at SWAL 3 (AI assistant noted under ch. 7)."
+  },
+  "4.3.20": {
+   "status": "NA",
+   "evidence": "Discretionary at SWAL 3."
+  },
+  "4.4.1": {
+   "status": "P",
+   "evidence": "Demo runbook.",
+   "note": "Operations plan.",
+   "severity": "S4"
+  },
+  "4.4.2": {
+   "status": "L",
+   "evidence": "Setup doctor; configuration index.",
+   "note": "Supported-browser and host definition."
+  },
+  "4.4.3": {
+   "status": "P",
+   "evidence": "README, runbook.",
+   "note": "User guide and support route.",
+   "severity": "S4"
+  },
+  "4.4.4": {
+   "status": "P",
+   "evidence": "Server logs only.",
+   "note": "Operating procedures and logs.",
+   "severity": "S4"
+  },
+  "4.4.5": {
+   "status": "N",
+   "evidence": "No performance or feed-health monitoring.",
+   "note": "Telemetry and feed-health indicators.",
+   "severity": "S3"
+  },
+  "4.5.1": {
+   "status": "P",
+   "evidence": "Changelog and change process.",
+   "note": "Maintenance plan.",
+   "severity": "S4"
+  },
+  "4.5.2": {
+   "status": "N",
+   "evidence": "No SWAL re-check per change.",
+   "note": "Impact analysis per release.",
+   "severity": "S3"
+  },
+  "4.5.3": {
+   "status": "N",
+   "evidence": "No per-change SWAL evidence.",
+   "note": "Release evidence pack.",
+   "severity": "S3"
+  },
+  "4.5.4": {
+   "status": "NA",
+   "evidence": "No migration planned."
+  },
+  "4.5.5": {
+   "status": "NA",
+   "evidence": "Not being decommissioned."
+  },
+  "5.1.1": {
+   "status": "L",
+   "evidence": "Documentation set defined (README index).",
+   "note": "Documentation plan."
+  },
+  "5.1.2": {
+   "status": "L",
+   "evidence": "Consistent doc structure with IDs and versions.",
+   "note": "Templates."
+  },
+  "5.1.3": {
+   "status": "C",
+   "evidence": "Documents issued in the repo."
+  },
+  "5.1.4": {
+   "status": "C",
+   "evidence": "Revision control via git."
+  },
+  "5.2.1": {
+   "status": "P",
+   "evidence": "Configuration index.",
+   "note": "CM plan.",
+   "severity": "S4"
+  },
+  "5.2.2": {
+   "status": "L",
+   "evidence": "Lockfile, build stamp, config index.",
+   "note": "Release tags."
+  },
+  "5.2.3": {
+   "status": "P",
+   "evidence": "Branch workflow; main unprotected.",
+   "note": "Protected main with reviews.",
+   "severity": "S4"
+  },
+  "5.2.x": {
+   "status": "P",
+   "evidence": "Results log.",
+   "note": "Status accounting and release records.",
+   "severity": "S4"
+  },
+  "5.3.x": {
+   "status": "N",
+   "evidence": "No QA role or audits.",
+   "note": "QA role, plan and audits.",
+   "severity": "S3"
+  },
+  "5.4.1–5.4.2": {
+   "status": "NA",
+   "evidence": "Titles not recovered."
+  },
+  "5.4.3": {
+   "status": "P",
+   "evidence": "Requirement-based tests pass; independence contested at SWAL 3.",
+   "note": "Independent review of functional tests.",
+   "severity": "S4"
+  },
+  "5.4.4": {
+   "status": "P",
+   "evidence": "Server proxy and fallback tests.",
+   "note": "Interface tests for every component boundary.",
+   "severity": "S4"
+  },
+  "5.4.5": {
+   "status": "P",
+   "evidence": "Boundaries verified automatically.",
+   "note": "Architecture review record.",
+   "severity": "S4"
+  },
+  "5.4.6": {
+   "status": "NA",
+   "evidence": "Discretionary at SWAL 3."
+  },
+  "5.4.7–5.4.8": {
+   "status": "NA",
+   "evidence": "Titles not recovered."
+  },
+  "5.4.9": {
+   "status": "P",
+   "evidence": "FEED/SIMULATED tagging and injection tests; no feed integrity checks.",
+   "note": "Feed integrity and outage tests.",
+   "severity": "S4"
+  },
+  "5.4.10": {
+   "status": "C",
+   "evidence": "trace-check runs in CI and npm test."
+  },
+  "5.4.11": {
+   "status": "NA",
+   "evidence": "Discretionary at SWAL 3."
+  },
+  "5.4.12": {
+   "status": "P",
+   "evidence": "Results log per commit.",
+   "note": "Verification report.",
+   "severity": "S4"
+  },
+  "5.4.13": {
+   "status": "P",
+   "evidence": "Clean-clone rebuild verified; no tags.",
+   "note": "Tagged, reproducible releases.",
+   "severity": "S4"
+  },
+  "5.5.x": {
+   "status": "N",
+   "evidence": "No operational validation.",
+   "note": "Validation with operational users.",
+   "severity": "S3"
+  },
+  "5.6.x": {
+   "status": "N",
+   "evidence": "No joint reviews.",
+   "note": "Review minutes with the customer.",
+   "severity": "S3"
+  },
+  "5.7.2–5.7.4": {
+   "status": "P",
+   "evidence": "Self-assessment only.",
+   "note": "Independent audit.",
+   "severity": "S4"
+  },
+  "5.8.x": {
+   "status": "P",
+   "evidence": "Issue template exists; no reports raised.",
+   "note": "Log all known limitations as issues.",
+   "severity": "S4"
+  },
+  "6.1.x": {
+   "status": "P",
+   "evidence": "Plans and tasks tracked informally.",
+   "note": "Project management records.",
+   "severity": "S4"
+  },
+  "6.2.x": {
+   "status": "P",
+   "evidence": "CI and hosting defined in the config index.",
+   "note": "Infrastructure definition.",
+   "severity": "S4"
+  },
+  "6.3.x": {
+   "status": "P",
+   "evidence": "Lessons fed back into gates.",
+   "note": "Improvement records.",
+   "severity": "S4"
+  },
+  "6.4.x": {
+   "status": "N",
+   "evidence": "No competence records.",
+   "note": "Training and competence records.",
+   "severity": "S3"
+  },
+  "7.x DE": {
+   "status": "P",
+   "evidence": "Lockfile; Node pinned in engines.",
+   "note": "Environment under CM, incl. AI agent configuration.",
+   "severity": "S4"
+  },
+  "7.x COTS": {
+   "status": "P",
+   "evidence": "Licence inventory only.",
+   "note": "COTS dossiers, SBOM, wrappers.",
+   "severity": "S4"
+  },
+  "7.x TQ": {
+   "status": "P",
+   "evidence": "Tools identified; AI assistant not formally controlled.",
+   "note": "AI-use policy: no tool credit, human review.",
+   "severity": "S4"
+  },
+  "7.x SE": {
+   "status": "N",
+   "evidence": "No service history.",
+   "note": "Service history argument where COTS credit claimed.",
+   "severity": "S3"
+  },
+  "8": {
+   "status": "P",
+   "evidence": "Folder index in the gap analysis.",
+   "note": "Software Safety Folder / SSAR.",
+   "severity": "S3"
+  }
+ },
+ "createdAt": "2026-10-14T10:00:00Z",
+ "updatedAt": "2026-10-14T11:10:00.000Z",
+ "asvsLevel": 2,
+ "secNote": "Level 2 chosen: internet-reachable demo, aggregated military-asset picture, defence-prime audience. Level 1 is the floor; L3 deferred until a customer deployment.",
+ "sec": {
+  "V1.1.1": {
+   "status": "L",
+   "evidence": "Server decodes query strings once via URL/URLSearchParams before validation.",
+   "note": "Document the canonical-decode rule in the validation spec."
+  },
+  "V1.1.2": {
+   "status": "L",
+   "evidence": "Intel HUD escapes at render time with esc(); textContent elsewhere.",
+   "note": "Confirm the 12 innerHTML sinks all escape at the last step."
+  },
+  "V1.2.1": {
+   "status": "L",
+   "evidence": "esc() for HTML element/attribute context; src/intel/markup.test.mjs injection tests.",
+   "note": "Add a lint rule or test sweep covering all 12 innerHTML sinks."
+  },
+  "V1.2.2": {
+   "status": "L",
+   "evidence": "Upstream URLs built with URL/URLSearchParams/encodeURIComponent (31 call sites)."
+  },
+  "V1.2.3": {
+   "status": "C",
+   "evidence": "All API responses built with JSON.stringify; no string-built JSON or JS."
+  },
+  "V1.2.4": {
+   "status": "NA",
+   "evidence": "No database or query language."
+  },
+  "V1.2.5": {
+   "status": "C",
+   "evidence": "No OS calls at runtime; execFileSync only in the build config (git rev-parse, fixed args)."
+  },
+  "V1.2.6": {
+   "status": "NA",
+   "evidence": "No LDAP."
+  },
+  "V1.2.7": {
+   "status": "NA",
+   "evidence": "No XPath."
+  },
+  "V1.2.8": {
+   "status": "NA",
+   "evidence": "No LaTeX."
+  },
+  "V1.2.9": {
+   "status": "L",
+   "evidence": "Search filters use plain substring matching; no user-built regular expressions found."
+  },
+  "V1.3.1": {
+   "status": "NA",
+   "evidence": "No WYSIWYG or user-authored HTML."
+  },
+  "V1.3.2": {
+   "status": "C",
+   "evidence": "No eval() or new Function() in src/ or server/ (grep, Oct 2026)."
+  },
+  "V1.3.3": {
+   "status": "L",
+   "evidence": "Feed strings treated as untrusted and escaped; coordinates and IDs parsed to numbers/hex before use."
+  },
+  "V1.3.4": {
+   "status": "NA",
+   "evidence": "No user-supplied SVG; SVGs are first-party (silhouettes, logo)."
+  },
+  "V1.3.5": {
+   "status": "NA",
+   "evidence": "No user-supplied Markdown, CSS or templates."
+  },
+  "V1.3.6": {
+   "status": "L",
+   "evidence": "Proxies call fixed upstream hosts only; no endpoint accepts a URL; fetches use redirect:'error'.",
+   "note": "Add an explicit outbound host allowlist test."
+  },
+  "V1.3.7": {
+   "status": "NA",
+   "evidence": "No server-side templating of untrusted input."
+  },
+  "V1.3.8": {
+   "status": "NA",
+   "evidence": "No JNDI."
+  },
+  "V1.3.9": {
+   "status": "NA",
+   "evidence": "No memcache."
+  },
+  "V1.3.10": {
+   "status": "L",
+   "evidence": "No printf-style format strings fed by untrusted data."
+  },
+  "V1.3.11": {
+   "status": "NA",
+   "evidence": "No mail system."
+  },
+  "V1.4.1": {
+   "status": "NA",
+   "evidence": "JavaScript runtime is memory-safe; no native code."
+  },
+  "V1.4.2": {
+   "status": "NA",
+   "evidence": "JavaScript runtime is memory-safe; no native code."
+  },
+  "V1.4.3": {
+   "status": "NA",
+   "evidence": "JavaScript runtime is memory-safe; no native code."
+  },
+  "V1.5.1": {
+   "status": "NA",
+   "evidence": "No XML parsing of untrusted data (DOMParser used only on the first-party logo SVG)."
+  },
+  "V1.5.2": {
+   "status": "C",
+   "evidence": "Only JSON.parse of upstream data; no object deserialization or type hints."
+  },
+  "V2.1.1": {
+   "status": "P",
+   "evidence": "Validation exists in code (400 on bad hex, callsign, coordinates, cyclone query) but rules are not documented.",
+   "note": "Write an input-validation spec per API endpoint (types, ranges, lengths).",
+   "severity": "SM"
+  },
+  "V2.1.2": {
+   "status": "P",
+   "evidence": "Combined-field checks exist in code (bbox, route coords); not documented.",
+   "note": "Add to the validation spec.",
+   "severity": "SL"
+  },
+  "V2.1.3": {
+   "status": "P",
+   "evidence": "Rate limits and provider budgets described in CONFIGURATION-INDEX; no per-client/global limit policy.",
+   "note": "Document per-client and global limits for each cost-bearing proxy.",
+   "severity": "SM"
+  },
+  "V2.2.1": {
+   "status": "L",
+   "evidence": "Positive validation on IDs (hex, callsign regex), numeric ranges on lat/lon/zoom; 400 responses.",
+   "note": "Cover remaining endpoints in tests."
+  },
+  "V2.2.2": {
+   "status": "C",
+   "evidence": "All validation enforced server-side in server/providers; client checks are UX only."
+  },
+  "V2.2.3": {
+   "status": "L",
+   "evidence": "Route and bbox combinations bounded (coordinate count, area)."
+  },
+  "V2.3.1": {
+   "status": "NA",
+   "evidence": "No multi-step business flows."
+  },
+  "V2.3.2": {
+   "status": "P",
+   "evidence": "Limits exist but per-IP rate limiting is opt-in and off by default.",
+   "note": "Turn rate limiting on by default in production config.",
+   "severity": "SM"
+  },
+  "V2.3.3": {
+   "status": "NA",
+   "evidence": "No transactional operations."
+  },
+  "V2.3.4": {
+   "status": "NA",
+   "evidence": "No limited-quantity resources."
+  },
+  "V2.4.1": {
+   "status": "P",
+   "evidence": "Opt-in per-IP limiter (default unlimited); cost-bearing Google proxies callable by anyone with the URL.",
+   "note": "Enable limits by default; add global quota caps and alerting on provider spend.",
+   "severity": "SH"
+  },
+  "V3.2.1": {
+   "status": "P",
+   "evidence": "API responses set Content-Type; no X-Content-Type-Options or CSP sandboxing.",
+   "note": "Add nosniff and a CSP (see V3.4.3, V3.4.4).",
+   "severity": "SM"
+  },
+  "V3.2.2": {
+   "status": "L",
+   "evidence": "Text rendered with textContent or esc(); markup tests cover hostile feed strings."
+  },
+  "V3.3.1": {
+   "status": "NA",
+   "evidence": "The app sets no cookies."
+  },
+  "V3.3.2": {
+   "status": "NA",
+   "evidence": "The app sets no cookies."
+  },
+  "V3.3.3": {
+   "status": "NA",
+   "evidence": "The app sets no cookies."
+  },
+  "V3.3.4": {
+   "status": "NA",
+   "evidence": "The app sets no cookies."
+  },
+  "V3.4.1": {
+   "status": "N",
+   "evidence": "No Strict-Transport-Security header set by the app; edge behaviour on Replit unverified.",
+   "note": "Set HSTS (max-age >= 1 year) in server headers or at the edge.",
+   "severity": "SM"
+  },
+  "V3.4.2": {
+   "status": "L",
+   "evidence": "Vite 6 default CORS (localhost origins only); no wildcard Access-Control-Allow-Origin.",
+   "note": "Set an explicit CORS policy for production."
+  },
+  "V3.4.3": {
+   "status": "N",
+   "evidence": "CSP is frame-ancestors only; no script-src/object-src/base-uri (SECURITY.md known gap 2).",
+   "note": "Ship a script-src CSP (nonces or hashes) after moving inline HTML templates.",
+   "severity": "SH"
+  },
+  "V3.4.4": {
+   "status": "N",
+   "evidence": "X-Content-Type-Options: nosniff not set.",
+   "note": "Add nosniff to server.headers.",
+   "severity": "SM"
+  },
+  "V3.4.5": {
+   "status": "P",
+   "evidence": "No explicit Referrer-Policy; browser default strict-origin-when-cross-origin applies.",
+   "note": "Set Referrer-Policy: strict-origin-when-cross-origin explicitly.",
+   "severity": "SL"
+  },
+  "V3.4.6": {
+   "status": "C",
+   "evidence": "frame-ancestors 'none' plus X-Frame-Options DENY on every response (build/vite.js; viteBuild test)."
+  },
+  "V3.5.1": {
+   "status": "L",
+   "evidence": "No state-changing functions; quota-burn via cross-site calls tracked under V2.4.1."
+  },
+  "V3.5.2": {
+   "status": "NA",
+   "evidence": "Does not rely on CORS preflight for protection."
+  },
+  "V3.5.3": {
+   "status": "C",
+   "evidence": "Read-only GET endpoints; Places proxy rejects other methods (405)."
+  },
+  "V3.5.4": {
+   "status": "C",
+   "evidence": "Single application on its own hostname."
+  },
+  "V3.5.5": {
+   "status": "NA",
+   "evidence": "No postMessage listeners."
+  },
+  "V3.7.1": {
+   "status": "C",
+   "evidence": "Current CesiumJS and evergreen browsers; no Flash, Java or similar."
+  },
+  "V3.7.2": {
+   "status": "C",
+   "evidence": "No automatic redirects to external hosts."
+  },
+  "V4.1.1": {
+   "status": "L",
+   "evidence": "JSON and text responses set Content-Type; charset not always explicit.",
+   "note": "Add charset=utf-8 to JSON responses."
+  },
+  "V4.1.3": {
+   "status": "C",
+   "evidence": "Rate limiter keys on socket address and ignores client-supplied X-Forwarded-For."
+  },
+  "V4.2.1": {
+   "status": "L",
+   "evidence": "Node http parser handles message boundaries; request bodies size-capped (Overpass 24 KB)."
+  },
+  "V4.3.1": {
+   "status": "NA",
+   "evidence": "No GraphQL."
+  },
+  "V4.3.2": {
+   "status": "NA",
+   "evidence": "No GraphQL."
+  },
+  "V4.4.1": {
+   "status": "C",
+   "evidence": "Only WebSocket is server-side to wss://stream.aisstream.io; key never reaches the browser."
+  },
+  "V4.4.2": {
+   "status": "NA",
+   "evidence": "No inbound WebSocket endpoint."
+  },
+  "V4.4.3": {
+   "status": "NA",
+   "evidence": "No inbound WebSocket endpoint."
+  },
+  "V4.4.4": {
+   "status": "NA",
+   "evidence": "No inbound WebSocket endpoint."
+  },
+  "V5.1.1": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V5.2.1": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V5.2.2": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V5.2.3": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V5.3.1": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V5.3.2": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V5.4.1": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V5.4.2": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V5.4.3": {
+   "status": "NA",
+   "evidence": "No file upload, download-by-name or archive handling anywhere in the app."
+  },
+  "V6.1.1": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.1.2": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.1.3": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.1": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.2": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.3": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.4": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.5": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.6": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.7": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.8": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.9": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.10": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.11": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.2.12": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.3.1": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.3.2": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.3.3": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.3.4": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.4.1": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.4.2": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.4.3": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.4.4": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.5.1": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.5.2": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.5.3": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.5.4": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.5.5": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.6.1": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.6.2": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.6.3": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.8.1": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.8.2": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.8.3": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V6.8.4": {
+   "status": "NA",
+   "evidence": "No authentication: no accounts, passwords, MFA or IdP. Gap tracked under V8.2.1."
+  },
+  "V7.1.1": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.1.2": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.1.3": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.2.1": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.2.2": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.2.3": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.2.4": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.3.1": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.3.2": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.4.1": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.4.2": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.4.3": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.4.4": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.4.5": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.5.1": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.5.2": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.6.1": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V7.6.2": {
+   "status": "NA",
+   "evidence": "No sessions or session tokens; no cookies are set."
+  },
+  "V8.1.1": {
+   "status": "N",
+   "evidence": "No authorization model documented; the app is public-by-design (SECURITY.md known gap 1).",
+   "note": "Define roles (viewer, operator, admin) and which functions each may use.",
+   "severity": "SH"
+  },
+  "V8.1.2": {
+   "status": "NA",
+   "evidence": "No field-level data restrictions needed (public data only)."
+  },
+  "V8.2.1": {
+   "status": "N",
+   "evidence": "Every function, including cost-bearing API proxies and Exercise mode, is open to anyone with the URL.",
+   "note": "Put authentication (SSO/OIDC) in front of the app before any non-public deployment.",
+   "severity": "SH"
+  },
+  "V8.2.2": {
+   "status": "NA",
+   "evidence": "No per-user data items."
+  },
+  "V8.2.3": {
+   "status": "NA",
+   "evidence": "No per-field permissions."
+  },
+  "V8.3.1": {
+   "status": "NA",
+   "evidence": "No authorization rules exist to enforce (see V8.2.1)."
+  },
+  "V8.4.1": {
+   "status": "NA",
+   "evidence": "Single tenant."
+  },
+  "V9.1.1": {
+   "status": "NA",
+   "evidence": "No self-contained tokens (JWT etc.) are issued or accepted."
+  },
+  "V9.1.2": {
+   "status": "NA",
+   "evidence": "No self-contained tokens (JWT etc.) are issued or accepted."
+  },
+  "V9.1.3": {
+   "status": "NA",
+   "evidence": "No self-contained tokens (JWT etc.) are issued or accepted."
+  },
+  "V9.2.1": {
+   "status": "NA",
+   "evidence": "No self-contained tokens (JWT etc.) are issued or accepted."
+  },
+  "V9.2.2": {
+   "status": "NA",
+   "evidence": "No self-contained tokens (JWT etc.) are issued or accepted."
+  },
+  "V9.2.3": {
+   "status": "NA",
+   "evidence": "No self-contained tokens (JWT etc.) are issued or accepted."
+  },
+  "V9.2.4": {
+   "status": "NA",
+   "evidence": "No self-contained tokens (JWT etc.) are issued or accepted."
+  },
+  "V10.1.1": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.1.2": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.2.1": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.2.2": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.3.1": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.3.2": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.3.3": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.3.4": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.1": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.2": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.3": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.4": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.5": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.6": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.7": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.8": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.9": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.10": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.4.11": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.5.1": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.5.2": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.5.3": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.5.4": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.5.5": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.6.1": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.6.2": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.7.1": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.7.2": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V10.7.3": {
+   "status": "NA",
+   "evidence": "No OAuth or OIDC client, resource server or authorization server."
+  },
+  "V11.1.1": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.1.2": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.2.1": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.2.2": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.2.3": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.3.1": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.3.2": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.3.3": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.4.1": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.4.2": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.4.3": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.4.4": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.5.1": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V11.6.1": {
+   "status": "NA",
+   "evidence": "No application-level cryptography; TLS is provided by Node and the hosting edge."
+  },
+  "V12.1.3": {
+   "status": "NA",
+   "evidence": "No mTLS."
+  },
+  "V12.2.1": {
+   "status": "L",
+   "evidence": "Served over HTTPS on Replit; HTTP fallback behaviour at the edge not verified.",
+   "note": "Confirm HTTP->HTTPS redirect and HSTS at the edge."
+  },
+  "V12.2.2": {
+   "status": "C",
+   "evidence": "Replit-managed publicly trusted certificate."
+  },
+  "V12.3.1": {
+   "status": "C",
+   "evidence": "All upstream calls use https:// or wss:// (grep of server/providers)."
+  },
+  "V12.3.2": {
+   "status": "C",
+   "evidence": "Node default certificate validation; NODE_TLS_REJECT_UNAUTHORIZED not overridden."
+  },
+  "V12.3.3": {
+   "status": "NA",
+   "evidence": "Single process; no internal HTTP services."
+  },
+  "V12.3.4": {
+   "status": "NA",
+   "evidence": "No internal services."
+  },
+  "V13.1.1": {
+   "status": "L",
+   "evidence": "docs/DATA_SOURCES.md lists every upstream with licence flags; failure behaviour in KNOWN-LIMITATIONS."
+  },
+  "V13.2.1": {
+   "status": "NA",
+   "evidence": "No backend-to-backend components."
+  },
+  "V13.2.2": {
+   "status": "NA",
+   "evidence": "No backend components or data layers."
+  },
+  "V13.2.3": {
+   "status": "NA",
+   "evidence": "Only third-party API keys; no default credentials."
+  },
+  "V13.2.4": {
+   "status": "L",
+   "evidence": "Upstream hosts hard-coded per provider; no generic fetch endpoint.",
+   "note": "Centralise the host list as an explicit allowlist."
+  },
+  "V13.2.5": {
+   "status": "P",
+   "evidence": "No egress restriction at the server or platform level.",
+   "note": "Restrict outbound egress to the documented hosts where hosting allows.",
+   "severity": "SL"
+  },
+  "V13.3.1": {
+   "status": "P",
+   "evidence": "Secrets in Replit Secrets/env; .env.example names only; no vault, rotation or expiry.",
+   "note": "Move to a managed secret store with rotation for the production deployment.",
+   "severity": "SM"
+  },
+  "V13.3.2": {
+   "status": "P",
+   "evidence": "Server keys stay server-side, but GOOGLE_MAPS_API_KEY and CESIUM_ION_TOKEN are bundled to the browser by design.",
+   "note": "Restrict browser keys by HTTP referrer and API; verify in the Google and Cesium consoles.",
+   "severity": "SM"
+  },
+  "V13.4.1": {
+   "status": "C",
+   "evidence": "Production serves dist/ only via vite preview; fs.deny blocks .git, .env, keys."
+  },
+  "V13.4.2": {
+   "status": "L",
+   "evidence": "Production uses vite preview (no dev server/HMR); ?fps overlay remains available.",
+   "note": "Gate ?fps and debug handles behind a build flag."
+  },
+  "V13.4.3": {
+   "status": "C",
+   "evidence": "No directory listings (sirv static server)."
+  },
+  "V13.4.4": {
+   "status": "L",
+   "evidence": "Node http has no TRACE handler; unhandled methods fall through to static/404.",
+   "note": "Reject TRACE explicitly."
+  },
+  "V13.4.5": {
+   "status": "P",
+   "evidence": "window.__godsEyeView debug handle exposed in production builds.",
+   "note": "Remove or gate the debug handle in production.",
+   "severity": "SL"
+  },
+  "V14.1.1": {
+   "status": "N",
+   "evidence": "No data classification. Public OSINT, but aggregated military tracks may be sensitive to a defence customer.",
+   "note": "Classify data (public, aggregated-sensitive, simulated) and record handling rules.",
+   "severity": "SM"
+  },
+  "V14.1.2": {
+   "status": "N",
+   "evidence": "No protection requirements per level.",
+   "note": "Define per-class requirements (retention, caching, export).",
+   "severity": "SM"
+  },
+  "V14.2.1": {
+   "status": "L",
+   "evidence": "No user data; our URLs carry no secrets (Google Maps JS loads its browser key by design)."
+  },
+  "V14.2.2": {
+   "status": "NA",
+   "evidence": "No sensitive data defined (see V14.1.1)."
+  },
+  "V14.2.3": {
+   "status": "C",
+   "evidence": "No analytics or third-party trackers."
+  },
+  "V14.2.4": {
+   "status": "NA",
+   "evidence": "No sensitive data defined."
+  },
+  "V14.3.1": {
+   "status": "NA",
+   "evidence": "No authenticated data."
+  },
+  "V14.3.2": {
+   "status": "NA",
+   "evidence": "No sensitive responses."
+  },
+  "V14.3.3": {
+   "status": "C",
+   "evidence": "localStorage holds layer preferences only."
+  },
+  "V15.1.1": {
+   "status": "N",
+   "evidence": "No documented remediation time frames for vulnerable components.",
+   "note": "Add a patch SLA to SECURITY.md (e.g. critical 7 days, high 30).",
+   "severity": "SM"
+  },
+  "V15.1.2": {
+   "status": "N",
+   "evidence": "No SBOM; package-lock.json only.",
+   "note": "Generate a CycloneDX SBOM in CI and keep it with each release.",
+   "severity": "SM"
+  },
+  "V15.1.3": {
+   "status": "P",
+   "evidence": "KNOWN-LIMITATIONS and provider budgets cover upstream cost; no list of resource-heavy endpoints.",
+   "note": "Document heavy endpoints (Overpass, routes, tracks) and their limits.",
+   "severity": "SL"
+  },
+  "V15.2.1": {
+   "status": "N",
+   "evidence": "No dependency vulnerability scanning in CI (SECURITY.md known gap 4); state cannot be shown.",
+   "note": "Add npm audit and Dependabot; fail CI on high/critical.",
+   "severity": "SH"
+  },
+  "V15.2.2": {
+   "status": "L",
+   "evidence": "Capped upstream reads (readCappedResponseText), timeouts, caches, request coalescing."
+  },
+  "V15.2.3": {
+   "status": "L",
+   "evidence": "Exercise mode is fictional and labelled; debug overlays remain (see V13.4.5)."
+  },
+  "V15.3.1": {
+   "status": "L",
+   "evidence": "Most proxies reshape upstream payloads to required fields; some pass through.",
+   "note": "Trim pass-through responses."
+  },
+  "V15.3.2": {
+   "status": "L",
+   "evidence": "redirect:'error' on most outbound fetches.",
+   "note": "Apply to every outbound fetch."
+  },
+  "V15.3.3": {
+   "status": "NA",
+   "evidence": "No object binding from requests."
+  },
+  "V15.3.4": {
+   "status": "P",
+   "evidence": "Limiter ignores X-Forwarded-For, so behind the Replit proxy every client may share one bucket.",
+   "note": "Trust the platform's forwarded header only from the known proxy hop.",
+   "severity": "SM"
+  },
+  "V15.3.5": {
+   "status": "L",
+   "evidence": "Strict equality and Number.isFinite checks on parsed inputs."
+  },
+  "V15.3.6": {
+   "status": "L",
+   "evidence": "Map/Set for keyed state in hot paths; some object-literal lookups keyed by feed data.",
+   "note": "Use Map or Object.create(null) where keys come from feeds."
+  },
+  "V15.3.7": {
+   "status": "L",
+   "evidence": "searchParams.get() takes the first value; duplicate params ignored."
+  },
+  "V16.1.1": {
+   "status": "N",
+   "evidence": "No log inventory.",
+   "note": "Document what each layer logs, where, and retention.",
+   "severity": "SM"
+  },
+  "V16.2.1": {
+   "status": "P",
+   "evidence": "console.warn/error lines carry provider and reason, but no structured when/where metadata.",
+   "note": "Adopt structured JSON logs with timestamp and request id.",
+   "severity": "SL"
+  },
+  "V16.2.2": {
+   "status": "P",
+   "evidence": "Relies on platform timestamps; no explicit UTC in log lines.",
+   "note": "Emit ISO-8601 UTC timestamps.",
+   "severity": "SL"
+  },
+  "V16.2.3": {
+   "status": "L",
+   "evidence": "Logs go to stdout only."
+  },
+  "V16.2.4": {
+   "status": "P",
+   "evidence": "Free-text console logs; no common format.",
+   "note": "Use JSON lines.",
+   "severity": "SL"
+  },
+  "V16.2.5": {
+   "status": "L",
+   "evidence": "API keys are never logged (key names only in error messages)."
+  },
+  "V16.3.1": {
+   "status": "NA",
+   "evidence": "No authentication operations."
+  },
+  "V16.3.2": {
+   "status": "NA",
+   "evidence": "No authorization decisions."
+  },
+  "V16.3.3": {
+   "status": "N",
+   "evidence": "No security events defined or logged (rate-limit hits, validation rejects).",
+   "note": "Log rate-limit and validation rejects as security events.",
+   "severity": "SM"
+  },
+  "V16.3.4": {
+   "status": "L",
+   "evidence": "Upstream failures and TLS errors logged via console.warn with provider context."
+  },
+  "V16.4.1": {
+   "status": "P",
+   "evidence": "Some feed-derived strings logged without encoding.",
+   "note": "Encode or JSON-stringify untrusted values in logs.",
+   "severity": "SL"
+  },
+  "V16.4.2": {
+   "status": "P",
+   "evidence": "Logs protected only by platform access control; not tamper-evident.",
+   "note": "Ship logs to an append-only store.",
+   "severity": "SL"
+  },
+  "V16.4.3": {
+   "status": "N",
+   "evidence": "No log shipping to a separate system.",
+   "note": "Forward logs to a SIEM or log service with alerting.",
+   "severity": "SM"
+  },
+  "V16.5.1": {
+   "status": "L",
+   "evidence": "Generic error strings returned (invalid hex, rate limit exceeded); no stack traces.",
+   "note": "Review route-error passthrough of upstream messages."
+  },
+  "V16.5.2": {
+   "status": "C",
+   "evidence": "Fallbacks, AIS watchdog, retryable loads and degraded states when feeds fail."
+  },
+  "V16.5.3": {
+   "status": "L",
+   "evidence": "Invalid input rejected before processing; failures render an empty layer, not stale-as-fresh."
+  },
+  "V17.1.1": {
+   "status": "NA",
+   "evidence": "No WebRTC, TURN or media server."
+  },
+  "V17.2.1": {
+   "status": "NA",
+   "evidence": "No WebRTC, TURN or media server."
+  },
+  "V17.2.2": {
+   "status": "NA",
+   "evidence": "No WebRTC, TURN or media server."
+  },
+  "V17.2.3": {
+   "status": "NA",
+   "evidence": "No WebRTC, TURN or media server."
+  },
+  "V17.2.4": {
+   "status": "NA",
+   "evidence": "No WebRTC, TURN or media server."
+  },
+  "V17.3.1": {
+   "status": "NA",
+   "evidence": "No WebRTC, TURN or media server."
+  },
+  "V17.3.2": {
+   "status": "NA",
+   "evidence": "No WebRTC, TURN or media server."
+  }
+ },
+ "ai": {
+  "C4.1": {
+   "status": "N",
+   "evidence": "No analysis of the organisation’s context for AI (purpose, climate, legal and contractual factors).",
+   "note": "Write the AI context statement as part of the AIMS manual.",
+   "severity": "SM"
+  },
+  "C4.2": {
+   "status": "N",
+   "evidence": "Interested parties (operators, customer, regulators, people under surveillance) and their AI expectations are not listed.",
+   "note": "Register interested parties and their requirements.",
+   "severity": "SM"
+  },
+  "C4.3": {
+   "status": "N",
+   "evidence": "No defined scope for an AI management system: which AI uses (Director, narration, AI coding, HENRI) are covered is undecided.",
+   "note": "Define and document the AIMS scope and its boundaries.",
+   "severity": "SH"
+  },
+  "C4.4": {
+   "status": "N",
+   "evidence": "No AI management system exists.",
+   "note": "Establish the AIMS: manual, processes and their interactions.",
+   "severity": "SM"
+  },
+  "C5.1": {
+   "status": "P",
+   "evidence": "Owner approval of the remediation plan shows commitment, but no AI-specific leadership commitment is recorded.",
+   "note": "Record leadership commitment and resourcing for the AIMS.",
+   "severity": "SM"
+  },
+  "C5.2": {
+   "status": "N",
+   "evidence": "No AI policy.",
+   "note": "Issue an AI policy: purpose, advisory-only boundary, principles, commitments to requirements and improvement.",
+   "severity": "SH"
+  },
+  "C5.3": {
+   "status": "N",
+   "evidence": "No AI roles or authorities assigned.",
+   "note": "Assign AIMS owner, AI risk owner and approver roles.",
+   "severity": "SM"
+  },
+  "C6.1.1": {
+   "status": "N",
+   "evidence": "AI risks and opportunities are not planned for.",
+   "note": "Plan actions on AI risks and opportunities in the AIMS.",
+   "severity": "SM"
+  },
+  "C6.1.2": {
+   "status": "N",
+   "evidence": "No AI risk assessment (e.g. a wrong automated announcement, misleading narration, unreviewed AI-written code).",
+   "note": "Run and document an AI risk assessment with criteria.",
+   "severity": "SH"
+  },
+  "C6.1.3": {
+   "status": "P",
+   "evidence": "The CrossCheck remediation plan treats safety and security risks; AI-specific risks have no treatment plan.",
+   "note": "Add AI risk treatment and a statement of applicability for Annex A.",
+   "severity": "SM"
+  },
+  "C6.1.4": {
+   "status": "N",
+   "evidence": "No AI system impact assessment for the people and groups affected by the display and its announcements.",
+   "note": "Assess and document impacts on individuals, groups and society.",
+   "severity": "SH"
+  },
+  "C6.2": {
+   "status": "N",
+   "evidence": "No measurable AI objectives.",
+   "note": "Set AI objectives with measures and owners.",
+   "severity": "SM"
+  },
+  "C6.3": {
+   "status": "P",
+   "evidence": "Changes are tracked (changelog, configuration index, evidence ledger) but not assessed for AI effects.",
+   "note": "Add an AI impact check to change planning.",
+   "severity": "SL"
+  },
+  "C7.1": {
+   "status": "P",
+   "evidence": "Engineering resources exist; none allocated to the AIMS.",
+   "note": "Allocate AIMS resources.",
+   "severity": "SL"
+  },
+  "C7.2": {
+   "status": "N",
+   "evidence": "AI competence of the people building and using the system is not defined or evidenced.",
+   "note": "Define AI competence needs and keep training records.",
+   "severity": "SL"
+  },
+  "C7.3": {
+   "status": "N",
+   "evidence": "No AI awareness for staff (policy, their contribution, consequences of non-conformity).",
+   "note": "Brief everyone working on the system on the AI policy.",
+   "severity": "SL"
+  },
+  "C7.4": {
+   "status": "N",
+   "evidence": "No AI communication plan.",
+   "note": "Decide what is communicated about AI, to whom and when.",
+   "severity": "SL"
+  },
+  "C7.5": {
+   "status": "L",
+   "evidence": "Controlled documents exist (requirements, verification, configuration index, evidence ledger).",
+   "note": "Bring AIMS records under the same control."
+  },
+  "C8.1": {
+   "status": "P",
+   "evidence": "CI gates and traceability control the build, but AI-specific operational controls are not defined.",
+   "note": "Define operational controls for AI features and AI-assisted development.",
+   "severity": "SM"
+  },
+  "C8.2": {
+   "status": "N",
+   "evidence": "AI risk assessments are not performed at planned intervals.",
+   "note": "Schedule AI risk reassessment.",
+   "severity": "SM"
+  },
+  "C8.3": {
+   "status": "N",
+   "evidence": "No AI risk treatment in operation.",
+   "note": "Implement and track AI risk treatment.",
+   "severity": "SM"
+  },
+  "C8.4": {
+   "status": "N",
+   "evidence": "Impact assessments are not repeated on change.",
+   "note": "Repeat impact assessment on significant change.",
+   "severity": "SM"
+  },
+  "C9.1": {
+   "status": "N",
+   "evidence": "AI performance (announcement accuracy, false alerts, feed staleness) is not measured.",
+   "note": "Define and collect AI performance measures.",
+   "severity": "SM"
+  },
+  "C9.2": {
+   "status": "P",
+   "evidence": "The CrossCheck audit is an internal audit, but there is no AIMS audit programme.",
+   "note": "Plan internal AIMS audits; keep CrossCheck as the method.",
+   "severity": "SM"
+  },
+  "C9.3": {
+   "status": "N",
+   "evidence": "No management review of AI.",
+   "note": "Hold and minute AIMS management reviews.",
+   "severity": "SL"
+  },
+  "C10.1": {
+   "status": "P",
+   "evidence": "The audit-to-compliance pipeline shows continual improvement for safety and security.",
+   "note": "Extend it to the AIMS.",
+   "severity": "SL"
+  },
+  "C10.2": {
+   "status": "P",
+   "evidence": "Findings are tracked to closure in the evidence ledger; no AI nonconformity process.",
+   "note": "Handle AI nonconformities through the same ledger.",
+   "severity": "SM"
+  },
+  "A.2.2": {
+   "status": "N",
+   "evidence": "No documented AI policy.",
+   "note": "Issue the AI policy (shared with clause 5.2).",
+   "severity": "SH"
+  },
+  "A.2.3": {
+   "status": "N",
+   "evidence": "AI policy alignment with security, privacy and ethics rules not shown.",
+   "note": "Map the AI policy to existing policies.",
+   "severity": "SL"
+  },
+  "A.2.4": {
+   "status": "N",
+   "evidence": "No review cycle for an AI policy.",
+   "note": "Review the AI policy at planned intervals.",
+   "severity": "SL"
+  },
+  "A.3.2": {
+   "status": "N",
+   "evidence": "Nobody is accountable for AI decisions in the product.",
+   "note": "Name AI roles (shared with 5.3).",
+   "severity": "SM"
+  },
+  "A.3.3": {
+   "status": "P",
+   "evidence": "SECURITY.md gives a vulnerability route; there is no route for AI concerns.",
+   "note": "Add an AI concern reporting route.",
+   "severity": "SM"
+  },
+  "A.4.2": {
+   "status": "P",
+   "evidence": "Dependencies and configuration are documented; AI components are not identified as such.",
+   "note": "Document AI resources in an AI system inventory.",
+   "severity": "SM"
+  },
+  "A.4.3": {
+   "status": "L",
+   "evidence": "Every feed is listed with licence and commercial-use flag (DATA_SOURCES.md).",
+   "note": "Add data-quality notes per feed used for automated decisions."
+  },
+  "A.4.4": {
+   "status": "P",
+   "evidence": "AI coding tools (Claude, Replit Agent) are visible in commit trailers but not documented as tooling with versions and limits.",
+   "note": "Document AI tooling, versions and permitted use.",
+   "severity": "SM"
+  },
+  "A.4.5": {
+   "status": "P",
+   "evidence": "Hosting is known (Replit) but computing resources for AI features are not documented.",
+   "note": "Document system and computing resources.",
+   "severity": "SL"
+  },
+  "A.4.6": {
+   "status": "N",
+   "evidence": "Human resources and competence for AI are not documented.",
+   "note": "Record people, roles and competence.",
+   "severity": "SL"
+  },
+  "A.5.2": {
+   "status": "N",
+   "evidence": "No process to assess the impact of AI features (shared with 6.1.4).",
+   "note": "Define the impact assessment process.",
+   "severity": "SH"
+  },
+  "A.5.3": {
+   "status": "N",
+   "evidence": "No impact assessments on record.",
+   "note": "Keep impact assessments as documented information.",
+   "severity": "SM"
+  },
+  "A.5.4": {
+   "status": "P",
+   "evidence": "Principles exist (no person dossiers, generic ownership, SIMULATED labels) but impacts on individuals are not assessed.",
+   "note": "Assess impacts on individuals and groups, building on the existing guardrails.",
+   "severity": "SM"
+  },
+  "A.5.5": {
+   "status": "N",
+   "evidence": "Societal effects of a public military-asset picture with automated announcements are not assessed.",
+   "note": "Assess societal and dual-use impacts.",
+   "severity": "SM"
+  },
+  "A.6.1.2": {
+   "status": "P",
+   "evidence": "Ethics guardrails are stated in the README (non-kinetic, no dossiers, FEED/SIMULATED tags) but not as formal objectives.",
+   "note": "Turn the guardrails into responsible-development objectives.",
+   "severity": "SM"
+  },
+  "A.6.1.3": {
+   "status": "P",
+   "evidence": "CI gates and traceability apply to all code; AI-generated changes have no specific review rule.",
+   "note": "Require human review and tests for AI-generated changes.",
+   "severity": "SM"
+  },
+  "A.6.2.2": {
+   "status": "L",
+   "evidence": "Director and intel behaviour are specified (GEV-DIR-*, GEV-INT-*).",
+   "note": "Add AI-specific requirements (accuracy, disclosure, override)."
+  },
+  "A.6.2.3": {
+   "status": "L",
+   "evidence": "Architecture and decisions are documented.",
+   "note": "Record design decisions for AI features."
+  },
+  "A.6.2.4": {
+   "status": "P",
+   "evidence": "Director rules are unit-tested; no validation that announcements are accurate and useful.",
+   "note": "Validate announcements against feeds and with users.",
+   "severity": "SM"
+  },
+  "A.6.2.5": {
+   "status": "P",
+   "evidence": "Deployed to Replit without release criteria for AI features.",
+   "note": "Define AI release criteria.",
+   "severity": "SM"
+  },
+  "A.6.2.6": {
+   "status": "N",
+   "evidence": "AI features are not monitored in operation (false or missed announcements, stale feeds).",
+   "note": "Monitor AI features in operation (shared with feed-health telemetry).",
+   "severity": "SM"
+  },
+  "A.6.2.7": {
+   "status": "L",
+   "evidence": "Technical documentation exists (architecture, requirements, verification).",
+   "note": "Add an AI system card."
+  },
+  "A.6.2.8": {
+   "status": "N",
+   "evidence": "No event logs of what the Director announced and why.",
+   "note": "Log automated selections and announcements with their inputs.",
+   "severity": "SM"
+  },
+  "A.7.2": {
+   "status": "NA",
+   "evidence": "No model is trained or fine-tuned; decision rules use live feed values only.",
+   "note": "Revisit when HENRI or any learned model is added."
+  },
+  "A.7.3": {
+   "status": "L",
+   "evidence": "Feed data is acquired from documented sources under recorded terms.",
+   "note": "Note acquisition terms that restrict automated use."
+  },
+  "A.7.4": {
+   "status": "P",
+   "evidence": "Records are validated and stale data is flagged, but data-quality requirements for automated decisions are not set.",
+   "note": "Set data-quality requirements for decision inputs.",
+   "severity": "SM"
+  },
+  "A.7.5": {
+   "status": "L",
+   "evidence": "Provenance is shown in the app (FEED tags, source chips) and in the data-source register.",
+   "note": "Keep provenance for every announced fact."
+  },
+  "A.7.6": {
+   "status": "L",
+   "evidence": "Normalisation and admission rules are coded and tested.",
+   "note": "Document data preparation steps."
+  },
+  "A.8.2": {
+   "status": "P",
+   "evidence": "FEED/SIMULATED labels and known limitations exist, but users are not told selections and narration are automated, and the package still advertises voice control that is not shipped.",
+   "note": "Disclose automated selection and synthetic narration; correct the package description.",
+   "severity": "SM"
+  },
+  "A.8.3": {
+   "status": "N",
+   "evidence": "No external reporting obligations identified for AI.",
+   "note": "Identify external reporting duties.",
+   "severity": "SL"
+  },
+  "A.8.4": {
+   "status": "N",
+   "evidence": "No plan to communicate AI incidents to users or customers.",
+   "note": "Define AI incident communication.",
+   "severity": "SM"
+  },
+  "A.8.5": {
+   "status": "P",
+   "evidence": "README and runbook inform some parties; no plan for others.",
+   "note": "Plan information for interested parties.",
+   "severity": "SL"
+  },
+  "A.9.2": {
+   "status": "P",
+   "evidence": "The Director is advisory and any input hands control back, but responsible-use processes are not documented.",
+   "note": "Document responsible-use processes for operators.",
+   "severity": "SM"
+  },
+  "A.9.3": {
+   "status": "N",
+   "evidence": "No objectives for responsible use.",
+   "note": "Set responsible-use objectives.",
+   "severity": "SL"
+  },
+  "A.9.4": {
+   "status": "P",
+   "evidence": "The advisory-only, non-kinetic boundary is stated, but there is no formal intended-use statement with prohibited uses.",
+   "note": "Publish an intended-use statement, including prohibited uses.",
+   "severity": "SH"
+  },
+  "A.10.2": {
+   "status": "N",
+   "evidence": "Responsibilities between Digital Dynamics Group, AI suppliers and customers are not allocated.",
+   "note": "Allocate AI responsibilities in contracts and the AIMS.",
+   "severity": "SM"
+  },
+  "A.10.3": {
+   "status": "N",
+   "evidence": "AI suppliers (AI coding agents, a future HENRI model provider) are not assessed or managed.",
+   "note": "Assess and register AI suppliers; set terms for data and model use.",
+   "severity": "SH"
+  },
+  "A.10.4": {
+   "status": "P",
+   "evidence": "Customer-facing limitations exist; AI-specific customer obligations are not defined.",
+   "note": "Define customer AI obligations and expectations.",
+   "severity": "SM"
+  }
+ },
+ "aiScope": "God’s Eye View as an AI-enabled product: automated decision support (Director selection and announcements, triage scoring, phase inference), synthetic narration, AI-generated code and documents (Claude, Replit Agent) and the planned HENRI language-model commentator. No models are trained.",
+ "aiStandard": "ISO/IEC 42001:2023 (AI management system); clause numbers and paraphrased titles only",
+ "remediation": {
+  "stages": [
+   {
+    "id": "baseline",
+    "name": "Baseline frozen",
+    "status": "done",
+    "date": "2026-10-14",
+    "ref": "baseline/crosscheck-2026-10-14"
+   },
+   {
+    "id": "audit",
+    "name": "Audit",
+    "status": "done",
+    "date": "2026-10-14",
+    "ref": "CrossCheck assessment gev-example"
+   },
+   {
+    "id": "plan",
+    "name": "Plan issued",
+    "status": "done",
+    "date": "2026-10-14",
+    "ref": "docs/REMEDIATION-PLAN.md v0.1"
+   },
+   {
+    "id": "approve",
+    "name": "Plan approved",
+    "status": "done",
+    "date": "2026-10-14",
+    "ref": "Owner approval, Pierre Truter (Digital Dynamics Group), 14 Oct 2026 21:08 AEST"
+   },
+   {
+    "id": "wave1",
+    "name": "Wave 1 · Harden",
+    "status": "pending",
+    "date": null,
+    "ref": null
+   },
+   {
+    "id": "wave2",
+    "name": "Wave 2 · Control access",
+    "status": "pending",
+    "date": null,
+    "ref": null
+   },
+   {
+    "id": "wave3",
+    "name": "Wave 3 · Prove safety",
+    "status": "pending",
+    "date": null,
+    "ref": null
+   },
+   {
+    "id": "wave4",
+    "name": "Wave 4 · Assure and hand over",
+    "status": "pending",
+    "date": null,
+    "ref": null
+   },
+   {
+    "id": "evidence",
+    "name": "Evidence pack issued",
+    "status": "pending",
+    "date": null,
+    "ref": null
+   }
+  ],
+  "audits": [
+   {
+    "id": "A0",
+    "label": "Baseline audit",
+    "date": "2026-10-14",
+    "commit": "1518ea8",
+    "safety": {
+     "readiness": 0.3817,
+     "verdict": "SWAL 3 claim not supported",
+     "open": 72,
+     "blocking": 15
+    },
+    "security": {
+     "readiness": 0.6185,
+     "verdict": "ASVS L2 not met",
+     "open": 31,
+     "blocking": 5
+    },
+    "ai": {
+     "readiness": 0.2375,
+     "verdict": "ISO 42001 not met",
+     "open": 56,
+     "blocking": 8,
+     "date": "2026-10-15",
+     "commit": "eeadc22",
+     "note": "ISO 42001 lens added on 2026-10-15, assessed against main at eeadc22."
+    }
+   }
+  ],
+  "waves": [
+   {
+    "id": 1,
+    "name": "Harden",
+    "who": "Engineering",
+    "effort": "1 week",
+    "exit": "Every Wave 1 security finding closed except V8; re-audit",
+    "fixes": "Locks down the front end and the proxies: security headers and a strict script policy, rate limits on paid services, dependency scanning, secret hygiene, structured logs and input rules.",
+    "unlocks": "A hardened base, so company sign-in can be added in Wave 2 without building on holes."
+   },
+   {
+    "id": 2,
+    "name": "Control access",
+    "who": "Engineering + customer identity provider",
+    "effort": "1 week",
+    "exit": "ASVS Level 2 met; AI policy, AIMS scope and intended use issued; re-audit",
+    "fixes": "Adds company sign-in and roles (viewer, operator, admin), so only known people reach live data, paid services and Exercise mode. Sets up the AI management system: scope, AI policy, roles, intended use and an AI supplier register.",
+    "unlocks": "Every user known and every action attributable, so the Wave 3 safety work can be written against real roles and real use."
+   },
+   {
+    "id": 3,
+    "name": "Prove safety",
+    "who": "Safety lead, engineering, customer",
+    "effort": "2–3 weeks",
+    "exit": "No S1–S2 safety or High AI finding open",
+    "fixes": "Writes the safety evidence: hazard log, failure modes and their effects, a safety level per failure, the safety plan, requirements and verification, and feed-health monitoring. Assesses AI risks and impacts (wrong or missed announcements, effects on the people shown) and logs what the Director announces.",
+    "unlocks": "A safety argument with evidence behind it, and AI risks and impacts on record, ready for Wave 4 to review and hand over."
+   },
+   {
+    "id": 4,
+    "name": "Assure and hand over",
+    "who": "Safety lead, independent reviewer",
+    "effort": "1 week",
+    "exit": "SWAL 3 claim supported; first AIMS internal audit done; evidence pack issued",
+    "fixes": "Builds the safety case and safety folder, issues the release evidence pack, and runs the first AI management system internal audit.",
+    "unlocks": "Only steps that need people remain: validation with operational users, an independent process audit and the AI management review."
+   }
+  ],
+  "projections": {
+   "journey": [
+    {
+     "label": "Baseline",
+     "safety": 0.3817,
+     "security": 0.6185,
+     "ai": 0.2375,
+     "kind": "actual"
+    },
+    {
+     "label": "After Wave 1",
+     "safety": 0.4393,
+     "security": 0.8592,
+     "ai": 0.2375,
+     "kind": "target"
+    },
+    {
+     "label": "After Wave 2",
+     "safety": 0.4393,
+     "security": 0.8822,
+     "ai": 0.6352,
+     "kind": "target"
+    },
+    {
+     "label": "After Wave 3",
+     "safety": 0.8354,
+     "security": 0.8822,
+     "ai": 0.8961,
+     "kind": "target"
+    },
+    {
+     "label": "After Wave 4",
+     "safety": 0.8708,
+     "security": 0.8822,
+     "ai": 0.9117,
+     "kind": "target"
+    }
+   ],
+   "scenarios": [
+    {
+     "id": "A",
+     "label": "Claude + Replit + owner actions",
+     "safety": 0.8708,
+     "security": 0.8822,
+     "ai": 0.9117,
+     "safety_verdict": "Not yet supported: human-only steps remain open",
+     "security_verdict": "ASVS Level 2 met",
+     "ai_verdict": "Met with conditions: management review and an independent AIMS audit remain open",
+     "human_only": [
+      {
+       "id": "3.4.1",
+       "why": "Validation with operational users"
+      },
+      {
+       "id": "3.4.3",
+       "why": "Process assurance by someone independent of the developers"
+      },
+      {
+       "id": "5.5.x",
+       "why": "Validation with operational users"
+      },
+      {
+       "id": "5.6.x",
+       "why": "Joint reviews with the customer"
+      },
+      {
+       "id": "5.7.2–5.7.4",
+       "why": "Independent audit"
+      },
+      {
+       "id": "C9.3",
+       "why": "Management review by leadership"
+      },
+      {
+       "id": "C9.2",
+       "why": "Independent AIMS internal audit"
+      },
+      {
+       "id": "C7.2",
+       "why": "Competence evidence for the team"
+      },
+      {
+       "id": "A.4.6",
+       "why": "Human resources and competence records"
+      }
+     ]
+    },
+    {
+     "id": "B",
+     "label": "Plus customer and independent reviewer",
+     "safety": 0.9635,
+     "security": 0.8966,
+     "ai": 0.9688,
+     "safety_verdict": "SWAL 3 claim supported, ready for independent assessment",
+     "security_verdict": "ASVS Level 2 met",
+     "ai_verdict": "ISO 42001 conformity supported, ready for certification audit"
+    }
+   ],
+   "note": "Readiness = weighted score (Compliant 1, Largely 0.75, Partial 0.4, Non-compliant 0) over rated in-scope items. Verdicts follow the CrossCheck rules, not the score. New scope from sign-in (ASVS V6, V7, V9, V10) is assessed in Wave 2 and is not in these projections."
+  },
+  "workstreams": [
+   {
+    "id": "W1",
+    "name": "Web hardening",
+    "wave": 1,
+    "deliverables": [
+     "Security headers on every response: HSTS, nosniff, Referrer-Policy and a Content-Security-Policy with script-src.",
+     "Inline HTML templates moved so the policy can drop unsafe-inline.",
+     "Debug handle (window.__godsEyeView, ?fps) gated out of production builds."
+    ],
+    "evidence": "Header tests in the preview-serving suite; a browser-captured policy report.",
+    "findings": [
+     "V3.2.1",
+     "V3.4.1",
+     "V3.4.3",
+     "V3.4.4",
+     "V3.4.5",
+     "V13.4.5"
+    ]
+   },
+   {
+    "id": "W2",
+    "name": "Abuse resistance and availability",
+    "wave": 1,
+    "deliverables": [
+     "Rate limiting on by default for every cost-bearing proxy, with global caps.",
+     "Client IP taken from the forwarded header only when the request comes through the known proxy hop.",
+     "Heavy endpoints and resource budgets (frame time, memory, latency) documented."
+    ],
+    "evidence": "Limiter tests; a load test against the deployed app.",
+    "findings": [
+     "V2.4.1",
+     "V2.3.2",
+     "V15.3.4",
+     "V2.1.3",
+     "V15.1.3",
+     "4.3.13"
+    ]
+   },
+   {
+    "id": "W3",
+    "name": "Supply chain and secrets",
+    "wave": 1,
+    "deliverables": [
+     "npm audit and Dependabot in CI; CI fails on High or Critical.",
+     "CycloneDX software bill of materials (SBOM) for each release; patch time limits in SECURITY.md.",
+     "COTS dossiers: CesiumJS, satellite.js, Node, browsers, Replit, each data feed.",
+     "Browser keys restricted by referrer and API (owner action); secrets in a managed store with rotation."
+    ],
+    "evidence": "CI logs; SBOM file; dossiers; console screenshots.",
+    "findings": [
+     "V15.2.1",
+     "V15.1.1",
+     "V15.1.2",
+     "V13.3.1",
+     "V13.3.2",
+     "V13.2.5",
+     "3.0.13",
+     "7.x COTS",
+     "7.x SE",
+     "4.3.10"
+    ]
+   },
+   {
+    "id": "W4",
+    "name": "Logging and monitoring",
+    "wave": 1,
+    "deliverables": [
+     "Structured JSON logs with UTC timestamps and request IDs; untrusted values encoded.",
+     "Security events logged: rate-limit hits, validation rejects.",
+     "Log inventory; logs forwarded to a separate store with alerting (Wave 2).",
+     "Feed-health telemetry mapped to the SWAL monitoring objective."
+    ],
+    "evidence": "Logger tests; log inventory; an alert fired in test.",
+    "findings": [
+     "V16.1.1",
+     "V16.3.3",
+     "V16.4.3",
+     "V16.2.1",
+     "V16.2.2",
+     "V16.2.4",
+     "V16.4.1",
+     "V16.4.2",
+     "3.0.11",
+     "4.4.5",
+     "4.4.4"
+    ]
+   },
+   {
+    "id": "W5",
+    "name": "Access control",
+    "wave": 2,
+    "deliverables": [
+     "Sign-in through an external identity provider (OIDC); roles viewer, operator, admin.",
+     "Server-side checks on every function; paid proxies need operator; Exercise mode needs an explicit role.",
+     "Session timeout and logout; authorization model documented."
+    ],
+    "evidence": "Access-control test matrix (role × endpoint); CrossCheck assessment of the new V6, V7, V9 and V10 rows.",
+    "findings": [
+     "V8.1.1",
+     "V8.2.1"
+    ]
+   },
+   {
+    "id": "W6",
+    "name": "Data and validation rules",
+    "wave": 1,
+    "deliverables": [
+     "Input-validation specification per API endpoint: types, ranges, lengths, combined-field rules.",
+     "Data classification (public, aggregated-sensitive, simulated) with handling rules for caching, export and retention."
+    ],
+    "evidence": "Both documents, each validation rule traced to an existing test.",
+    "findings": [
+     "V2.1.1",
+     "V2.1.2",
+     "V14.1.1",
+     "V14.1.2"
+    ]
+   },
+   {
+    "id": "W7",
+    "name": "Safety analysis",
+    "wave": 3,
+    "deliverables": [
+     "Concept of operations: users, environment, advisory-only boundary.",
+     "Functional hazard assessment: failure modes per component, effects on the operator, justified likelihood.",
+     "SWAL allocation per failure; preliminary system safety assessment.",
+     "Safety requirements (GEV-SAF tier) traced into the SRS."
+    ],
+    "evidence": "Versioned analysis documents reviewed with the customer.",
+    "findings": [
+     "3.1.2",
+     "3.1.5",
+     "4.1.2",
+     "3.3.1",
+     "3.3.2",
+     "3.3.3",
+     "3.0.5",
+     "3.3.5",
+     "4.1.3",
+     "3.3.4"
+    ]
+   },
+   {
+    "id": "W8",
+    "name": "Safety plan, process and configuration management",
+    "wave": 3,
+    "deliverables": [
+     "Software safety assessment plan: approach, rigour per SWAL, I/R/D classification, named reviewer sign-off.",
+     "Development plan with an AI-assistance policy: no tool credit, human review of every AI change.",
+     "Configuration management plan: protected main, reviews, tagged releases, CI-built artifact with build stamp, tested rollback.",
+     "Change-impact template; requirement change control through issues; QA role and audits.",
+     "Problem-report process (known limitations logged as issues); operations and maintenance plans; training records."
+    ],
+    "evidence": "Approved plans; repository settings evidence; release records.",
+    "findings": [
+     "3.0.1",
+     "3.2.1",
+     "3.2.2",
+     "3.2.3",
+     "3.2.4",
+     "3.0.8",
+     "3.0.9",
+     "3.4.3",
+     "4.2.4",
+     "4.3.3",
+     "4.3.11",
+     "3.0.7",
+     "5.2.1",
+     "5.2.3",
+     "5.2.x",
+     "5.4.13",
+     "3.0.12",
+     "3.0.15",
+     "4.4.1",
+     "4.5.1",
+     "4.5.2",
+     "4.5.3",
+     "5.3.x",
+     "5.8.x",
+     "6.1.x",
+     "6.2.x",
+     "6.3.x",
+     "6.4.x",
+     "7.x DE"
+    ]
+   },
+   {
+    "id": "W9",
+    "name": "Requirements, verification and validation",
+    "wave": 3,
+    "deliverables": [
+     "Reviewed and approved SRS covering the inherited layer engine; traceability widened from 56 requirements.",
+     "Dead-code review (remove /api/route); isolation argument per first-level component.",
+     "Integration tests at every component boundary; feed-integrity and outage tests.",
+     "Architecture review record; verification report; validation with operational users; joint reviews; user guide."
+    ],
+    "evidence": "Review records, test reports, validation minutes.",
+    "findings": [
+     "3.0.2",
+     "3.0.3",
+     "3.0.4",
+     "3.0.14",
+     "4.3.1",
+     "4.3.4",
+     "4.3.7",
+     "4.3.14",
+     "3.4.2",
+     "5.4.3",
+     "5.4.4",
+     "5.4.5",
+     "5.4.9",
+     "5.4.12",
+     "3.4.1",
+     "5.5.x",
+     "5.6.x",
+     "4.4.3"
+    ]
+   },
+   {
+    "id": "W10",
+    "name": "Safety case and release evidence",
+    "wave": 4,
+    "deliverables": [
+     "Software safety assessment report with a GSN-style argument (direct and back-up).",
+     "Software safety folder; assessment report and distribution record per release; independent audit."
+    ],
+    "evidence": "Issued safety folder and independent audit report.",
+    "findings": [
+     "3.0.10",
+     "3.0.17",
+     "3.4.4",
+     "3.5.1",
+     "3.5.3",
+     "5.7.2–5.7.4",
+     "8"
+    ]
+   },
+   {
+    "id": "W11",
+    "name": "AI management system",
+    "wave": 2,
+    "deliverables": [
+     "AIMS scope and manual: which AI uses are covered (Director, narration, AI-assisted development, HENRI).",
+     "AI policy with the advisory-only boundary and principles; roles (AIMS owner, AI risk owner); objectives.",
+     "Intended-use statement with prohibited uses; in-app disclosure of automated selection and synthetic narration; package description corrected.",
+     "AI supplier register (coding agents, future model provider) with data and model-use terms; customer obligations.",
+     "AI tooling documented; human review and tests required for every AI-generated change."
+    ],
+    "evidence": "Issued AIMS manual, policy, intended-use statement and supplier register; disclosure visible in the app.",
+    "findings": [
+     "C4.1",
+     "C4.2",
+     "C4.3",
+     "C4.4",
+     "C5.1",
+     "C5.2",
+     "C5.3",
+     "C6.2",
+     "C6.3",
+     "C7.1",
+     "C7.2",
+     "C7.3",
+     "C7.4",
+     "A.2.2",
+     "A.2.3",
+     "A.2.4",
+     "A.3.2",
+     "A.3.3",
+     "A.4.2",
+     "A.4.4",
+     "A.4.5",
+     "A.4.6",
+     "A.6.1.2",
+     "A.6.1.3",
+     "A.8.2",
+     "A.8.3",
+     "A.8.5",
+     "A.9.2",
+     "A.9.3",
+     "A.9.4",
+     "A.10.2",
+     "A.10.3",
+     "A.10.4"
+    ]
+   },
+   {
+    "id": "W12",
+    "name": "AI risk, impact and monitoring",
+    "wave": 3,
+    "deliverables": [
+     "AI risk assessment and treatment with a statement of applicability for Annex A.",
+     "Impact assessments: individuals and groups, societal and dual-use effects of a public military-asset picture.",
+     "Event log of every automated selection and announcement with its inputs; AI performance measures (false and missed announcements).",
+     "Validation of announcements against feeds and with users; AI release criteria; AI incident communication."
+    ],
+    "evidence": "Risk register, impact assessments, event-log samples, validation record.",
+    "findings": [
+     "C6.1.1",
+     "C6.1.2",
+     "C6.1.3",
+     "C6.1.4",
+     "C8.1",
+     "C8.2",
+     "C8.3",
+     "C8.4",
+     "C9.1",
+     "C10.2",
+     "A.5.2",
+     "A.5.3",
+     "A.5.4",
+     "A.5.5",
+     "A.6.2.4",
+     "A.6.2.5",
+     "A.6.2.6",
+     "A.6.2.8",
+     "A.7.4",
+     "A.8.4"
+    ]
+   },
+   {
+    "id": "W13",
+    "name": "AIMS audit and review",
+    "wave": 4,
+    "deliverables": [
+     "AIMS internal audit programme (CrossCheck as the method, an independent auditor for sign-off).",
+     "Management review minutes; continual-improvement log in the evidence ledger."
+    ],
+    "evidence": "Audit report and management-review minutes.",
+    "findings": [
+     "C9.2",
+     "C9.3",
+     "C10.1"
+    ]
+   }
+  ],
+  "blocking": [
+   "V3.4.3",
+   "V2.4.1",
+   "V15.2.1",
+   "3.0.11",
+   "V8.1.1",
+   "V8.2.1",
+   "3.1.5",
+   "4.1.2",
+   "3.3.1",
+   "3.3.2",
+   "3.3.3",
+   "3.0.5",
+   "3.3.5",
+   "4.1.3",
+   "3.0.1",
+   "3.2.3",
+   "3.4.3",
+   "3.4.1",
+   "3.0.10",
+   "3.0.17",
+   "C4.3",
+   "C5.2",
+   "A.2.2",
+   "A.9.4",
+   "A.10.3",
+   "C6.1.2",
+   "C6.1.4",
+   "A.5.2"
+  ],
+  "log": {
+   "V3.2.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "API responses set Content-Type; no X-Content-Type-Options or CSP sandboxing."
+    }
+   ],
+   "V3.4.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No Strict-Transport-Security header set by the app; edge behaviour on Replit unverified."
+    }
+   ],
+   "V3.4.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "CSP is frame-ancestors only; no script-src/object-src/base-uri (SECURITY.md known gap 2)."
+    }
+   ],
+   "V3.4.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "X-Content-Type-Options: nosniff not set."
+    }
+   ],
+   "V3.4.5": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "No explicit Referrer-Policy; browser default strict-origin-when-cross-origin applies."
+    }
+   ],
+   "V13.4.5": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "window.__godsEyeView debug handle exposed in production builds."
+    }
+   ],
+   "V2.4.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "Opt-in per-IP limiter (default unlimited); cost-bearing Google proxies callable by anyone with the URL."
+    }
+   ],
+   "V2.3.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Limits exist but per-IP rate limiting is opt-in and off by default."
+    }
+   ],
+   "V15.3.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Limiter ignores X-Forwarded-For, so behind the Replit proxy every client may share one bucket."
+    }
+   ],
+   "V2.1.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Rate limits and provider budgets described in CONFIGURATION-INDEX; no per-client/global limit policy."
+    }
+   ],
+   "V15.1.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "KNOWN-LIMITATIONS and provider budgets cover upstream cost; no list of resource-heavy endpoints."
+    }
+   ],
+   "4.3.13": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Benchmark, adaptive quality ladder, caps."
+    }
+   ],
+   "V15.2.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "No dependency vulnerability scanning in CI (SECURITY.md known gap 4); state cannot be shown."
+    }
+   ],
+   "V15.1.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No documented remediation time frames for vulnerable components."
+    }
+   ],
+   "V15.1.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No SBOM; package-lock.json only."
+    }
+   ],
+   "V13.3.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Secrets in Replit Secrets/env; .env.example names only; no vault, rotation or expiry."
+    }
+   ],
+   "V13.3.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Server keys stay server-side, but GOOGLE_MAPS_API_KEY and CESIUM_ION_TOKEN are bundled to the browser by design."
+    }
+   ],
+   "V13.2.5": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "No egress restriction at the server or platform level."
+    }
+   ],
+   "3.0.13": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Licence inventory and data-source register; no COTS dossiers."
+    }
+   ],
+   "7.x COTS": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Licence inventory only."
+    }
+   ],
+   "7.x SE": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No service history."
+    }
+   ],
+   "4.3.10": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Inherited code follows upstream conventions."
+    }
+   ],
+   "V16.1.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No log inventory."
+    }
+   ],
+   "V16.3.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No security events defined or logged (rate-limit hits, validation rejects)."
+    }
+   ],
+   "V16.4.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No log shipping to a separate system."
+    }
+   ],
+   "V16.2.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "console.warn/error lines carry provider and reason, but no structured when/where metadata."
+    }
+   ],
+   "V16.2.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Relies on platform timestamps; no explicit UTC in log lines."
+    }
+   ],
+   "V16.2.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Free-text console logs; no common format."
+    }
+   ],
+   "V16.4.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Some feed-derived strings logged without encoding."
+    }
+   ],
+   "V16.4.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Logs protected only by platform access control; not tamper-evident."
+    }
+   ],
+   "3.0.11": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No in-service malfunction monitoring."
+    }
+   ],
+   "4.4.5": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No performance or feed-health monitoring."
+    }
+   ],
+   "4.4.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Server logs only."
+    }
+   ],
+   "V8.1.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "No authorization model documented; the app is public-by-design (SECURITY.md known gap 1)."
+    }
+   ],
+   "V8.2.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline 1518ea8",
+     "note": "Every function, including cost-bearing API proxies and Exercise mode, is open to anyone with the URL."
+    }
+   ],
+   "V2.1.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "Validation exists in code (400 on bad hex, callsign, coordinates, cyclone query) but rules are not documented."
+    }
+   ],
+   "V2.1.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline 1518ea8",
+     "note": "Combined-field checks exist in code (bbox, route coords); not documented."
+    }
+   ],
+   "V14.1.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No data classification. Public OSINT, but aggregated military tracks may be sensitive to a defence customer."
+    }
+   ],
+   "V14.1.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline 1518ea8",
+     "note": "No protection requirements per level."
+    }
+   ],
+   "3.1.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Demo use described; no operational concept."
+    }
+   ],
+   "3.1.5": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No FHA/PSSA."
+    }
+   ],
+   "4.1.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No FHA."
+    }
+   ],
+   "3.3.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No software failure-mode list."
+    }
+   ],
+   "3.3.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No effects analysis."
+    }
+   ],
+   "3.3.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No risk assessment."
+    }
+   ],
+   "3.0.5": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "SWAL set top-down; no hazard analysis."
+    }
+   ],
+   "3.3.5": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No allocation record."
+    }
+   ],
+   "4.1.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No PSSA."
+    }
+   ],
+   "3.3.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Functional requirements exist; no safety requirements."
+    }
+   ],
+   "3.0.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No documented software safety assurance system."
+    }
+   ],
+   "3.2.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Approach in VERIFICATION.md."
+    }
+   ],
+   "3.2.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Verification plan only."
+    }
+   ],
+   "3.2.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No independent plan review."
+    }
+   ],
+   "3.2.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Plans in the repo."
+    }
+   ],
+   "3.0.8": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Verification plan exists; rigour not tied to SWAL."
+    }
+   ],
+   "3.0.9": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Verification method per requirement (T/A/I/D)."
+    }
+   ],
+   "3.4.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No process audit."
+    }
+   ],
+   "4.2.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Readiness report and remediation plan."
+    }
+   ],
+   "4.3.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "CONTRIBUTING and TESTING define the process."
+    }
+   ],
+   "4.3.11": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Requirements in git; no change control."
+    }
+   ],
+   "3.0.7": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Build stamp, lockfile, config index. Hosted demo not a clean checkout; no tags."
+    }
+   ],
+   "5.2.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Configuration index."
+    }
+   ],
+   "5.2.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Branch workflow; main unprotected."
+    }
+   ],
+   "5.2.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Results log."
+    }
+   ],
+   "5.4.13": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Clean-clone rebuild verified; no tags."
+    }
+   ],
+   "3.0.12": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Branch, clean-clone verify, merge, deploy. No safety impact analysis."
+    }
+   ],
+   "3.0.15": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Gated deploy procedure; rollback untested."
+    }
+   ],
+   "4.4.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Demo runbook."
+    }
+   ],
+   "4.5.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Changelog and change process."
+    }
+   ],
+   "4.5.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No SWAL re-check per change."
+    }
+   ],
+   "4.5.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No per-change SWAL evidence."
+    }
+   ],
+   "5.3.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No QA role or audits."
+    }
+   ],
+   "5.8.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Issue template exists; no reports raised."
+    }
+   ],
+   "6.1.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Plans and tasks tracked informally."
+    }
+   ],
+   "6.2.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "CI and hosting defined in the config index."
+    }
+   ],
+   "6.3.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Lessons fed back into gates."
+    }
+   ],
+   "6.4.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No competence records."
+    }
+   ],
+   "7.x DE": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Lockfile; Node pinned in engines."
+    }
+   ],
+   "3.0.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "GEV-SRS 0.1 (56 requirements), reverse-engineered, unreviewed."
+    }
+   ],
+   "3.0.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "56/56 requirements traced; trace-check in CI. Inherited engine not traced."
+    }
+   ],
+   "3.0.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "0 orphan files (import-graph gate). /api/route reachable but unused."
+    }
+   ],
+   "3.0.14": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Import-direction and package-boundary checks enforce structure."
+    }
+   ],
+   "4.3.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "System scope in README/ARCHITECTURE."
+    }
+   ],
+   "4.3.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "SRS 0.1, 56 requirements."
+    }
+   ],
+   "4.3.7": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "CI build and test integrate all modules."
+    }
+   ],
+   "4.3.14": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Rationale in code comments and docs."
+    }
+   ],
+   "3.4.2": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Functional requirements verified by tests."
+    }
+   ],
+   "5.4.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Requirement-based tests pass; independence contested at SWAL 3."
+    }
+   ],
+   "5.4.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Server proxy and fallback tests."
+    }
+   ],
+   "5.4.5": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Boundaries verified automatically."
+    }
+   ],
+   "5.4.9": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "FEED/SIMULATED tagging and injection tests; no feed integrity checks."
+    }
+   ],
+   "5.4.12": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Results log per commit."
+    }
+   ],
+   "3.4.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "Safety requirements not validated (none exist)."
+    }
+   ],
+   "5.5.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No operational validation."
+    }
+   ],
+   "5.6.x": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "No joint reviews."
+    }
+   ],
+   "4.4.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "README, runbook."
+    }
+   ],
+   "3.0.10": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No safety argument."
+    }
+   ],
+   "3.0.17": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "S2",
+     "ref": "baseline 1518ea8",
+     "note": "No argument that SWAL objectives are met."
+    }
+   ],
+   "3.4.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Gap analysis and readiness report."
+    }
+   ],
+   "3.5.1": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Results log per commit."
+    }
+   ],
+   "3.5.3": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Docs in the repo and project."
+    }
+   ],
+   "5.7.2–5.7.4": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S4",
+     "ref": "baseline 1518ea8",
+     "note": "Self-assessment only."
+    }
+   ],
+   "8": [
+    {
+     "date": "2026-10-14",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "S3",
+     "ref": "baseline 1518ea8",
+     "note": "Folder index in the gap analysis."
+    }
+   ],
+   "C4.1": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No analysis of the organisation’s context for AI (purpose, climate, legal and contractual factors)."
+    }
+   ],
+   "C4.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Interested parties (operators, customer, regulators, people under surveillance) and their AI expectations are not listed."
+    }
+   ],
+   "C4.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No defined scope for an AI management system: which AI uses (Director, narration, AI coding, HENRI) are covered is undecided."
+    }
+   ],
+   "C4.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No AI management system exists."
+    }
+   ],
+   "C5.1": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Owner approval of the remediation plan shows commitment, but no AI-specific leadership commitment is recorded."
+    }
+   ],
+   "C5.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No AI policy."
+    }
+   ],
+   "C5.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No AI roles or authorities assigned."
+    }
+   ],
+   "C6.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No measurable AI objectives."
+    }
+   ],
+   "C6.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "Changes are tracked (changelog, configuration index, evidence ledger) but not assessed for AI effects."
+    }
+   ],
+   "C7.1": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "Engineering resources exist; none allocated to the AIMS."
+    }
+   ],
+   "C7.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "AI competence of the people building and using the system is not defined or evidenced."
+    }
+   ],
+   "C7.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No AI awareness for staff (policy, their contribution, consequences of non-conformity)."
+    }
+   ],
+   "C7.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No AI communication plan."
+    }
+   ],
+   "A.2.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No documented AI policy."
+    }
+   ],
+   "A.2.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "AI policy alignment with security, privacy and ethics rules not shown."
+    }
+   ],
+   "A.2.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No review cycle for an AI policy."
+    }
+   ],
+   "A.3.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Nobody is accountable for AI decisions in the product."
+    }
+   ],
+   "A.3.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "SECURITY.md gives a vulnerability route; there is no route for AI concerns."
+    }
+   ],
+   "A.4.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Dependencies and configuration are documented; AI components are not identified as such."
+    }
+   ],
+   "A.4.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI coding tools (Claude, Replit Agent) are visible in commit trailers but not documented as tooling with versions and limits."
+    }
+   ],
+   "A.4.5": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "Hosting is known (Replit) but computing resources for AI features are not documented."
+    }
+   ],
+   "A.4.6": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "Human resources and competence for AI are not documented."
+    }
+   ],
+   "A.6.1.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Ethics guardrails are stated in the README (non-kinetic, no dossiers, FEED/SIMULATED tags) but not as formal objectives."
+    }
+   ],
+   "A.6.1.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "CI gates and traceability apply to all code; AI-generated changes have no specific review rule."
+    }
+   ],
+   "A.8.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "FEED/SIMULATED labels and known limitations exist, but users are not told selections and narration are automated, and the package still advertises voice control that is not shipped."
+    }
+   ],
+   "A.8.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No external reporting obligations identified for AI."
+    }
+   ],
+   "A.8.5": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "README and runbook inform some parties; no plan for others."
+    }
+   ],
+   "A.9.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "The Director is advisory and any input hands control back, but responsible-use processes are not documented."
+    }
+   ],
+   "A.9.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No objectives for responsible use."
+    }
+   ],
+   "A.9.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "The advisory-only, non-kinetic boundary is stated, but there is no formal intended-use statement with prohibited uses."
+    }
+   ],
+   "A.10.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Responsibilities between Digital Dynamics Group, AI suppliers and customers are not allocated."
+    }
+   ],
+   "A.10.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "AI suppliers (AI coding agents, a future HENRI model provider) are not assessed or managed."
+    }
+   ],
+   "A.10.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Customer-facing limitations exist; AI-specific customer obligations are not defined."
+    }
+   ],
+   "C6.1.1": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI risks and opportunities are not planned for."
+    }
+   ],
+   "C6.1.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No AI risk assessment (e.g. a wrong automated announcement, misleading narration, unreviewed AI-written code)."
+    }
+   ],
+   "C6.1.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "The CrossCheck remediation plan treats safety and security risks; AI-specific risks have no treatment plan."
+    }
+   ],
+   "C6.1.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No AI system impact assessment for the people and groups affected by the display and its announcements."
+    }
+   ],
+   "C8.1": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "CI gates and traceability control the build, but AI-specific operational controls are not defined."
+    }
+   ],
+   "C8.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI risk assessments are not performed at planned intervals."
+    }
+   ],
+   "C8.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No AI risk treatment in operation."
+    }
+   ],
+   "C8.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Impact assessments are not repeated on change."
+    }
+   ],
+   "C9.1": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI performance (announcement accuracy, false alerts, feed staleness) is not measured."
+    }
+   ],
+   "C10.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Findings are tracked to closure in the evidence ledger; no AI nonconformity process."
+    }
+   ],
+   "A.5.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SH",
+     "ref": "baseline eeadc22",
+     "note": "No process to assess the impact of AI features (shared with 6.1.4)."
+    }
+   ],
+   "A.5.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No impact assessments on record."
+    }
+   ],
+   "A.5.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Principles exist (no person dossiers, generic ownership, SIMULATED labels) but impacts on individuals are not assessed."
+    }
+   ],
+   "A.5.5": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Societal effects of a public military-asset picture with automated announcements are not assessed."
+    }
+   ],
+   "A.6.2.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Director rules are unit-tested; no validation that announcements are accurate and useful."
+    }
+   ],
+   "A.6.2.5": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Deployed to Replit without release criteria for AI features."
+    }
+   ],
+   "A.6.2.6": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "AI features are not monitored in operation (false or missed announcements, stale feeds)."
+    }
+   ],
+   "A.6.2.8": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No event logs of what the Director announced and why."
+    }
+   ],
+   "A.7.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "Records are validated and stale data is flagged, but data-quality requirements for automated decisions are not set."
+    }
+   ],
+   "A.8.4": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "No plan to communicate AI incidents to users or customers."
+    }
+   ],
+   "C9.2": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SM",
+     "ref": "baseline eeadc22",
+     "note": "The CrossCheck audit is an internal audit, but there is no AIMS audit programme."
+    }
+   ],
+   "C9.3": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "N",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "No management review of AI."
+    }
+   ],
+   "C10.1": [
+    {
+     "date": "2026-10-15",
+     "event": "rated",
+     "audit": "A0",
+     "status": "P",
+     "severity": "SL",
+     "ref": "baseline eeadc22",
+     "note": "The audit-to-compliance pipeline shows continual improvement for safety and security."
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,2245 @@
+{
+ "id": "ed153",
+ "name": "EUROCAE ED-153, software safety assurance for air navigation services",
+ "short": "ED-153",
+ "lens": "Safety",
+ "scale": "safety",
+ "licence": "Paid (EUROCAE): objective numbers and paraphrased titles only",
+ "source": "EUROCAE ED-153 (reconstructed catalogue v0.1)",
+ "levelName": "SWAL",
+ "levels": [
+  "1",
+  "2",
+  "3",
+  "4"
+ ],
+ "defaultLevel": "3",
+ "claim": [
+  "SWAL claim not supported",
+  "SWAL claim supported with conditions",
+  "SWAL claim supported"
+ ],
+ "items": [
+  {
+   "id": "3.0.1",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Implementation of the SSAS",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Documented SSAS within safety assessment documentation"
+  },
+  {
+   "id": "3.0.2",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Requirements correctness and completeness",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Requirements reviews; safety-to-software requirement analysis"
+  },
+  {
+   "id": "3.0.3",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Requirements traceability assurance",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Trace matrix to SWAL depth"
+  },
+  {
+   "id": "3.0.4",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Unintended functions",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Analysis showing no safety-adverse functions (dead code, flags, hidden features)"
+  },
+  {
+   "id": "3.0.5",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "SWAL allocation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Hazard → severity → likelihood → SWAL record; matrix used"
+  },
+  {
+   "id": "3.0.6",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Requirements satisfaction assurance",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Test/analysis results covering every requirement"
+  },
+  {
+   "id": "3.0.7",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Configuration management assurance",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Evidence bound to known executable, config-data range, product set"
+  },
+  {
+   "id": "3.0.8",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Assurance rigour objective",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Plan showing rigour scales with SWAL"
+  },
+  {
+   "id": "3.0.9",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Assurance rigour criteria",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Per-objective I/R/not-required classification"
+  },
+  {
+   "id": "3.0.10",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "SWAL assurance",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Direct (product) and back-up (process) arguments"
+  },
+  {
+   "id": "3.0.11",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "SWAL monitoring",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "In-service malfunction data mapped to SWAL definitions"
+  },
+  {
+   "id": "3.0.12",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Software modifications",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Change impact analysis; SWAL re-confirmation"
+  },
+  {
+   "id": "3.0.13",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "COTS",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "COTS justification of equal confidence"
+  },
+  {
+   "id": "3.0.14",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Independence (of components)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Isolation/partitioning argument or inherited highest SWAL"
+  },
+  {
+   "id": "3.0.15",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "All on-line aspects of SW operational changes",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Switchover/deploy procedure; rollback evidence"
+  },
+  {
+   "id": "3.0.16",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Assurance to the NSA",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Submission and acceptance record"
+  },
+  {
+   "id": "3.0.17",
+   "group": "3",
+   "groupName": "3 SSAS",
+   "title": "Argument that SWAL objectives are met",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.requirements"
+   ],
+   "facts": [
+    "risk_assessment"
+   ],
+   "weight": "high",
+   "expects": "Safety argument (strategy at discretion)"
+  },
+  {
+   "id": "3.1.1",
+   "group": "3.1",
+   "groupName": "3.1 Initiation",
+   "title": "System description",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment",
+    "owner"
+   ],
+   "weight": "high",
+   "expects": "System description"
+  },
+  {
+   "id": "3.1.2",
+   "group": "3.1",
+   "groupName": "3.1 Initiation",
+   "title": "Operational environment",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment",
+    "owner"
+   ],
+   "weight": "high",
+   "expects": "ConOps / operational environment description"
+  },
+  {
+   "id": "3.1.3",
+   "group": "3.1",
+   "groupName": "3.1 Initiation",
+   "title": "Regulatory framework",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment",
+    "owner"
+   ],
+   "weight": "high",
+   "expects": "Regulatory applicability statement"
+  },
+  {
+   "id": "3.1.4",
+   "group": "3.1",
+   "groupName": "3.1 Initiation",
+   "title": "Applicable standards",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment",
+    "owner"
+   ],
+   "weight": "high",
+   "expects": "Standards list with tailoring"
+  },
+  {
+   "id": "3.1.5",
+   "group": "3.1",
+   "groupName": "3.1 Initiation",
+   "title": "System FHA & PSSA output",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [
+    "risk_assessment",
+    "owner"
+   ],
+   "weight": "high",
+   "expects": "FHA/PSSA results feeding software"
+  },
+  {
+   "id": "3.2.1",
+   "group": "3.2",
+   "groupName": "3.2 Planning",
+   "title": "Approach",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.verification"
+   ],
+   "facts": [],
+   "expects": "Assessment approach"
+  },
+  {
+   "id": "3.2.2",
+   "group": "3.2",
+   "groupName": "3.2 Planning",
+   "title": "Plan",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.verification"
+   ],
+   "facts": [],
+   "expects": "Software safety assessment plan"
+  },
+  {
+   "id": "3.2.3",
+   "group": "3.2",
+   "groupName": "3.2 Planning",
+   "title": "Plan review",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.verification"
+   ],
+   "facts": [],
+   "expects": "Review and authority acceptance record"
+  },
+  {
+   "id": "3.2.4",
+   "group": "3.2",
+   "groupName": "3.2 Planning",
+   "title": "Plan dissemination",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.verification"
+   ],
+   "facts": [],
+   "expects": "Distribution record"
+  },
+  {
+   "id": "3.3.1",
+   "group": "3.3",
+   "groupName": "3.3 Requirements",
+   "title": "Failures identification",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Software failure-mode list"
+  },
+  {
+   "id": "3.3.2",
+   "group": "3.3",
+   "groupName": "3.3 Requirements",
+   "title": "Failure effects",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Effects analysis"
+  },
+  {
+   "id": "3.3.3",
+   "group": "3.3",
+   "groupName": "3.3 Requirements",
+   "title": "Assessment of risk",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Risk assessment with likelihood justification"
+  },
+  {
+   "id": "3.3.4",
+   "group": "3.3",
+   "groupName": "3.3 Requirements",
+   "title": "Software requirements setting",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Software safety requirements"
+  },
+  {
+   "id": "3.3.5",
+   "group": "3.3",
+   "groupName": "3.3 Requirements",
+   "title": "SWAL allocation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Allocation record per failure"
+  },
+  {
+   "id": "3.4.1",
+   "group": "3.4",
+   "groupName": "3.4 V&V/PA",
+   "title": "Validation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.verification",
+    "tests.present",
+    "ci.tests"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Validation of safety requirements"
+  },
+  {
+   "id": "3.4.2",
+   "group": "3.4",
+   "groupName": "3.4 V&V/PA",
+   "title": "Verification",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.verification",
+    "tests.present",
+    "ci.tests"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Verification that safety requirements are met"
+  },
+  {
+   "id": "3.4.3",
+   "group": "3.4",
+   "groupName": "3.4 V&V/PA",
+   "title": "Process assurance",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.verification",
+    "tests.present",
+    "ci.tests"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Process audit/QA evidence"
+  },
+  {
+   "id": "3.4.4",
+   "group": "3.4",
+   "groupName": "3.4 V&V/PA",
+   "title": "Documented outputs as proof requirements are met",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.verification",
+    "tests.present",
+    "ci.tests"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Safety studies, safety assessment reports"
+  },
+  {
+   "id": "3.5.1",
+   "group": "3.5",
+   "groupName": "3.5 Completion",
+   "title": "Document process results",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.verification"
+   ],
+   "facts": [],
+   "expects": "Assessment report"
+  },
+  {
+   "id": "3.5.2",
+   "group": "3.5",
+   "groupName": "3.5 Completion",
+   "title": "Documentation configuration management",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.verification"
+   ],
+   "facts": [],
+   "expects": "Results under CM"
+  },
+  {
+   "id": "3.5.3",
+   "group": "3.5",
+   "groupName": "3.5 Completion",
+   "title": "Documentation dissemination",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log",
+    "doc.verification"
+   ],
+   "facts": [],
+   "expects": "Distribution record"
+  },
+  {
+   "id": "4.1.1",
+   "group": "4.1",
+   "groupName": "4.1 Acquisition",
+   "title": "Initiation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.lockfile"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Acquisition need and concept (N/A if in-house)"
+  },
+  {
+   "id": "4.1.2",
+   "group": "4.1",
+   "groupName": "4.1 Acquisition",
+   "title": "Functional Hazard Assessment",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.lockfile"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "FHA"
+  },
+  {
+   "id": "4.1.3",
+   "group": "4.1",
+   "groupName": "4.1 Acquisition",
+   "title": "Preliminary System Safety Assessment",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.lockfile"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "PSSA"
+  },
+  {
+   "id": "4.1.4",
+   "group": "4.1",
+   "groupName": "4.1 Acquisition",
+   "title": "Request for tender",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.lockfile"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "RFT with SWAL and evidence requirements"
+  },
+  {
+   "id": "4.1.5",
+   "group": "4.1",
+   "groupName": "4.1 Acquisition",
+   "title": "Contract preparation and update",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.lockfile"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Contract with assurance clauses"
+  },
+  {
+   "id": "4.1.6",
+   "group": "4.1",
+   "groupName": "4.1 Acquisition",
+   "title": "Supplier monitoring",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.lockfile"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Supplier review/audit records"
+  },
+  {
+   "id": "4.1.7",
+   "group": "4.1",
+   "groupName": "4.1 Acquisition",
+   "title": "Acceptance and completion",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.lockfile"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Acceptance test and handover records"
+  },
+  {
+   "id": "4.2.1",
+   "group": "4.2",
+   "groupName": "4.2 Supply",
+   "title": "Initiation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Bid decision (N/A if no supply role)"
+  },
+  {
+   "id": "4.2.2",
+   "group": "4.2",
+   "groupName": "4.2 Supply",
+   "title": "Preparation of response",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Proposal incl. SWAL declaration"
+  },
+  {
+   "id": "4.2.3",
+   "group": "4.2",
+   "groupName": "4.2 Supply",
+   "title": "Contract",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Signed contract"
+  },
+  {
+   "id": "4.2.4",
+   "group": "4.2",
+   "groupName": "4.2 Supply",
+   "title": "Planning",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Project/development plans"
+  },
+  {
+   "id": "4.2.5",
+   "group": "4.2",
+   "groupName": "4.2 Supply",
+   "title": "Execution & control",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Progress and control records"
+  },
+  {
+   "id": "4.2.6",
+   "group": "4.2",
+   "groupName": "4.2 Supply",
+   "title": "Review & evaluation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Joint review records"
+  },
+  {
+   "id": "4.2.7",
+   "group": "4.2",
+   "groupName": "4.2 Supply",
+   "title": "Delivery & completion",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "deps.manifest"
+   ],
+   "facts": [
+    "supplier_review"
+   ],
+   "expects": "Delivery package and evidence"
+  },
+  {
+   "id": "4.3.1",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "System requirements analysis",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "System requirements spec"
+  },
+  {
+   "id": "4.3.2",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "System architectural design",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "System architecture, SW/HW allocation"
+  },
+  {
+   "id": "4.3.3",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Process implementation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "SW development plan incl. COTS scope"
+  },
+  {
+   "id": "4.3.4",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "SW requirements analysis",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "SRS"
+  },
+  {
+   "id": "4.3.5",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "SW architectural design",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Architecture description, component interfaces"
+  },
+  {
+   "id": "4.3.6",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "SW detailed design",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Detailed design"
+  },
+  {
+   "id": "4.3.7",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "SW integration",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Integration plan and records"
+  },
+  {
+   "id": "4.3.8",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "SW installation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Install/deploy procedure and records"
+  },
+  {
+   "id": "4.3.9",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Standards/rules definition",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Requirements, design and coding standards"
+  },
+  {
+   "id": "4.3.10",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Standards/rules (incl. PDS/COTS references)",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Standards applied; PDS deviations referenced"
+  },
+  {
+   "id": "4.3.11",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Requirement development management",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Requirements change control"
+  },
+  {
+   "id": "4.3.12",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Use of a requirement specification tool",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Tool identification and control"
+  },
+  {
+   "id": "4.3.13",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Resource management (load, memory, time response)",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Resource budgets; performance tests"
+  },
+  {
+   "id": "4.3.14",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Rationale for design choices (esp. real-time)",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Design decision records"
+  },
+  {
+   "id": "4.3.15",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Traceability",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Trace to SWAL depth (req → arch → code → exe)"
+  },
+  {
+   "id": "4.3.16",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Transition criteria between life cycle phases",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Phase-gate / CI gate criteria"
+  },
+  {
+   "id": "4.3.17",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Design tool",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Design tool identification"
+  },
+  {
+   "id": "4.3.18",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Use of design tool",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Design tool quality control"
+  },
+  {
+   "id": "4.3.19",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Code generation environment",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Compiler/linker/generator identification and validation context"
+  },
+  {
+   "id": "4.3.20",
+   "group": "4.3",
+   "groupName": "4.3 Development",
+   "title": "Complexity constraints",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [
+    "doc.requirements",
+    "doc.architecture",
+    "tests.present",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "Complexity limits"
+  },
+  {
+   "id": "4.4.1",
+   "group": "4.4",
+   "groupName": "4.4 Operation",
+   "title": "Process implementation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.operations"
+   ],
+   "facts": [
+    "monitoring",
+    "incident_process"
+   ],
+   "expects": "Operations plan"
+  },
+  {
+   "id": "4.4.2",
+   "group": "4.4",
+   "groupName": "4.4 Operation",
+   "title": "Intended operational environment",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.operations"
+   ],
+   "facts": [
+    "monitoring",
+    "incident_process"
+   ],
+   "expects": "Environment definition and checks"
+  },
+  {
+   "id": "4.4.3",
+   "group": "4.4",
+   "groupName": "4.4 Operation",
+   "title": "User support",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.operations"
+   ],
+   "facts": [
+    "monitoring",
+    "incident_process"
+   ],
+   "expects": "Support process, user documentation"
+  },
+  {
+   "id": "4.4.4",
+   "group": "4.4",
+   "groupName": "4.4 Operation",
+   "title": "Software operation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.operations"
+   ],
+   "facts": [
+    "monitoring",
+    "incident_process"
+   ],
+   "expects": "Operating procedures, logs"
+  },
+  {
+   "id": "4.4.5",
+   "group": "4.4",
+   "groupName": "4.4 Operation",
+   "title": "Performance monitoring",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.operations"
+   ],
+   "facts": [
+    "monitoring",
+    "incident_process"
+   ],
+   "expects": "Monitoring commensurate with SWAL; telemetry"
+  },
+  {
+   "id": "4.5.1",
+   "group": "4.5",
+   "groupName": "4.5 Maintenance",
+   "title": "Process implementation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.changelog"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "Maintenance plan"
+  },
+  {
+   "id": "4.5.2",
+   "group": "4.5",
+   "groupName": "4.5 Maintenance",
+   "title": "SWAL allocation confirmation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.changelog"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "SWAL re-check per change"
+  },
+  {
+   "id": "4.5.3",
+   "group": "4.5",
+   "groupName": "4.5 Maintenance",
+   "title": "SWAL satisfaction",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.changelog"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "Evidence that the change meets SWAL objectives"
+  },
+  {
+   "id": "4.5.4",
+   "group": "4.5",
+   "groupName": "4.5 Maintenance",
+   "title": "Software migration",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.changelog"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "Migration plan and verification"
+  },
+  {
+   "id": "4.5.5",
+   "group": "4.5",
+   "groupName": "4.5 Maintenance",
+   "title": "Software decommissioning",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.changelog"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "Decommissioning plan and record"
+  },
+  {
+   "id": "5.1.1",
+   "group": "5.1",
+   "groupName": "5.1 Documentation",
+   "title": "Process implementation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.readme",
+    "doc.architecture"
+   ],
+   "facts": [],
+   "expects": "Documentation plan"
+  },
+  {
+   "id": "5.1.2",
+   "group": "5.1",
+   "groupName": "5.1 Documentation",
+   "title": "Design and development",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.readme",
+    "doc.architecture"
+   ],
+   "facts": [],
+   "expects": "Document standards/templates"
+  },
+  {
+   "id": "5.1.3",
+   "group": "5.1",
+   "groupName": "5.1 Documentation",
+   "title": "Production",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.readme",
+    "doc.architecture"
+   ],
+   "facts": [],
+   "expects": "Issued documents"
+  },
+  {
+   "id": "5.1.4",
+   "group": "5.1",
+   "groupName": "5.1 Documentation",
+   "title": "Maintenance",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.readme",
+    "doc.architecture"
+   ],
+   "facts": [],
+   "expects": "Document revision control"
+  },
+  {
+   "id": "5.2.1",
+   "group": "5.2",
+   "groupName": "5.2 CM",
+   "title": "Process implementation",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "ci.pipeline",
+    "doc.changelog",
+    "deps.lockfile"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "CM plan"
+  },
+  {
+   "id": "5.2.2",
+   "group": "5.2",
+   "groupName": "5.2 CM",
+   "title": "Configuration identification",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "ci.pipeline",
+    "doc.changelog",
+    "deps.lockfile"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "Configuration index, baselines"
+  },
+  {
+   "id": "5.2.3",
+   "group": "5.2",
+   "groupName": "5.2 CM",
+   "title": "Configuration control",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "ci.pipeline",
+    "doc.changelog",
+    "deps.lockfile"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "Change requests and approvals"
+  },
+  {
+   "id": "5.2.x",
+   "group": "5.2",
+   "groupName": "5.2 CM",
+   "title": "Further CM objectives (placeholder)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "ci.pipeline",
+    "doc.changelog",
+    "deps.lockfile"
+   ],
+   "facts": [
+    "change_control"
+   ],
+   "expects": "Status accounting, release records"
+  },
+  {
+   "id": "5.3.x",
+   "group": "5.3",
+   "groupName": "5.3 QA",
+   "title": "Quality assurance (placeholder)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "doc.contributing",
+    "lint.config"
+   ],
+   "facts": [],
+   "expects": "QA plan, audit records, deviations"
+  },
+  {
+   "id": "5.4.1–5.4.2",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Verification (placeholder)",
+   "levels": [],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Titles not recovered"
+  },
+  {
+   "id": "5.4.3",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Verification of software requirements",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Requirements-based test results and reviews"
+  },
+  {
+   "id": "5.4.4",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Integration verification",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Interface/component test results"
+  },
+  {
+   "id": "5.4.5",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Verification of SW architectural design",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Architecture review records"
+  },
+  {
+   "id": "5.4.6",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Verification of detailed design",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Detailed design reviews"
+  },
+  {
+   "id": "5.4.7–5.4.8",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Verification (placeholder)",
+   "levels": [],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Titles not recovered"
+  },
+  {
+   "id": "5.4.9",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Data verification",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Configuration/adaptation data checks"
+  },
+  {
+   "id": "5.4.10",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Traceability (verification of)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Trace completeness review"
+  },
+  {
+   "id": "5.4.11",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Complexity measures",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Complexity metrics report"
+  },
+  {
+   "id": "5.4.12",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Verification of verification process results",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Test result reviews, coverage of test cases"
+  },
+  {
+   "id": "5.4.13",
+   "group": "5.4",
+   "groupName": "5.4 Verification",
+   "title": "Verification of retrieval and release process",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "tests.present",
+    "ci.tests",
+    "doc.verification"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Rebuild/release verification"
+  },
+  {
+   "id": "5.5.x",
+   "group": "5.5",
+   "groupName": "5.5 Validation",
+   "title": "Validation (placeholder)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "doc.verification"
+   ],
+   "facts": [],
+   "expects": "Operational validation records"
+  },
+  {
+   "id": "5.6.x",
+   "group": "5.6",
+   "groupName": "5.6 Joint review",
+   "title": "Joint review (placeholder)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "doc.contributing"
+   ],
+   "facts": [],
+   "expects": "Review minutes and actions"
+  },
+  {
+   "id": "5.7.2–5.7.4",
+   "group": "5.7",
+   "groupName": "5.7 Audit",
+   "title": "Audit (numbers only)",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [],
+   "facts": [],
+   "expects": "Audit reports"
+  },
+  {
+   "id": "5.8.x",
+   "group": "5.8",
+   "groupName": "5.8 Problem resolution",
+   "title": "Problem resolution (placeholder)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "doc.incident"
+   ],
+   "facts": [
+    "incident_process"
+   ],
+   "expects": "Problem reports, classification, closure"
+  },
+  {
+   "id": "6.1.x",
+   "group": "6",
+   "groupName": "6 Organisational",
+   "title": "Management (6.1.5 cited)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.codeowners"
+   ],
+   "facts": [
+    "training",
+    "owner"
+   ],
+   "expects": "Project management records"
+  },
+  {
+   "id": "6.2.x",
+   "group": "6",
+   "groupName": "6 Organisational",
+   "title": "Infrastructure (placeholder)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "doc.codeowners"
+   ],
+   "facts": [
+    "training",
+    "owner"
+   ],
+   "expects": "Environment and infrastructure definition"
+  },
+  {
+   "id": "6.3.x",
+   "group": "6",
+   "groupName": "6 Organisational",
+   "title": "Improvement (6.3.2 cited)",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [
+    "doc.codeowners"
+   ],
+   "facts": [
+    "training",
+    "owner"
+   ],
+   "expects": "Process improvement records"
+  },
+  {
+   "id": "6.4.x",
+   "group": "6",
+   "groupName": "6 Organisational",
+   "title": "Training (placeholder)",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "out": true,
+   "outWhy": "Placeholder objective in the reconstructed catalogue",
+   "checks": [
+    "doc.codeowners"
+   ],
+   "facts": [
+    "training",
+    "owner"
+   ],
+   "expects": "Competence and training records"
+  },
+  {
+   "id": "7.x",
+   "group": "7",
+   "groupName": "7 Additional ANS",
+   "title": "Development environment",
+   "levels": [
+    "1",
+    "2",
+    "3"
+   ],
+   "checks": [],
+   "facts": [],
+   "expects": "Environment definition under CM (incl. AI agent configs)"
+  },
+  {
+   "id": "7.x-2",
+   "group": "7",
+   "groupName": "7 Additional ANS",
+   "title": "COTS",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [],
+   "facts": [],
+   "expects": "COTS dossiers, wrappers, SBOM"
+  },
+  {
+   "id": "7.x-3",
+   "group": "7",
+   "groupName": "7 Additional ANS",
+   "title": "Tool qualification",
+   "levels": [
+    "1",
+    "2"
+   ],
+   "checks": [],
+   "facts": [],
+   "expects": "Qualification where output unverified; else identification and control"
+  },
+  {
+   "id": "7.x-4",
+   "group": "7",
+   "groupName": "7 Additional ANS",
+   "title": "Service experience",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [],
+   "facts": [],
+   "expects": "Service history argument where COTS credit claimed"
+  },
+  {
+   "id": "8",
+   "group": "8",
+   "groupName": "8 Safety Folder",
+   "title": "Safety Folder",
+   "levels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "checks": [
+    "doc.hazard_log"
+   ],
+   "facts": [],
+   "weight": "high",
+   "expects": "Assembled evidence and argument"
+  }
+ ]
+}

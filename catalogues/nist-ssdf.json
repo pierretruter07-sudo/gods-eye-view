@@ -1,0 +1,262 @@
+{
+ "id": "nist-ssdf",
+ "name": "NIST SP 800-218, Secure Software Development Framework (SSDF) 1.1",
+ "short": "NIST SSDF",
+ "lens": "Secure development",
+ "scale": "security",
+ "licence": "Free (NIST, public domain); practice IDs and paraphrased titles",
+ "source": "https://csrc.nist.gov/pubs/sp/800/218/final",
+ "claim": [
+  "SSDF practices not met",
+  "SSDF practices met with conditions",
+  "SSDF practices met"
+ ],
+ "items": [
+  {
+   "id": "PO.1",
+   "group": "PO",
+   "groupName": "PO Prepare the organisation",
+   "title": "Security requirements for software development are defined and kept current",
+   "checks": [
+    "doc.requirements",
+    "doc.security_policy"
+   ],
+   "facts": []
+  },
+  {
+   "id": "PO.2",
+   "group": "PO",
+   "groupName": "PO Prepare the organisation",
+   "title": "Roles and responsibilities for secure development are assigned",
+   "checks": [
+    "doc.codeowners"
+   ],
+   "facts": [
+    "owner",
+    "training"
+   ]
+  },
+  {
+   "id": "PO.3",
+   "group": "PO",
+   "groupName": "PO Prepare the organisation",
+   "title": "Supporting toolchains are in place and used",
+   "checks": [
+    "ci.pipeline",
+    "sast.tool",
+    "lint.config"
+   ],
+   "facts": []
+  },
+  {
+   "id": "PO.4",
+   "group": "PO",
+   "groupName": "PO Prepare the organisation",
+   "title": "Criteria for software security checks are defined and applied",
+   "checks": [
+    "ci.tests",
+    "sast.tool"
+   ],
+   "facts": []
+  },
+  {
+   "id": "PO.5",
+   "group": "PO",
+   "groupName": "PO Prepare the organisation",
+   "title": "Development environments are secured and maintained",
+   "checks": [
+    "secrets.clean",
+    "secrets.gitignore"
+   ],
+   "facts": [
+    "admin_mfa",
+    "hardening"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "PS.1",
+   "group": "PS",
+   "groupName": "PS Protect the software",
+   "title": "All forms of code are protected from unauthorised access and tampering",
+   "checks": [
+    "doc.codeowners"
+   ],
+   "facts": [
+    "change_control",
+    "access_review"
+   ],
+   "weight": "high"
+  },
+  {
+   "id": "PS.2",
+   "group": "PS",
+   "groupName": "PS Protect the software",
+   "title": "Release integrity can be verified",
+   "checks": [
+    {
+     "id": "release.integrity",
+     "strength": "direct"
+    }
+   ],
+   "facts": []
+  },
+  {
+   "id": "PS.3",
+   "group": "PS",
+   "groupName": "PS Protect the software",
+   "title": "Each release is archived and protected, with its components recorded",
+   "checks": [
+    "doc.changelog",
+    {
+     "id": "sbom",
+     "strength": "direct"
+    }
+   ],
+   "facts": []
+  },
+  {
+   "id": "PW.1",
+   "group": "PW",
+   "groupName": "PW Produce well-secured software",
+   "title": "Software is designed to meet security requirements and mitigate risks",
+   "checks": [
+    "doc.threat_model",
+    "doc.architecture"
+   ],
+   "facts": []
+  },
+  {
+   "id": "PW.2",
+   "group": "PW",
+   "groupName": "PW Produce well-secured software",
+   "title": "The design is reviewed against security requirements and risk",
+   "checks": [
+    "doc.threat_model",
+    "doc.architecture"
+   ],
+   "facts": [
+    "change_control"
+   ]
+  },
+  {
+   "id": "PW.4",
+   "group": "PW",
+   "groupName": "PW Produce well-secured software",
+   "title": "Well-secured existing software is reused where feasible",
+   "checks": [
+    "deps.manifest",
+    "deps.lockfile"
+   ],
+   "facts": [
+    "supplier_review"
+   ]
+  },
+  {
+   "id": "PW.5",
+   "group": "PW",
+   "groupName": "PW Produce well-secured software",
+   "title": "Source code follows secure coding practices",
+   "checks": [
+    {
+     "id": "sec.no_dangerous",
+     "strength": "direct"
+    },
+    "sec.validation",
+    "sec.crypto",
+    "lint.config"
+   ],
+   "facts": [],
+   "weight": "high"
+  },
+  {
+   "id": "PW.6",
+   "group": "PW",
+   "groupName": "PW Produce well-secured software",
+   "title": "Build processes are configured to improve executable security",
+   "checks": [
+    "ci.pipeline",
+    "container.nonroot"
+   ],
+   "facts": []
+  },
+  {
+   "id": "PW.7",
+   "group": "PW",
+   "groupName": "PW Produce well-secured software",
+   "title": "Code is reviewed or analysed to find vulnerabilities",
+   "checks": [
+    {
+     "id": "sast.tool",
+     "strength": "direct"
+    },
+    "doc.contributing"
+   ],
+   "facts": []
+  },
+  {
+   "id": "PW.8",
+   "group": "PW",
+   "groupName": "PW Produce well-secured software",
+   "title": "Executable code is tested to find vulnerabilities",
+   "checks": [
+    "tests.present",
+    "ci.tests"
+   ],
+   "facts": []
+  },
+  {
+   "id": "PW.9",
+   "group": "PW",
+   "groupName": "PW Produce well-secured software",
+   "title": "Software ships with secure settings by default",
+   "checks": [
+    "sec.headers",
+    "config.documented",
+    {
+     "id": "secrets.clean",
+     "strength": "direct"
+    }
+   ],
+   "facts": [],
+   "weight": "high"
+  },
+  {
+   "id": "RV.1",
+   "group": "RV",
+   "groupName": "RV Respond to vulnerabilities",
+   "title": "Vulnerabilities are identified and confirmed on an ongoing basis",
+   "checks": [
+    {
+     "id": "deps.updates",
+     "strength": "direct"
+    },
+    "doc.security_policy"
+   ],
+   "facts": [],
+   "weight": "high"
+  },
+  {
+   "id": "RV.2",
+   "group": "RV",
+   "groupName": "RV Respond to vulnerabilities",
+   "title": "Vulnerabilities are assessed, prioritised and remediated",
+   "checks": [
+    "doc.security_policy"
+   ],
+   "facts": [
+    "incident_process"
+   ]
+  },
+  {
+   "id": "RV.3",
+   "group": "RV",
+   "groupName": "RV Respond to vulnerabilities",
+   "title": "Root causes of vulnerabilities are analysed",
+   "checks": [
+    "doc.incident"
+   ],
+   "facts": []
+  }
+ ]
+}
