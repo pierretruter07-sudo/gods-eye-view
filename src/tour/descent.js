@@ -326,7 +326,13 @@ export function createDescentPlanner({
         'geo',
         'geo',
         { count: belt.length },
-        { lat: 0, lon: region.lon, heightM: 0, ...DESCENT_CAMERA.geo },
+        {
+          // Off the equator, on the day region's side, so the belt is a ring.
+          lat: (region.lat < 0 ? -1 : 1) * DESCENT_CAMERA.geo.tiltDeg,
+          lon: region.lon,
+          heightM: 0,
+          ...DESCENT_CAMERA.geo,
+        },
         geoBeltLine(belt.length),
       );
     },

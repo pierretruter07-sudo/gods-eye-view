@@ -6,6 +6,9 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **A tilted GEO ring to open the tour.** The first view of the opening
+  descent now looks at the Earth from about 22° off the equator, so the
+  geostationary belt shows as a tilted ring rather than a flat line.
 - **The Director keeps moving subjects centred.** The camera follows an
   aircraft's drawn icon (and a satellite's live orbit position) through the
   flight in and the whole dwell, instead of circling where it was. Aircraft

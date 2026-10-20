@@ -233,7 +233,10 @@ export const DESCENT_RULES = Object.freeze({
 
 /** Camera framing per descent step. */
 export const DESCENT_CAMERA = Object.freeze({
-  geo: Object.freeze({ rangeM: 95_000_000, pitchDeg: -90 }),
+  // Looked at from above the equator the GEO belt is edge-on, a flat line
+  // across the screen; from about 22° off the equatorial plane it reads as
+  // a tilted ring around the Earth (Pierre, 20 Oct).
+  geo: Object.freeze({ rangeM: 95_000_000, pitchDeg: -90, tiltDeg: 22 }),
   cruise: Object.freeze({ rangeM: 25_000, pitchDeg: -30 }),
   low: Object.freeze({ rangeM: 3_000, pitchDeg: -25 }),
   ship: Object.freeze({ rangeM: 2_500, pitchDeg: -30 }),
