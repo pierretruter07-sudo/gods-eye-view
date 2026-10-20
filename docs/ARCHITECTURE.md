@@ -15,7 +15,7 @@ Browser                                              Node (Vite server)
 │   ├─ shell/  (UI, quality, welcome, spin)  │       │   celestrak, firms, cyclones │
 │   ├─ tour/   (Director)                    │       │   ais-live (websocket)       │
 │   ├─ intel/  (HUD, actions, triage)        │       │   overpass, installations    │
-│   └─ exercise/ (fictional theatre)         │       │   geocode, google places     │
+│                                            │       │   geocode, google places     │
 │ renderGovernor, worldOverlay               │       │   terrain heights, adsbdb    │
 └────────────────────────────────────────────┘       │ api-not-found (JSON 404)     │
                                                      └──────────────────────────────┘
@@ -48,7 +48,6 @@ Browser                                              Node (Vite server)
 | `src/shell` | Top bar, Layers panel, quality ladder, idle spin, welcome card, flight prefetch | `index.js`, `qualityPolicy.js` |
 | `src/tour` | **Director**: event detection, stop planning, camera, narration lines, speech | `events.js`, `planner.js`, `controller.js`, `lines.js` |
 | `src/intel` | **Intel HUD**: object model, triage, constellation cards, analyst actions | `objects.js`, `hud.js`, `actions.js`, `index.js` |
-| `src/exercise` | Fictional exercise theatre and planning panel | `mode.js`, `package.js`, `scenario.js` |
 | `server/providers` | Same-origin proxies, caching, rate limits, upstream fallbacks | `local.js`, `aircraft/opensky.js` |
 
 ## Data integrity model (FEED vs SIMULATED)
@@ -63,7 +62,6 @@ Browser                                              Node (Vite server)
   - Triage reads only feed fields.
   - Ownership on real assets is never an invented company.
   - Staged demo events are never presented as feed data.
-- Exercise mode disconnects the live layers and reads no feed.
 
 ## Performance controls
 

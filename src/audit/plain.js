@@ -8,7 +8,7 @@
 export const PLAIN = Object.freeze({
   'V8.2.1': {
     title: 'Anyone with the link can use everything',
-    why: 'There is no sign-in. Strangers can run the paid map services and the exercise mode.',
+    why: 'There is no sign-in. Strangers can run the paid map services and use up the live-feed quotas.',
     fix: 'Add company sign-in (SSO) before sharing the app beyond the team.',
   },
   'V8.1.1': {

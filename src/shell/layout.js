@@ -51,7 +51,6 @@ export const LAYERS = Object.freeze({
 export const OVERLAYS = Object.freeze(
   [
     { selector: '.gev-bar', zone: 'top', layer: 'chrome' },
-    { selector: '.gev-exbanner', zone: 'header', layer: 'stage' },
     { selector: '.gev-hud', zone: 'stage', layer: 'stage' },
     { selector: '.gev-hud .gev-hud__leaders', zone: 'stage', layer: 'stage' },
     { selector: '.gev-hud__leaders', zone: 'stage', layer: 'stage' },
@@ -64,11 +63,9 @@ export const OVERLAYS = Object.freeze(
     { selector: '.gev-caption', zone: 'caption', layer: 'chrome' },
     { selector: '.gev-alert', zone: 'right', layer: 'panel' },
     { selector: '.gev-sheet', zone: 'right', layer: 'drawer' },
-    { selector: '.gev-pkg', zone: 'right', layer: 'panel' },
     { selector: '.gev-descent', zone: 'band', layer: 'panel' },
     { selector: '.gev-layers', zone: 'left', layer: 'panel' },
     { selector: '.gev-triage', zone: 'left', layer: 'panel' },
-    { selector: '.gev-demo', zone: 'left', layer: 'panel' },
     { selector: '.gev-welcome', zone: 'centre', layer: 'modal' },
     { selector: '#loading-screen', zone: 'centre', layer: 'modal' },
     { selector: '#cesium-credits', zone: 'credits', layer: 'credits' },

@@ -25,7 +25,6 @@ demonstration or an audit.
 | F3 | Analyst actions marked SIMULATED (manifests, filed flight plans, message sending) produce illustrative content only. | By design. Clearly labelled. |
 | F4 | No user accounts, persistence, sharing or audit log of operator actions. | The watchlist and areas of interest live in browser memory only. |
 | F5 | The place-routing endpoint (`/api/route`) is still served but no screen uses it. | Deactivated functionality. Remove or adopt before a code freeze. |
-| F6 | Exercise mode is a single fictional scenario. | Demo of planning workflow only. |
 
 ## Platform and performance
 

@@ -108,8 +108,6 @@ export const WORLD_OVERLAY_OCCLUDER_SELECTORS = Object.freeze([
   '.gev-res',
   '.gev-caption',
   '.gev-alert',
-  '.gev-pkg',
-  '.gev-exbanner',
   '.gev-welcome__card',
   '#cesium-credits',
 ]);

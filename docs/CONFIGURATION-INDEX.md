@@ -70,6 +70,6 @@ uncommitted changes and is **not** a baseline build.
 
 | Branch | Content | Status |
 |---|---|---|
-| `main` | Director, intel HUD, Exercise mode, shell | Baseline |
+| `main` | Director, intel HUD, shell | Baseline |
 | `cleanup/remove-inherited` | Removed 518 unreachable inherited files and their tests | Merged (`ef9f8ca`) |
 | `audit/readiness` | Docs, CI-gate fixes, security tests, build stamp | In verification |
