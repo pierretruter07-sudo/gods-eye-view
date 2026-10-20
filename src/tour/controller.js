@@ -130,6 +130,7 @@ export function createTourController({
   let marker = null;
   // The Director's own icon for a subject the live layer is not drawing.
   let standIn = null;
+  let standInHalo = null;
   // Where the camera is aimed now (it follows a moving subject), so the
   // next hop starts from the subject's real position.
   let lastAim = null;
@@ -161,7 +162,9 @@ export function createTourController({
     for (const e of marker || []) viewer.entities.remove(e);
     marker = null;
     if (standIn) viewer.entities.remove(standIn);
+    if (standInHalo) viewer.entities.remove(standInHalo);
     standIn = null;
+    standInHalo = null;
   }
 
   /**
@@ -177,8 +180,14 @@ export function createTourController({
       stop?.aircraft?.icao24 ??
       (stop?.event?.kind === 'aircraft' ? stop.event.facts?.icao24 : null);
     if (icao) {
+      // A military stop's aircraft is drawn by the military layer; look
+      // there first so a copy in the civil feed never wins.
+      const layers =
+        stop.kind === 'military'
+          ? ['military', 'flights']
+          : ['flights', 'military'];
       return (result) => {
-        for (const id of ['flights', 'military']) {
+        for (const id of layers) {
           const p = layerModule(id)?.getDisplayPosition?.(icao);
           if (p) return Cesium.Cartesian3.clone(p, result);
         }
@@ -236,33 +245,48 @@ export function createTourController({
     const startedAt = performance.now();
     const step = new Cesium.Cartesian3();
     const probe = new Cesium.Cartesian3();
+    const shown = new Cesium.CallbackProperty(
+      () => !(follow && follow(probe)),
+      false,
+    );
+    const where = new Cesium.CallbackProperty((time, result) => {
+      const d = (mps * (performance.now() - startedAt)) / 1000;
+      step.x = Math.sin(headingRad) * d;
+      step.y = Math.cos(headingRad) * d;
+      step.z = 0;
+      Cesium.Matrix4.multiplyByPointAsVector(frame, step, step);
+      return Cesium.Cartesian3.add(
+        start,
+        step,
+        result ?? new Cesium.Cartesian3(),
+      );
+    }, false);
+    // A soft glass halo under the icon, so it reads at a glance (Replit's
+    // check, 20 Oct: a small white icon alone was hard to make out).
+    standInHalo = viewer.entities.add({
+      position: where,
+      billboard: {
+        image: glassSphereSprite('#64d2ff'),
+        width: 84,
+        height: 84,
+        color: Cesium.Color.WHITE.withAlpha(0.7),
+        show: shown,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
     standIn = viewer.entities.add({
-      position: new Cesium.CallbackProperty((time, result) => {
-        const d = (mps * (performance.now() - startedAt)) / 1000;
-        step.x = Math.sin(headingRad) * d;
-        step.y = Math.cos(headingRad) * d;
-        step.z = 0;
-        Cesium.Matrix4.multiplyByPointAsVector(frame, step, step);
-        return Cesium.Cartesian3.add(
-          start,
-          step,
-          result ?? new Cesium.Cartesian3(),
-        );
-      }, false),
+      position: where,
       billboard: {
         image: aircraftIcon(kind, 128),
-        width: 44,
-        height: 44,
-        color: Cesium.Color.fromCssColorString('#dff3ff'),
+        width: 56,
+        height: 56,
+        color: Cesium.Color.fromCssColorString('#8fe3ff'),
         // Icons are drawn nose up: turn to the course, relative to the view.
         rotation: new Cesium.CallbackProperty(
           () => viewer.camera.heading - headingRad,
           false,
         ),
-        show: new Cesium.CallbackProperty(
-          () => !(follow && follow(probe)),
-          false,
-        ),
+        show: shown,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
@@ -557,7 +581,14 @@ export function createTourController({
     let live = null;
     if (stop.kind === 'satellite')
       live = pick('satellites', 'noradId', stop.satellite?.noradId);
-    else if (stop.kind === 'aircraft' && stop.descent !== 'ground')
+    else if (stop.kind === 'aircraft' && stop.descent === 'ground') {
+      // A ground vehicle: aim at where the live layer has it now, but keep
+      // the sampled ground height (its feed height is not a ground height).
+      const v = pick('flights', 'icao24', stop.aircraft?.icao24);
+      if (v && Number.isFinite(v.lat) && Number.isFinite(v.lon))
+        stop.view = { ...stop.view, lat: v.lat, lon: v.lon };
+      return;
+    } else if (stop.kind === 'aircraft')
       live = pick('flights', 'icao24', stop.aircraft?.icao24);
     else if (stop.kind === 'military')
       live =
