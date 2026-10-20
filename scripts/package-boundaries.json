@@ -6,7 +6,7 @@
   },
   "viewer": {
     "exports": ["./application/viewer"],
-    "modules": ["src/app/viewer.js"],
+    "modules": ["src/app/sharePicks.js", "src/app/viewer.js"],
     "external": ["cesium"]
   },
   "vite-build": {
@@ -408,6 +408,7 @@
       "src/app/startupChrome.js",
       "src/app/surfaceServices.js",
       "src/app/tools.js",
+      "src/app/sharePicks.js",
       "src/app/viewer.js",
       "src/camera.js",
       "src/cameraVerbs.js",
