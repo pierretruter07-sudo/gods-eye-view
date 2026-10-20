@@ -52,3 +52,10 @@ test('never a sensor look for space, planet-scale views, the descent’s GEO and
   assert.equal(sensorFor(at('aircraft', { descent: 'low' }), NIGHT_SYD), 'nvg');
   assert.equal(sensorFor({ kind: 'military' }, NIGHT_SYD), null, 'no view, no look');
 });
+
+test('night vision only up close, and never on an alert (it turned open sea bright green)', () => {
+  assert.equal(sensorFor(at('event', {}, { rangeM: 20_000 }), NIGHT_SYD), null, 'alerts stay readable');
+  assert.equal(sensorFor(at('vessel', { vessel: { name: 'EVER TEST', shipType: 'Cargo' } }, { rangeM: 122_500 }), NIGHT_SYD), null);
+  assert.equal(sensorFor(at('aircraft', {}, { rangeM: 24_500 }), NIGHT_SYD), 'nvg');
+  assert.equal(sensorFor(at('military', {}, { rangeM: 100_000 }), NIGHT_SYD), 'flir', 'thermal is not limited by range');
+});

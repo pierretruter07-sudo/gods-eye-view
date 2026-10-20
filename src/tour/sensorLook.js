@@ -38,17 +38,28 @@ void main() {
   out_FragColor = vec4(vec3(clamp(l, 0.0, 1.0)), 1.0);
 }`;
 
-/** Night vision: amplified green phosphor, grain, faint scan lines. */
+/**
+ * Night vision: a dark green-black scene where edges and bright features
+ * (lights, roads, roofs, hulls) stand out, with grain and faint scan lines.
+ * The imagery underneath is a daytime photo, so brightness alone is kept
+ * low and contrast comes from the edges (Pierre, 20 Oct: the first version
+ * filled the screen with bright green).
+ */
 export const NVG_SHADER = `${COMMON}
 void main() {
   vec2 uv = v_textureCoordinates;
-  float l = lum(texture(colorTexture, uv).rgb);
-  l = clamp(pow(l, 0.9) * 1.2 + 0.03, 0.0, 1.0);
-  l += (noise(uv * 700.0 + fract(time * 7.0)) - 0.5) * 0.12;
-  l *= 0.93 + 0.07 * sin(uv.y * 900.0);
-  l *= mix(0.45, 1.0, vignette(uv));
-  vec3 phosphor = vec3(0.32, 1.0, 0.42);
-  out_FragColor = vec4(phosphor * clamp(l, 0.0, 1.0), 1.0);
+  vec2 px = 1.0 / vec2(textureSize(colorTexture, 0));
+  float c = lum(texture(colorTexture, uv).rgb);
+  float gx = lum(texture(colorTexture, uv + vec2(px.x, 0.0)).rgb) - lum(texture(colorTexture, uv - vec2(px.x, 0.0)).rgb);
+  float gy = lum(texture(colorTexture, uv + vec2(0.0, px.y)).rgb) - lum(texture(colorTexture, uv - vec2(0.0, px.y)).rgb);
+  float edge = clamp(length(vec2(gx, gy)) * 3.0, 0.0, 1.0);
+  // Base scene kept dark; only the brightest surfaces glow.
+  float l = 0.06 + 0.6 * pow(c, 1.3) + 0.3 * smoothstep(0.75, 1.0, c) + 0.5 * edge;
+  l += (noise(uv * 700.0 + fract(time * 7.0)) - 0.5) * 0.06;
+  l *= 0.94 + 0.06 * sin(uv.y * 900.0);
+  l *= mix(0.35, 1.0, vignette(uv));
+  vec3 phosphor = vec3(0.30, 0.95, 0.42);
+  out_FragColor = vec4(phosphor * clamp(l, 0.0, 0.9), 1.0);
 }`;
 
 /**

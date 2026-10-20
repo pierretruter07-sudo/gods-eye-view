@@ -272,8 +272,12 @@ export const DIRECTOR_SENSORS = Object.freeze({
   maxRangeM: 600_000,
   /** Night vision when the sun is below this elevation at the stop. */
   nightBelowDeg: 0,
+  /** ...and only up close: from further out night vision showed a sheet
+   * of bright green over open sea (Pierre, 20 Oct). */
+  nvgMaxRangeM: 30_000,
   flirKinds: Object.freeze(['military', 'base']),
-  noneKinds: Object.freeze(['satellite', 'geo', 'camera']),
+  // Alerts always keep the normal look, so they stay readable.
+  noneKinds: Object.freeze(['satellite', 'geo', 'camera', 'event']),
   noneDescentSteps: Object.freeze(['geo', 'iss', 'street']),
   /** Descent steps with a fixed view mode: the night city shows its city
    * lights; the night street is shown in night vision. */

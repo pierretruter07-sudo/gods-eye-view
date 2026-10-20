@@ -55,7 +55,10 @@ export function sensorFor(stop, now = Date.now(), rules = DIRECTOR_SENSORS) {
   if (rules.flirKinds.includes(stop.kind)) return 'flir';
   if (stop.kind === 'vessel' && stop.vessel && isStateVessel(stop.vessel))
     return 'flir';
-  if (solarElevationDeg(now, view.lat, view.lon) < rules.nightBelowDeg)
+  if (
+    view.rangeM <= (rules.nvgMaxRangeM ?? Infinity) &&
+    solarElevationDeg(now, view.lat, view.lon) < rules.nightBelowDeg
+  )
     return 'nvg';
   return null;
 }

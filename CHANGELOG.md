@@ -37,6 +37,9 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- Night vision no longer floods the screen with bright green. It is used
+  only up close (30 km or nearer) and never on an alert. The look is now a
+  dark scene where edges and bright surfaces stand out.
 - Orbit rings no longer break or show a second, offset line: the Director's
   ring is closed exactly and the layer's rings are re-baked every 10
   minutes. The focused aircraft's tail now ends exactly at its icon.
