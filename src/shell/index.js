@@ -105,8 +105,16 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     flags: graphicsFlags(window.location.search),
   });
   window.__gevGraphics = graphics;
+  // Shadows are the first thing the ladder drops (sun.js); the world
+  // visuals mount further down, so the ladder's say is kept until then.
+  let shadowsAllowed = true;
+  let worldRef = null;
   const stopQuality = installAdaptiveQuality(viewer, {
     setEffects: (on) => graphics.setEffects(on),
+    setShadows: (on) => {
+      shadowsAllowed = on;
+      worldRef?.allowShadows(on);
+    },
   });
   // No animated-wave water effect: up close its normal-mapped waves were
   // drawn far too large and read as white froth across the sea (owner
@@ -280,6 +288,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const prefetch = installFlightPrefetch({ viewer, dataManager });
   // Day/night with city lights, comet trails, quake shockwave rings.
   const world = installWorldVisuals({ viewer, dataManager });
+  worldRef = world;
+  world.allowShadows(shadowsAllowed);
   // The Director stages each next stop's aircraft itself (one request per
   // stop, a whole dwell ahead), so there is no background warm loop: a loop
   // over every stop kept the free regional sources near their rate limits.

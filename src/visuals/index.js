@@ -1,20 +1,25 @@
 /**
- * @file World visuals: live day/night with city lights, comet trails behind
- * aircraft and ships, and (on request only, `?quakerings=1`) shockwave
- * rings for earthquakes the Director shows. Day/night and trails can be
- * switched off from the URL (`?daynight=0`, `?trails=0`) or at run time
+ * @file World visuals: the real Sun with shadows on the 3D city, a true
+ * night side on the city's tiles, live day/night with city lights from
+ * orbit, the Milky Way sky, comet trails behind aircraft and ships, and (on
+ * request only, `?quakerings=1`) shockwave rings for earthquakes the
+ * Director shows. Each can be switched off from the URL (`?shadows=0`,
+ * `?nightcity=0`, `?daynight=0`, `?stars=0`, `?trails=0`) or at run time
  * through `window.__gevWorld`.
  * @module visuals
  */
 import * as Cesium from 'cesium';
 import { createDayNight } from './dayNight.js';
+import { createSun } from './sun.js';
+import { createNightTiles } from './nightTiles.js';
+import { createStarfield } from './starfield.js';
 import { createTrails } from './trails.js';
 import { createQuakeRings } from './quakeRings.js';
 import { visualFlags } from './flags.js';
 
 export { visualFlags };
 
-/** Mount all three for the application lifetime. */
+/** Mount them all for the application lifetime. */
 export function installWorldVisuals({ viewer, dataManager }) {
   let search = '';
   try {
@@ -31,8 +36,27 @@ export function installWorldVisuals({ viewer, dataManager }) {
       console.warn(`[visuals] ${name} unavailable`, error);
     }
   };
+  tryMount('sun', () => createSun({ viewer, Cesium, shadows: flags.shadows }));
   tryMount('dayNight', () =>
     createDayNight({ viewer, Cesium, enabled: flags.dayNight }),
+  );
+  if (parts.sun)
+    tryMount('nightCity', () =>
+      createNightTiles({
+        viewer,
+        Cesium,
+        enabled: flags.nightCity,
+        sunDirection: () => parts.sun.direction(),
+        lightsImage: () => parts.dayNight?.lightsImage?.() || null,
+      }),
+    );
+  tryMount('stars', () =>
+    createStarfield({
+      viewer,
+      Cesium,
+      enabled: flags.stars,
+      base: import.meta.env?.BASE_URL || '/',
+    }),
   );
   tryMount('trails', () =>
     createTrails({ viewer, Cesium, dataManager, enabled: flags.trails }),
@@ -56,6 +80,10 @@ export function installWorldVisuals({ viewer, dataManager }) {
           magnitude: record?.magnitude,
         });
       else parts.quakeRings?.clear();
+    },
+    /** The quality ladder's say on shadows (off on its lower rungs). */
+    allowShadows(on) {
+      parts.sun?.setAllowed(on);
     },
     set(name, on) {
       parts[name]?.setEnabled(on);

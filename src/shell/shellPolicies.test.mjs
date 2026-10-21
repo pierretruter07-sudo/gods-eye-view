@@ -3,17 +3,19 @@ import assert from 'node:assert/strict';
 import { QUALITY, START_LEVEL, nextQuality, qualityLevels } from './qualityPolicy.js';
 import { countStatesNear, recordsNear, shouldRefreshFlights, statesNear, worldwideFresh, PREFETCH_MAX_AGE_MS, WORLDWIDE_FRESH_MS } from './flightPrefetchPolicy.js';
 
-test('quality ladder always keeps native resolution; it sheds bloom, then MSAA, then tile detail', () => {
+test('quality ladder always keeps native resolution; it sheds shadows, then bloom, then MSAA, then tile detail', () => {
   for (const dpr of [1, 1.5, 2]) {
     const l = qualityLevels(dpr);
     assert.ok(l.every((x) => x.ratio === dpr), `native at every level (${dpr}×)`);
   }
   assert.equal(qualityLevels(3)[0].ratio, QUALITY.maxRatio, 'capped at 2× on 3× phones');
   const l = qualityLevels(1.5);
-  assert.deepEqual(l.map((x) => x.effects), [true, true, false, false, false, false]);
-  assert.deepEqual(l.map((x) => x.msaa), [4, 2, 2, 1, 1, 1]);
-  assert.deepEqual(l.map((x) => x.sse), [16, 16, 16, 16, 20, 24]);
+  assert.deepEqual(l.map((x) => x.shadows === true), [true, true, false, false, false, false, false]);
+  assert.deepEqual(l.map((x) => x.effects), [true, true, true, false, false, false, false]);
+  assert.deepEqual(l.map((x) => x.msaa), [4, 2, 2, 2, 1, 1, 1]);
+  assert.deepEqual(l.map((x) => x.sse), [16, 16, 16, 16, 16, 20, 24]);
   assert.equal(l[START_LEVEL].effects, true, 'starts with effects on');
+  assert.equal(l[START_LEVEL].shadows, true, 'and with shadows on');
 });
 
 test('one slow window does not drop quality; sustained slowness does; recovery needs headroom', () => {

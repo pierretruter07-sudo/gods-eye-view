@@ -174,6 +174,7 @@ export function createDayNight({
 
   let on = enabled;
   let lightsSource = null;
+  let lightsImage = null;
   let lastSunAt = 0;
 
   (async () => {
@@ -184,6 +185,7 @@ export function createDayNight({
         material.uniforms.lights = image;
         material.uniforms.hasLights = 1;
         lightsSource = url;
+        lightsImage = image;
         scene.requestRender?.();
         return;
       } catch (error) {
@@ -221,6 +223,8 @@ export function createDayNight({
       scene.requestRender?.();
     },
     enabled: () => on,
+    /** The night-lights image once loaded (shared with visuals/nightTiles). */
+    lightsImage: () => lightsImage,
     state: () => {
       update();
       return {
