@@ -64,6 +64,7 @@ Keep it intact.
 | Natural Earth physical regions | `src/data/local_data/natural_earth/` | Public domain | ✅ |
 | San Francisco neighbourhoods | `src/data/local_data/neighborhoods/` | PDDL 1.0 (DataSF) | ✅ |
 | Director airport and stop list | `src/tour/config.js` | Coordinates from OurAirports (public domain) | ✅ |
+| Milky Way sky box (star images) | `public/sky/` (built by `scripts/sky/build-starfield.py`) | Stars from the XHIP extended Hipparcos compilation (Anderson & Francis 2012, CDS VizieR V/137D; free use with acknowledgement, given in the credits and `public/sky/README.md`) via d3-celestial (BSD 3-Clause, notice in `public/sky/README.md`). The Milky Way glow is modelled. | ✅ |
 
 ## Type reference images
 

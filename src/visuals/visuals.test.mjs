@@ -133,11 +133,17 @@ test('each world visual can be switched off from the URL; quake rings only on re
     dayNight: true,
     trails: true,
     quakeRings: false,
+    shadows: true,
+    nightCity: true,
+    stars: true,
   });
-  assert.deepEqual(visualFlags('?daynight=0&trails=0'), {
+  assert.deepEqual(visualFlags('?daynight=0&trails=0&shadows=0&nightcity=0&stars=0'), {
     dayNight: false,
     trails: false,
     quakeRings: false,
+    shadows: false,
+    nightCity: false,
+    stars: false,
   });
   assert.equal(visualFlags('?nointro&quakerings=1').quakeRings, true);
   assert.equal(visualFlags('?quakerings=0').quakeRings, false);

@@ -2,8 +2,8 @@
  * Adaptive render quality as a ladder of levels, best first. The display's
  * native resolution is ALWAYS kept, so text, icons and edges stay crisp
  * (Pierre, 21 Oct: "keep native resolution"). On slow frames the ladder
- * sheds, in order: the bloom effect, then multisample anti-aliasing, then 3D
- * tile detail. Pure: no Cesium, no DOM.
+ * sheds, in order: sun shadows, then the bloom effect, then multisample
+ * anti-aliasing, then 3D tile detail. Pure: no Cesium, no DOM.
  */
 export const QUALITY = Object.freeze({
   /** Step down after this many windows below lowFps in a row. */
@@ -23,9 +23,12 @@ export const QUALITY = Object.freeze({
 export function qualityLevels(devicePixelRatio = 1) {
   const native = Math.min(QUALITY.maxRatio, Math.max(1, devicePixelRatio || 1));
   // sse: 3D tile detail (maximumScreenSpaceError; Cesium's default is 16).
+  // shadows: sun shadows on the 3D city, the costliest extra (another
+  // render of the close-in city from the Sun's side), dropped first.
   return [
-    { ratio: native, msaa: 4, effects: true, sse: 16 },
-    { ratio: native, msaa: 2, effects: true, sse: 16 },
+    { ratio: native, msaa: 4, effects: true, shadows: true, sse: 16 },
+    { ratio: native, msaa: 2, effects: true, shadows: true, sse: 16 },
+    { ratio: native, msaa: 2, effects: true, shadows: false, sse: 16 },
     { ratio: native, msaa: 2, effects: false, sse: 16 },
     { ratio: native, msaa: 1, effects: false, sse: 16 },
     { ratio: native, msaa: 1, effects: false, sse: 20 },

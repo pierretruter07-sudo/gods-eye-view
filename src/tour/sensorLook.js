@@ -130,6 +130,15 @@ export function createSensorLook({ viewer, Cesium }) {
       }
     }
     showSensorTag(current);
+    // The night-side city shading steps aside for thermal and night vision,
+    // which are tuned for the camera's raw picture (visuals/nightTiles.js).
+    try {
+      globalThis.window?.dispatchEvent(
+        new CustomEvent('gev:sensor', { detail: { mode: current } }),
+      );
+    } catch {
+      /* no window (tests) */
+    }
     viewer.scene.requestRender?.();
   }
 

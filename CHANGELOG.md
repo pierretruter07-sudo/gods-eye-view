@@ -6,6 +6,16 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **The real Sun, a true night side and the Milky Way** (Pierre, 21 Oct).
+  - The scene is lit from the Sun's real direction, and the 3D city casts
+    soft real-time shadows for the time of day (close views in daylight; the
+    quality ladder drops them first). `?shadows=0` turns them off.
+  - The city's tiles get a golden hour, a blue dusk and a dark night, lit
+    where NASA's night-lights image shows a city; the sky darkens at night.
+    `?nightcity=0` turns it off.
+  - A 2048 px Milky Way sky of 118,000 real Hipparcos stars with a modelled
+    glow (`public/sky/README.md`). `?stars=0` keeps Cesium's sky.
+  - GEV-VIS-008 to GEV-VIS-010; `window.__gevWorld.state()` reports all three.
 - **CrossCheck, a product of its own (Phases 2 to 6).** Open `/crosscheck/`:
   - Plug in any codebase (a GitHub link or a zip) and answer what code
     cannot show.

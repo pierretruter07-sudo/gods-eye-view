@@ -212,6 +212,13 @@ export const DATA_CREDITS = [
       'part of NASA’s Earth Science Data and Information System (ESDIS)',
   },
   {
+    key: 'xhip-stars',
+    html:
+      'Stars: XHIP extended Hipparcos compilation (Anderson &amp; Francis 2012, ' +
+      '<a href="https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=V/137D" target="_blank" rel="noopener">CDS VizieR V/137D</a>) ' +
+      'via d3-celestial (BSD-3-Clause, © Olaf Frohn); Milky Way glow modelled',
+  },
+  {
     key: 'telegeography',
     html:
       'Submarine cables: © TeleGeography — ' +

@@ -5,15 +5,19 @@ const WINDOW_MS = 1500;
 /**
  * Keeps the globe crisp AND smooth: always renders at the display's native
  * pixel density with multisample anti-aliasing, and walks a quality ladder
- * (see qualityPolicy.js) when the measured frame rate sags: effects first,
- * then MSAA, then tile detail. Only measures while the scene renders
+ * (see qualityPolicy.js) when the measured frame rate sags: shadows first,
+ * then effects, then MSAA, then tile detail. Only measures while the scene renders
  * continuously — idle request-render frames are sparse by design and say
  * nothing about smoothness.
  * @param {object} viewer
- * @param {{setEffects?: (on: boolean) => void}} [options] the scene look's
- *   effects switch (graphics.js)
+ * @param {{setEffects?: (on: boolean) => void,
+ *   setShadows?: (on: boolean) => void}} [options] the scene look's effects
+ *   switch (graphics.js) and the sun shadows' (visuals/sun.js)
  */
-export function installAdaptiveQuality(viewer, { setEffects = null } = {}) {
+export function installAdaptiveQuality(
+  viewer,
+  { setEffects = null, setShadows = null } = {},
+) {
   const scene = viewer.scene;
   const dpr = window.devicePixelRatio || 1;
   const levels = qualityLevels(dpr);
@@ -24,7 +28,7 @@ export function installAdaptiveQuality(viewer, { setEffects = null } = {}) {
   };
 
   function apply() {
-    const { ratio, msaa, sse, effects } = levels[state.level];
+    const { ratio, msaa, sse, effects, shadows } = levels[state.level];
     try {
       // With browser-recommended resolution OFF, Cesium renders at
       // devicePixelRatio × resolutionScale — so divide the DPR back out.
@@ -44,6 +48,11 @@ export function installAdaptiveQuality(viewer, { setEffects = null } = {}) {
       setEffects?.(effects !== false);
     } catch {
       /* effects unavailable */
+    }
+    try {
+      setShadows?.(shadows === true);
+    } catch {
+      /* shadows unavailable */
     }
     // Photorealistic 3D tiles: coarser detail on the bottom rungs.
     const primitives = scene.primitives;

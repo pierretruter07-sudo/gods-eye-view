@@ -51,6 +51,7 @@ test('every shipped live source and bundled asset has an attribution entry', () 
     'usgs',
     'firms',
     'nasa-gibs-black-marble',
+    'xhip-stars',
     'weather-cyclones',
     'telegeography',
     'military-installations-osm',
