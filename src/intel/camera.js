@@ -56,6 +56,9 @@ const countKind = (items, kind) =>
  *   video (a looping clip or a live stream), else null.
  * @param {string|null} [ctx.mediaType] - 'hls' for a live stream.
  * @param {number} [ctx.refreshedAt] - When that URL was issued (ms).
+ * @param {boolean} [ctx.frameGenuine] - False when the server is standing
+ *   in for an unreachable camera (placeholder or Street View image): the
+ *   still is then never labelled live.
  * @param {object[]} [ctx.nearby] - Objects around the camera (intel nearby list).
  * @param {number} [ctx.radiusKm]
  * @param {boolean} [ctx.panel3d] - The camera's panel is shown in the city.
@@ -67,6 +70,7 @@ export function buildCameraHud(o, ctx = {}) {
   const credit = [o.provider, o.credit].filter(Boolean).join(' · ');
   const video = ctx.mediaUrl || null;
   const live = Boolean(video) && (ctx.mediaType || o.feedType) === 'hls';
+  const standIn = !video && ctx.frameGenuine === false;
   const cards = [
     card(
       'live',
@@ -81,10 +85,15 @@ export function buildCameraHud(o, ctx = {}) {
               row('Video', 'Clip from the network'),
               row('Updated', 'Every few minutes'),
             )
-          : rows(
-              row('Refreshed', clockText(ctx.refreshedAt)),
-              row('Cadence', `Every ${CAMERA_FRAME_REFRESH_MS / 1000} s`),
-            ),
+          : standIn
+            ? rows(
+                row('Frame', 'Camera not reachable right now'),
+                row('Shown', 'A stand-in image, not the camera'),
+              )
+            : rows(
+                row('Refreshed', clockText(ctx.refreshedAt)),
+                row('Cadence', `Every ${CAMERA_FRAME_REFRESH_MS / 1000} s`),
+              ),
       {
         frame:
           video || ctx.frameUrl
@@ -96,8 +105,12 @@ export function buildCameraHud(o, ctx = {}) {
                   ? 'LIVE VIDEO'
                   : video
                     ? 'VIDEO CLIP'
-                    : 'LIVE STILL',
-                alt: `${live ? 'Live video' : video ? 'Video clip' : 'Live still'} from ${o.name || 'camera'}`,
+                    : standIn
+                      ? 'NO LIVE FRAME'
+                      : 'LIVE STILL',
+                alt: standIn
+                  ? `${o.name || 'Camera'} is not reachable; stand-in image`
+                  : `${live ? 'Live video' : video ? 'Video clip' : 'Live still'} from ${o.name || 'camera'}`,
               }
             : null,
       },

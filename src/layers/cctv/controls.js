@@ -276,6 +276,21 @@ export function createControls({ state: layerState, services, parts, source }) {
     },
 
     /**
+     * Whether the still frames served for a camera are the camera's own.
+     * False when the server reports it is standing in for an unreachable
+     * camera with a generated placeholder or a Street View image; true
+     * when healthy or not yet reported.
+     * @param {string} cameraId
+     * @returns {boolean}
+     */
+    frameIsGenuine(cameraId) {
+      const health = layerState._healthById?.get(cameraId);
+      return (
+        !health || !['synthetic', 'streetview'].includes(health.sourceKind)
+      );
+    },
+
+    /**
      * Stable video URL for a camera that publishes video (clip or stream),
      * or null for still-image cameras. Stable so a playing element is not
      * reloaded on every card refresh.

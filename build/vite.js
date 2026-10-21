@@ -27,6 +27,11 @@ export function createBrowserViteConfig({
     // A production build must not clean the dependency cache a running dev
     // server is still serving optimized module URLs from.
     ...(command === 'build' ? { cacheDir: 'node_modules/.vite-build' } : {}),
+    // The production build drops log/info/debug chatter (feed updates,
+    // narration lines, quality steps); warnings and errors stay.
+    ...(command === 'build'
+      ? { esbuild: { pure: ['console.log', 'console.info', 'console.debug'] } }
+      : {}),
     optimizeDeps: {
       // First reached through a dynamic import. Pre-bundle at startup so first
       // use cannot invalidate already-transformed URLs with Vite's

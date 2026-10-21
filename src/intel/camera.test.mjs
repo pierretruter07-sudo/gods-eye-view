@@ -135,3 +135,15 @@ test('a camera with a live stream plays live video, labelled LIVE VIDEO, with th
   assert.match(hud.status, /live video/);
   assert.ok(live.rows.every((r) => r.sim === false));
 });
+
+test('a camera the server is standing in for is never labelled live', () => {
+  const o = toIntelObject('cctv', { id: 'nsw-9', name: 'Harbour Bridge', city: 'Sydney', provider: 'Live Traffic NSW', lat: -33.85, lon: 151.21, feedType: 'image' });
+  const hud = buildCameraHud(o, { frameUrl: '/api/cctv/frame/nsw-9?ts=1', frameGenuine: false });
+  const frame = hud.cards[0].frame;
+  assert.equal(frame.badge, 'NO LIVE FRAME');
+  assert.match(frame.alt, /not reachable/);
+  assert.ok(hud.cards[0].rows.some((r) => /stand-in/i.test(String(r.value ?? r[1] ?? JSON.stringify(r)))));
+  // Healthy or not yet reported: a live still as before.
+  assert.equal(buildCameraHud(o, { frameUrl: '/x', frameGenuine: true }).cards[0].frame.badge, 'LIVE STILL');
+  assert.equal(buildCameraHud(o, { frameUrl: '/x' }).cards[0].frame.badge, 'LIVE STILL');
+});

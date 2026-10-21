@@ -212,6 +212,24 @@ export const DATA_CREDITS = [
       'part of NASA’s Earth Science Data and Information System (ESDIS)',
   },
   {
+    key: 'nominatim',
+    html:
+      'Place lookup: <a href="https://nominatim.openstreetmap.org/" target="_blank" rel="noopener">Nominatim</a> ' +
+      '(OpenStreetMap Foundation; data © OpenStreetMap contributors, ODbL)',
+  },
+  {
+    key: 'fossgis-routing',
+    html:
+      'Routes: <a href="https://routing.openstreetmap.de/" target="_blank" rel="noopener">FOSSGIS OSRM routing service</a> ' +
+      '(data © OpenStreetMap contributors, ODbL)',
+  },
+  {
+    key: 'wikimedia-type-photos',
+    html:
+      'Aircraft and ship type photos: <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a> ' +
+      'via Wikipedia; author and licence shown with each photo',
+  },
+  {
     key: 'xhip-stars',
     html:
       'Stars: XHIP extended Hipparcos compilation (Anderson &amp; Francis 2012, ' +

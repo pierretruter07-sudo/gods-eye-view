@@ -47,6 +47,22 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Final pre-pitch audit** (independent review, 21 Oct).
+  - A camera the server is standing in for (placeholder or Street View
+    image) is labelled **NO LIVE FRAME**, never LIVE STILL, and the opening
+    descent no longer ends on one.
+  - Clicking a Triage item while the Director runs stops the Director, so
+    the camera goes to the item instead of being pulled back.
+  - Shadows switch on below 6 km and off above 8 km (no cost at cruise
+    stops, no flip on every hop).
+  - The Director's waits no longer leave abort listeners behind.
+  - The Milky Way images load only when the sky is on; the night-lights
+    readback runs off the render loop; one visual's teardown error no longer
+    skips the rest.
+  - Production builds drop console log/info/debug chatter.
+  - Credits added for Nominatim, the FOSSGIS routing service and Wikimedia
+    type photos; demo runbook, README switches and architecture brought up
+    to date; Exercise leftovers and tracked Python caches removed.
 - **Director arrives on loaded tiles.** Each hop ends above the subject and holds
   until its Google 3D tiles have loaded (at most 6 s), then glides in; narration
   waits for the view to load. Google tiles may use 48 parallel requests.

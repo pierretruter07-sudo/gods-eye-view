@@ -7,7 +7,7 @@
  *   and dark at night over the place the camera is looking at.
  * - Buildings and terrain in the Google 3D city cast shadows for the time of
  *   day. Shadows are only drawn where they show and are affordable: a close
- *   view (below 20 km), the Sun above the horizon there, and the quality
+ *   view (below about 6 km), the Sun above the horizon there, and the quality
  *   ladder at one of its top rungs (`setAllowed`). `?shadows=0` turns them
  *   off.
  * - The Google tiles are photographs with the light of the day they were
@@ -28,8 +28,15 @@ export const SUN = Object.freeze({
   sunEveryMs: 10_000,
   /** How often shadows are switched on or off. */
   checkEveryMs: 1_000,
-  /** Shadows only for views closer than this (camera height, metres). */
-  shadowMaxHeightM: 20_000,
+  /**
+   * Shadows only for close views (camera height, metres): on below
+   * `shadowOnBelowM`, off above `shadowOffAboveM`. Shadows reach only
+   * `shadowDistanceM` from the camera, so a cruise-altitude stop (about
+   * 13 km up) would pay for them and show none; the gap between the two
+   * stops them flipping on every hop.
+   */
+  shadowOnBelowM: 6_000,
+  shadowOffAboveM: 8_000,
   /** ...and only while the Sun is at least this high there (degrees). */
   shadowMinSunDeg: 2,
   /** How far from the camera shadows are drawn (metres). */
@@ -63,15 +70,19 @@ export function sunElevationDeg(sun, latDeg, lonDeg) {
   return Math.asin(Math.max(-1, Math.min(1, s))) / RAD;
 }
 
-/** Whether shadows should be drawn now. */
+/**
+ * Whether shadows should be drawn now. `was` (whether they are on) gives
+ * the height test its hysteresis.
+ */
 export function wantShadows(
-  { heightM, sunDeg, allowed = true, enabled = true },
+  { heightM, sunDeg, allowed = true, enabled = true, was = false },
   rules = SUN,
 ) {
+  const ceiling = was ? rules.shadowOffAboveM : rules.shadowOnBelowM;
   return (
     Boolean(enabled && allowed) &&
     Number.isFinite(heightM) &&
-    heightM <= rules.shadowMaxHeightM &&
+    heightM <= ceiling &&
     Number.isFinite(sunDeg) &&
     sunDeg >= rules.shadowMinSunDeg
   );
@@ -200,7 +211,10 @@ export function createSun({
     lightGlobe(heightM);
     const colour = sunColor(Number.isFinite(sunDeg) ? sunDeg : 90);
     light.color = new Cesium.Color(colour.red, colour.green, colour.blue, 1);
-    const on = wantShadows({ heightM, sunDeg, allowed, enabled }, rules);
+    const on = wantShadows(
+      { heightM, sunDeg, allowed, enabled, was: last.shadows },
+      rules,
+    );
     if (on) setBias(sunDeg);
     setShadows(on);
     // Cesium draws its Sun disc from the viewer's clock, which does not

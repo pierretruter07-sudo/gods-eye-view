@@ -123,7 +123,12 @@ test('the scene is lit by the real Sun: noon over the subsolar point, night on t
 test('shadows only for close views in daylight, and never on the quality ladder’s lower rungs', () => {
   const base = { heightM: 700, sunDeg: 30, allowed: true, enabled: true };
   assert.equal(wantShadows(base), true);
-  assert.equal(wantShadows({ ...base, heightM: SUN.shadowMaxHeightM + 1 }), false);
+  assert.equal(wantShadows({ ...base, heightM: SUN.shadowOnBelowM + 1 }), false);
+  // Once on, they stay on up to the higher limit (no flip on every hop)...
+  assert.equal(wantShadows({ ...base, heightM: SUN.shadowOnBelowM + 1, was: true }), true);
+  assert.equal(wantShadows({ ...base, heightM: SUN.shadowOffAboveM + 1, was: true }), false);
+  // ...and a cruise-altitude stop (about 13 km up) never pays for them.
+  assert.equal(wantShadows({ ...base, heightM: 13_000 }), false);
   assert.equal(wantShadows({ ...base, sunDeg: SUN.shadowMinSunDeg - 0.5 }), false);
   assert.equal(wantShadows({ ...base, allowed: false }), false);
   assert.equal(wantShadows({ ...base, enabled: false }), false);
@@ -230,4 +235,18 @@ test('the Milky Way sky box replaces the default once all six faces load, and ke
   console.warn = warn;
   assert.equal(broken.scene.skyBox, 'default-sky');
   assert.equal(failed.state().failed, true);
+});
+
+test('with the Milky Way switched off nothing is downloaded until it is switched on', async () => {
+  const { viewer, scene } = fakeViewer();
+  let fetched = 0;
+  const Cesium = { ...CesiumFor('x'), Resource: { fetchImage: async ({ url }) => (fetched++, { url }) } };
+  const stars = createStarfield({ viewer, Cesium, enabled: false, delayMs: 0 });
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(fetched, 0);
+  assert.equal(scene.skyBox, 'default-sky');
+  stars.setEnabled(true);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(fetched, 6);
+  assert.ok(scene.skyBox instanceof SkyBox);
 });

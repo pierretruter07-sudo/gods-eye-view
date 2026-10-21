@@ -93,7 +93,13 @@ export function installWorldVisuals({ viewer, dataManager }) {
       Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, v.state()])),
     parts,
     destroy() {
-      for (const p of Object.values(parts)) p.destroy();
+      for (const [name, p] of Object.entries(parts)) {
+        try {
+          p.destroy();
+        } catch (error) {
+          console.warn(`[visuals] ${name} teardown failed`, error);
+        }
+      }
     },
   };
   window.__gevWorld = api;

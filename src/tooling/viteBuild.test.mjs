@@ -89,3 +89,19 @@ test('build export resolves in Node and has no browser fallback', async () => {
   );
   assert.deepEqual(pkg.exports['./build/vite'], { node: './build/vite.js' });
 });
+
+test('the production build drops console log/info/debug chatter but keeps warnings and errors', async () => {
+  const { createBrowserViteConfig } = await import('../../build/vite.js');
+  const prod = createBrowserViteConfig({ command: 'build' });
+  assert.deepEqual(prod.esbuild?.pure, [
+    'console.log',
+    'console.info',
+    'console.debug',
+  ]);
+  assert.ok(
+    !prod.esbuild.pure.includes('console.warn') &&
+      !prod.esbuild.pure.includes('console.error'),
+  );
+  const dev = createBrowserViteConfig({ command: 'serve' });
+  assert.equal(dev.esbuild, undefined, 'the dev server keeps every log');
+});

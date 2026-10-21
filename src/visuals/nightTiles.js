@@ -124,6 +124,7 @@ export function createNightTiles({
   });
 
   let on = enabled;
+  let destroyed = false;
   let sensor = null;
   let lightsLoaded = false;
   let scanAt = 0;
@@ -147,8 +148,20 @@ export function createNightTiles({
     for (const p of shaded) if (p.isDestroyed?.()) shaded.delete(p);
   }
 
+  // Reading the 2048 × 1024 image back is a few tens of milliseconds, so
+  // it runs once, off the render loop, when the browser is idle.
+  const idle = (fn) =>
+    typeof globalThis.requestIdleCallback === 'function'
+      ? globalThis.requestIdleCallback(fn, { timeout: 2000 })
+      : setTimeout(fn, 0);
+  let lightsQueued = false;
+  function queueLights() {
+    if (lightsLoaded || lightsQueued || !lightsImage()) return;
+    lightsQueued = true;
+    idle(loadLights);
+  }
   function loadLights() {
-    if (lightsLoaded) return;
+    if (lightsLoaded || destroyed) return;
     const image = lightsImage();
     if (!image) return;
     lightsLoaded = true;
@@ -172,7 +185,7 @@ export function createNightTiles({
     if (t - scanAt >= rules.scanEveryMs) {
       scanAt = t;
       scan();
-      loadLights();
+      queueLights();
     }
     const s = sunDirection();
     shader.setUniform(
@@ -203,6 +216,7 @@ export function createNightTiles({
       strength: strength(),
     }),
     destroy() {
+      destroyed = true;
       removeHook();
       events?.removeEventListener?.('gev:sensor', onSensor);
       for (const p of shaded) {

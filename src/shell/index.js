@@ -418,6 +418,9 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     viewer,
     dataManager,
     isLive: () => true,
+    onManualFocus: (reason) => {
+      if (tour.controller.isRunning()) tour.controller.exit(reason);
+    },
   });
   intelRef = intel;
   // Diagnostics and the UI layout check (as window.__gevTour for the Director).
@@ -471,7 +474,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     intel.setTriage(!intel.isTriageOpen());
   });
   const badgeTimer = setInterval(refreshBadge, 15000);
-  setTimeout(refreshBadge, 12000);
+  startupTimers.push(setTimeout(refreshBadge, 12000));
 
   // Esc closes the asset view.
   const onEscape = (event) => {
