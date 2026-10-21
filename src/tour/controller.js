@@ -72,18 +72,20 @@ function tileWarmFromUrl() {
   }
 }
 
-function sleep(ms, signal) {
+export function sleep(ms, signal) {
   return new Promise((resolve, reject) => {
     if (signal.aborted) return reject(signal.reason);
-    const timer = setTimeout(resolve, ms);
-    signal.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        reject(signal.reason);
-      },
-      { once: true },
-    );
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    // Called every 100 ms while tiles load: the abort listener is removed
+    // when the wait ends normally, or a long demo piles them up.
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener('abort', onAbort, { once: true });
   });
 }
 
@@ -842,7 +844,11 @@ export function createTourController({
   function descentData() {
     return {
       ...liveData(),
-      cameras: records('cctv'),
+      // Only cameras whose own frames are coming through: the descent ends
+      // on a street camera, and a stand-in image must never be shown live.
+      cameras: records('cctv').filter(
+        (c) => layerModule('cctv')?.frameIsGenuine?.(c.id) !== false,
+      ),
       staged: regionStaged.aircraft,
     };
   }

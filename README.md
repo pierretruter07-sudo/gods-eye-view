@@ -65,6 +65,19 @@ Production build: `npm run build && npm run preview`.
 | `?nointro` | Skip the welcome card and its 10 s countdown. |
 | `?restore` | Restore the last camera and layer state instead of starting clean. |
 | `?fps` | Show the frame-rate readout (measure on the presentation laptop). |
+| `?hdr=0` `?bloom=0` `?sharpen=0` | Turn off high dynamic range, bloom or sharpening. |
+| `?shadows=0` | No real-time sun shadows on the 3D city. |
+| `?nightcity=0` | No night-side shading on the 3D city. |
+| `?daynight=0` | No day/night line and city lights from orbit. |
+| `?stars=0` | Cesium's default sky instead of the Milky Way. |
+| `?trails=0` | No trails behind aircraft and ships. |
+| `?quakerings=1` | Shockwave rings at earthquakes the Director shows. |
+| `?tilewarm=0` | Don't preload the Director's next stop (for comparison). |
+
+Diagnostics in the browser console: `__gevTour.arrivalLog()` (per stop: how
+long it held for Google tiles and whether they settled), `__gevTour.tileLog()`,
+`__gevWorld.state()` (Sun, shadows, night city, sky), `__gevGraphics.state()`
+and `__gevQuality`.
 
 ## Documentation
 

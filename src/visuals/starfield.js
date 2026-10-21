@@ -58,9 +58,12 @@ export function createStarfield({
   }
 
   let timer = null;
+  let started = false;
+  let destroyed = false;
   const load = async () => {
     timer = null;
-    if (scene.isDestroyed?.()) return;
+    if (started || destroyed || scene.isDestroyed?.()) return;
+    started = true;
     try {
       const images = await Promise.all(
         Object.values(sources).map((url) =>
@@ -70,7 +73,12 @@ export function createStarfield({
       const faces = Object.fromEntries(
         Object.keys(sources).map((face, i) => [face, images[i]]),
       );
-      milkyWay = new Cesium.SkyBox({ sources: faces });
+      const box = new Cesium.SkyBox({ sources: faces });
+      if (destroyed) {
+        box.destroy?.();
+        return;
+      }
+      milkyWay = box;
       apply();
     } catch (error) {
       failed = true;
@@ -80,12 +88,19 @@ export function createStarfield({
       );
     }
   };
-  if (delayMs > 0) timer = setTimeout(load, delayMs);
-  else load();
+  // Off from the start (`?stars=0`): nothing is downloaded until it is
+  // switched on.
+  function schedule() {
+    if (started || timer || !on) return;
+    if (delayMs > 0) timer = setTimeout(load, delayMs);
+    else load();
+  }
+  schedule();
 
   return {
     setEnabled(value) {
       on = Boolean(value);
+      schedule();
       apply();
     },
     enabled: () => on,
@@ -98,6 +113,7 @@ export function createStarfield({
     destroy() {
       if (timer) clearTimeout(timer);
       timer = null;
+      destroyed = true;
       on = false;
       apply();
       if (milkyWay && !milkyWay.isDestroyed?.()) milkyWay.destroy?.();

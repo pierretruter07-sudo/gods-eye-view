@@ -1506,8 +1506,7 @@ html #cesium-credits {
 .gev-descent .gev-descent__row[data-state='active'] .gev-descent__body { display: flex; }
 .gev-descent .gev-descent__row[data-state='active'] .gev-descent__detail { display: block; }
 
-/* Right column: the analyst-sheet drawer, the Director's alert card, the
-   exercise package. */
+/* Right column: the analyst-sheet drawer and the Director's alert card. */
 .gev-sheet {
   top: var(--gev-top);
   bottom: var(--gev-bottom);

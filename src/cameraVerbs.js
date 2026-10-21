@@ -1328,7 +1328,7 @@ export function moveCamera(args = {}, runNavigation = null) {
     const label =
       _viewer.trackedEntity?.name ||
       _viewer.trackedEntity?.id ||
-      'the tracked target';
+      'the followed asset';
     return {
       ok: false,
       action: 'move_camera',

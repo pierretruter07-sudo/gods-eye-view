@@ -48,6 +48,10 @@ Browser                                              Node (Vite server)
 | `src/shell` | Top bar, Layers panel, quality ladder, idle spin, welcome card, flight prefetch | `index.js`, `qualityPolicy.js` |
 | `src/tour` | **Director**: event detection, stop planning, camera, narration lines, speech | `events.js`, `planner.js`, `controller.js`, `lines.js` |
 | `src/intel` | **Intel HUD**: object model, triage, constellation cards, analyst actions | `objects.js`, `hud.js`, `actions.js`, `index.js` |
+| `src/visuals` | **World visuals**: the real Sun with shadows, the city's night side, day/night with city lights from orbit, the Milky Way sky, trails | `sun.js`, `nightTiles.js`, `dayNight.js`, `starfield.js`, `trails.js` |
+| `src/airports` | Airport data and ground views used by Director stops | |
+| `src/audit` | The **Audit** view: CrossCheck's readiness display of this app | `runtime.js`, `impact.js` |
+| `crosscheck/` | **CrossCheck**: assessment engine, standards, intake, remediation plan; also runs on its own (`/crosscheck/`) | `engine/`, `server/`, `app/` |
 | `server/providers` | Same-origin proxies, caching, rate limits, upstream fallbacks | `local.js`, `aircraft/opensky.js` |
 
 ## Data integrity model (FEED vs SIMULATED)
@@ -61,15 +65,16 @@ Browser                                              Node (Vite server)
 - Tests enforce this (`src/intel/*.test.mjs`):
   - Triage reads only feed fields.
   - Ownership on real assets is never an invented company.
-  - Staged demo events are never presented as feed data.
+  - Simulated records are never presented as feed data, and a camera the
+    server is standing in for is never labelled live.
 
 ## Performance controls
 
 - **Render governor** (`src/renderGovernor.js`): the scene renders on demand.
   Animations and tracking hold continuous rendering only while active.
-- **Quality ladder** (`src/shell/qualityPolicy.js`): native DPR, capped at 2,
-  with MSAA 4/2/1, then 0.85×, then 1×. It steps down only on sustained slow
-  frames and recovers with headroom.
+- **Quality ladder** (`src/shell/qualityPolicy.js`): always native DPR,
+  capped at 2. On sustained slow frames it sheds, in order: sun shadows,
+  bloom, MSAA (4, 2, 1), then 3D tile detail; it recovers with headroom.
 - **Satellite propagation** is round-robin sliced per frame
   (`layers/satellites/rendering.js`).
 - **Flight data** is pre-warmed for Director stops, with stale-while-revalidate

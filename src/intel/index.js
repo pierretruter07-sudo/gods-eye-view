@@ -62,7 +62,12 @@ function el(tag, cls, html) {
   return n;
 }
 
-export function installIntel({ viewer, dataManager, isLive = () => true }) {
+export function installIntel({
+  viewer,
+  dataManager,
+  isLive = () => true,
+  onManualFocus = () => {},
+}) {
   const scene = viewer.scene;
   const narrator = createNarrator();
 
@@ -512,6 +517,7 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
       const all = nearbyObjects(collect(), selected, { limit: Infinity });
       hud = buildCameraHud(selected, {
         frameUrl: cams?.frameUrl?.(selected.id) || null,
+        frameGenuine: cams?.frameIsGenuine?.(selected.id) ?? true,
         mediaUrl: cams?.mediaUrl?.(selected.id) || null,
         mediaType: cams?.mediaType?.(selected.id) || null,
         refreshedAt: Date.now(),
@@ -1463,6 +1469,9 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     const i = event.target.closest('[data-i]')?.dataset.i;
     const item = i == null ? null : lastItems[Number(i)];
     if (item) {
+      // The analyst takes the camera: the Director's orbit would otherwise
+      // pull it straight back and narrate the old subject.
+      onManualFocus('triage');
       open(item.object);
       flyTo(item.object);
     }
@@ -1547,15 +1556,6 @@ export function installIntel({ viewer, dataManager, isLive = () => true }) {
     },
     onWatch(fn) {
       onWatchChange = fn;
-    },
-    /** Hide everything (used when switching to Exercise mode). */
-    suspend() {
-      close();
-      setTriage(false);
-      for (const a of areas) a.entity.show = false;
-    },
-    resume() {
-      for (const a of areas) a.entity.show = true;
     },
     destroy() {
       close();
