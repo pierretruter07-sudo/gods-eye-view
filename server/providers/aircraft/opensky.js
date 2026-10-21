@@ -75,8 +75,22 @@ const OPENSKY_HTTP_ERROR_COOLDOWN_MS = 60_000;
 const ADSBLOL_POINT_CACHE_MS = 12000;
 /** Serve a regional snapshot up to this old instantly while refreshing it. */
 const ADSBLOL_POINT_STALE_OK_MS = 120_000;
-const OPENSKY_FETCH_TIMEOUT_MS = 6000;
-const OPENSKY_NETWORK_ERROR_COOLDOWN_MS = 5 * 60_000;
+/**
+ * The worldwide snapshot is 2–4 MB: from a cold deployment it took longer
+ * than 6 s to arrive, so every first request failed (live site, 21 Oct).
+ */
+export const OPENSKY_FETCH_TIMEOUT_MS = 20_000;
+export const OPENSKY_NETWORK_ERROR_COOLDOWN_MS = 5 * 60_000;
+/** A slow answer is not an unreachable host: try again soon. */
+export const OPENSKY_TIMEOUT_COOLDOWN_MS = 30_000;
+
+/** How long to stop asking after a failed worldwide call. */
+export function openskyFailureCooldownMs(error) {
+  const name = error?.name || error?.cause?.name || '';
+  return name === 'TimeoutError' || name === 'AbortError'
+    ? OPENSKY_TIMEOUT_COOLDOWN_MS
+    : OPENSKY_NETWORK_ERROR_COOLDOWN_MS;
+}
 const ADSBLOL_POINT_CACHE_MAX = 80;
 const ADSBLOL_POINT_RADIUS_NM = 250;
 const ADSBLOL_POINT_MAX_RESPONSE_BYTES = 8 * 1024 * 1024;
@@ -819,10 +833,10 @@ export function openSkyProxy() {
         res.end(body);
       } catch (e) {
         console.error('[OpenSky Proxy]', e.message);
-        // Unreachable (blocked host, DNS, timeout): stop asking for a while so
-        // every view goes straight to the regional sources instead of waiting
-        // out a fresh connection failure each time.
-        _openskyCooldownUntil = Date.now() + OPENSKY_NETWORK_ERROR_COOLDOWN_MS;
+        // Unreachable (blocked host, DNS): stop asking for a while so every
+        // view goes straight to the regional sources instead of waiting out a
+        // fresh connection failure each time. A timeout retries sooner.
+        _openskyCooldownUntil = Date.now() + openskyFailureCooldownMs(e);
         if (_openskyCacheBody) {
           const cachedMeta = _openskyCacheMeta || {
             requestedMode: normalizeOpenSkyAuthMode(

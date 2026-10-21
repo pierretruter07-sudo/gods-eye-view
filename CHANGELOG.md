@@ -47,6 +47,10 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Worldwide flights on the live site.** The worldwide OpenSky snapshot
+  (several megabytes) timed out after 6 s on a cold server and then cooled
+  down for 5 minutes; it now gets 20 s, and a timeout retries after 30 s
+  (GEV-SRV-008).
 - **Final pre-pitch audit** (independent review, 21 Oct).
   - A camera the server is standing in for (placeholder or Street View
     image) is labelled **NO LIVE FRAME**, never LIVE STILL, and the opening
