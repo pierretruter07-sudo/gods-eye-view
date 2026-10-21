@@ -64,3 +64,18 @@ test('OpenSky: concurrent misses share one world call; a later 5xx serves the la
   await call(handler);
   assert.equal(calls, 2);
 });
+
+test('OpenSky: the worldwide snapshot gets time to arrive, and a timeout retries soon', async () => {
+  const {
+    OPENSKY_FETCH_TIMEOUT_MS,
+    OPENSKY_NETWORK_ERROR_COOLDOWN_MS,
+    OPENSKY_TIMEOUT_COOLDOWN_MS,
+    openskyFailureCooldownMs,
+  } = await import('../../server/providers/aircraft/opensky.js');
+  assert.ok(OPENSKY_FETCH_TIMEOUT_MS >= 15_000, 'a 2–4 MB snapshot from a cold server');
+  const timeout = Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' });
+  assert.equal(openskyFailureCooldownMs(timeout), OPENSKY_TIMEOUT_COOLDOWN_MS);
+  assert.ok(OPENSKY_TIMEOUT_COOLDOWN_MS <= 60_000);
+  const dns = Object.assign(new TypeError('fetch failed'), { cause: { name: 'Error', code: 'ENOTFOUND' } });
+  assert.equal(openskyFailureCooldownMs(dns), OPENSKY_NETWORK_ERROR_COOLDOWN_MS);
+});

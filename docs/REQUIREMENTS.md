@@ -50,7 +50,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-SRV-005 | The development server shall bind to `localhost` by default and accept only loopback and `.local` host headers unless explicitly bound to all interfaces. | T |
 | GEV-SRV-006 | The camera relay shall fetch frames only from server-registered camera addresses, with a timeout and a size cap on every fetch and a per-client rate limit, and shall never write a frame to disk. | T |
 | GEV-SRV-007 | The military aircraft relay shall cache a good response for 30 s, share one upstream call among concurrent requests, time out upstream after 10 s, back off after a 429, 5xx, timeout or network error, serve the last good response during a failure only while it is under 10 minutes old, and keep it on disk across restarts. | T |
-| GEV-SRV-008 | The worldwide OpenSky call shall be shared by concurrent requests, and a 5xx or authentication failure shall serve the last good snapshot (marked stale) with a cooldown instead of the error. | T |
+| GEV-SRV-008 | The worldwide OpenSky call shall be shared by concurrent requests, and a 5xx or authentication failure shall serve the last good snapshot (marked stale) with a cooldown instead of the error. The call shall be given 20 s (the snapshot is several megabytes), and a timeout shall cool down for 30 s only, not the 5 minutes used for an unreachable host. | T |
 | GEV-SRV-009 | Large JSON responses under `/api` shall be sent gzip-compressed to clients that accept it. | T |
 | GEV-SRV-010 | After the mapped-installations upstream fails, no new upstream attempt shall be made for 2 minutes, and a 503 shall carry `Retry-After`. | I |
 

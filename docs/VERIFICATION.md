@@ -56,7 +56,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-SRV-005 | `build/vite.js` | T: `src/tooling/viteBuild.test.mjs` "explicit build inputs preserve browser-only defines, plugin order and loopback protections" |
 | GEV-SRV-006 | `server/providers/cctv.js`, `server/providers/cctv/media.js` | T: `src/data/cctvProxy.test.mjs` "CCTV upstream frame fetch supplies a bounded abort signal" "CCTV upstream frame fetch rejects a declared oversize body without draining it" |
 | GEV-SRV-007 | `server/providers/aircraft/adsb-lol.js` `createAdsbLolMilHandler` | T: `src/tooling/adsbLolMil.test.mjs` (cache, shared call, back-off and stale, 10-minute stale limit, non-retryable relay) |
-| GEV-SRV-008 | `server/providers/aircraft/opensky.js` `_openskyWorldInFlight`, stale-on-error branch | T: `src/tooling/openskyWorld.test.mjs` "OpenSky: concurrent misses share one world call; a later 5xx serves the last good snapshot" |
+| GEV-SRV-008 | `server/providers/aircraft/opensky.js` `_openskyWorldInFlight`, stale-on-error branch | T: `src/tooling/openskyWorld.test.mjs` "OpenSky: the worldwide snapshot gets time to arrive, and a timeout retries soon" "OpenSky: concurrent misses share one world call; a later 5xx serves the last good snapshot" |
 | GEV-SRV-009 | `server/providers/common/compress.js`; `server/providers/local.js` | T: `src/tooling/apiCompression.test.mjs` |
 | GEV-SRV-010 | `server/providers/military-installations.js` `MILITARY_INSTALLATION_FAILURE_COOLDOWN_MS` | I: code inspection |
 | GEV-SEC-001 | `build/vite.js` `define` | T: `viteBuild.test.mjs` (same), "build helper does not discover environment values…" |
