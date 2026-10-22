@@ -47,10 +47,13 @@ export function createBrowserViteConfig({
       fs: {
         deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/ENVIRONMENT'],
       },
-      // Never framed (clickjacking).
+      // Never framed (clickjacking); no MIME sniffing of relayed media; no
+      // referrer leakage to tile and camera hosts beyond the origin.
       headers: {
         'X-Frame-Options': 'DENY',
         'Content-Security-Policy': "frame-ancestors 'none'",
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
       },
     },
     define: {

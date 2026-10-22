@@ -111,6 +111,22 @@ export async function proxyMediaResponse(
 ) {
   const contentType =
     upstream.headers.get('content-type') || 'application/octet-stream';
+  // Only media is relayed from the app's origin. Anything else (an HTML error
+  // page, a script) from a camera host would otherwise run as same-origin.
+  if (!isRelayableMediaType(contentType)) {
+    res.writeHead(502, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+    });
+    res.end(JSON.stringify({ error: 'Upstream did not return media' }));
+    try {
+      await upstream.body?.cancel();
+    } catch {
+      /* no-op */
+    }
+    return;
+  }
   const cacheControl = upstream.headers.get('cache-control') || 'no-store';
   const contentLength = upstream.headers.get('content-length');
   const contentRange = upstream.headers.get('content-range');
@@ -119,6 +135,7 @@ export async function proxyMediaResponse(
     'Content-Type': contentType,
     'Cache-Control': cacheControl,
     'X-CCTV-Source': sourceHeader,
+    'X-Content-Type-Options': 'nosniff',
   };
   if (contentLength) headers['Content-Length'] = contentLength;
   if (contentRange) headers['Content-Range'] = contentRange;
@@ -278,6 +295,26 @@ async function readCappedResponseBytes(upstream, maxBytes) {
   }
 }
 
+/**
+ * Media types the relay will serve: images (snapshots, MJPEG frames), video,
+ * HLS playlists and multipart MJPEG streams. Never HTML, SVG or script.
+ */
+export function isRelayableMediaType(contentType) {
+  const type = String(contentType || '')
+    .split(';')[0]
+    .trim()
+    .toLowerCase();
+  if (!type) return false;
+  if (type === 'image/svg+xml') return false;
+  return (
+    type.startsWith('image/') ||
+    type.startsWith('video/') ||
+    type.includes('mpegurl') ||
+    type === 'multipart/x-mixed-replace' ||
+    type === 'application/octet-stream'
+  );
+}
+
 /** Open registered media within a header deadline; leave timely live bodies running. */
 export async function fetchCctvMediaUpstream(
   url,
@@ -296,7 +333,15 @@ export async function fetchCctvMediaUpstream(
   if (downstream?.aborted) controller.abort();
   else downstream?.addEventListener?.('abort', onDownstreamAbort);
   try {
-    return await fetchImpl(url, { headers, signal: controller.signal });
+    // Redirects stay on the registered camera's own origin, as for frames: a
+    // compromised or open-redirecting camera host cannot steer the relay.
+    const upstream = await fetchWithinHost(
+      url,
+      { headers, signal: controller.signal },
+      fetchImpl,
+    );
+    if (!upstream) throw new Error('Camera redirect left its registered host');
+    return upstream;
   } finally {
     clearTimeout(timeoutId);
     downstream?.removeEventListener?.('abort', onDownstreamAbort);

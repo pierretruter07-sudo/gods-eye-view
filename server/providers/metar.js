@@ -1,4 +1,9 @@
 import { readResponseTextCapped } from './common/http.js';
+import {
+  capMap,
+  clientKey,
+  makeFanOutRateLimiter,
+} from './common/rate-limit.js';
 
 /**
  * Airport weather (METAR) from the NOAA Aviation Weather Center data API:
@@ -69,6 +74,8 @@ export function metarProxy({
 } = {}) {
   const cache = new Map(); // station → { report, at }
   const tried = new Map(); // station → last failed attempt
+  const STATIONS_MAX = 5000;
+  const allow = makeFanOutRateLimiter(30);
 
   async function fetchStations(ids) {
     const controller = new AbortController();
@@ -108,6 +115,9 @@ export function metarProxy({
       res.end(JSON.stringify(value));
     };
     if (req.method !== 'GET') return json(405, { error: 'method_not_allowed' });
+    if (!allow(clientKey(req))) return json(429, { error: 'rate_limited' });
+    capMap(cache, STATIONS_MAX);
+    capMap(tried, STATIONS_MAX);
     const query = new URL(req.url || '/', 'http://local').searchParams;
     const ids = [
       ...new Set(

@@ -1,4 +1,9 @@
 import path from 'node:path';
+import {
+  capMap,
+  clientKey,
+  makeFanOutRateLimiter,
+} from './common/rate-limit.js';
 import { promises as fsp } from 'node:fs';
 
 import {
@@ -37,6 +42,9 @@ export function terrainHeightsProxy() {
 
   /** @type {Map<string, {at:number, result:object}>} keyed by canonical 5dp lon/lat. */
   const mem = new Map();
+  /** Points kept in memory; the oldest go first. */
+  const MEM_MAX = 20000;
+  const allow = makeFanOutRateLimiter(20);
   /** @type {Map<string, Promise<Array<object>>>} single-flight per missing-point subset. */
   const inflight = new Map();
   let diskLoaded = false;
@@ -163,7 +171,10 @@ export function terrainHeightsProxy() {
         res.end(JSON.stringify(bodyObj));
       };
       try {
+        if (!allow(clientKey(req)))
+          return send(429, { error: 'Too many terrain requests' });
         await loadDiskOnce();
+        capMap(mem, MEM_MAX);
         const parsedUrl = new URL(req.url || '', 'http://internal');
         const rawPoints = parsedUrl.searchParams.get('points');
         const points = parseTerrainPoints(rawPoints);

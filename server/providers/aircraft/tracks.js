@@ -1,5 +1,6 @@
 import { getOpenSkyToken } from './opensky.js';
 import { readCappedResponseText } from '../common/http.js';
+import { clientKey, makeFanOutRateLimiter } from '../common/rate-limit.js';
 /**
  * Vite plugin: aircraft track-history backfill proxies (PRD WS-F F1/F2).
  *
@@ -18,6 +19,16 @@ export function trackBackfillProxies() {
   const RESPONSE_CAP_BYTES = 5 * 1024 * 1024;
   /** @type {Map<string, {at:number,status:number,body:string}>} */
   const cache = new Map();
+  // Each new aircraft costs upstream credits (OpenSky bills 4 per track call).
+  const allow = makeFanOutRateLimiter(20);
+  function limited(req, res) {
+    if (allow(clientKey(req))) return false;
+    res.statusCode = 429;
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Retry-After', '10');
+    res.end(JSON.stringify({ error: 'Too many track requests' }));
+    return true;
+  }
 
   function cachePut(key, entry) {
     cache.set(key, entry);
@@ -62,6 +73,7 @@ export function trackBackfillProxies() {
 
   function install(middlewares) {
     middlewares.use('/api/opensky-track', async (req, res) => {
+      if (limited(req, res)) return;
       try {
         const incoming = new URL(req.url || '', 'http://localhost');
         const icao24 = String(incoming.searchParams.get('icao24') || '')
@@ -90,6 +102,7 @@ export function trackBackfillProxies() {
     });
 
     middlewares.use('/api/adsblol/trace', async (req, res) => {
+      if (limited(req, res)) return;
       try {
         const incoming = new URL(req.url || '', 'http://localhost');
         const hex = String(incoming.searchParams.get('hex') || '')
