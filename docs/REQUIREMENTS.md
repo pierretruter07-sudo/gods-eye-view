@@ -65,6 +65,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-SEC-005 | Launch scripts shall not print credential values. | T |
 | GEV-SEC-007 | The camera media relay shall follow redirects only within the registered camera's origin, serve only image, video, HLS and MJPEG content types with `X-Content-Type-Options: nosniff`, and the frame endpoint shall answer 404 for unregistered camera IDs and ignore client-supplied pose. Track, enrichment, terrain and METAR proxies shall be rate-limited per client with bounded caches, and CelesTrak groups shall be allow-listed. | T |
 | GEV-SEC-006 | The paid Google Places proxies shall be rate-limited per client by default (30 requests a minute unless configured), cap the text query at 120 characters and time out upstream calls; behind a trusted proxy (`TRUST_PROXY=1`) limits shall key on the forwarded client address. | T |
+| GEV-SEC-008 | Proxy error responses shall carry fixed strings (detail goes to the server log). The page and the published preview server shall send the same headers, including a CSP with `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'` and `form-action 'self'`. CI shall audit production dependencies and smoke-test the built preview. | T |
 
 ## 5. Director (DIR)
 
@@ -135,6 +136,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-INT-026 | A camera that publishes a live stream (HLS, MPEG-TS or fragmented MP4) shall play it live in its card and in the Expand view, labelled "LIVE VIDEO", relayed through the server so the browser never contacts the agency directly. If the stream fails, the card shall fall back to the camera's live still, labelled "LIVE STILL". | T |
 | GEV-INT-027 | Iowa DOT traffic cameras shall be loaded from its public feature service (CC BY 4.0, credited "Iowa Department of Transportation"), with live video only from Iowa DOT video hosts and stills only from its snapshot host. | T |
 | GEV-INT-028 | The asset view's cards shall slide in from their own side of the screen, one after another, when it opens, and slide out when it closes; the sheets drawer shall slide out as it closes. Reduced-motion settings shall turn the movement off. | D |
+| GEV-INT-029 | Keyboard and screen-reader use: the welcome dialog shall hold focus (Tab wraps, Escape closes, the page behind is inert); sheet tabs shall follow the ARIA tabs pattern (ids, `aria-controls`, roving focus with arrows, Home and End); the triage queue shall not be rebuilt while focus is inside it; the Director caption shall be a status region and its alert card an alert. | T |
 
 ## 7. Exercise mode (EXE): removed
 
@@ -157,6 +159,7 @@ section remains.
 | GEV-PRF-008 | Live feeds shall not be polled while the tab is hidden; each layer shall catch up once when visible again. | T |
 | GEV-PRF-009 | Content-hashed build output shall be cached by browsers for a year and the page shall always revalidate; the Cesium runtime script shall not block the first paint. | T |
 | GEV-PRF-010 | The 3D tile cache shall be sized to the device's memory, and the adaptive-quality ladder's last steps shall coarsen 3D tile detail. | T |
+| GEV-PRF-011 | A device reporting 4 GB of memory or less, or 4 cores or fewer, shall start the quality ladder without bloom or shadows, still at native resolution. A 3D tileset route that has not answered in 15 s shall be skipped for the next route, and a late tileset destroyed. Models shall be pre-warmed with prefetch hints rather than held in page memory. | T |
 
 ## 9. Configuration management (CM)
 

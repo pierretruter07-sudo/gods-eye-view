@@ -139,12 +139,14 @@ export function aisLiveProxy() {
           }),
         );
       } catch (error) {
+        // The detail goes to the server log; the client gets a fixed string.
+        console.warn('[ais-live] request failed:', error?.message || error);
         res.statusCode = 502;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Cache-Control', 'no-store');
         res.end(
           JSON.stringify({
-            error: error?.message || 'AIS live stream error',
+            error: 'AIS live stream unavailable',
             rows: [],
           }),
         );

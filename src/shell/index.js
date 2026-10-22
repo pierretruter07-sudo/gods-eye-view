@@ -80,10 +80,16 @@ export const MODEL_URLS = Object.freeze([
 ]);
 
 function warmModels() {
+  // A low-priority prefetch hint fills the HTTP cache without holding the
+  // model bytes in page memory (fetch + arrayBuffer kept every body alive).
   for (const url of MODEL_URLS) {
-    fetch(url, { priority: 'low' })
-      .then((r) => r.arrayBuffer())
-      .catch(() => {});
+    if (document.head.querySelector(`link[rel="prefetch"][href="${url}"]`))
+      continue;
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.as = 'fetch';
+    link.href = url;
+    document.head.append(link);
   }
 }
 

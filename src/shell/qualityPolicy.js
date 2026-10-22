@@ -38,6 +38,24 @@ export function qualityLevels(devicePixelRatio = 1) {
 
 /** Start one step below the best: crisp, anti-aliased, with headroom. */
 export const START_LEVEL = 1;
+/** Where a low-end device starts: native resolution, no bloom, 2× MSAA. */
+export const LOW_END_START_LEVEL = 3;
+
+/**
+ * The starting rung for this device. A machine reporting 4 GB or less of
+ * memory, or 4 or fewer cores, starts without bloom and shadows so the first
+ * frames (the opening descent) are smooth; the ladder climbs back within
+ * seconds if it has headroom. Resolution stays native on every device.
+ * @param {{deviceMemory?: number, hardwareConcurrency?: number}} [nav]
+ */
+export function startLevel(nav = {}) {
+  const memory = Number(nav.deviceMemory);
+  const cores = Number(nav.hardwareConcurrency);
+  const lowEnd =
+    (Number.isFinite(memory) && memory > 0 && memory <= 4) ||
+    (Number.isFinite(cores) && cores > 0 && cores <= 4);
+  return lowEnd ? LOW_END_START_LEVEL : START_LEVEL;
+}
 
 /**
  * One measurement window → next state. With `now` (ms), a level that was

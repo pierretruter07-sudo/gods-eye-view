@@ -26,7 +26,12 @@ test('explicit build inputs preserve browser-only defines, plugin order and loop
   assert.equal(config.server.headers['X-Frame-Options'], 'DENY');
   assert.equal(
     config.server.headers['Content-Security-Policy'],
-    "frame-ancestors 'none'",
+    "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
+  );
+  assert.deepEqual(
+    config.preview.headers,
+    config.server.headers,
+    'the published preview server sends the same headers',
   );
   assert.equal(config.server.headers['X-Content-Type-Options'], 'nosniff');
   assert.equal(

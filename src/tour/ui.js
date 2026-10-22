@@ -49,11 +49,13 @@ export function createTourUi({
 } = {}) {
   const caption = el('div', {
     class: 'gev-caption gev-glass',
+    role: 'status',
     'aria-live': 'polite',
     'data-visible': 'false',
   });
   const card = el('aside', {
     class: 'gev-alert gev-glass',
+    role: 'alert',
     'aria-live': 'assertive',
   });
   card.hidden = true;

@@ -5,6 +5,19 @@ import { deferInjectedScripts, staticCachePlugin } from './cacheHeaders.js';
 const page = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 
 /** The pages built. */
+/**
+ * Response headers for the page and API. The CSP carries only directives
+ * that cannot break Cesium (workers, WebAssembly, tiles from Google and
+ * Cesium ion): no plugins, no <base> hijack, no framing, forms post home.
+ */
+export const PAGE_HEADERS = Object.freeze({
+  'X-Frame-Options': 'DENY',
+  'Content-Security-Policy':
+    "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+});
+
 export const BUILD_INPUTS = Object.freeze({
   main: page('index.html'),
 });
@@ -49,13 +62,11 @@ export function createBrowserViteConfig({
       },
       // Never framed (clickjacking); no MIME sniffing of relayed media; no
       // referrer leakage to tile and camera hosts beyond the origin.
-      headers: {
-        'X-Frame-Options': 'DENY',
-        'Content-Security-Policy': "frame-ancestors 'none'",
-        'X-Content-Type-Options': 'nosniff',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-      },
+      headers: PAGE_HEADERS,
     },
+    // The published site runs `vite preview`; give it the same headers
+    // explicitly rather than relying on Vite's server.headers fallback.
+    preview: { headers: PAGE_HEADERS },
     define: {
       'import.meta.env.GOOGLE_MAPS_API_KEY': JSON.stringify(googleApiKey),
       'import.meta.env.CESIUM_ION_TOKEN': JSON.stringify(cesiumToken),

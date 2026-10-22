@@ -289,7 +289,7 @@ export function sheetDrawer({
   const tabBar = tabs
     .map(
       (t) =>
-        `<span class="gev-sheet__tabwrap${t.id === active ? ' is-active' : ''}"><button type="button" role="tab" class="gev-sheet__tab" aria-selected="${t.id === active}" data-res="tab:${esc(t.id)}">${esc(t.label)}</button>${
+        `<span class="gev-sheet__tabwrap${t.id === active ? ' is-active' : ''}"><button type="button" role="tab" class="gev-sheet__tab" id="gev-sheet-tab-${esc(t.id)}" aria-controls="gev-sheet-panel" aria-selected="${t.id === active}" tabindex="${t.id === active ? 0 : -1}" data-res="tab:${esc(t.id)}">${esc(t.label)}</button>${
           t.id === 'overview'
             ? ''
             : `<button type="button" class="gev-sheet__tabx" data-res="untab:${esc(t.id)}" aria-label="Close ${esc(t.label)}">×</button>`
@@ -312,8 +312,8 @@ export function sheetDrawer({
       <button type="button" class="gev-icon-btn gev-sheet__close" data-res="close" aria-label="Close sheets">${ICON.close}</button>
     </header>
     <div class="gev-sheet__lineage" aria-label="Data lineage">${chain}</div>
-    <div class="gev-sheet__tabs" role="tablist">${tabBar}</div>
-    <div class="gev-sheet__body" role="tabpanel">
+    <div class="gev-sheet__tabs" role="tablist" aria-label="Sheets">${tabBar}</div>
+    <div class="gev-sheet__body" role="tabpanel" id="gev-sheet-panel" aria-labelledby="gev-sheet-tab-${esc(active)}" tabindex="0">
       ${sheet && !busy && sheet.id !== 'overview' ? `<h4 class="gev-sheet__title">${esc(sheet.title)}</h4>` : ''}
       ${sources && sheet?.id !== 'overview' ? `<div class="gev-res__chips">${sources}</div>` : ''}
       ${body}
