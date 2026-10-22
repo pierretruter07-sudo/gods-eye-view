@@ -4,10 +4,9 @@ import { deferInjectedScripts, staticCachePlugin } from './cacheHeaders.js';
 
 const page = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 
-/** The pages built: God's Eye View, and CrossCheck's page (pitch build). */
+/** The pages built. */
 export const BUILD_INPUTS = Object.freeze({
   main: page('index.html'),
-  crosscheck: page('crosscheck/app/index.html'),
 });
 
 /** Build browser assets with explicit inputs; never load environment or providers. */

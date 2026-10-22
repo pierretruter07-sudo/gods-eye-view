@@ -50,8 +50,6 @@ Browser                                              Node (Vite server)
 | `src/intel` | **Intel HUD**: object model, triage, constellation cards, analyst actions | `objects.js`, `hud.js`, `actions.js`, `index.js` |
 | `src/visuals` | **World visuals**: the real Sun with shadows, the city's night side, day/night with city lights from orbit, the Milky Way sky, trails | `sun.js`, `nightTiles.js`, `dayNight.js`, `starfield.js`, `trails.js` |
 | `src/airports` | Airport data and ground views used by Director stops | |
-| `src/audit` | The **Audit** view: CrossCheck's readiness display of this app | `runtime.js`, `impact.js` |
-| `crosscheck/` | **CrossCheck**: assessment engine, standards, intake, remediation plan; also runs on its own (`/crosscheck/`) | `engine/`, `server/`, `app/` |
 | `server/providers` | Same-origin proxies, caching, rate limits, upstream fallbacks | `local.js`, `aircraft/opensky.js` |
 
 ## Data integrity model (FEED vs SIMULATED)

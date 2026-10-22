@@ -27,7 +27,6 @@ Developed by **Digital Dynamics Group**. This is a fork of
 | **Analyst actions** | Real: satellite pass predictions, downlink windows, conjunction screening, Esri archive imagery, nearby infrastructure. Simulated, and labelled as such: cargo manifests, filed flight plans, drafted messages. |
 | **Triage, watchlist, AOI** | A queue of feed-driven alerts, a pinned watchlist, and areas of interest. |
 | **Street cameras** | Up to about 2,300 public traffic cameras (Sydney and NSW, London, Finland, British Columbia, Calgary, Ontario). Click one for its live still, refreshed every 10 s, or see it as a panel in the 3D city. Open-licence networks only by default; nothing in a frame is recognised or recorded. |
-| **AUDIT (CrossCheck)** | Press **AUDIT** to turn the globe into a 3D map of this software's own compliance: EUROCAE ED-153 (SWAL 3) safety objectives on the inner ring, OWASP ASVS 5.0 (L2) security requirements on the middle ring and ISO/IEC 42001 AI management clauses and controls on the outer ring. Must-fix gaps are raised pins; a guided tour explains it. The Evidence drawer shows the remediation pipeline, 40,000 ft first, down to each finding's history. Same pan, rotate and zoom as the globe. |
 
 **Ethics guardrails:** no person dossiers. Ownership on real assets is generic
 and labelled SIMULATED. There are no kinetic actions and no staged events.
@@ -91,9 +90,8 @@ and `__gevQuality`.
 | [Known limitations](docs/KNOWN-LIMITATIONS.md) | What it does not do, and open issues |
 | [ED-153 gap analysis](docs/ED-153-GAP-ANALYSIS.md) | SWAL 3 objective-by-objective assessment and remediation plan |
 | [ED-153 status (PDF)](docs/ED-153-STATUS.pdf) | Visual status of every feature and all 115 objectives, with the path to SWAL 3 |
-| [Remediation plan](docs/REMEDIATION-PLAN.md) | Approved plan to close the CrossCheck gaps, wave by wave |
-| [Evidence ledger](docs/evidence/README.md) | Append-only record of every audit, finding and fix (also shown in the AUDIT view) |
-| [AUDIT view spec](docs/crosscheck/AUDIT-VIEW-SPEC.md) | Design spec for the in-app compliance view |
+| [Remediation plan](docs/REMEDIATION-PLAN.md) | Approved plan to close the assessed gaps, wave by wave |
+| [Evidence ledger](docs/evidence/README.md) | Append-only record of every assessment, finding and fix (assessed with DDG Greenlight) |
 | [Demo runbook](docs/DEMO-RUNBOOK.md) | Executive demo script and fallbacks |
 | [Security](SECURITY.md) | Secrets model, exposure, reporting |
 | [Testing](TESTING.md) | How to run and extend the test suite |

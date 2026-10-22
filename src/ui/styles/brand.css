@@ -1,0 +1,219 @@
+/* ═══════════════════════════════════════════════
+   DIGITAL DYNAMICS — "Glacier Glitch" brand, night-ops mode
+   Loaded last: retunes the tokens and the shared surfaces (glass, bar,
+   buttons, welcome) to the DDG brand guide (v3.1, Oct 2026). Layout and
+   behaviour are untouched; only colour, type and edges change.
+   Tokens: navy glass over the live planet, Snow White type, Signal Cyan
+   for focus and strokes, Deep Ice primary buttons, magenta only as the
+   one glitch offset on the welcome headline.
+   ═══════════════════════════════════════════════ */
+
+:root {
+  --bg-dark: #06131a;
+  --glass-bg: rgba(11, 31, 42, 0.46);
+  --glass-border: rgba(124, 201, 232, 0.3);
+  --glass-border-hover: rgba(0, 229, 255, 0.7);
+  --accent: #00e5ff;
+  --accent-dim: rgba(0, 229, 255, 0.14);
+  --accent-glow: rgba(0, 229, 255, 0.35);
+  --text-primary: #f7fbff;
+  --text-secondary: #cfe3ee;
+  --text-dim: rgba(207, 227, 238, 0.6);
+  --menu-bg: #0b1f2a;
+  --font-display:
+    'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --panel-radius: 20px;
+  --btn-radius: 12px;
+  --ddg-ice: #7cc9e8;
+  --ddg-deep-ice: #007a99;
+  --ddg-ok: #4fd99a;
+  --ddg-warn: #f5c451;
+  --ddg-bad: #ff5c6e;
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+h1,
+h2,
+h3,
+.gev-welcome__title,
+.gev-bar__brand span {
+  font-family: var(--font-display);
+}
+
+/* Every glass surface: the guide's night-ops glass at Pierre's 46 % tint. */
+.gev-glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+}
+
+/* Top bar: the disc logo, no eye glyph. */
+.gev-bar__brand svg {
+  display: none;
+}
+.gev-bar__brand::before {
+  content: '';
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: url('/ddg-disc.png') center / cover no-repeat;
+}
+.gev-bar__brand span {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.gev-bar__divider {
+  background: rgba(124, 201, 232, 0.35);
+}
+
+/* Buttons: ghost = cyan hairline on glass; primary = Deep Ice with white text. */
+.gev-btn {
+  background: rgba(6, 19, 26, 0.35);
+  border: 1px solid rgba(124, 201, 232, 0.45);
+  color: var(--text-primary);
+}
+.gev-btn:hover {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--accent);
+}
+.gev-btn[aria-expanded='true'],
+.gev-btn[aria-pressed='true'] {
+  background: rgba(0, 229, 255, 0.14);
+  border-color: var(--accent);
+}
+.gev-btn--primary,
+.gev-btn--primary:hover {
+  background: var(--ddg-deep-ice);
+  border-color: var(--ddg-deep-ice);
+  color: #ffffff;
+}
+.gev-btn--primary:hover {
+  filter: brightness(1.12);
+}
+.gev-btn--live {
+  background: rgba(79, 217, 154, 0.12);
+  border-color: rgba(79, 217, 154, 0.5);
+}
+
+/* Focus: the guide's 2 px cyan ring. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Welcome card, matching the Greenlight landing page. */
+.gev-welcome {
+  background: rgba(6, 19, 26, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.gev-welcome__card {
+  border-radius: var(--panel-radius);
+}
+.gev-welcome__kicker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.gev-welcome__title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.gev-welcome__title em {
+  font-style: normal;
+  text-shadow:
+    -0.04em 0 0 rgba(0, 229, 255, 0.9),
+    0.04em 0 0 rgba(255, 43, 214, 0.75);
+}
+@media (prefers-reduced-motion: reduce) {
+  .gev-welcome__title em {
+    text-shadow: none;
+  }
+}
+.gev-welcome__by {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.gev-welcome__by::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: url('/ddg-disc.png') center / cover no-repeat;
+}
+.gev-welcome__lead {
+  color: var(--text-primary);
+}
+.gev-welcome__tile {
+  background: rgba(6, 19, 26, 0.4);
+  border: 1px solid rgba(124, 201, 232, 0.27);
+  border-radius: 16px;
+}
+.gev-welcome__tile b {
+  font-family: var(--font-display);
+}
+.gev-welcome__tile span {
+  color: var(--text-secondary);
+}
+.gev-welcome__art .w-line {
+  stroke: var(--text-primary);
+}
+.gev-welcome__art .w-faint {
+  stroke: rgba(124, 201, 232, 0.5);
+}
+.gev-welcome__art .w-dash {
+  stroke: rgba(0, 229, 255, 0.6);
+}
+.gev-welcome__art .w-fill {
+  fill: var(--text-primary);
+}
+.gev-welcome__art .w-accent {
+  fill: var(--accent);
+}
+.gev-welcome__track {
+  stroke: rgba(124, 201, 232, 0.3);
+}
+.gev-welcome__arc {
+  stroke: var(--accent);
+}
+.gev-welcome__hint {
+  color: var(--text-secondary);
+}
+.gev-welcome__build {
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+}
+
+/* Status colours: always a dot plus a word elsewhere; here the dots. */
+.gev-dot--ok {
+  background: var(--ddg-ok);
+}
+.gev-dot--warn {
+  background: var(--ddg-warn);
+}
+.gev-dot--bad {
+  background: var(--ddg-bad);
+}
+
+/* Browser-painted controls follow the night palette. */
+select,
+input,
+textarea {
+  color-scheme: dark;
+}
