@@ -27,7 +27,7 @@ export const ZONES = Object.freeze({
   caption: 'Caption (above the credits, centre)',
   credits: 'Credits (bottom-left corner, always visible)',
   centre: 'Centre (modal: welcome card, loading screen)',
-  world: 'Behind everything (globe, world labels, audit canvas)',
+  world: 'Behind everything (globe, world labels)',
 });
 
 /** Stacking order, lowest first. Published as --z-<name>. */
@@ -71,8 +71,6 @@ export const OVERLAYS = Object.freeze(
     { selector: '#cesium-credits', zone: 'credits', layer: 'credits' },
     { selector: '.world-overlay-accessibility', zone: 'world', layer: 'world' },
     { selector: '#cockpit-cloud-effects', zone: 'world', layer: 'world' },
-    { selector: '.gev-audit-canvas', zone: 'world', layer: 'world' },
-    { selector: '.gev-audit-layer', zone: 'stage', layer: 'stage' },
     { selector: '.gev-tour-spot', zone: 'stage', layer: 'toast' },
     { selector: '.gev-tour-card', zone: 'right', layer: 'toast' },
     { selector: '.gev-tour-move', zone: 'stage', layer: 'toast' },

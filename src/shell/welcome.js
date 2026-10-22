@@ -15,8 +15,8 @@ export const BUILD_ID = String(import.meta.env?.GEV_BUILD || 'development');
 
 const COPY = {
   kicker: "God's Eye View",
-  title: 'The planet, live',
-  by: 'Developed by Digital Dynamics Group',
+  title: 'The planet, <em>live.</em>',
+  by: 'Developed by Digital Dynamics',
   lead: 'One live picture of the world, built from public data.',
 };
 

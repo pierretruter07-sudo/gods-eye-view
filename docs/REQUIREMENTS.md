@@ -152,7 +152,7 @@ section remains.
 | GEV-PRF-005 | When the Director departs for a stop within regional range, aircraft for the destination shall be requested during the camera flight. | D |
 | GEV-PRF-006 | All shipped 3D models shall be pre-warmed at low priority after startup. | T |
 | GEV-PRF-007 | A layer whose picture changes only every N ms shall be redrawn at that pace (render on demand plus a timer), not at the display rate, unless something needs continuous frames. | T |
-| GEV-PRF-008 | Live feeds shall not be polled while the tab is hidden or the AUDIT view covers the globe; each layer shall catch up once when visible again. | T |
+| GEV-PRF-008 | Live feeds shall not be polled while the tab is hidden; each layer shall catch up once when visible again. | T |
 | GEV-PRF-009 | Content-hashed build output shall be cached by browsers for a year and the page shall always revalidate; the Cesium runtime script shall not block the first paint. | T |
 | GEV-PRF-010 | The 3D tile cache shall be sized to the device's memory, and the adaptive-quality ladder's last steps shall coarsen 3D tile detail. | T |
 
@@ -166,29 +166,7 @@ section remains.
 
 ## 10. Compliance audit view (AUD)
 
-| ID | Requirement | V |
-|---|---|---|
-| GEV-AUD-001 | The AUDIT view shall show the CrossCheck assessment of this software, and its readiness and verdicts shall match the evidence ledger's latest audit. | T |
-| GEV-AUD-002 | Every must-fix (blocking) item shall carry a plain-English card: what the gap is, why it matters, and the fix. | T |
-| GEV-AUD-003 | On entry only must-fix items shall show at full strength; every other layer shall stay at 15% until the viewer switches it on. | T |
-| GEV-AUD-004 | The orbit shall be drawn in the Earth's frame and its camera copied from the globe camera each frame, so the orbit sits exactly on the Earth and keeps the globe's pan, rotate, zoom and focus controls. | T |
-| GEV-AUD-005 | The evidence drawer shall read the ledger top down: pipeline, baseline against latest audit, progress and readiness journey first, then waves, workstreams and each finding's dated history. | T |
-| GEV-AUD-006 | Links between safety and security items shall come only from the shared evidence themes. | T |
-| GEV-AUD-007 | Entering and leaving the AUDIT view shall restore the globe, its layers and the viewer's camera exactly as they were. | D |
-| GEV-AUD-008 | The AUDIT view shall step from the baseline audit through each wave to sign-off. Stops backed by a recorded audit shall be shown as measured; all others shall be labelled projected wherever their figures appear. | T |
-| GEV-AUD-009 | Projected stops shall reproduce the remediation plan's readiness journey and end states exactly. | T |
-| GEV-AUD-010 | Guided-tour, focus and Reset view camera moves shall keep their subject on the view axis throughout, and any input on the globe shall hand the camera back to the user. | T |
-| GEV-AUD-011 | Every item shall say how it affects God’s Eye View (which feeds, services or people, and what would go wrong); every must-fix item in its own words. | T |
-| GEV-AUD-012 | Playing the timeline shall explain each stop in turn: what the wave fixes, which gaps it closes, how readiness moves, and what it makes possible next. | T |
-| GEV-AUD-013 | The AUDIT view shall show ISO/IEC 42001 as a third ring with its own readiness, verdict, must-fix list, impact statements and journey, rolled up with the same rules as the evidence ledger at every timeline stop. | T |
-| GEV-AUD-014 | CrossCheck shall live in its own folder (`crosscheck/`) that imports nothing from God's Eye View, so it can be copied into its own project. Its scoring engine shall be the one used by the AUDIT view, and shall reproduce the God's Eye View baseline (safety 38%, security 62%, AI 24%, 28 must-fix). | T |
-| GEV-AUD-015 | CrossCheck shall have its own page at /crosscheck/ (in God's Eye View's dev and production builds, and on CrossCheck's standalone server), serving only the page and the engine it imports, with the standards library and the God's Eye View worked example. | T |
-| GEV-AUD-016 | CrossCheck shall take any codebase as a public GitHub link (fetched only through GitHub's zipball API; a private one with a server token) or an uploaded zip, read it in memory within size and zip-bomb limits, and keep only the evidence it finds (paths, lines, short redacted notes), never the code. | T |
-| GEV-AUD-017 | CrossCheck shall gather evidence from the code with named checks that cite the file and line they rely on, redact any secret they find, and ignore comments, quoted sentences and pattern definitions. | T |
-| GEV-AUD-018 | CrossCheck shall rate every in-scope item of every chosen standard by fixed rules: Compliant only on direct proof, Largely on a declaration or indication, Partial when mixed, Non-compliant when nothing passes, and unrated (facts needed or reviewer) when nothing is known; levels (ASVS level, SWAL) and AI use shall set the scope, and a standard with unrated items shall stay incomplete. | T |
-| GEV-AUD-019 | CrossCheck's optional AI rating shall use an open-source model through an OpenAI-compatible endpoint set by the operator, rate only items rules cannot, keep a rating only when every evidence id it cites exists, never rate an item Compliant, and mark each rating AI-rated. | T |
-| GEV-AUD-020 | CrossCheck shall turn the gaps into a remediation plan of fixes, each closing items across standards, in four waves (must-fix, non-compliant, conditions, facts and review) with readiness after each wave marked projected, and a work package per fix for a team or a coding agent, exportable as Markdown and JSON. | T |
-| GEV-AUD-021 | CrossCheck's library shall hold seven standards (OWASP ASVS 5.0, ED-153, ISO/IEC 42001, NIST SSDF, Australian ISM and Essential Eight, ISO/IEC 27001:2022, MIL-STD-882E), built reproducibly from one script, every item tied only to known checks and questions, with licensed standards kept to numbers and short paraphrased titles. | T |
+Removed 22 Oct 2026. The AUDIT view and the CrossCheck engine moved to DDG Greenlight, a separate product; God's Eye View is assessed by it as any other codebase. IDs GEV-AUD-001 to 021 are retired and not reused.
 
 ## 11. World visuals (VIS)
 

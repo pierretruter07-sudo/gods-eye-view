@@ -13,7 +13,6 @@ import { googlePlacesContextProxy } from './places.js';
 import { cycloneProxy } from './cyclones.js';
 import { metarProxy } from './metar.js';
 import { cctvProxy } from './cctv.js';
-import { crossCheckPlugin } from './crosscheck.js';
 import { defaultSourceRoot } from './common/source-root.js';
 import { apiCompressionPlugin } from './common/compress.js';
 
@@ -41,7 +40,6 @@ function localProviderPlugins() {
     cycloneProxy(),
     metarProxy(),
     cctvProxy({ sourceRoot: defaultSourceRoot }),
-    crossCheckPlugin(),
   ];
 }
 

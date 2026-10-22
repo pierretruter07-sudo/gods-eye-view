@@ -39,7 +39,7 @@ Target: 12–15 minute live demonstration for defence-prime executives.
 | 4:00 | **Intel HUD** | Click an aircraft or naval vessel. Use **Follow**. | Two data sheets, FEED vs SIMULATED chips, the dead-reckoned track. |
 | 6:00 | **Analyst actions** | Satellite: **Predict passes**, then **Conjunction check**. Vessel: **Task imagery pass** (real Esri archive mosaic). | These are computed live from orbital elements and imagery. They are not mock-ups. |
 | 8:00 | **Triage and watchlist** | Open **Triage**. Pin an item. Mark a 100 km area. | Feed-driven prioritisation plus the operator's own areas of interest. |
-| 12:00 | **Close** | Press **Stop** (or Esc) to end the Director; the globe spins. Open **Audit** for CrossCheck. | Roadmap: licensed feeds, the LLM analyst (HENRI), ED-153-aligned assurance, CrossCheck. |
+| 12:00 | **Close** | Press **Stop** (or Esc) to end the Director; the globe spins. | Roadmap: licensed feeds, the LLM analyst (HENRI), ED-153-aligned assurance, CrossCheck. |
 
 ## Fallbacks
 

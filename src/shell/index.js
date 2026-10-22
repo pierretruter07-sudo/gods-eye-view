@@ -9,7 +9,6 @@ import { installAdaptiveQuality } from './quality.js';
 import { graphicsFlags, installGraphics } from './graphics.js';
 import { installOrbitControls } from './orbitControls.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
-import { installAudit } from '../audit/index.js';
 import { installLayout } from './layout.js';
 import { installWorldVisuals } from '../visuals/index.js';
 
@@ -58,8 +57,6 @@ const ICONS = {
   stop: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>',
   back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>',
   list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
-  audit:
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12.2 2.3 2.3 4.3-4.6"/></svg>',
 };
 
 function el(tag, attrs = {}, html) {
@@ -130,7 +127,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const brand = el(
     'span',
     { class: 'gev-bar__brand' },
-    `${ICONS.eye}<span>God's Eye</span>`,
+    `${ICONS.eye}<span>God's Eye View</span>`,
   );
   const form = el('form', { class: 'gev-bar__search', role: 'search' });
   const input = el('input', {
@@ -176,15 +173,6 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     { type: 'button', class: 'gev-btn gev-btn--primary' },
     `${ICONS.play}<span>Director</span>`,
   );
-  const auditBtn = el(
-    'button',
-    {
-      type: 'button',
-      class: 'gev-btn gev-btn--audit',
-      title: 'Audit this platform with CrossCheck (ED-153 and OWASP ASVS)',
-    },
-    `${ICONS.audit}<span>Audit</span>`,
-  );
   bar.append(
     brand,
     el('span', { class: 'gev-bar__divider', 'aria-hidden': 'true' }),
@@ -193,7 +181,6 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     layersBtn,
     triageBtn,
     directorBtn,
-    auditBtn,
   );
 
   // ── Layers panel ─────────────────────────────────────────────────────
@@ -284,7 +271,6 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   collapse.addEventListener('click', () => setPanel(false));
 
   let intelRef = null; // set once the intel view exists (the tour can start first)
-  let auditRef = null; // set once AUDIT is installed (idle spin starts first)
   const prefetch = installFlightPrefetch({ viewer, dataManager });
   // Day/night with city lights, comet trails, quake shockwave rings.
   const world = installWorldVisuals({ viewer, dataManager });
@@ -464,10 +450,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   const stopSpin = installIdleSpin({
     viewer,
     isBlocked: () =>
-      auditRef?.isActive() === true ||
-      tour.controller.isRunning() ||
-      intel.isOpen() ||
-      !!viewer.trackedEntity,
+      tour.controller.isRunning() || intel.isOpen() || !!viewer.trackedEntity,
   });
   triageBtn.addEventListener('click', () => {
     setPanel(false);
@@ -482,47 +465,12 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   };
   window.addEventListener('keydown', onEscape);
 
-  // ── CrossCheck AUDIT (the platform audits itself) ────────────────────
-  // Pauses the live platform, flies out to the whole globe and morphs it into
-  // the CrossCheck orbit. The runtime loads on first press.
-  const audit = installAudit({
-    viewer,
-    onEnter() {
-      // The globe is covered: stop polling the live feeds until exit.
-      dataManager?.pausePolling?.('audit');
-      closeWelcome?.();
-      tour.controller.exit('audit');
-      intel.setTriage(false);
-      intel.close();
-      setPanel(false);
-      auditBtn.disabled = true;
-    },
-    onExit() {
-      dataManager?.resumePolling?.('audit');
-      auditBtn.disabled = false;
-      refreshRows();
-    },
-  });
-  auditRef = audit;
   // A hidden tab needs no fresh feeds; catch up the moment it is visible.
   const onVisibility = () => {
     if (document.hidden) dataManager?.pausePolling?.('hidden');
     else dataManager?.resumePolling?.('hidden');
   };
   document.addEventListener('visibilitychange', onVisibility);
-  auditBtn.addEventListener('click', () => audit.enter());
-  // Fetch the AUDIT code and data before the press: on intent, or once the
-  // start-up work has settled.
-  auditBtn.addEventListener('pointerenter', () => audit.prefetch(), {
-    once: true,
-  });
-  auditBtn.addEventListener('focus', () => audit.prefetch(), { once: true });
-  quietThen(() => {
-    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1));
-    idle(() => (audit.warm ? audit.warm() : audit.prefetch()), {
-      timeout: 5000,
-    });
-  }, 15000);
 
   let searchAbort = null;
   form.addEventListener('submit', async (event) => {
@@ -559,7 +507,6 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     prefetch.destroy();
     startupTimers.forEach(clearTimeout);
     document.removeEventListener('visibilitychange', onVisibility);
-    audit.destroy();
     layout.destroy();
     if (window.__gevIntel === intel) delete window.__gevIntel;
     intel.destroy();
@@ -573,7 +520,6 @@ export function installShell({ viewer, dataManager, placeSearch }) {
       'gev-clean',
       'gev-touring',
       'gev-intel-open',
-      'gev-audit',
     );
   };
 }

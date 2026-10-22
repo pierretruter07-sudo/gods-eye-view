@@ -42,10 +42,9 @@ test('explicit build inputs preserve browser-only defines, plugin order and loop
     createBrowserViteConfig({ host: '::', port: '4800' }).server.port,
     4800,
   );
-  // God's Eye View and the CrossCheck page are both built.
   const input = config.build.rollupOptions.input;
   assert.ok(input.main.endsWith('index.html'));
-  assert.ok(input.crosscheck.endsWith('crosscheck/app/index.html'));
+  assert.deepEqual(Object.keys(input), ['main']);
 });
 
 test('build helper does not discover environment values or construct local providers', () => {
