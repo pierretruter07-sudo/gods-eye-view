@@ -162,7 +162,8 @@ for (const preview of [false, true]) {
     );
     assert.deepEqual((await request(search, '?q=museum&lat=30&lon=-97')).body, {
       places: [],
-      error: 'Denied',
+      // GEV-SEC-008: the upstream message stays in the server log.
+      error: 'Google Places request failed',
     });
   });
 }
