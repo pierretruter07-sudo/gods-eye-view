@@ -12,6 +12,8 @@ const AIS_TRACK_MIN_MOVE_M = 25;
 const _aisStreamVessels = new Map();
 /** @type {Map<string,object>} */
 const _aisStreamStatic = new Map();
+/** @type {Map<string,number>} mmsi -> when its static data last arrived (ms) */
+const _aisStreamStaticSeen = new Map();
 /** @type {Map<string,{lats:Float32Array,lons:Float32Array,times:Uint32Array,head:number,len:number}>} mmsi -> track ring buffer */
 const _aisStreamTracks = new Map();
 /** @type {Map<string,{lat:number,lon:number,epochSec:number}>} mmsi -> first fix awaiting second (lazy buffer allocation) */
@@ -50,6 +52,7 @@ export function ingestAisStreamEnvelope(envelope) {
       imo: stringValue(message.ImoNumber ?? message.IMO),
     };
     _aisStreamStatic.set(mmsi, staticData);
+    _aisStreamStaticSeen.set(mmsi, Date.now());
     mergeAisStaticIntoLiveVessel(mmsi, staticData);
   }
 
@@ -257,6 +260,15 @@ function pruneAisStreamCache() {
     if (pending.epochSec < pendingCutoffSec)
       _aisStreamTrackPending.delete(mmsi);
   }
+  // Static data (name, type, destination) often arrives before the first
+  // position, so keep it for the stale window; after that, a vessel with no
+  // live row is never read again and the map would grow for the server's life.
+  for (const [mmsi, seenAt] of _aisStreamStaticSeen) {
+    if (seenAt < cutoff && !_aisStreamVessels.has(mmsi)) {
+      _aisStreamStatic.delete(mmsi);
+      _aisStreamStaticSeen.delete(mmsi);
+    }
+  }
   if (_aisStreamVessels.size <= AISSTREAM_CACHE_MAX) return;
   const ordered = [..._aisStreamVessels.entries()].sort(
     (a, b) => a[1]._updatedAt - b[1]._updatedAt,
@@ -268,6 +280,8 @@ function pruneAisStreamCache() {
     _aisStreamVessels.delete(mmsi);
     _aisStreamTracks.delete(mmsi);
     _aisStreamTrackPending.delete(mmsi);
+    _aisStreamStatic.delete(mmsi);
+    _aisStreamStaticSeen.delete(mmsi);
   }
 }
 

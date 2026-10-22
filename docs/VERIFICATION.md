@@ -63,6 +63,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-SEC-002 | `build/vite.js` `server.fs.deny` | T: `viteBuild.test.mjs` (same) |
 | GEV-SEC-003 | `build/vite.js` `server.headers` | T: `viteBuild.test.mjs` (same) |
 | GEV-SEC-004 | `src/intel/markup.js` `esc` | T: `src/intel/markup.test.mjs` (3 tests) |
+| GEV-SEC-006 | `server/providers/common/rate-limit.js` `makeOptInRateLimiter`, `clientKey`; `server/providers/places/google.js` | T: `src/tooling/wave1Safety.test.mjs` "the Google Places limiter is on by default and only env can disable it", "rate-limit keys use the forwarded address only when TRUST_PROXY=1" |
 | GEV-SEC-005 | `scripts/dev-fresh.sh`, `scripts/setup-doctor.mjs` | T: `src/toolProjectRoot.test.mjs` "launcher reads the selected project keys…", "doctor inspects the selected project dependencies and dotenv without disclosing values" |
 | GEV-DIR-001 | `src/tour/events.js` | T: `src/tour/events.test.mjs` "emergency aircraft rank 7500, 7700, 7600 and ignore ordinary codes", "squawk codes are four octal digits or null" |
 | GEV-DIR-002 | `src/tour/events.js` | T: `events.test.mjs` "aircraft come before quakes; quakes rank by size then recency", "small, old and positionless quakes are ignored" |
