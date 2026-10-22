@@ -8,11 +8,16 @@ import {
   projectTextSearchPlaces,
 } from '../../../src/data/placeProviderPayloads.js';
 
+/** Longest text query forwarded to Google (a place name or address, not prose). */
+export const MAX_TEXT_QUERY_CHARS = 120;
+/** Upstream Places calls give up after this long. */
+export const PLACES_FETCH_TIMEOUT_MS = 8000;
+
 // Construct lazily after the standalone environment has loaded.
 // undefined = not built yet; null = unlimited; fn = active limiter
 let _googleRateLimiter;
 
-/** Google cost endpoint (nearby-places). Null = unlimited (default). */
+/** Google cost endpoint limiter. On by default; null only when disabled by env. */
 function googleRateLimiter() {
   if (_googleRateLimiter === undefined)
     _googleRateLimiter = makeOptInRateLimiter(
@@ -80,7 +85,7 @@ export function googlePlacesContextProxy({
       }
       const { latitude, longitude } = coordinates;
 
-      // Opt-in per-IP throttle (GEV_RATELIMIT_GOOGLE_PER_MIN). No-op when unset.
+      // Per-client throttle (GEV_RATELIMIT_GOOGLE_PER_MIN, default 30/min).
       // Inlined (not the shared helper) so the 429 body keeps this endpoint's
       // `places: []` contract that the client expects on every error response.
       const _grl = googleRateLimiter();
@@ -104,6 +109,7 @@ export function googlePlacesContextProxy({
           {
             method: 'POST',
             redirect: 'error',
+            signal: AbortSignal.timeout(PLACES_FETCH_TIMEOUT_MS),
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,
@@ -182,7 +188,9 @@ export function googlePlacesContextProxy({
       }
 
       const requestUrl = new URL(req.url || '', 'http://localhost');
-      const textQuery = String(requestUrl.searchParams.get('q') || '').trim();
+      const textQuery = String(requestUrl.searchParams.get('q') || '')
+        .trim()
+        .slice(0, MAX_TEXT_QUERY_CHARS);
       if (!textQuery) {
         res.statusCode = 400;
         res.setHeader('Content-Type', 'application/json');
@@ -200,7 +208,7 @@ export function googlePlacesContextProxy({
       }
       const { latitude, longitude } = coordinates;
 
-      // Opt-in per-IP throttle (GEV_RATELIMIT_GOOGLE_PER_MIN). No-op when unset.
+      // Per-client throttle (GEV_RATELIMIT_GOOGLE_PER_MIN, default 30/min).
       // Inlined (like nearby-places) so the 429 body keeps the `places: []`
       // contract the client expects on every error response.
       const _grl = googleRateLimiter();
@@ -224,6 +232,7 @@ export function googlePlacesContextProxy({
           {
             method: 'POST',
             redirect: 'error',
+            signal: AbortSignal.timeout(PLACES_FETCH_TIMEOUT_MS),
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,

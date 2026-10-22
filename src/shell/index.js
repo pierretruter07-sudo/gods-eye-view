@@ -158,6 +158,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     {
       type: 'button',
       class: 'gev-btn',
+      'aria-label': 'Layers',
       'aria-expanded': 'false',
       'aria-controls': 'gev-layers',
     },
@@ -165,12 +166,21 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   );
   const triageBtn = el(
     'button',
-    { type: 'button', class: 'gev-btn', 'aria-pressed': 'false' },
+    {
+      type: 'button',
+      class: 'gev-btn',
+      'aria-label': 'Triage',
+      'aria-pressed': 'false',
+    },
     `${ICONS.list}<span>Triage</span><span class="gev-badge" hidden></span>`,
   );
   const directorBtn = el(
     'button',
-    { type: 'button', class: 'gev-btn gev-btn--primary' },
+    {
+      type: 'button',
+      class: 'gev-btn gev-btn--primary',
+      'aria-label': 'Start the Director',
+    },
     `${ICONS.play}<span>Director</span>`,
   );
   bar.append(
@@ -353,6 +363,10 @@ export function installShell({ viewer, dataManager, placeSearch }) {
       directorBtn.innerHTML = live
         ? `${ICONS.stop}<span>Stop</span>`
         : `${ICONS.play}<span>Director</span>`;
+      directorBtn.setAttribute(
+        'aria-label',
+        live ? 'Stop the Director' : 'Start the Director',
+      );
       if (live) setPanel(false);
       refreshRows();
     },
@@ -441,6 +455,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     const n = intel.flaggedCount();
     badge.hidden = n === 0;
     badge.textContent = n > 99 ? '99+' : String(n);
+    triageBtn.setAttribute('aria-label', n ? `Triage, ${n} flagged` : 'Triage');
   }
   intel.onTriage((on) => triageBtn.setAttribute('aria-pressed', String(on)));
   intel.onWatch(refreshBadge);

@@ -83,6 +83,23 @@ export const OPENSKY_FETCH_TIMEOUT_MS = 20_000;
 export const OPENSKY_NETWORK_ERROR_COOLDOWN_MS = 5 * 60_000;
 /** A slow answer is not an unreachable host: try again soon. */
 export const OPENSKY_TIMEOUT_COOLDOWN_MS = 30_000;
+/**
+ * With nothing cached yet, how long a request waits on the worldwide call
+ * before it is answered from the regional sources instead. The world call
+ * keeps running and fills the cache for the next request. From the published
+ * server the host sometimes never completes the TCP connect (undici gives up
+ * at ~10 s with "fetch failed"), and no viewer should wait on that.
+ */
+export const OPENSKY_FIRST_ANSWER_BUDGET_MS = 2500;
+/** The OAuth token call gives up after this long. */
+export const OPENSKY_TOKEN_TIMEOUT_MS = 8000;
+
+/** One line naming the transport failure, for the server log. */
+export function describeFetchError(error) {
+  const code = error?.cause?.code || error?.code || '';
+  const name = error?.name || error?.cause?.name || '';
+  return [error?.message, name, code].filter(Boolean).join(' · ');
+}
 
 /** How long to stop asking after a failed worldwide call. */
 export function openskyFailureCooldownMs(error) {
@@ -130,6 +147,7 @@ export async function getOpenSkyToken() {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: `grant_type=client_credentials&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`,
+          signal: AbortSignal.timeout(OPENSKY_TOKEN_TIMEOUT_MS),
         },
       );
 
@@ -551,7 +569,7 @@ export function openSkyProxy() {
 
         // Every concurrent miss shares ONE upstream call (audit, 21 Oct:
         // each concurrent miss spent its own credits).
-        const world = await coalesceProxyRequest(
+        const worldPromise = coalesceProxyRequest(
           _openskyWorldInFlight,
           'world',
           async () => {
@@ -637,6 +655,61 @@ export function openSkyProxy() {
             };
           },
         ).promise;
+        // Nothing cached yet: give the world call a short budget, then answer
+        // from the regional sources and let it finish in the background.
+        let world;
+        if (!_openskyCacheBody) {
+          const settled = await Promise.race([
+            worldPromise.then(
+              (value) => ({ value }),
+              (error) => ({ error }),
+            ),
+            new Promise((resolve) =>
+              setTimeout(() => resolve(null), OPENSKY_FIRST_ANSWER_BUDGET_MS),
+            ),
+          ]);
+          if (!settled) {
+            worldPromise.then(
+              (value) => {
+                if (value.ok && value.status === 200 && !_openskyCacheBody) {
+                  _openskyCacheBody = value.text;
+                  _openskyCacheStatus = value.status;
+                  _openskyCacheTime = Date.now();
+                  _openskyCacheSourceEpochMs = openSkySourceEpochMs(value.text);
+                  _openskyCacheMeta = {
+                    requestedMode,
+                    usedMode: value.usedMode,
+                    reason: value.reason,
+                  };
+                }
+              },
+              (error) => {
+                console.error(
+                  '[OpenSky Proxy] background world call',
+                  describeFetchError(error),
+                );
+                _openskyCooldownUntil =
+                  Date.now() + openskyFailureCooldownMs(error);
+              },
+            );
+            if (
+              await serveAdsbLolPointFallback(
+                req,
+                res,
+                requestedMode,
+                'opensky_world_warming_regional_fallback',
+              )
+            )
+              return;
+            world = await worldPromise;
+          } else if (settled.error) {
+            throw settled.error;
+          } else {
+            world = settled.value;
+          }
+        } else {
+          world = await worldPromise;
+        }
         const upstream = {
           ok: world.ok,
           status: world.status,
@@ -832,7 +905,7 @@ export function openSkyProxy() {
         );
         res.end(body);
       } catch (e) {
-        console.error('[OpenSky Proxy]', e.message);
+        console.error('[OpenSky Proxy]', describeFetchError(e));
         // Unreachable (blocked host, DNS): stop asking for a while so every
         // view goes straight to the regional sources instead of waiting out a
         // fresh connection failure each time. A timeout retries sooner.

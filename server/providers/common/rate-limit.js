@@ -1,34 +1,51 @@
 import { makeRateLimiter } from '../../../src/sources/rateLimit.js';
 export { makeRateLimiter } from '../../../src/sources/rateLimit.js';
 
+/** Default cap for the cost-bearing Google proxies: requests per minute per client. */
+export const DEFAULT_GOOGLE_PER_MIN = 30;
+
 /**
- * Opt-in per-IP rate limiter for the cost-bearing API proxies (OpenAI / Google).
- * DEFAULT IS UNLIMITED: when the env var is unset, `0`, or non-numeric, this
- * returns `null` and the caller skips the check entirely — a runtime no-op that
- * preserves the original behavior. Only a positive integer N enables a fixed
- * 60s window of N requests/IP (built lazily once, then reused so its per-IP
- * window state persists across requests). The global backstop is set to a
- * generous multiple of the per-IP cap so a single host can't starve the rest.
+ * Per-client rate limiter for the cost-bearing API proxies (Google Places).
+ * ON BY DEFAULT at `DEFAULT_GOOGLE_PER_MIN` (the app runs on a public URL, so
+ * an open Places proxy is an open bill). The env var overrides the cap: a
+ * positive integer N sets N requests per minute per client; `0` or `off`
+ * disables the limiter for a private deployment. Built lazily once, then
+ * reused so the per-client window state persists across requests. The global
+ * backstop is four times the per-client cap so one host can't starve the rest.
  *
- * @param {string|undefined} envValue - Raw env value (requests/min/IP).
- * @returns {((key:string)=>boolean)|null} An `allow(key)` fn, or null when unlimited.
+ * @param {string|undefined} envValue - Raw env value (requests/min/client).
+ * @returns {((key:string)=>boolean)|null} An `allow(key)` fn, or null when disabled.
  */
 export function makeOptInRateLimiter(envValue) {
-  const max = Number(envValue);
-  if (!Number.isFinite(max) || max <= 0) return null; // unset/0/garbage -> unlimited
+  const raw = String(envValue ?? '')
+    .trim()
+    .toLowerCase();
+  if (raw === '0' || raw === 'off' || raw === 'false') return null;
+  const parsed = Number(raw);
+  const max =
+    raw && Number.isFinite(parsed) && parsed > 0
+      ? Math.floor(parsed)
+      : DEFAULT_GOOGLE_PER_MIN;
   return makeRateLimiter({
     windowMs: 60_000,
-    max: Math.floor(max),
-    globalMax: Math.floor(max) * 20,
+    max,
+    globalMax: max * 4,
   });
 }
 
 /**
- * Client key for rate limiting. Uses the real socket peer address only — we do
- * NOT trust X-Forwarded-For (client-controlled; a rotating value would mint fresh
- * quota and grow the limiter map). This is a localhost dev proxy, so the socket
- * address is the real client.
+ * Client key for rate limiting. The socket peer address by default. Behind a
+ * trusted reverse proxy (Replit, a load balancer) every socket is the proxy,
+ * so set `TRUST_PROXY=1` to key on the leftmost `X-Forwarded-For` address
+ * instead. Off by default: the header is client-controlled, and trusting it on
+ * a directly exposed server would let a rotating value mint fresh quota.
  */
-export function clientKey(req) {
+export function clientKey(req, env = process.env) {
+  if (env.TRUST_PROXY === '1') {
+    const forwarded = String(req.headers?.['x-forwarded-for'] || '')
+      .split(',')[0]
+      .trim();
+    if (forwarded) return forwarded.slice(0, 64);
+  }
   return String(req.socket?.remoteAddress || 'local');
 }
