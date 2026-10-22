@@ -54,6 +54,13 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+      - name: Audit production dependencies
+        if: matrix.node == '24.14.0'
+        run: npm audit --omit=dev --audit-level=critical
+
       - name: Build production bundle
         run: npm run build
+
+      - name: Smoke-test the preview server
+        run: node scripts/preview-smoke.mjs
 

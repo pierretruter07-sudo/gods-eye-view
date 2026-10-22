@@ -85,7 +85,7 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
         ).join('')}
       </ul>
       <footer class="gev-welcome__foot">
-        <div class="gev-welcome__count" aria-live="polite">
+        <div class="gev-welcome__count" aria-hidden="true">
           <svg viewBox="0 0 52 52" width="52" height="52" aria-hidden="true">
             <circle cx="26" cy="26" r="${R}" class="gev-welcome__track"/>
             <circle cx="26" cy="26" r="${R}" class="gev-welcome__arc" stroke-dasharray="${C}" stroke-dashoffset="0"/>
@@ -101,6 +101,12 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
       <p class="gev-welcome__build">Build ${BUILD_ID}</p>
     </div>`;
   document.body.append(root);
+  // A modal for keyboard and screen-reader users too: everything behind the
+  // card is inert (unfocusable, unread) until it closes.
+  const behind = [...document.body.children].filter(
+    (node) => node !== root && !node.inert,
+  );
+  for (const node of behind) node.inert = true;
 
   const arc = root.querySelector('.gev-welcome__arc');
   const num = root.querySelector('.gev-welcome__num');
@@ -113,6 +119,8 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
     if (done) return;
     done = true;
     cancelAnimationFrame(raf);
+    for (const node of behind) node.inert = false;
+    window.removeEventListener('keydown', onKey);
     root.classList.add('is-leaving');
     setTimeout(() => root.remove(), 450);
     onDone?.(action);
@@ -137,12 +145,25 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
     if (act === 'start') finish('start');
     if (act === 'explore') finish('explore');
   });
-  const onKey = (event) => {
+  function onKey(event) {
     if (event.key === 'Escape') {
-      window.removeEventListener('keydown', onKey);
       finish('explore');
+      return;
     }
-  };
+    if (event.key !== 'Tab') return;
+    // Keep Tab inside the card: wrap from the last button to the first.
+    const stops = [...root.querySelectorAll('button')];
+    if (!stops.length) return;
+    const first = stops[0];
+    const last = stops.at(-1);
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
   window.addEventListener('keydown', onKey);
   root.querySelector('[data-act="start"]').focus();
 

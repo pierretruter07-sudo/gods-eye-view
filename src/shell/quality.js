@@ -1,4 +1,4 @@
-import { START_LEVEL, nextQuality, qualityLevels } from './qualityPolicy.js';
+import { nextQuality, qualityLevels, startLevel } from './qualityPolicy.js';
 
 const WINDOW_MS = 1500;
 
@@ -22,7 +22,7 @@ export function installAdaptiveQuality(
   const dpr = window.devicePixelRatio || 1;
   const levels = qualityLevels(dpr);
   let state = {
-    level: Math.min(START_LEVEL, levels.length - 1),
+    level: Math.min(startLevel(globalThis.navigator || {}), levels.length - 1),
     good: 0,
     bad: 0,
   };

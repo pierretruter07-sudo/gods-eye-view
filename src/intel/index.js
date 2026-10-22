@@ -951,6 +951,25 @@ export function installIntel({
     renderSheets();
     for (const t of sheetTabs) runSheet(t.id, o);
   }
+  // Sheet tabs follow the WAI-ARIA tabs pattern: arrows, Home and End move
+  // between tabs and activate them; focus follows to the new active tab.
+  drawer.addEventListener('keydown', (event) => {
+    const tab = event.target.closest?.('[role="tab"]');
+    if (!tab || !selected) return;
+    const ids = sheetTabs.map((t) => t.id);
+    const at = ids.indexOf(sheetActive);
+    const next = {
+      ArrowRight: at + 1,
+      ArrowLeft: at - 1,
+      Home: 0,
+      End: ids.length - 1,
+    }[event.key];
+    if (next == null || !ids.length) return;
+    event.preventDefault();
+    sheetActive = ids[(next + ids.length) % ids.length];
+    renderSheets();
+    drawer.querySelector(`#gev-sheet-tab-${CSS.escape(sheetActive)}`)?.focus();
+  });
   drawer.addEventListener('click', async (event) => {
     const act = event.target.closest('[data-res]')?.dataset.res;
     if (!act || !selected) return;
@@ -1483,7 +1502,11 @@ export function installIntel({
     if (on) {
       if (selected) close();
       renderTriage();
-      triageTimer = setInterval(renderTriage, 15000);
+      // The periodic refresh rebuilds the list, so skip it while keyboard
+      // focus is inside the queue; the next tick after focus leaves catches up.
+      triageTimer = setInterval(() => {
+        if (!triage.contains(document.activeElement)) renderTriage();
+      }, 15000);
     }
     onTriageChange?.(on);
   }

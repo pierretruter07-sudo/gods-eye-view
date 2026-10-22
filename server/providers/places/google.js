@@ -139,23 +139,27 @@ export function googlePlacesContextProxy({
         const data = await response.json().catch(() => ({}));
         const places = projectNearbyPlaces(data, latitude, longitude);
 
+        if (!response.ok)
+          console.warn(
+            `[places] Google answered ${response.status}:`,
+            data.error?.message || '',
+          );
         res.statusCode = response.ok ? 200 : response.status;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Cache-Control', 'private, max-age=300');
         res.end(
           JSON.stringify({
             places,
-            error: response.ok
-              ? null
-              : data.error?.message || 'Google Places request failed',
+            error: response.ok ? null : 'Google Places request failed',
           }),
         );
       } catch (error) {
+        console.warn('[places] request failed:', error?.message || error);
         res.statusCode = 502;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(
           JSON.stringify({
-            error: error?.message || 'Google Places request failed',
+            error: 'Google Places request failed',
             places: [],
           }),
         );
@@ -261,23 +265,27 @@ export function googlePlacesContextProxy({
         const data = await response.json().catch(() => ({}));
         const places = projectTextSearchPlaces(data, latitude, longitude);
 
+        if (!response.ok)
+          console.warn(
+            `[places] Google answered ${response.status}:`,
+            data.error?.message || '',
+          );
         res.statusCode = response.ok ? 200 : response.status;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Cache-Control', 'private, max-age=300');
         res.end(
           JSON.stringify({
             places,
-            error: response.ok
-              ? null
-              : data.error?.message || 'Google Places request failed',
+            error: response.ok ? null : 'Google Places request failed',
           }),
         );
       } catch (error) {
+        console.warn('[places] request failed:', error?.message || error);
         res.statusCode = 502;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(
           JSON.stringify({
-            error: error?.message || 'Google Places request failed',
+            error: 'Google Places request failed',
             places: [],
           }),
         );

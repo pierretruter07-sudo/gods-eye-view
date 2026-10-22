@@ -207,17 +207,6 @@ h3,
   color: var(--text-dim);
 }
 
-/* Status colours: always a dot plus a word elsewhere; here the dots. */
-.gev-dot--ok {
-  background: var(--ddg-ok);
-}
-.gev-dot--warn {
-  background: var(--ddg-warn);
-}
-.gev-dot--bad {
-  background: var(--ddg-bad);
-}
-
 /* Browser-painted controls follow the night palette. */
 select,
 input,

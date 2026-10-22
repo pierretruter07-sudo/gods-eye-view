@@ -46,6 +46,39 @@ export function allowParallelGoogleTiles(Cesium) {
  * @param {{googleApiKey?: string, cesiumToken?: string}} credentials
  * @returns {Promise<{tileset: object|null, route: 'google-direct'|'google-ion'|'osm', errors: Error[]}>}
  */
+/** A tileset route that has not answered in this long is skipped. */
+export const TILESET_STARTUP_TIMEOUT_MS = 15_000;
+
+/**
+ * Resolves with the tileset, or rejects after the startup budget so the next
+ * route (or the keyless globe) loads instead of a loader that never clears.
+ * A tileset that arrives after the budget is destroyed, not leaked.
+ * @param {Promise<any>} pending
+ * @param {string} route
+ * @param {number} [ms]
+ */
+export function withinStartupBudget(
+  pending,
+  route,
+  ms = TILESET_STARTUP_TIMEOUT_MS,
+) {
+  let timer;
+  let timedOut = false;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      timedOut = true;
+      reject(new Error(`${route}: no tileset after ${ms / 1000} s`));
+    }, ms);
+  });
+  pending.then(
+    (late) => {
+      if (timedOut && late && !late.isDestroyed?.()) late.destroy?.();
+    },
+    () => {},
+  );
+  return Promise.race([pending, timeout]).finally(() => clearTimeout(timer));
+}
+
 export async function loadPhotorealisticTileset(
   Cesium,
   { googleApiKey = '', cesiumToken = '' } = {},
@@ -61,9 +94,10 @@ export async function loadPhotorealisticTileset(
 
   for (const attempt of attempts) {
     try {
-      const tileset = attempt.googleKey
-        ? await createGoogleDirectTileset(Cesium, attempt.googleKey)
-        : await createGoogleIonTileset(Cesium, ionToken);
+      const pending = attempt.googleKey
+        ? createGoogleDirectTileset(Cesium, attempt.googleKey)
+        : createGoogleIonTileset(Cesium, ionToken);
+      const tileset = await withinStartupBudget(pending, attempt.route);
       return { tileset, route: attempt.route, errors };
     } catch (error) {
       errors.push(error instanceof Error ? error : new Error(String(error)));

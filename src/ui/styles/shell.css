@@ -358,25 +358,6 @@ body.gev-clean #toast {
   color: rgba(235, 240, 245, 0.5);
 }
 
-/* ── Demo buttons ────────────────────────────────────────── */
-
-.gev-chip {
-  height: 32px;
-  padding: 0 12px;
-  border: 1px solid rgba(245, 196, 81, 0.4);
-  border-radius: 999px;
-  background: rgba(30, 34, 44, 0.5);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: var(--ddg-warn);
-  font:
-    600 12px/1 -apple-system,
-    BlinkMacSystemFont,
-    'Inter',
-    sans-serif;
-  cursor: pointer;
-}
-
 @media (max-width: 760px) {
   /* Labels go, the triage count stays: each button keeps its aria-label. */
   .gev-bar__brand span,
@@ -404,27 +385,6 @@ body.gev-clean #toast {
   flex: none;
 }
 
-.gev-seg button {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  height: 38px;
-  padding: 0 15px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(235, 240, 245, 0.72);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.gev-seg button[data-mode='live'][aria-pressed='true'] {
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
-}
-
 .gev-seg__live {
   display: flex;
   align-items: center;
@@ -447,14 +407,6 @@ body.gev-clean #toast {
 .gev-seg__dot--live {
   background: var(--ddg-ok);
 }
-
-@keyframes gev-blink {
-  50% {
-    opacity: 0.25;
-  }
-}
-
-/* Strike-package panel */
 
 /* ── Intelligence view: full-screen glass console, no scrolling ── */
 .gev-badge {
@@ -953,11 +905,6 @@ body.gev-clean #toast {
   height: 36px;
   padding: 0 14px;
   gap: 7px;
-  font-size: 13px;
-}
-.gev-seg button {
-  height: 32px;
-  padding: 0 12px;
   font-size: 13px;
 }
 .gev-badge {
