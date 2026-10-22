@@ -28,6 +28,11 @@ test('explicit build inputs preserve browser-only defines, plugin order and loop
     config.server.headers['Content-Security-Policy'],
     "frame-ancestors 'none'",
   );
+  assert.equal(config.server.headers['X-Content-Type-Options'], 'nosniff');
+  assert.equal(
+    config.server.headers['Referrer-Policy'],
+    'strict-origin-when-cross-origin',
+  );
   assert.deepEqual(config.define, {
     'import.meta.env.GOOGLE_MAPS_API_KEY': '"browser-fixture"',
     'import.meta.env.CESIUM_ION_TOKEN': '"ion-fixture"',

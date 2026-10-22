@@ -1,6 +1,25 @@
 import { makeRateLimiter } from '../../../src/sources/rateLimit.js';
 export { makeRateLimiter } from '../../../src/sources/rateLimit.js';
 
+/**
+ * Per-client limiter for the fan-out proxies (tracks, enrichment, terrain,
+ * METAR): each distinct key they are asked for costs an upstream call, so a
+ * caller walking the keyspace is bounded here. `max` per minute per client,
+ * global backstop at eight times that.
+ */
+export function makeFanOutRateLimiter(max = 20) {
+  return makeRateLimiter({ windowMs: 60_000, max, globalMax: max * 8 });
+}
+
+/** Drop the oldest entries of a Map until it holds at most `max`. */
+export function capMap(map, max) {
+  while (map.size > max) {
+    const oldest = map.keys().next().value;
+    if (oldest === undefined) break;
+    map.delete(oldest);
+  }
+}
+
 /** Default cap for the cost-bearing Google proxies: requests per minute per client. */
 export const DEFAULT_GOOGLE_PER_MIN = 30;
 

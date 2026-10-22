@@ -2,17 +2,40 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { readResponseTextCapped, coalesceProxyRequest } from './sources/httpBody.js';
+import {
+  readResponseTextCapped,
+  coalesceProxyRequest,
+} from './sources/httpBody.js';
+import {
+  capMap,
+  clientKey,
+  makeFanOutRateLimiter,
+} from '../server/providers/common/rate-limit.js';
+import { CELESTRAK_GROUPS } from '../server/providers/space/celestrak.js';
 
-const source = ['local.js', 'common/http.js', 'aircraft/enrichment.js', 'terrain.js', 'space/celestrak.js', '../../src/data/spaceProviderRequests.js']
-  .map(file => readFileSync(new URL(`../server/providers/${file}`, import.meta.url), 'utf8'))
+const source = [
+  'local.js',
+  'common/http.js',
+  'aircraft/enrichment.js',
+  'terrain.js',
+  'space/celestrak.js',
+  '../../src/data/spaceProviderRequests.js',
+]
+  .map((file) =>
+    readFileSync(
+      new URL(`../server/providers/${file}`, import.meta.url),
+      'utf8',
+    ),
+  )
   .join('\n');
 const detail = 'fixture-secret-token /internal/example <html>';
 
 // Execute the production middleware with isolated upstreams and cache storage.
 // Top-level function closing braces start in column zero in this module.
 function extract(name) {
-  const start = source.search(new RegExp(`(?:export )?(?:async )?function ${name}\\(`));
+  const start = source.search(
+    new RegExp(`(?:export )?(?:async )?function ${name}\\(`),
+  );
   assert.ok(start >= 0, `${name} must exist`);
   const end = source.indexOf('\n}', start);
   return source.slice(start, end + 2).replace(/^export /, '');
@@ -21,39 +44,86 @@ function extract(name) {
 function fixture(name, overrides = {}, preview = false) {
   const logs = [];
   const deps = {
-    readResponseTextCapped, coalesceProxyRequest,
-    path, process: { cwd: () => '/fixture', env: {} },
+    readResponseTextCapped,
+    coalesceProxyRequest,
+    capMap,
+    clientKey,
+    makeFanOutRateLimiter,
+    CELESTRAK_GROUPS,
+    path,
+    process: { cwd: () => '/fixture', env: {} },
     fsp: {
-      readFile: async () => { throw new Error('cache absent'); },
-      stat: async () => { throw new Error('cache absent'); },
-      mkdir: async () => {}, writeFile: async () => {},
+      readFile: async () => {
+        throw new Error('cache absent');
+      },
+      stat: async () => {
+        throw new Error('cache absent');
+      },
+      mkdir: async () => {},
+      writeFile: async () => {},
     },
-    fetch: async () => { throw new Error(detail); },
-    console: { warn: (...args) => logs.push(args.join(' ')), error: (...args) => logs.push(args.join(' ')) },
+    fetch: async () => {
+      throw new Error(detail);
+    },
+    console: {
+      warn: (...args) => logs.push(args.join(' ')),
+      error: (...args) => logs.push(args.join(' ')),
+    },
     setInterval: () => ({ unref() {} }),
     parseTerrainPoints: () => [[1, 2]],
-    resolveTerrainHeightRequest: async () => { throw new Error(detail); },
+    resolveTerrainHeightRequest: async () => {
+      throw new Error(detail);
+    },
     ...overrides,
   };
   const helpers = ['celestrakTleUrl'].map(extract).join('\n');
-  const plugin = new Function(...Object.keys(deps), `${helpers}\n${extract(name)}\nreturn ${name}();`)(...Object.values(deps));
+  const plugin = new Function(
+    ...Object.keys(deps),
+    `${helpers}\n${extract(name)}\nreturn ${name}();`,
+  )(...Object.values(deps));
   let middleware;
-  plugin[preview ? 'configurePreviewServer' : 'configureServer']({ middlewares: { use(_route, handler) { middleware = handler; } } });
+  plugin[preview ? 'configurePreviewServer' : 'configureServer']({
+    middlewares: {
+      use(_route, handler) {
+        middleware = handler;
+      },
+    },
+  });
   return {
     logs,
     async request(url = '/', method = 'GET') {
-      const response = { headersSent: false, writeHead(status, headers) { Object.assign(this, { status, headers, headersSent: true }); }, end(body) { this.body = body; } };
+      const response = {
+        headersSent: false,
+        writeHead(status, headers) {
+          Object.assign(this, { status, headers, headersSent: true });
+        },
+        end(body) {
+          this.body = body;
+        },
+      };
       await middleware({ url, method }, response);
-      assert.doesNotMatch(response.body, /fixture-secret-token|internal\/example|<html>/);
-      assert.doesNotMatch(logs.join('\n'), /fixture-secret-token|internal\/example|<html>/);
+      assert.doesNotMatch(
+        response.body,
+        /fixture-secret-token|internal\/example|<html>/,
+      );
+      assert.doesNotMatch(
+        logs.join('\n'),
+        /fixture-secret-token|internal\/example|<html>/,
+      );
       return response;
     },
   };
 }
 
 test('CelesTrak unexpected failures hide details', async () => {
-  const app = fixture('celestrakProxy', { Date: { now() { throw new Error(detail); } } });
-  const res = await app.request('/active');
+  const app = fixture('celestrakProxy', {
+    Date: {
+      now() {
+        throw new Error(detail);
+      },
+    },
+  });
+  const res = await app.request('/stations');
   assert.equal(res.status, 500);
   assert.equal(res.body, 'celestrak proxy error');
   assert.equal(res.headers['x-tle-cache'], 'ERROR');
@@ -62,7 +132,7 @@ test('CelesTrak unexpected failures hide details', async () => {
 test('CelesTrak retains invalid-group and unavailable responses', async () => {
   const app = fixture('celestrakProxy');
   assert.equal((await app.request('/../')).status, 400);
-  const res = await app.request('/active');
+  const res = await app.request('/stations');
   assert.equal(res.status, 502);
   assert.equal(res.headers['x-tle-cache'], 'NONE');
 });
@@ -72,12 +142,15 @@ test('CelesTrak retains fresh and stale TLE caches', async () => {
   let calls = 0;
   const app = fixture('celestrakProxy', {
     Date: { now: () => now },
-    fetch: async () => { if (++calls > 1) throw new Error(detail); return new Response('1 valid-fixture-TLE'); },
+    fetch: async () => {
+      if (++calls > 1) throw new Error(detail);
+      return new Response('1 valid-fixture-TLE');
+    },
   });
-  assert.equal((await app.request('/active')).headers['x-tle-cache'], 'MISS');
-  assert.equal((await app.request('/active')).headers['x-tle-cache'], 'HIT');
+  assert.equal((await app.request('/stations')).headers['x-tle-cache'], 'MISS');
+  assert.equal((await app.request('/stations')).headers['x-tle-cache'], 'HIT');
   now += 7 * 3600_000;
-  const stale = await app.request('/active');
+  const stale = await app.request('/stations');
   assert.equal(stale.status, 200);
   assert.equal(stale.body, '1 valid-fixture-TLE');
   assert.equal(stale.headers['x-tle-cache'], 'STALE-ERROR');
@@ -86,14 +159,24 @@ test('CelesTrak retains fresh and stale TLE caches', async () => {
 test('terrain unexpected failures hide details', async () => {
   const res = await fixture('terrainHeightsProxy').request('/?points=1,2');
   assert.equal(res.status, 500);
-  assert.deepEqual(JSON.parse(res.body), { error: 'terrain heights proxy error' });
+  assert.deepEqual(JSON.parse(res.body), {
+    error: 'terrain heights proxy error',
+  });
 });
 
 test('terrain validation and resolver outcomes remain intact', async () => {
-  const invalid = await fixture('terrainHeightsProxy', { parseTerrainPoints: () => null }).request();
+  const invalid = await fixture('terrainHeightsProxy', {
+    parseTerrainPoints: () => null,
+  }).request();
   assert.equal(invalid.status, 400);
   const body = { results: [{ height: 12 }] };
-  const app = fixture('terrainHeightsProxy', { resolveTerrainHeightRequest: async () => ({ status: 200, body, upstreamError: new Error(detail) }) });
+  const app = fixture('terrainHeightsProxy', {
+    resolveTerrainHeightRequest: async () => ({
+      status: 200,
+      body,
+      upstreamError: new Error(detail),
+    }),
+  });
   const res = await app.request('/?points=1,2');
   assert.equal(res.status, 200);
   assert.deepEqual(JSON.parse(res.body), body);
@@ -101,7 +184,11 @@ test('terrain validation and resolver outcomes remain intact', async () => {
 });
 
 test('ADSBDB unexpected failures hide details', async () => {
-  const badUrl = { toString() { throw new Error(detail); } };
+  const badUrl = {
+    toString() {
+      throw new Error(detail);
+    },
+  };
   const res = await fixture('adsbdbProxy').request(badUrl);
   assert.equal(res.status, 500);
   assert.deepEqual(JSON.parse(res.body), { error: 'adsbdb proxy error' });

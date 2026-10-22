@@ -8,6 +8,7 @@
   "src/tooling/fixtureRoot.mjs",
   "src/tooling/fixtureRoot.test.mjs",
   "src/tooling/wave1Safety.test.mjs",
+  "src/tooling/cctvRelayHardening.test.mjs",
   "src/tooling/format.test.mjs",
   "src/tooling/packageBoundaries.test.mjs",
   "src/data/inputOwnership.js",

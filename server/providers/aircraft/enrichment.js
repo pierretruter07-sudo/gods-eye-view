@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { promises as fsp } from 'node:fs';
+import { clientKey, makeFanOutRateLimiter } from '../common/rate-limit.js';
 /**
  * adsbdb.com enrichment proxy: callsign → route (airline + origin/destination
  * airports) and hex → aircraft type/registration. Free community API — cached
@@ -9,6 +10,9 @@ import { promises as fsp } from 'node:fs';
  */
 export function adsbdbProxy() {
   const TTL_MS = 24 * 3600_000;
+  /** Entries per store (routes, aircraft) kept in memory and on disk. */
+  const STORE_MAX = 5000;
+  const allow = makeFanOutRateLimiter(30);
   const CACHE_PATH = path.join(process.cwd(), '.gev-cache', 'adsbdb.json');
   let cache = { routes: {}, aircraft: {} };
   let dirty = false;
@@ -27,6 +31,7 @@ export function adsbdbProxy() {
     setInterval(async () => {
       if (!dirty) return;
       dirty = false;
+      evict();
       try {
         await fsp.mkdir(path.dirname(CACHE_PATH), { recursive: true });
         await fsp.writeFile(CACHE_PATH, JSON.stringify(cache), 'utf8');
@@ -37,6 +42,22 @@ export function adsbdbProxy() {
   }
 
   const fresh = (e) => e && Date.now() - e.at < TTL_MS;
+
+  /** Drop expired entries, then the oldest beyond STORE_MAX, in each store. */
+  function evict() {
+    for (const name of ['routes', 'aircraft']) {
+      const store = cache[name];
+      for (const [key, entry] of Object.entries(store))
+        if (!fresh(entry)) delete store[key];
+      const keys = Object.keys(store);
+      if (keys.length > STORE_MAX) {
+        keys
+          .sort((a, b) => store[a].at - store[b].at)
+          .slice(0, keys.length - STORE_MAX)
+          .forEach((key) => delete store[key]);
+      }
+    }
+  }
 
   function parseRoute(json) {
     const fr = json?.response?.flightroute;
@@ -114,6 +135,8 @@ export function adsbdbProxy() {
         res.writeHead(status, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(obj));
       };
+      if (!allow(clientKey(req)))
+        return send(429, { error: 'Too many enrichment requests' });
       try {
         const [, kind, rawKey] = String(req.url || '')
           .split('?')[0]

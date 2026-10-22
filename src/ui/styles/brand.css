@@ -45,8 +45,15 @@ h3,
 }
 
 /* Every glass surface: the guide's night-ops glass at Pierre's 46 % tint. */
+/*
+ * Over bright cloud or ice the 46 % tint alone composites to about #8F989D,
+ * where Snow White text measures 2.8:1. A second navy layer under the tint
+ * (the guide's night grade) lifts the worst case past 4.5:1 while the globe
+ * still shows through over ocean and land.
+ */
 .gev-glass {
-  background: var(--glass-bg);
+  background:
+    linear-gradient(var(--glass-bg), var(--glass-bg)), rgba(6, 19, 26, 0.42);
   border: 1px solid var(--glass-border);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(24px) saturate(1.4);

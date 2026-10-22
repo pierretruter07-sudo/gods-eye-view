@@ -1,4 +1,18 @@
 import path from 'node:path';
+
+/**
+ * Groups the satellite layer asks for (src/layers/satellites/policy.js).
+ * Anything else is refused rather than cached to disk: one file per group.
+ */
+export const CELESTRAK_GROUPS = new Set([
+  'stations',
+  'visual',
+  'gps-ops',
+  'glo-ops',
+  'galileo',
+  'geo',
+  'starlink',
+]);
 import { promises as fsp } from 'node:fs';
 import { celestrakTleUrl } from '../../../src/data/spaceProviderRequests.js';
 
@@ -71,7 +85,7 @@ export function celestrakProxy() {
       const group = String(req.url || '')
         .replace(/^\//, '')
         .split('?')[0];
-      if (!/^[a-z0-9-]+$/i.test(group)) {
+      if (!/^[a-z0-9-]+$/i.test(group) || !CELESTRAK_GROUPS.has(group)) {
         res.writeHead(400, { 'Content-Type': 'text/plain' });
         res.end('invalid group');
         return;

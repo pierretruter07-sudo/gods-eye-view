@@ -20,6 +20,9 @@ import { sanitizeCctvRangeHeader } from './cctv/range.js';
 import { createHlsPuller } from './cctv/stream.js';
 import { googleServerApiKey } from './places/google-key.js';
 import { makeRateLimiter, clientKey } from './common/rate-limit.js';
+
+/** Longest camera ID the frame endpoint accepts (registered IDs are far shorter). */
+export const CCTV_CAMERA_ID_MAX = 64;
 export { CCTV_FRAME_FETCH_TIMEOUT_MS, fetchCctvImageFromUpstream };
 /**
  * Vite plugin: CCTV camera proxy with source registry, frame/media serving,
@@ -498,19 +501,34 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
           return;
         }
 
-        const cameraId =
-          decodeURIComponent(url.pathname.replace('/frame/', '').trim()) ||
-          'camera';
+        let cameraId = '';
+        try {
+          cameraId = decodeURIComponent(
+            url.pathname.replace('/frame/', '').trim(),
+          );
+        } catch {
+          cameraId = '';
+        }
+        if (!cameraId || cameraId.length > CCTV_CAMERA_ID_MAX) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'not found' }));
+          return;
+        }
         const source = sourceById.get(cameraId);
-        const label = url.searchParams.get('label') || source?.name || cameraId;
-        const city = url.searchParams.get('city') || source?.city || '';
-        const lat = Number(url.searchParams.get('lat') || source?.lat);
-        const lon = Number(url.searchParams.get('lon') || source?.lon);
-        const heading = Number(
-          url.searchParams.get('heading') || source?.headingDeg,
-        );
-        const fov = Number(url.searchParams.get('fov') || source?.fovDeg);
-        const pitch = Number(url.searchParams.get('pitch') || source?.pitchDeg);
+        // Labels only decorate the synthetic card (escaped there); the pose for
+        // the Street View fallback comes from the registered camera, never the
+        // query, so this endpoint is not an open Street View proxy.
+        const label = String(
+          source?.name || url.searchParams.get('label') || cameraId,
+        ).slice(0, 120);
+        const city = String(
+          source?.city || url.searchParams.get('city') || '',
+        ).slice(0, 80);
+        const lat = Number(source?.lat);
+        const lon = Number(source?.lon);
+        const heading = Number(source?.headingDeg);
+        const fov = Number(source?.fovDeg);
+        const pitch = Number(source?.pitchDeg);
 
         // Only use server-registered upstream URLs — never accept client-supplied URLs
         // (prevents SSRF via ?upstream= query parameter)
@@ -540,13 +558,15 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
           return;
         }
 
-        const sv = await streetViewFallback({
-          lat,
-          lon,
-          heading,
-          fov,
-          pitch,
-        });
+        const sv = !source
+          ? null
+          : await streetViewFallback({
+              lat,
+              lon,
+              heading,
+              fov,
+              pitch,
+            });
         if (sv?.ok) {
           setHealth(cameraId, {
             status: 'degraded',
@@ -572,14 +592,15 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
             : 'NO UPSTREAM CONFIGURED',
         });
 
-        setHealth(cameraId, {
-          status: 'degraded',
-          sourceKind: 'synthetic',
-          label: source?.provider || 'Synthetic fallback',
-          message: source?.url
-            ? 'Upstream unavailable'
-            : 'No source configured',
-        });
+        if (source)
+          setHealth(cameraId, {
+            status: 'degraded',
+            sourceKind: 'synthetic',
+            label: source?.provider || 'Synthetic fallback',
+            message: source?.url
+              ? 'Upstream unavailable'
+              : 'No source configured',
+          });
 
         res.writeHead(200, {
           'Content-Type': 'image/svg+xml',

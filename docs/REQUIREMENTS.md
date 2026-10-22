@@ -63,6 +63,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-SEC-003 | Pages shall be served with `X-Frame-Options: DENY` and `frame-ancestors 'none'`. | T |
 | GEV-SEC-004 | Text received from any feed (callsigns, vessel names, destinations, place names) shall render as inert text in every HTML surface. | T |
 | GEV-SEC-005 | Launch scripts shall not print credential values. | T |
+| GEV-SEC-007 | The camera media relay shall follow redirects only within the registered camera's origin, serve only image, video, HLS and MJPEG content types with `X-Content-Type-Options: nosniff`, and the frame endpoint shall answer 404 for unregistered camera IDs and ignore client-supplied pose. Track, enrichment, terrain and METAR proxies shall be rate-limited per client with bounded caches, and CelesTrak groups shall be allow-listed. | T |
 | GEV-SEC-006 | The paid Google Places proxies shall be rate-limited per client by default (30 requests a minute unless configured), cap the text query at 120 characters and time out upstream calls; behind a trusted proxy (`TRUST_PROXY=1`) limits shall key on the forwarded client address. | T |
 
 ## 5. Director (DIR)
