@@ -64,7 +64,10 @@ function el(tag, cls, html) {
 
 /** Safely set the HTML content of a node via DOMParser (avoids raw innerHTML). */
 function setContent(node, html) {
-  if (!html) { node.replaceChildren(); return; }
+  if (!html) {
+    node.replaceChildren();
+    return;
+  }
   const doc = new DOMParser().parseFromString(
     `<!doctype html><body>${html}`,
     'text/html',
@@ -863,14 +866,17 @@ export function installIntel({
     const wide = sheetActive === 'liveview' ? 'wide' : '';
     if ((document.body.dataset.gevDrawer || '') !== wide)
       document.body.dataset.gevDrawer = wide;
-    setContent(drawer, sheetDrawer({
-      identity: objectIdentity(selected),
-      lineage: objectLineage(selected),
-      tabs: sheetTabs,
-      active: sheetActive,
-      sheet: sheetResults.get(sheetActive) || null,
-      busy: !sheetResults.has(sheetActive),
-    }));
+    setContent(
+      drawer,
+      sheetDrawer({
+        identity: objectIdentity(selected),
+        lineage: objectLineage(selected),
+        tabs: sheetTabs,
+        active: sheetActive,
+        sheet: sheetResults.get(sheetActive) || null,
+        busy: !sheetResults.has(sheetActive),
+      }),
+    );
     mountVideos(drawer);
   }
   // A still in the large view refreshes with the camera's own cadence.
@@ -1479,11 +1485,14 @@ export function installIntel({
           `<li class="gev-aoi"><span>Area · ${esc(a.title)}</span><b>${insideArea(objects, a).length}</b><span class="gev-aoi__unit">contacts</span><button type="button" class="gev-aoi__x" data-aoi="${i}" aria-label="Remove area">${ICON.close}</button></li>`,
       )
       .join('');
-    setContent(triage, `<header class="gev-tri__head"><span>Triage queue ${chip('feed')}</span>
+    setContent(
+      triage,
+      `<header class="gev-tri__head"><span>Triage queue ${chip('feed')}</span>
       <button type="button" class="gev-icon-btn" data-act="close" aria-label="Close triage">${ICON.close}</button></header>
       ${aoiRows ? `<ul class="gev-aoi__list">${aoiRows}</ul>` : ''}
       ${list ? `<ol class="gev-tri__list">${list}</ol>` : '<p class="gev-iv__empty">Nothing flagged in the enabled layers.</p>'}
-      <p class="gev-iv__note">Ranked from live feed signals: emergency squawks, military ICAO blocks, AIS state vessels, USGS magnitude.</p>`);
+      <p class="gev-iv__note">Ranked from live feed signals: emergency squawks, military ICAO blocks, AIS state vessels, USGS magnitude.</p>`,
+    );
   }
   triage.addEventListener('click', (event) => {
     if (event.target.closest('[data-act="close"]')) return setTriage(false);

@@ -77,7 +77,8 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
   // Helper: create an element in the SVG namespace with given attributes.
   function svgEl(tag, attrs) {
     const node = document.createElementNS(svgNS, tag);
-    for (const [k, v] of Object.entries(attrs || {})) node.setAttribute(k, String(v));
+    for (const [k, v] of Object.entries(attrs || {}))
+      node.setAttribute(k, String(v));
     return node;
   }
 
@@ -151,11 +152,18 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
     'aria-hidden': 'true',
   });
   const track = svgEl('circle', {
-    cx: '26', cy: '26', r: String(R), class: 'gev-welcome__track',
+    cx: '26',
+    cy: '26',
+    r: String(R),
+    class: 'gev-welcome__track',
   });
   const arc = svgEl('circle', {
-    cx: '26', cy: '26', r: String(R), class: 'gev-welcome__arc',
-    'stroke-dasharray': String(C), 'stroke-dashoffset': '0',
+    cx: '26',
+    cy: '26',
+    r: String(R),
+    class: 'gev-welcome__arc',
+    'stroke-dasharray': String(C),
+    'stroke-dashoffset': '0',
   });
   countSvg.append(track, arc);
 
