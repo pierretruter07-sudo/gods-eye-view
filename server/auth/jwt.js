@@ -44,10 +44,7 @@ function verify(token, secret = SECRET) {
     .digest('base64url');
   const sigBuf = Buffer.from(sig, 'base64url');
   const expBuf = Buffer.from(expected, 'base64url');
-  if (
-    sigBuf.length !== expBuf.length ||
-    !timingSafeEqual(sigBuf, expBuf)
-  ) {
+  if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
     throw new Error('Invalid signature');
   }
   const payload = decode(token);

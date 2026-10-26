@@ -20,12 +20,24 @@ import { logger } from './logger.js';
 export function errorHandler(err, req, res, next) {
   const status = err?.status ?? err?.statusCode ?? 500;
   logger.error(
-    { event: 'request_error', path: req?.url, method: req?.method, status, err },
+    {
+      event: 'request_error',
+      path: req?.url,
+      method: req?.method,
+      status,
+      err,
+    },
     'Unhandled request error',
   );
   if (res.headersSent) return next(err);
-  res.writeHead(status < 600 ? status : 500, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ error: 'An unexpected error occurred. Please try again later.' }));
+  res.writeHead(status < 600 ? status : 500, {
+    'Content-Type': 'application/json',
+  });
+  res.end(
+    JSON.stringify({
+      error: 'An unexpected error occurred. Please try again later.',
+    }),
+  );
 }
 
 /**
@@ -34,12 +46,18 @@ export function errorHandler(err, req, res, next) {
  */
 export function registerProcessErrorHandlers() {
   process.on('uncaughtException', (err) => {
-    logger.error({ event: 'uncaught_exception', err }, 'Uncaught exception — shutting down');
+    logger.error(
+      { event: 'uncaught_exception', err },
+      'Uncaught exception — shutting down',
+    );
     process.exitCode = 1;
   });
 
   process.on('unhandledRejection', (reason) => {
     const err = reason instanceof Error ? reason : new Error(String(reason));
-    logger.error({ event: 'unhandled_rejection', err }, 'Unhandled promise rejection');
+    logger.error(
+      { event: 'unhandled_rejection', err },
+      'Unhandled promise rejection',
+    );
   });
 }
