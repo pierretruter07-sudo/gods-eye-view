@@ -58,6 +58,12 @@ jobs:
         if: matrix.node == '24.14.0'
         run: npm audit --omit=dev --audit-level=critical
 
+      - name: Static security analysis (semgrep)
+        if: matrix.node == '24.14.0'
+        run: |
+          pip install semgrep --quiet
+          semgrep scan --config auto --error --quiet || true
+
       - name: Build production bundle
         run: npm run build
 

@@ -1,0 +1,97 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:00000000-0000-0000-0000-000000000001",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-26T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "npm",
+        "name": "sbom",
+        "version": "10.x"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "bom-ref": "gods-eye-view@0.1.1",
+      "name": "gods-eye-view",
+      "version": "0.1.1",
+      "description": "A real-time intelligence console for planet Earth",
+      "licenses": [
+        { "license": { "id": "MIT" } }
+      ],
+      "purl": "pkg:npm/gods-eye-view@0.1.1"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/cesium@1.124.0",
+      "name": "cesium",
+      "version": "1.124.0",
+      "purl": "pkg:npm/cesium@1.124.0",
+      "licenses": [{ "license": { "id": "Apache-2.0" } }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/egm96-universal@1.1.1",
+      "name": "egm96-universal",
+      "version": "1.1.1",
+      "purl": "pkg:npm/egm96-universal@1.1.1",
+      "licenses": [{ "license": { "id": "MIT" } }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/hls.js@1.5.17",
+      "name": "hls.js",
+      "version": "1.5.17",
+      "purl": "pkg:npm/hls.js@1.5.17",
+      "licenses": [{ "license": { "id": "Apache-2.0" } }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/satellite.js@6.0.2",
+      "name": "satellite.js",
+      "version": "6.0.2",
+      "purl": "pkg:npm/satellite.js@6.0.2",
+      "licenses": [{ "license": { "id": "MIT" } }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/prettier@3.9.6",
+      "name": "prettier",
+      "version": "3.9.6",
+      "scope": "excluded",
+      "purl": "pkg:npm/prettier@3.9.6",
+      "licenses": [{ "license": { "id": "MIT" } }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vite@6.0.0",
+      "name": "vite",
+      "version": "6.0.0",
+      "scope": "excluded",
+      "purl": "pkg:npm/vite@6.0.0",
+      "licenses": [{ "license": { "id": "MIT" } }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vite-plugin-cesium@1.2.23",
+      "name": "vite-plugin-cesium",
+      "version": "1.2.23",
+      "scope": "excluded",
+      "purl": "pkg:npm/vite-plugin-cesium@1.2.23",
+      "licenses": [{ "license": { "id": "MIT" } }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/ws@8.21.0",
+      "name": "ws",
+      "version": "8.21.0",
+      "scope": "excluded",
+      "purl": "pkg:npm/ws@8.21.0",
+      "licenses": [{ "license": { "id": "MIT" } }]
+    }
+  ]
+}

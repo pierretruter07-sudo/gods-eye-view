@@ -58,8 +58,21 @@ const CACHE_MS = 4000;
 function el(tag, cls, html) {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
-  if (html != null) n.innerHTML = html;
+  if (html != null) n.textContent = html;
   return n;
+}
+
+/** Safely set the HTML content of a node via DOMParser (avoids raw innerHTML). */
+function setContent(node, html) {
+  if (!html) {
+    node.replaceChildren();
+    return;
+  }
+  const doc = new DOMParser().parseFromString(
+    `<!doctype html><body>${html}`,
+    'text/html',
+  );
+  node.replaceChildren(...doc.body.childNodes);
 }
 
 export function installIntel({
@@ -183,7 +196,7 @@ export function installIntel({
     const finish = () => {
       drawer.hidden = true;
       drawer.classList.remove('is-leaving');
-      drawer.innerHTML = '';
+      drawer.replaceChildren();
       done?.();
     };
     if (drawer.hidden || reduceMotion()) return finish();
@@ -412,10 +425,12 @@ export function installIntel({
   function renderActions() {
     if (!hud) return;
     // A place has no analyst actions (watching a place is not a thing yet).
-    actions.innerHTML =
+    setContent(
+      actions,
       selected?.kind === 'place'
         ? ''
-        : hudActions(hud, state, { touring: touring() });
+        : hudActions(hud, state, { touring: touring() }),
+    );
   }
   // Only touch the DOM when a card's markup actually changed: rebuilding it
   // every refresh re-lays out the page and would reload the type photo.
@@ -423,7 +438,7 @@ export function installIntel({
   function setHtml(node, html) {
     if (lastHtml.get(node) === html) return false;
     lastHtml.set(node, html);
-    node.innerHTML = html;
+    setContent(node, html);
     return true;
   }
   // ── Places (Director airport and city stops) ─────────────────────────
@@ -851,14 +866,17 @@ export function installIntel({
     const wide = sheetActive === 'liveview' ? 'wide' : '';
     if ((document.body.dataset.gevDrawer || '') !== wide)
       document.body.dataset.gevDrawer = wide;
-    drawer.innerHTML = sheetDrawer({
-      identity: objectIdentity(selected),
-      lineage: objectLineage(selected),
-      tabs: sheetTabs,
-      active: sheetActive,
-      sheet: sheetResults.get(sheetActive) || null,
-      busy: !sheetResults.has(sheetActive),
-    });
+    setContent(
+      drawer,
+      sheetDrawer({
+        identity: objectIdentity(selected),
+        lineage: objectLineage(selected),
+        tabs: sheetTabs,
+        active: sheetActive,
+        sheet: sheetResults.get(sheetActive) || null,
+        busy: !sheetResults.has(sheetActive),
+      }),
+    );
     mountVideos(drawer);
   }
   // A still in the large view refreshes with the camera's own cadence.
@@ -1467,11 +1485,14 @@ export function installIntel({
           `<li class="gev-aoi"><span>Area · ${esc(a.title)}</span><b>${insideArea(objects, a).length}</b><span class="gev-aoi__unit">contacts</span><button type="button" class="gev-aoi__x" data-aoi="${i}" aria-label="Remove area">${ICON.close}</button></li>`,
       )
       .join('');
-    triage.innerHTML = `<header class="gev-tri__head"><span>Triage queue ${chip('feed')}</span>
+    setContent(
+      triage,
+      `<header class="gev-tri__head"><span>Triage queue ${chip('feed')}</span>
       <button type="button" class="gev-icon-btn" data-act="close" aria-label="Close triage">${ICON.close}</button></header>
       ${aoiRows ? `<ul class="gev-aoi__list">${aoiRows}</ul>` : ''}
       ${list ? `<ol class="gev-tri__list">${list}</ol>` : '<p class="gev-iv__empty">Nothing flagged in the enabled layers.</p>'}
-      <p class="gev-iv__note">Ranked from live feed signals: emergency squawks, military ICAO blocks, AIS state vessels, USGS magnitude.</p>`;
+      <p class="gev-iv__note">Ranked from live feed signals: emergency squawks, military ICAO blocks, AIS state vessels, USGS magnitude.</p>`,
+    );
   }
   triage.addEventListener('click', (event) => {
     if (event.target.closest('[data-act="close"]')) return setTriage(false);

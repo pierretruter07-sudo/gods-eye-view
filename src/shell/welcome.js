@@ -72,34 +72,135 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
   root.setAttribute('aria-labelledby', 'gev-welcome-title');
   const R = 22;
   const C = 2 * Math.PI * R;
-  root.innerHTML = `
-    <div class="gev-welcome__card gev-glass">
-      <p class="gev-welcome__kicker">${COPY.kicker}</p>
-      <h1 id="gev-welcome-title" class="gev-welcome__title">${COPY.title}</h1>
-      <p class="gev-welcome__by">${COPY.by}</p>
-      <p class="gev-welcome__lead">${COPY.lead}</p>
-      <ul class="gev-welcome__tiles">
-        ${TILES.map(
-          (t) =>
-            `<li class="gev-welcome__tile"><svg viewBox="0 0 64 42" width="64" height="42" aria-hidden="true" class="gev-welcome__art">${t.art}</svg><b>${t.title}</b><span>${t.text}</span></li>`,
-        ).join('')}
-      </ul>
-      <footer class="gev-welcome__foot">
-        <div class="gev-welcome__count" aria-hidden="true">
-          <svg viewBox="0 0 52 52" width="52" height="52" aria-hidden="true">
-            <circle cx="26" cy="26" r="${R}" class="gev-welcome__track"/>
-            <circle cx="26" cy="26" r="${R}" class="gev-welcome__arc" stroke-dasharray="${C}" stroke-dashoffset="0"/>
-          </svg>
-          <span class="gev-welcome__num">${seconds}</span>
-        </div>
-        <p class="gev-welcome__hint">Tour starts in <b class="gev-welcome__secs">${seconds}</b> s</p>
-        <div class="gev-welcome__btns">
-          <button type="button" class="gev-btn" data-act="explore">Explore on my own</button>
-          <button type="button" class="gev-btn gev-btn--primary" data-act="start">Start now</button>
-        </div>
-      </footer>
-      <p class="gev-welcome__build">Build ${BUILD_ID}</p>
-    </div>`;
+  const svgNS = 'http://www.w3.org/2000/svg';
+
+  // Helper: create an element in the SVG namespace with given attributes.
+  function svgEl(tag, attrs) {
+    const node = document.createElementNS(svgNS, tag);
+    for (const [k, v] of Object.entries(attrs || {}))
+      node.setAttribute(k, String(v));
+    return node;
+  }
+
+  // Build the card using DOM APIs so no variable data flows through innerHTML.
+  const card = document.createElement('div');
+  card.className = 'gev-welcome__card gev-glass';
+
+  const kicker = document.createElement('p');
+  kicker.className = 'gev-welcome__kicker';
+  kicker.textContent = COPY.kicker;
+
+  const h1 = document.createElement('h1');
+  h1.id = 'gev-welcome-title';
+  h1.className = 'gev-welcome__title';
+  h1.append(document.createTextNode('The planet, '));
+  const titleEm = document.createElement('em');
+  titleEm.textContent = 'live.';
+  h1.append(titleEm);
+
+  const byLine = document.createElement('p');
+  byLine.className = 'gev-welcome__by';
+  byLine.textContent = COPY.by;
+
+  const leadP = document.createElement('p');
+  leadP.className = 'gev-welcome__lead';
+  leadP.textContent = COPY.lead;
+
+  // Tiles list – SVG art fragments are hardcoded constants; parse them safely.
+  const ul = document.createElement('ul');
+  ul.className = 'gev-welcome__tiles';
+  const svgParser = new DOMParser();
+  for (const t of TILES) {
+    const li = document.createElement('li');
+    li.className = 'gev-welcome__tile';
+
+    const artSvg = svgEl('svg', {
+      viewBox: '0 0 64 42',
+      width: '64',
+      height: '42',
+      'aria-hidden': 'true',
+      class: 'gev-welcome__art',
+    });
+    const artDoc = svgParser.parseFromString(
+      `<svg xmlns="${svgNS}">${t.art}</svg>`,
+      'image/svg+xml',
+    );
+    for (const child of artDoc.documentElement.childNodes) {
+      artSvg.append(document.importNode(child, true));
+    }
+
+    const b = document.createElement('b');
+    b.textContent = t.title;
+    const tileSpan = document.createElement('span');
+    tileSpan.textContent = t.text;
+    li.append(artSvg, b, tileSpan);
+    ul.append(li);
+  }
+
+  // Footer – countdown ring + buttons.
+  const footer = document.createElement('footer');
+  footer.className = 'gev-welcome__foot';
+
+  const countDiv = document.createElement('div');
+  countDiv.className = 'gev-welcome__count';
+  countDiv.setAttribute('aria-hidden', 'true');
+
+  const countSvg = svgEl('svg', {
+    viewBox: '0 0 52 52',
+    width: '52',
+    height: '52',
+    'aria-hidden': 'true',
+  });
+  const track = svgEl('circle', {
+    cx: '26',
+    cy: '26',
+    r: String(R),
+    class: 'gev-welcome__track',
+  });
+  const arc = svgEl('circle', {
+    cx: '26',
+    cy: '26',
+    r: String(R),
+    class: 'gev-welcome__arc',
+    'stroke-dasharray': String(C),
+    'stroke-dashoffset': '0',
+  });
+  countSvg.append(track, arc);
+
+  const num = document.createElement('span');
+  num.className = 'gev-welcome__num';
+  num.textContent = String(seconds);
+  countDiv.append(countSvg, num);
+
+  const hint = document.createElement('p');
+  hint.className = 'gev-welcome__hint';
+  const secs = document.createElement('b');
+  secs.className = 'gev-welcome__secs';
+  secs.textContent = String(seconds);
+  hint.append('Tour starts in ', secs, ' s');
+
+  const btns = document.createElement('div');
+  btns.className = 'gev-welcome__btns';
+  const exploreBtn = document.createElement('button');
+  exploreBtn.type = 'button';
+  exploreBtn.className = 'gev-btn';
+  exploreBtn.dataset.act = 'explore';
+  exploreBtn.textContent = 'Explore on my own';
+  const startBtn = document.createElement('button');
+  startBtn.type = 'button';
+  startBtn.className = 'gev-btn gev-btn--primary';
+  startBtn.dataset.act = 'start';
+  startBtn.textContent = 'Start now';
+  btns.append(exploreBtn, startBtn);
+
+  footer.append(countDiv, hint, btns);
+
+  const buildP = document.createElement('p');
+  buildP.className = 'gev-welcome__build';
+  buildP.textContent = 'Build ' + BUILD_ID;
+
+  card.append(kicker, h1, byLine, leadP, ul, footer, buildP);
+  root.append(card);
   document.body.append(root);
   // A modal for keyboard and screen-reader users too: everything behind the
   // card is inert (unfocusable, unread) until it closes.
@@ -108,9 +209,7 @@ export function showWelcome({ onDone, seconds = WELCOME_SECONDS }) {
   );
   for (const node of behind) node.inert = true;
 
-  const arc = root.querySelector('.gev-welcome__arc');
-  const num = root.querySelector('.gev-welcome__num');
-  const secs = root.querySelector('.gev-welcome__secs');
+  // arc, num, secs are already defined above as direct DOM references.
   const started = performance.now();
   let raf = 0;
   let done = false;
