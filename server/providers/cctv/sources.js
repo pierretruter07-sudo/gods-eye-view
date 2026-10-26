@@ -1419,7 +1419,7 @@ export async function loadNswSourcesFromOpenData() {
 /**
  * Upgrade a catalog frame URL to HTTPS and pin it to the City of Calgary host.
  *
- * Most rows ship `http://`; the host answers HTTPS and 301-redirects there, so
+ * Most rows ship plain HTTP; the host answers HTTPS and 301-redirects there, so
  * upgrading avoids a redirect on every frame fetch. Anything not on the
  * official origin is refused rather than proxied, the same pin the TfL and
  * Tarktee packs apply.

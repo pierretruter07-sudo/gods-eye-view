@@ -175,7 +175,7 @@ export function terrainHeightsProxy() {
           return send(429, { error: 'Too many terrain requests' });
         await loadDiskOnce();
         capMap(mem, MEM_MAX);
-        const parsedUrl = new URL(req.url || '', 'http://internal');
+        const parsedUrl = new URL(req.url || '', 'https://internal');
         const rawPoints = parsedUrl.searchParams.get('points');
         const points = parseTerrainPoints(rawPoints);
         if (!points) {

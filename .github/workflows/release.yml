@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write  # Required for Sigstore / cosign keyless signing
+
+jobs:
+  build-and-sign:
+    name: Build, sign and publish release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Generate CycloneDX SBOM
+        run: npm sbom --sbom-format=cyclonedx --sbom-type=library --output-file=sbom.cdx.json
+
+      - name: Create release archive
+        run: |
+          tar -czf dist.tar.gz dist/
+          sha256sum dist.tar.gz sbom.cdx.json > SHA256SUMS.txt
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50fca6e0255ea7abe253 # v3.8.1
+
+      - name: Sign archive with cosign (keyless, Sigstore)
+        run: |
+          cosign sign-blob --yes dist.tar.gz \
+            --bundle dist.tar.gz.bundle.json
+          cosign sign-blob --yes sbom.cdx.json \
+            --bundle sbom.cdx.json.bundle.json
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
+        with:
+          files: |
+            dist.tar.gz
+            dist.tar.gz.bundle.json
+            sbom.cdx.json
+            sbom.cdx.json.bundle.json
+            SHA256SUMS.txt
