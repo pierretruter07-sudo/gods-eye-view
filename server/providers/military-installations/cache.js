@@ -96,7 +96,7 @@ function militaryInstallationDiskPath(
 ) {
   return path.join(
     dir,
-    `${createHash('sha1').update(cacheKey).digest('hex')}.json`,
+    `${createHash('sha256').update(cacheKey).digest('hex')}.json`,
   );
 }
 

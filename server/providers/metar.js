@@ -118,7 +118,7 @@ export function metarProxy({
     if (!allow(clientKey(req))) return json(429, { error: 'rate_limited' });
     capMap(cache, STATIONS_MAX);
     capMap(tried, STATIONS_MAX);
-    const query = new URL(req.url || '/', 'http://local').searchParams;
+    const query = new URL(req.url || '/', 'https://local').searchParams;
     const ids = [
       ...new Set(
         String(query.get('ids') || '')

@@ -62,7 +62,13 @@ const ICONS = {
 function el(tag, attrs = {}, html) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
-  if (html != null) node.innerHTML = html;
+  if (html != null) {
+    const doc = new DOMParser().parseFromString(
+      `<!doctype html><body>${html}`,
+      'text/html',
+    );
+    node.append(...doc.body.childNodes);
+  }
   return node;
 }
 
@@ -366,9 +372,14 @@ export function installShell({ viewer, dataManager, placeSearch }) {
       document.body.classList.toggle('gev-touring', live);
       intelRef?.refresh?.();
       directorBtn.classList.toggle('gev-btn--live', live);
-      directorBtn.innerHTML = live
+      const _btnHtml = live
         ? `${ICONS.stop}<span>Stop</span>`
         : `${ICONS.play}<span>Director</span>`;
+      const _btnDoc = new DOMParser().parseFromString(
+        `<!doctype html><body>${_btnHtml}`,
+        'text/html',
+      );
+      directorBtn.replaceChildren(..._btnDoc.body.childNodes);
       directorBtn.setAttribute(
         'aria-label',
         live ? 'Stop the Director' : 'Start the Director',
