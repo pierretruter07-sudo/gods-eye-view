@@ -11,7 +11,14 @@
  */
 
 function makeFallbackLogger(bindings = {}) {
-  const LEVELS = { trace: 10, debug: 20, info: 30, warn: 40, error: 50, fatal: 60 };
+  const LEVELS = {
+    trace: 10,
+    debug: 20,
+    info: 30,
+    warn: 40,
+    error: 50,
+    fatal: 60,
+  };
   const minLevel = LEVELS[process.env.LOG_LEVEL] ?? LEVELS.info;
 
   function write(levelNum, levelName, args) {
@@ -25,19 +32,31 @@ function makeFallbackLogger(bindings = {}) {
       const { err, ...fields } = first;
       obj = { ...bindings, ...fields };
       if (err instanceof Error) {
-        obj.err = { message: err.message, stack: err.stack, type: err.constructor.name };
+        obj.err = {
+          message: err.message,
+          stack: err.stack,
+          type: err.constructor.name,
+        };
       }
       msg = typeof rest[0] === 'string' ? rest[0] : '';
     }
-    const line = JSON.stringify({ level: levelNum, levelName, time: Date.now(), ...obj, msg });
-    (levelNum >= LEVELS.error ? process.stderr : process.stdout).write(line + '\n');
+    const line = JSON.stringify({
+      level: levelNum,
+      levelName,
+      time: Date.now(),
+      ...obj,
+      msg,
+    });
+    (levelNum >= LEVELS.error ? process.stderr : process.stdout).write(
+      line + '\n',
+    );
   }
 
   return {
     trace: (...a) => write(10, 'trace', a),
     debug: (...a) => write(20, 'debug', a),
-    info:  (...a) => write(30, 'info',  a),
-    warn:  (...a) => write(40, 'warn',  a),
+    info: (...a) => write(30, 'info', a),
+    warn: (...a) => write(40, 'warn', a),
     error: (...a) => write(50, 'error', a),
     fatal: (...a) => write(60, 'fatal', a),
     child: (extra) => makeFallbackLogger({ ...bindings, ...extra }),

@@ -7,7 +7,10 @@ import { jwt } from './jwt.js';
 import { totp } from './totp.js';
 import { requireRole } from './roles.js';
 import { logger } from '../logger.js';
-import { errorHandler, registerProcessErrorHandlers } from '../error-handler.js';
+import {
+  errorHandler,
+  registerProcessErrorHandlers,
+} from '../error-handler.js';
 
 // Register process-level error handlers once at module load time.
 registerProcessErrorHandlers();
@@ -54,16 +57,25 @@ export function authPlugin() {
               undefined,
               { expiresIn: 3600 },
             );
-            logger.info({ event: 'sign_in', user: username, role: 'admin' }, 'Successful sign-in');
+            logger.info(
+              { event: 'sign_in', user: username, role: 'admin' },
+              'Successful sign-in',
+            );
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ token }));
           } else {
-            logger.warn({ event: 'sign_in_failure', user: username }, 'Failed sign-in attempt');
+            logger.warn(
+              { event: 'sign_in_failure', user: username },
+              'Failed sign-in attempt',
+            );
             res.writeHead(401, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Invalid credentials' }));
           }
         } catch (err) {
-          logger.error({ event: 'sign_in_error', err }, 'Error processing login');
+          logger.error(
+            { event: 'sign_in_error', err },
+            'Error processing login',
+          );
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'Bad request' }));
         }
@@ -93,7 +105,10 @@ export function authPlugin() {
         requireRole(payload, 'user');
         next();
       } catch (err) {
-        logger.warn({ event: 'auth_error', path: req.url, err: err.message }, 'API authentication failure');
+        logger.warn(
+          { event: 'auth_error', path: req.url, err: err.message },
+          'API authentication failure',
+        );
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: err.message ?? 'Unauthorized' }));
       }
