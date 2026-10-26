@@ -198,7 +198,7 @@ export const TARKTEE_ANCHORS = [
 export const DEFAULT_WARENDORF_SOURCE_FILE =
   'config/cctv_sources.warendorf.json';
 export const WARENDORF_IMAGE_ORIGINS = Object.freeze([
-  'http://webcam.warendorf.de/',
+  'https://webcam.warendorf.de/',
   'https://www.kreis-warendorf.de/',
 ]);
 /** Live Traffic NSW (Transport for NSW): keyless public camera catalog. */
@@ -225,7 +225,7 @@ export const NSW_MAX_VIEW_LABEL = 140;
 export const DEFAULT_CALGARY_ROWS_URL =
   'https://data.calgary.ca/resource/k7p9-kppz.json?$limit=500';
 /** The only origin Calgary camera frames may come from. The catalog publishes
- * most rows as `http://`; that host serves HTTPS and 301-redirects to it, so
+ * most rows as plain HTTP; that host serves HTTPS and 301-redirects to it, so
  * URLs are upgraded and then pinned here before registration. */
 export const CALGARY_IMAGE_ORIGIN = 'https://trafficcam.calgary.ca/';
 export const DEFAULT_CALGARY_MAX_SOURCES = 220;
