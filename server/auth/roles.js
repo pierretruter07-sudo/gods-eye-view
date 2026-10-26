@@ -89,4 +89,10 @@ function requirePermission(payload, permission) {
   }
 }
 
-export { hasRole, hasPermission, requireRole, requirePermission, PERMISSION_MAP };
+export {
+  hasRole,
+  hasPermission,
+  requireRole,
+  requirePermission,
+  PERMISSION_MAP,
+};
