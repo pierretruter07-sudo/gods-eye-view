@@ -38,9 +38,7 @@ export function authPlugin() {
           const { username, password, otp } = parsed;
           // Demo credential check; replace with a real user store.
           const totpSecret = process.env.TOTP_SECRET;
-          const totpOk = totpSecret
-            ? totp.verify(totpSecret, otp ?? '')
-            : true;
+          const totpOk = totpSecret ? totp.verify(totpSecret, otp ?? '') : true;
           if (
             username === (process.env.ADMIN_USER ?? 'admin') &&
             password === (process.env.ADMIN_PASS ?? 'changeme') &&
@@ -68,7 +66,9 @@ export function authPlugin() {
     const authEnabled = !!(process.env.ADMIN_PASS || process.env.ADMIN_USER);
     server.middlewares.use('/api', (req, res, next) => {
       if (!authEnabled) return next();
-      if (PUBLIC_PATHS.some((p) => req.url === p || req.url?.startsWith(p + '?')))
+      if (
+        PUBLIC_PATHS.some((p) => req.url === p || req.url?.startsWith(p + '?'))
+      )
         return next();
 
       const raw = extractToken(req);
