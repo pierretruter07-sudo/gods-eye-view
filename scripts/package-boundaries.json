@@ -685,6 +685,7 @@
       "src/data/cctvLod.js",
       "src/data/cctvViewshed.js",
       "src/intel/camera.js",
+      "src/intel/subjectSurface.js",
       "src/layers/cctv/calibration.js",
       "src/layers/cctv/cards.js",
       "src/layers/cctv/catalog.js",
