@@ -252,42 +252,70 @@ function pickStreetCamera(cameras, center) {
 
 const hasVideo = (c) => ['hls', 'mp4', 'webm'].includes(c.feedType);
 
+/** One site per camera group: "Howes Street - E" and "- W" are one site. */
+const siteOf = (c) =>
+  String(c.name || c.id || '')
+    .replace(/\s*[-–(]\s*(N|S|E|W|NE|NW|SE|SW|north|south|east|west)\b.*$/i, '')
+    .trim()
+    .toLowerCase();
+
+/** Distinct sites only, nearest first; cameras within 40 m count as one. */
+function distinctSites(list, from) {
+  const out = [];
+  const sorted = list
+    .map((c) => ({ c, km: distanceKm(from.lat, from.lon, c.lat, c.lon) }))
+    .sort((x, y) => x.km - y.km)
+    .map((x) => x.c);
+  for (const c of sorted)
+    if (
+      !out.some(
+        (o) =>
+          siteOf(o) === siteOf(c) ||
+          distanceKm(o.lat, o.lon, c.lat, c.lon) < 0.04,
+      )
+    )
+      out.push(c);
+  return out;
+}
+
 /**
- * The busiest city square near `center`: the camera with the most other
- * cameras within rules.squareRadiusKm (live video counts double), then the
- * nearest of those. Returns that camera first and its neighbours nearest
- * first, or null when no square has rules.squareCameras cameras.
+ * The busiest city square near `center` (the city centre): the camera with
+ * the most distinct camera sites within rules.squareRadiusKm (live video
+ * counts double), searched first within rules.squareCentreKm of the centre
+ * so the stop lands downtown, then out to rules.streetVideoRadiusKm.
+ * Returns that camera first and one camera per neighbouring site, nearest
+ * first, or null when no square has rules.squareCameras distinct sites.
  */
 export function pickCameraSquare(cameras, center, rules = DESCENT_RULES) {
-  const pool = cameras.filter(
-    (c) =>
-      distanceKm(center.lat, center.lon, c.lat, c.lon) <=
-      rules.streetVideoRadiusKm,
-  );
-  let best = null;
-  for (const c of pool) {
-    const near = pool.filter(
-      (o) =>
-        o !== c &&
-        distanceKm(c.lat, c.lon, o.lat, o.lon) <= rules.squareRadiusKm,
+  for (const reach of [rules.squareCentreKm, rules.streetVideoRadiusKm]) {
+    const pool = cameras.filter(
+      (c) => distanceKm(center.lat, center.lon, c.lat, c.lon) <= reach,
     );
-    if (near.length + 1 < rules.squareCameras) continue;
-    const score =
-      near.length + near.filter(hasVideo).length + (hasVideo(c) ? 1 : 0);
-    const fromCentre = distanceKm(center.lat, center.lon, c.lat, c.lon);
-    if (
-      !best ||
-      score > best.score ||
-      (score === best.score && fromCentre < best.fromCentre)
-    )
-      best = { c, near, score, fromCentre };
+    let best = null;
+    for (const c of pool) {
+      const near = distinctSites(
+        pool.filter(
+          (o) =>
+            o !== c &&
+            siteOf(o) !== siteOf(c) &&
+            distanceKm(c.lat, c.lon, o.lat, o.lon) <= rules.squareRadiusKm,
+        ),
+        c,
+      );
+      if (near.length + 1 < rules.squareCameras) continue;
+      const score =
+        near.length + near.filter(hasVideo).length + (hasVideo(c) ? 1 : 0);
+      const fromCentre = distanceKm(center.lat, center.lon, c.lat, c.lon);
+      if (
+        !best ||
+        score > best.score ||
+        (score === best.score && fromCentre < best.fromCentre)
+      )
+        best = { c, near, score, fromCentre };
+    }
+    if (best) return [best.c, ...best.near];
   }
-  if (!best) return null;
-  const others = best.near
-    .map((o) => ({ o, km: distanceKm(best.c.lat, best.c.lon, o.lat, o.lon) }))
-    .sort((a, b) => a.km - b.km)
-    .map((x) => x.o);
-  return [best.c, ...others];
+  return null;
 }
 
 /**

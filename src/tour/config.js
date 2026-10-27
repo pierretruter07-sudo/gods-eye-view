@@ -240,6 +240,9 @@ export const DESCENT_RULES = Object.freeze({
    * show 4 live cameras on screen"). */
   squareCameras: 4,
   squareRadiusKm: 0.9,
+  /** Look for the square downtown first: within this distance of the city
+   * centre, before widening to streetVideoRadiusKm. */
+  squareCentreKm: 3,
   /** Extra seconds at a square so the viewer can watch the four feeds. */
   squareExtraDwellS: 10,
   /** The night street is a camera within this distance of the night city. */

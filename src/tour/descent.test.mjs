@@ -405,3 +405,34 @@ test('the street stop picks a city square with four cameras close together', asy
   );
   assert.equal(pickCameraSquare([lone, at(0.3, 0.3)], centre), null);
 });
+
+test('the square is downtown and its four cameras are four different sites', async () => {
+  const { pickCameraSquare } = await import('./descent.js');
+  const centre = { lat: 49.2827, lon: -123.1207 };
+  const cam = (id, name, dLat, dLon) => ({
+    id,
+    name,
+    lat: centre.lat + dLat,
+    lon: centre.lon + dLon,
+  });
+  // A highway interchange 12 km out with many views of the same two sites.
+  const hwy = [
+    cam('h1', 'Hwy 91A at Boundary Road - W', 0.1, 0.05),
+    cam('h2', 'Hwy 91A at Boundary Road - E', 0.1, 0.05),
+    cam('h3', 'Howes Street - E', 0.101, 0.051),
+    cam('h4', 'Howes Street - W', 0.101, 0.051),
+    cam('h5', 'Hwy 91A at Boundary Road - N', 0.1001, 0.0501),
+  ];
+  const downtown = [
+    cam('d1', 'Georgia St & Granville St', 0.001, 0),
+    cam('d2', 'Robson St & Burrard St', 0.003, -0.004),
+    cam('d3', 'Hastings St & Seymour St', 0.004, 0.003),
+    cam('d4', 'Pender St & Howe St', -0.002, 0.002),
+  ];
+  const picked = pickCameraSquare([...hwy, ...downtown], centre);
+  assert.equal(picked.length, 4);
+  assert.ok(
+    picked.every((c) => c.id.startsWith('d')),
+    'downtown, not the interchange',
+  );
+});
