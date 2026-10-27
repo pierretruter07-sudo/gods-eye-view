@@ -1,6 +1,9 @@
 import './startClean.js';
+import { mountIntro } from './shell/intro.js';
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
+
+mountIntro();
 
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,

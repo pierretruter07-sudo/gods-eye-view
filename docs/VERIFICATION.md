@@ -75,6 +75,7 @@ Paths are relative to the repository root. Test names are quoted from the
 | GEV-DIR-006 | `src/tour/planner.js` `alertAllowed` | T: `planner.test.mjs` "at most one alert every ten minutes; later alerts wait their turn", "recent incidents are revisited after the cooldown, introduced as recent"; `events.test.mjs` "events already shown are not repeated" |
 | GEV-DIR-007 | `src/tour/lines.js` | T: `events.test.mjs` "spoken lines use only feed values and flag simulated events"; `planner.test.mjs` "vessel lines use feed values only", `planner.test.mjs` "placeholder AIS destinations are not read out" |
 | GEV-DIR-008 | `src/shell/welcome.js` `WELCOME_TILES`, `WELCOME_SECONDS` | T: `src/shell/welcome.test.mjs` "the welcome card shows the five key components for 30 s" |
+| GEV-DIR-034 | `src/shell/intro.js` `shouldPlayIntro`, `mountIntro`, `INTRO_SOURCES` | T: `src/shell/intro.test.mjs` "the DDG intro plays once per session and ?nointro or reduced motion skip it" |
 | GEV-DIR-009 | `src/tour/controller.js` | D |
 | GEV-DIR-010 | `src/shell/index.js` `onFocus`, `src/intel/index.js` `showFocus` | D |
 | GEV-DIR-011 | `src/tour/queue.js`, `src/tour/controller.js`, `src/shell/flightPrefetch.js` `stage` | T: `src/tour/queue.test.mjs` "the next stop is planned on arrival and its data loads a whole dwell ahead" "an airport with no aircraft is skipped instead of shown empty" "a slow source is waited for only briefly; a fresh incident jumps the queue"; `src/shell/shellPolicies.test.mjs` "staged aircraft are counted near the destination only" |
