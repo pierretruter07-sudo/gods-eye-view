@@ -1,0 +1,27 @@
+name: CI log (one-off)
+on:
+  push:
+    branches: [tooling/ci-log]
+permissions:
+  contents: write
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: [feat/director-controls, fix/leader-lines-heights]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { ref: '${{ matrix.ref }}' }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: { node-version: 24.14.0 }
+      - run: npm ci > /dev/null 2>&1
+      - env: { PUPPETEER_SKIP_DOWNLOAD: '1', GEV_REQUIRE_ALLOCATION_GATE: '1' }
+        run: |
+          mkdir -p /tmp/out; n=$(echo '${{ matrix.ref }}' | tr '/' '-')
+          (npm run format:check > /tmp/out/$n-format.log 2>&1; echo "exit $?" >> /tmp/out/$n-format.log) || true
+          (npm run check:boundaries > /tmp/out/$n-boundaries.log 2>&1; echo "exit $?" >> /tmp/out/$n-boundaries.log) || true
+          (npm test > /tmp/out/$n-test.log 2>&1; echo "exit $?" >> /tmp/out/$n-test.log) || true
+          cd /tmp/out && git init -q && git checkout -q -b ci-log-$n && git -c user.name=ci -c user.email=ci@l add -A && git -c user.name=ci -c user.email=ci@l commit -qm log
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-log-$n
