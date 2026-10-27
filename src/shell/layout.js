@@ -74,6 +74,7 @@ export const OVERLAYS = Object.freeze(
     { selector: '#cockpit-cloud-effects', zone: 'world', layer: 'world' },
     { selector: '.gev-tour-spot', zone: 'stage', layer: 'toast' },
     { selector: '.gev-tour-card', zone: 'right', layer: 'toast' },
+    { selector: '.gev-wall', zone: 'right', layer: 'toast', transient: true },
     { selector: '.gev-tour-move', zone: 'stage', layer: 'toast' },
     { selector: '.gev-iv', zone: 'stage', layer: 'stage', legacy: true },
     {
