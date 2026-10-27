@@ -56,6 +56,26 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Free navigation, like Google Earth** (Pierre, 28 Oct: "I can't pan,
+  it's always rotating weird ... just make it free navigation"). The globe
+  is no longer the pivot of every move:
+  - left drag pans: the point you grab stays under the cursor, so a city
+    view slides across the ground and an orbit view turns the globe under
+    the cursor;
+  - right drag, middle drag or Ctrl + left drag turn and tilt about the
+    point under the cursor; Shift + left drag looks around;
+  - the wheel and trackpad pinch zoom towards the point under the cursor,
+    slower near the ground and never through the 3D city;
+  - keyboard: arrows or WASD pan, Q/E turn, R/F tilt, + and − zoom (not
+    while typing in a field);
+  - inertia is a short glide after a flick only; the first input cancels
+    any flight in progress, and the idle globe spin never starts again once
+    you have moved the camera. Any input still stops the Director.
+  The cause: left drags turned the camera about the Earth's centre and the
+  polar axis, right drags about the centre-to-camera line, and the wheel
+  zoomed straight at the centre, so in a tilted city view nothing moved
+  the way the hand did. Mouse and touch now go to Cesium's own camera
+  controller with a pan-first mapping (GEV-VIS-007, GEV-PRF-003).
 - **Worldwide flights on the live site.** The worldwide OpenSky snapshot
   (several megabytes) timed out after 6 s on a cold server and then cooled
   down for 5 minutes; it now gets 20 s, and a timeout retries after 30 s

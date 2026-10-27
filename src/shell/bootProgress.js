@@ -9,7 +9,7 @@
  */
 export const BOOT_STAGES = Object.freeze([
   { match: /configuring viewer/i, pct: 12 },
-  { match: /3d tiles unavailable/i, pct: 42 },   // before the generic 'loading the keyless globe'
+  { match: /3d tiles unavailable/i, pct: 42 }, // before the generic 'loading the keyless globe'
   { match: /loading (google 3d tiles|the keyless globe)/i, pct: 30 },
   { match: /initializing systems/i, pct: 58 },
   { match: /loading planet/i, pct: 78 },
@@ -35,7 +35,8 @@ export function stageFor(status) {
 export function advance(current, target, dtMs) {
   const dt = Math.max(0, dtMs) / 1000;
   let next = current;
-  if (current < target) next = current + (target - current) * Math.min(1, dt * 2.2);
+  if (current < target)
+    next = current + (target - current) * Math.min(1, dt * 2.2);
   else next = current + BOOT_CREEP_RATE * dt;
   next = Math.min(next, target + BOOT_CREEP, BOOT_CEILING);
   return Math.max(current, next);
@@ -64,10 +65,15 @@ export function mountBootProgress(doc = document, win = window) {
   const onStatus = () => {
     const stage = stageFor(status.textContent);
     if (stage != null && stage > target) target = stage;
-    if (/^error/i.test(status.textContent ?? '')) screen.classList.add('is-error');
+    if (/^error/i.test(status.textContent ?? ''))
+      screen.classList.add('is-error');
   };
   const statusObserver = new win.MutationObserver(onStatus);
-  statusObserver.observe(status, { childList: true, characterData: true, subtree: true });
+  statusObserver.observe(status, {
+    childList: true,
+    characterData: true,
+    subtree: true,
+  });
   onStatus();
 
   const finish = () => {
@@ -81,7 +87,10 @@ export function mountBootProgress(doc = document, win = window) {
   const screenObserver = new win.MutationObserver(() => {
     if (screen.classList.contains('hidden')) finish();
   });
-  screenObserver.observe(screen, { attributes: true, attributeFilter: ['class'] });
+  screenObserver.observe(screen, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
 
   const tick = (now) => {
     if (done) return;
@@ -93,5 +102,10 @@ export function mountBootProgress(doc = document, win = window) {
   };
   paint();
   win.requestAnimationFrame(tick);
-  return { finish, get value() { return current; } };
+  return {
+    finish,
+    get value() {
+      return current;
+    },
+  };
 }

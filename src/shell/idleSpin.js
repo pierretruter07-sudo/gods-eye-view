@@ -11,10 +11,15 @@ const HOLD = 'gev-idle-spin';
 /**
  * Slowly turns the globe (west → east, like the real Earth from space) while
  * nobody is touching it and the camera is zoomed out. Any input stops it at
- * once; it resumes a few seconds after the last input.
- * @param {{viewer: Cesium.Viewer, isBlocked: () => boolean}} options
+ * once; it resumes a few seconds after the last input, but never once the
+ * user has moved the camera themselves (`hasNavigated`).
+ * @param {{viewer: Cesium.Viewer, isBlocked: () => boolean, hasNavigated?: () => boolean}} options
  */
-export function installIdleSpin({ viewer, isBlocked = () => false }) {
+export function installIdleSpin({
+  viewer,
+  isBlocked = () => false,
+  hasNavigated = () => false,
+}) {
   const scene = viewer.scene;
   let lastInput = performance.now();
   let lastFrame = null;
@@ -39,7 +44,14 @@ export function installIdleSpin({ viewer, isBlocked = () => false }) {
     const heightM = scene.camera.positionCartographic?.height ?? 0;
     const idleS = (performance.now() - lastInput) / 1000;
     const flying = !!viewer.camera._currentFlight;
-    setHold(shouldSpin({ idleS, heightM, blocked: flying || isBlocked() }));
+    setHold(
+      shouldSpin({
+        idleS,
+        heightM,
+        blocked: flying || isBlocked(),
+        navigated: hasNavigated(),
+      }),
+    );
   }, 500);
 
   const remove = scene.preRender.addEventListener(() => {
@@ -54,6 +66,7 @@ export function installIdleSpin({ viewer, isBlocked = () => false }) {
         idleS,
         heightM,
         blocked: !!viewer.camera._currentFlight || isBlocked(),
+        navigated: hasNavigated(),
       })
     )
       return;
