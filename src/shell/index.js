@@ -7,7 +7,7 @@ import { showWelcome, welcomeEnabled } from './welcome.js';
 import * as Cesium from 'cesium';
 import { installAdaptiveQuality } from './quality.js';
 import { graphicsFlags, installGraphics } from './graphics.js';
-import { installOrbitControls } from './orbitControls.js';
+import { installNavigation } from './navigation.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
 import { installLayout } from './layout.js';
 import { installWorldVisuals } from '../visuals/index.js';
@@ -425,9 +425,15 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     else tour.controller.start();
   });
 
-  // Mouse navigation pivots on the Earth's centre (orbitControls.js).
-  const stopOrbitControls = installOrbitControls(viewer, Cesium, {
+  // Free navigation (navigation.js): drag pans, right drag turns and tilts
+  // about the point under the cursor, the wheel zooms towards it, and the
+  // keyboard pans, turns, tilts and zooms. Keys stop the Director as the
+  // mouse does.
+  const stopNavigation = installNavigation(viewer, Cesium, {
     releaseFrame: () => tour.controller.isRunning(),
+    onManualInput: (reason) => {
+      if (tour.controller.isRunning()) tour.controller.exit(reason);
+    },
   });
 
   // ── Intelligence layer ───────────────────────────────────────────────
@@ -478,11 +484,13 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   intel.onWatch(refreshBadge);
   intel.onOpen(() => setPanel(false));
 
-  // Slow idle rotation of the zoomed-out globe.
+  // Slow idle rotation of the zoomed-out globe, only until the user first
+  // moves the camera: after that nothing turns it on its own.
   const stopSpin = installIdleSpin({
     viewer,
     isBlocked: () =>
       tour.controller.isRunning() || intel.isOpen() || !!viewer.trackedEntity,
+    hasNavigated: () => stopNavigation.navigated(),
   });
   triageBtn.addEventListener('click', () => {
     setPanel(false);
@@ -532,7 +540,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     closeWelcome?.();
     clearInterval(badgeTimer);
     stopSpin();
-    stopOrbitControls();
+    stopNavigation();
     stopQuality();
     graphics.destroy();
     if (window.__gevGraphics === graphics) delete window.__gevGraphics;
