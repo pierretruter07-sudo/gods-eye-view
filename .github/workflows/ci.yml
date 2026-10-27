@@ -58,6 +58,17 @@ jobs:
         if: matrix.node == '24.14.0'
         run: npm audit --omit=dev --audit-level=critical
 
+      - name: Name the failing advisories
+        if: failure() && matrix.node == '24.14.0'
+        run: |
+          npm audit --omit=dev --json > audit.json || true
+          node -e '
+            const d = require("./audit.json");
+            for (const [name, v] of Object.entries(d.vulnerabilities || {})) {
+              const via = v.via.map((x) => typeof x === "string" ? x : `${x.title} ${x.url} (${x.severity}, ${x.range})`).join("; ");
+              console.log(`::error title=${v.severity} ${name}::${name} ${v.range} fix=${JSON.stringify(v.fixAvailable)} via ${via}`);
+            }'
+
       - name: Static security analysis (semgrep)
         if: matrix.node == '24.14.0'
         run: |
