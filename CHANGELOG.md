@@ -6,6 +6,7 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+
 - **DDG loading screen** (Pierre, 27 Oct). The intro now hands over after
   3.4 s to a loading screen in the same style: the DDG mark with a progress
   bar and percentage that follow the boot's stages (viewer, tiles, systems,
@@ -56,14 +57,14 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+
 - **Free navigation, like Google Earth** (Pierre, 28 Oct: "I can't pan,
   it's always rotating weird ... just make it free navigation"). The globe
   is no longer the pivot of every move:
-  - left drag pans: the point you grab stays under the cursor, so a city
-    view slides across the ground and an orbit view turns the globe under
-    the cursor;
-  - right drag, middle drag or Ctrl + left drag turn and tilt about the
-    point under the cursor; Shift + left drag looks around;
+  - standard 3D mouse navigation: left drag turns and tilts about the
+    point under the cursor; right drag, middle drag or Shift/Ctrl + left
+    drag pans (the point you grab stays under the cursor); Alt + left drag
+    looks around;
   - the wheel and trackpad pinch zoom towards the point under the cursor,
     slower near the ground and never through the 3D city;
   - keyboard: arrows or WASD pan, Q/E turn, R/F tilt, + and − zoom (not
@@ -71,11 +72,11 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   - inertia is a short glide after a flick only; the first input cancels
     any flight in progress, and the idle globe spin never starts again once
     you have moved the camera. Any input still stops the Director.
-  The cause: left drags turned the camera about the Earth's centre and the
-  polar axis, right drags about the centre-to-camera line, and the wheel
-  zoomed straight at the centre, so in a tilted city view nothing moved
-  the way the hand did. Mouse and touch now go to Cesium's own camera
-  controller with a pan-first mapping (GEV-VIS-007, GEV-PRF-003).
+    The cause: left drags turned the camera about the Earth's centre and the
+    polar axis, right drags about the centre-to-camera line, and the wheel
+    zoomed straight at the centre, so in a tilted city view nothing moved
+    the way the hand did. Mouse and touch now go to Cesium's own camera
+    controller with a pan-first mapping (GEV-VIS-007, GEV-PRF-003).
 - **Worldwide flights on the live site.** The worldwide OpenSky snapshot
   (several megabytes) timed out after 6 s on a cold server and then cooled
   down for 5 minutes; it now gets 20 s, and a timeout retries after 30 s
@@ -109,6 +110,7 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   empty space), so drags swung the view in odd directions.
 
 ### Removed
+
 - **Exercise mode and the staged-event buttons.** The fictional strike
   theatre, its top-bar switch and panel, and the "Simulate 7700" /
   "Simulate quake" buttons are gone for the final version. The Director and
@@ -329,8 +331,8 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
     squawk alerts.
   - **Around the location:** ships, satellites overhead, local time,
     elevation and runways.
-  All values are from feeds; a missing layer is named. Adds the
-  `/api/metar` proxy (cached 10 minutes, last good report for 2 hours).
+    All values are from feeds; a missing layer is named. Adds the
+    `/api/metar` proxy (cached 10 minutes, last good report for 2 hours).
 - AUDIT playback: the narrated card now sits in the right-hand column,
   clear of the orbit. A live data line runs from the card to the timeline
   stop it explains.
@@ -412,6 +414,7 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   - Node runtime policy.
 
 ### Changed
+
 - Director: aircraft at the destination load during the camera flight; the
   arrival refresh is skipped when that preload already covered the place.
 - 3D models are pre-warmed after startup; globe tile cache raised to 300
@@ -433,11 +436,13 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   were brought back in line with the trimmed tree.
 
 ### Removed
+
 - Voice control, CCTV, traffic, transit, radio, launches, provider-settings
   panel, Pinokio launcher and the other inherited features the dashboard
   never showed.
 
 ## 2026-10-14 – intel layer and polish
+
 - Constellation HUD: up to four glass cards with hairline leader lines and a
   data pulse.
 - Analyst actions open real result panels:
@@ -456,6 +461,7 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   with stale-while-revalidate. Flight pre-warming for Director stops.
 
 ## 2026-10-13 – Director and Exercise mode
+
 - Director tour mode with live event detection: emergency squawks and
   M4.5+ earthquakes, then a varied rotation.
 - Clean glass shell: top bar, Layers panel, opens on the whole planet.

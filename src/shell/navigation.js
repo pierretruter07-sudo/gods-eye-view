@@ -13,15 +13,14 @@
  * Mouse and touch now go to Cesium's own ScreenSpaceCameraController, mapped
  * so that:
  *
- * - left drag pans: the point you grab stays under the cursor (on the 3D
- *   city, terrain or the globe); from orbit this turns the globe under the
- *   cursor, and off the globe in space it turns the globe like a trackball;
- * - right drag, middle drag and Ctrl + left drag rotate and tilt about the
- *   point under the cursor (sideways turns, up and down tilts);
- * - Shift + left drag looks around from where the camera is;
+ * - left drag rotates: sideways turns and up-and-down tilts about the
+ *   point under the cursor (never about the Earth's centre);
+ * - right drag, middle drag, or Shift/Ctrl + left drag pans: the point you
+ *   grab stays under the cursor (on the 3D city, terrain or the globe);
+ * - Alt + left drag looks around from where the camera is;
  * - the wheel and trackpad pinch zoom towards the point under the cursor,
  *   slower near the ground and never through the 3D city;
- * - touch: one finger pans, pinch zooms, two fingers turn and tilt.
+ * - touch: one finger rotates, pinch zooms and turns.
  *
  * Inertia is short (a flick glides for a fraction of a second; a held drag
  * stops where you let go) and nothing moves the camera on its own after the
@@ -70,17 +69,18 @@ export function cesiumEventMapping(Cesium) {
   const T = Cesium.CameraEventType;
   const M = Cesium.KeyboardEventModifier;
   return {
-    // Left drag: grab the ground and drag it (pan).
-    rotateEventTypes: [T.LEFT_DRAG],
-    // Right/middle/Ctrl+left drag and two-finger touch: turn and tilt about
-    // the point under the cursor.
-    tiltEventTypes: [
+    // Standard 3D mouse navigation (Pierre, 28 Oct): left drag rotates,
+    // right drag, middle drag or Shift/Ctrl + left drag pans, wheel zooms.
+    // Pan: grab the ground; the point you grab stays under the cursor.
+    rotateEventTypes: [
       T.RIGHT_DRAG,
       T.MIDDLE_DRAG,
-      T.PINCH,
+      { eventType: T.LEFT_DRAG, modifier: M.SHIFT },
       { eventType: T.LEFT_DRAG, modifier: M.CTRL },
-      { eventType: T.RIGHT_DRAG, modifier: M.CTRL },
     ],
+    // Rotate: left drag turns (sideways) and tilts (up and down) about the
+    // point under the cursor, never about the Earth's centre.
+    tiltEventTypes: [T.LEFT_DRAG, T.PINCH],
     // Wheel and pinch zoom towards the cursor. Ctrl+wheel is the trackpad
     // pinch (relayed by app/viewer.js). No drag zooms.
     zoomEventTypes: [
@@ -88,10 +88,10 @@ export function cesiumEventMapping(Cesium) {
       T.PINCH,
       { eventType: T.WHEEL, modifier: M.CTRL },
     ],
-    // Shift+left drag: look around from where the camera is.
-    lookEventTypes: [{ eventType: T.LEFT_DRAG, modifier: M.SHIFT }],
-    // Columbus view / 2D only; kept off the left drag's pan in 3D.
-    translateEventTypes: [T.LEFT_DRAG],
+    // Alt+left drag: look around from where the camera is.
+    lookEventTypes: [{ eventType: T.LEFT_DRAG, modifier: M.ALT }],
+    // Columbus view / 2D only: pans like the 3D pan.
+    translateEventTypes: [T.RIGHT_DRAG, T.MIDDLE_DRAG],
   };
 }
 

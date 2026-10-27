@@ -63,20 +63,26 @@ function headingDeg(f) {
   );
 }
 
-test('mouse and touch map to free navigation: drag pans, right drag turns and tilts, wheel zooms', () => {
+test('standard mouse navigation: left drag rotates, right/middle drag pans, wheel zooms', () => {
   const m = cesiumEventMapping(FAKE_CESIUM);
-  // Left drag is Cesium's "rotate", which in 3D grabs the point under the
-  // cursor and keeps it there (pan), not a turn about the Earth's centre.
-  assert.deepEqual(m.rotateEventTypes, [T.LEFT_DRAG]);
-  // Right drag no longer zooms; it turns and tilts about the cursor point.
-  assert.ok(m.tiltEventTypes.includes(T.RIGHT_DRAG));
-  assert.ok(m.tiltEventTypes.includes(T.MIDDLE_DRAG));
+  // Left drag is Cesium's "tilt": turn and tilt about the point under the cursor.
+  assert.ok(m.tiltEventTypes.includes(T.LEFT_DRAG));
   assert.ok(
-    m.tiltEventTypes.some(
-      (b) => b.eventType === T.LEFT_DRAG && b.modifier === M.CTRL,
-    ),
-    'Ctrl + left drag tilts',
+    !m.rotateEventTypes.includes(T.LEFT_DRAG),
+    'plain left drag never pans',
   );
+  // Right drag, middle drag and Shift/Ctrl + left drag are Cesium's "rotate",
+  // which in 3D grabs the point under the cursor and keeps it there (pan).
+  assert.ok(m.rotateEventTypes.includes(T.RIGHT_DRAG));
+  assert.ok(m.rotateEventTypes.includes(T.MIDDLE_DRAG));
+  for (const mod of [M.SHIFT, M.CTRL])
+    assert.ok(
+      m.rotateEventTypes.some(
+        (x) => x.eventType === T.LEFT_DRAG && x.modifier === mod,
+      ),
+      'modifier + left drag pans',
+    );
+  assert.ok(!m.tiltEventTypes.includes(T.RIGHT_DRAG));
   assert.ok(!m.zoomEventTypes.includes(T.RIGHT_DRAG));
   assert.ok(m.zoomEventTypes.includes(T.WHEEL));
   assert.ok(m.zoomEventTypes.includes(T.PINCH));
@@ -131,13 +137,19 @@ test('keys: arrows and WASD pan, Q/E turn, R/F tilt, +/- zoom; never in a text f
 
   assert.equal(isTypingTarget({ tagName: 'INPUT' }), true);
   assert.equal(isTypingTarget({ tagName: 'textarea' }), true);
-  assert.equal(isTypingTarget({ tagName: 'DIV', isContentEditable: true }), true);
+  assert.equal(
+    isTypingTarget({ tagName: 'DIV', isContentEditable: true }),
+    true,
+  );
   assert.equal(
     isTypingTarget({ tagName: 'BUTTON', closest: () => ({}) }),
     true,
     'inside an open dialog',
   );
-  assert.equal(isTypingTarget({ tagName: 'CANVAS', closest: () => null }), false);
+  assert.equal(
+    isTypingTarget({ tagName: 'CANVAS', closest: () => null }),
+    false,
+  );
   assert.equal(isTypingTarget(null), false);
 });
 
@@ -172,14 +184,25 @@ test('Q/E turn and R/F tilt about the point at the screen centre, within the til
   assert.ok(pivot, 'the view ray meets the ground');
   const dist = vec.len(vec.sub(pivot, f.position));
   near(dist, 1_000 * Math.SQRT2, 1, 'pivot 45° ahead');
-  assert.equal(raySphere(frameAt(1_000, 10).position, frameAt(1_000, 10).direction, R), null);
+  assert.equal(
+    raySphere(frameAt(1_000, 10).position, frameAt(1_000, 10).direction, R),
+    null,
+  );
 
   // Turning keeps the pivot centred, the distance and the tilt; Q turns left.
   const turned = turnAbout(f, pivot, 30 * DEG);
   near(vec.len(vec.sub(pivot, turned.position)), dist, 1e-3, 'distance kept');
-  near(vec.dot(vec.norm(vec.sub(pivot, turned.position)), turned.direction), 1, 1e-9, 'pivot stays centred');
+  near(
+    vec.dot(vec.norm(vec.sub(pivot, turned.position)), turned.direction),
+    1,
+    1e-9,
+    'pivot stays centred',
+  );
   near(pitchOf(turned) / DEG, -45, 0.05, 'tilt kept');
-  assert.ok(headingDeg(turned) < 0, `turn left lowers the heading (${headingDeg(turned)})`);
+  assert.ok(
+    headingDeg(turned) < 0,
+    `turn left lowers the heading (${headingDeg(turned)})`,
+  );
 
   // Tilting up lowers the camera towards the horizon, keeping the pivot.
   const up = tiltAbout(f, pivot, 10 * DEG);
@@ -198,18 +221,35 @@ test('+/- zoom towards the screen-centre point, smoothly, never into it or out p
   const pivot = raySphere(f.position, f.direction, R);
   const zin = zoomToward(f, pivot, +1, 0.1, { heightM: 10_000 });
   const share = 1 - heightOf(zin) / 10_000;
-  near(share, 1 - Math.exp(-NAV.keys.zoomRatePerS * 0.1), 1e-6, 'a share of the distance');
+  near(
+    share,
+    1 - Math.exp(-NAV.keys.zoomRatePerS * 0.1),
+    1e-6,
+    'a share of the distance',
+  );
   const zout = zoomToward(f, pivot, -1, 0.1, { heightM: 10_000 });
   assert.ok(heightOf(zout) > 10_000, 'minus zooms out');
   // Stops short of the target.
   let c = frameAt(40, -90);
-  for (let i = 0; i < 100; i++) c = zoomToward(c, pivot, +1, 0.05, { heightM: heightOf(c) });
-  near(heightOf(c), NAV.minimumZoomDistanceM, 1e-6, 'never closer than the minimum');
+  for (let i = 0; i < 100; i++)
+    c = zoomToward(c, pivot, +1, 0.05, { heightM: heightOf(c) });
+  near(
+    heightOf(c),
+    NAV.minimumZoomDistanceM,
+    1e-6,
+    'never closer than the minimum',
+  );
   // Never out past the far limit.
-  const capped = zoomToward(frameAt(59e6, -90), raySphere(frameAt(59e6, -90).position, frameAt(59e6, -90).direction, R), -1, 1, {
-    heightM: 59e6,
-    maxRadius: R + 60e6,
-  });
+  const capped = zoomToward(
+    frameAt(59e6, -90),
+    raySphere(frameAt(59e6, -90).position, frameAt(59e6, -90).direction, R),
+    -1,
+    1,
+    {
+      heightM: 59e6,
+      maxRadius: R + 60e6,
+    },
+  );
   near(vec.len(capped.position), R + 60e6, 1, 'capped');
 });
 
@@ -218,11 +258,18 @@ test('held keys combine in one frame; nothing moves without a key', () => {
   const same = keyFrame(f, new Set(), 0.016, { heightM: 2_000 });
   assert.deepEqual(same.frame, f);
   assert.equal(same.panned, false);
-  const both = keyFrame(f, new Set(['forward', 'turnLeft']), 0.1, { heightM: 2_000 });
+  const both = keyFrame(f, new Set(['forward', 'turnLeft']), 0.1, {
+    heightM: 2_000,
+  });
   assert.equal(both.panned, true);
   assert.ok(latDeg(both.frame) > 0);
   assert.ok(headingDeg(both.frame) < 0);
-  near(heightOf(both.frame), 2_000, 1e-3, 'height kept while panning and turning');
+  near(
+    heightOf(both.frame),
+    2_000,
+    1e-3,
+    'height kept while panning and turning',
+  );
 });
 
 test('the globe never turns on its own once the user has moved the camera', () => {
@@ -267,7 +314,9 @@ test('a navigation key stops the Director, cancels any flight and moves the came
     Cartesian3,
     Cartesian2: class {},
     Matrix4: { IDENTITY, equals: (a, b) => a === b },
-    Ellipsoid: { WGS84: { scaleToGeodeticSurface: (p) => vec.scale(vec.norm(p), R) } },
+    Ellipsoid: {
+      WGS84: { scaleToGeodeticSurface: (p) => vec.scale(vec.norm(p), R) },
+    },
     Math: { toDegrees: (r) => r / DEG },
   };
   const f = frameAt(1_000, -45);
@@ -284,7 +333,10 @@ test('a navigation key stops the Director, cancels any flight and moves the came
   };
   const controller = { enableInputs: true };
   const viewer = {
-    scene: { screenSpaceCameraController: controller, pickPositionSupported: false },
+    scene: {
+      screenSpaceCameraController: controller,
+      pickPositionSupported: false,
+    },
     camera,
     canvas: target('canvas'),
   };
@@ -319,7 +371,11 @@ test('a navigation key stops the Director, cancels any flight and moves the came
     assert.equal(views.length, 1, 'no drift after the key is released');
     dispose();
     assert.equal(listeners['window:keydown'], undefined);
-    assert.equal(controller.minimumZoomDistance, undefined, 'controller restored');
+    assert.equal(
+      controller.minimumZoomDistance,
+      undefined,
+      'controller restored',
+    );
   } finally {
     globalThis.window = saved.window;
     globalThis.requestAnimationFrame = saved.raf;
