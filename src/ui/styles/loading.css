@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: var(--bg-dark);
+  background: #16181c; /* the DDG ground, so the intro hands over without a jump */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,36 +21,66 @@
 
 .loader-content {
   text-align: center;
+  transform: translateY(-8vh); /* the mark sits where the intro leaves it */
 }
 
-.loader-logo {
+/* The DDG mark, then the bar that fills as the world loads. */
+.loader-mark {
   display: block;
-  width: 128px;
-  height: auto;
-  margin: 0 auto 24px;
-  filter: drop-shadow(0 0 24px rgba(0, 246, 255, 0.42));
-  animation: logo-pulse 2s ease-in-out infinite;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto 36px;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 24px rgba(0, 246, 255, 0.28));
+  animation: logo-pulse 3s ease-in-out infinite;
 }
 
 @keyframes logo-pulse {
   0%,
   100% {
-    opacity: 0.72;
-    transform: scale(0.98);
+    opacity: 0.86;
+    transform: scale(0.99);
   }
   50% {
     opacity: 1;
-    transform: scale(1.02);
+    transform: scale(1.01);
   }
 }
 
+.loader-bar {
+  position: relative;
+  width: min(320px, 70vw);
+  height: 3px;
+  margin: 0 auto 10px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+.loader-bar > i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--accent, #00f6ff);
+  box-shadow: 0 0 12px rgba(0, 246, 255, 0.6);
+  transition: width 0.25s linear;
+}
+.loader-pct {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  font-variant-numeric: tabular-nums;
+}
+#loading-screen.is-error .loader-bar > i { background: #ff4444; box-shadow: none; }
+
 .loader-content h2 {
   font-family: var(--font-mono);
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 6px;
-  color: var(--text-primary);
-  margin-bottom: 12px;
+  color: var(--text-dim);
+  margin-top: 18px;
 }
 
 .loader-status {
@@ -71,6 +101,40 @@
   }
 }
 
+/* The DDG intro video, above the loading screen for its first seconds. */
+#ddg-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  background: #16181c;
+  transition: opacity 0.7s ease;
+}
+#ddg-intro.is-fading { opacity: 0; pointer-events: none; }
+.ddg-intro-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #16181c;
+}
+.ddg-intro-skip {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(6, 19, 26, 0.6);
+  color: rgba(247, 251, 255, 0.85);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.ddg-intro-skip:hover { border-color: #fff; color: #fff; }
+
 .brand-logo {
   aspect-ratio: 775 / 520;
   overflow: visible;
@@ -87,5 +151,6 @@
   font-weight: 300;
 }
 @media (prefers-reduced-motion: reduce) {
-  .loader-logo, .loader-status { animation: none; }
+  .loader-mark, .loader-status { animation: none; }
+  #ddg-intro { transition: none; }
 }

@@ -1,8 +1,10 @@
 import './startClean.js';
 import { mountIntro } from './shell/intro.js';
+import { mountBootProgress } from './shell/bootProgress.js';
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 
+mountBootProgress();
 mountIntro();
 
 const application = createStandaloneApplication({

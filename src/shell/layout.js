@@ -68,6 +68,7 @@ export const OVERLAYS = Object.freeze(
     { selector: '.gev-triage', zone: 'left', layer: 'panel' },
     { selector: '.gev-welcome', zone: 'centre', layer: 'modal' },
     { selector: '#loading-screen', zone: 'centre', layer: 'modal' },
+    { selector: '#ddg-intro', zone: 'centre', layer: 'modal', transient: true },
     { selector: '#cesium-credits', zone: 'credits', layer: 'credits' },
     { selector: '.world-overlay-accessibility', zone: 'world', layer: 'world' },
     { selector: '#cockpit-cloud-effects', zone: 'world', layer: 'world' },
