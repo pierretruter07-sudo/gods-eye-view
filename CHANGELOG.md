@@ -7,6 +7,15 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 
 ### Added
 
+- **Four live cameras at street level** (Pierre, 28 Oct). The Director's
+  street stop flies to the busiest city square near the descent region (at
+  least four public cameras within 0.9 km, live video preferred) and shows
+  all four feeds together in a camera wall, each with its source and
+  licence; the stop holds 10 s longer so the viewer can watch.
+- **Intro and Director buttons, and Next** (Pierre, 28 Oct). The top bar
+  starts either the introduction (From orbit to street) or the live
+  Director; while a tour runs, Next (or the N key) moves on to the next
+  stop.
 - **DDG loading screen** (Pierre, 27 Oct). The intro now hands over after
   3.4 s to a loading screen in the same style: the DDG mark with a progress
   bar and percentage that follow the boot's stages (viewer, tiles, systems,
