@@ -1,0 +1,6 @@
+
+> gods-eye-view@0.1.1 format:check
+> node scripts/format.mjs --check
+
+Checked 484 source files.
+exit 0

@@ -1,0 +1,7 @@
+
+> gods-eye-view@0.1.1 check:boundaries
+> node scripts/check-import-directions.mjs && node scripts/check-package-boundaries.mjs
+
+{"modules":401,"portableEntries":35}
+[31m[check-package-ownership] Package boundary application-components imports an unowned module: src/intel/subjectSurface.js[39m
+exit 1
