@@ -1,0 +1,53 @@
+
+> gods-eye-view@0.1.1 check:boundaries
+> node scripts/check-import-directions.mjs && node scripts/check-package-boundaries.mjs
+
+{"modules":401,"portableEntries":35}
+Checked application: 1 exports, 1 owned modules.
+Checked viewer: 1 exports, 2 owned modules.
+Checked vite-build: 1 exports, 2 owned modules.
+Checked adsb-lol-source: 1 exports, 1 owned modules.
+Checked place-providers: 1 exports, 12 owned modules.
+Checked place-payloads: 1 exports, 1 owned modules.
+Checked space-providers: 1 exports, 3 owned modules.
+Checked space-requests: 1 exports, 1 owned modules.
+Checked terrain-provider: 1 exports, 4 owned modules.
+Checked terrain-source: 1 exports, 1 owned modules.
+Checked firms-csv: 1 exports, 1 owned modules.
+Checked firms-provider: 1 exports, 2 owned modules.
+Checked overpass-provider: 1 exports, 16 owned modules.
+Checked military-installations-provider: 1 exports, 12 owned modules.
+Checked civil-flights: 1 exports, 35 owned modules.
+Checked military-flights: 1 exports, 31 owned modules.
+Checked vessel-layer: 1 exports, 18 owned modules.
+Checked earthquakes: 1 exports, 4 owned modules.
+Checked fire-layer: 1 exports, 17 owned modules.
+Checked satellites-layer: 1 exports, 18 owned modules.
+Checked installations-layer: 1 exports, 14 owned modules.
+Checked submarine-cables: 1 exports, 11 owned modules.
+Checked bundled-cables: 1 exports, 1 owned modules.
+Checked geography: 2 exports, 7 owned modules.
+Checked maps: 6 exports, 11 owned modules.
+Checked application-components: 10 exports, 324 owned modules.
+Checked application-catalog: 1 exports, 1 owned modules.
+Checked application-layer-construction: 1 exports, 224 owned modules.
+Checked application-operations: 1 exports, 8 owned modules.
+Checked layer-lifecycle: 1 exports, 1 owned modules.
+Checked civil-flight-records: 1 exports, 5 owned modules.
+Checked civil-flight-ingestion: 1 exports, 2 owned modules.
+Checked military-flight-records: 1 exports, 5 owned modules.
+Checked military-flight-ingestion: 1 exports, 2 owned modules.
+Checked vessel-records: 1 exports, 2 owned modules.
+Checked vessel-ingestion: 1 exports, 2 owned modules.
+Checked regional-source: 1 exports, 1 owned modules.
+Checked earthquakes-source: 1 exports, 2 owned modules.
+Checked firms-source: 1 exports, 1 owned modules.
+Checked installations-source: 1 exports, 2 owned modules.
+Checked satellites-source: 1 exports, 1 owned modules.
+Checked reference-sources: 2 exports, 4 owned modules.
+Checked nominatim-provider: 1 exports, 7 owned modules.
+Checked source-http-body: 1 exports, 1 owned modules.
+Checked overpass-lexer: 1 exports, 1 owned modules.
+Checked nominatim-source: 1 exports, 5 owned modules.
+Checked map-feature-source: 1 exports, 4 owned modules.
+exit 0
