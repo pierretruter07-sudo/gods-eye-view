@@ -1,0 +1,6 @@
+Requirements: 114  traced: 114  cited test titles: 188
+Traceability: complete
+Source files: 403  reachable: 402  orphan: 0  test-only: 1
+Lines        reachable: 97686  orphan: 0  test-only: 85
+Dangling relative imports: 0
+exit 0
