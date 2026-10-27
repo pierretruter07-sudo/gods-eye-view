@@ -1,0 +1,21 @@
+name: Boundary log (one-off)
+on:
+  push:
+    branches: [tooling/boundary-log]
+permissions:
+  contents: write
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: { node-version: 24.14.0 }
+      - run: npm ci > /dev/null 2>&1
+      - run: |
+          mkdir -p /tmp/out
+          (npm run check:boundaries > /tmp/out/boundaries.log 2>&1; echo "exit $?" >> /tmp/out/boundaries.log) || true
+          (npm run format:check > /tmp/out/format.log 2>&1; echo "exit $?" >> /tmp/out/format.log) || true
+          (node scripts/audit/trace-check.mjs > /tmp/out/trace.log 2>&1 && node scripts/audit/import-graph.mjs >> /tmp/out/trace.log 2>&1; echo "exit $?" >> /tmp/out/trace.log) || true
+          cd /tmp/out && git init -q && git checkout -q -b boundary-log-out && git -c user.name=ci -c user.email=ci@l add -A && git -c user.name=ci -c user.email=ci@l commit -qm log
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" boundary-log-out
