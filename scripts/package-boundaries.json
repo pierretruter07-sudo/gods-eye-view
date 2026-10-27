@@ -649,6 +649,7 @@
       "src/shell/quality.js",
       "src/shell/qualityPolicy.js",
       "src/shell/welcome.js",
+      "src/tour/cameraWall.js",
       "src/tour/config.js",
       "src/tour/controller.js",
       "src/tour/descent.js",

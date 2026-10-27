@@ -44,6 +44,7 @@ import {
   pulseFrame,
 } from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
+import { createCameraWall } from './cameraWall.js';
 import { AIRPORT_PROFILES } from '../airports/profiles.js';
 
 const RENDER_HOLD = 'tour-orbit';
@@ -126,6 +127,10 @@ export function createTourController({
       ?.module?.getCatalogSatrecs?.()
       ?.find((s) => s.noradId === noradId)?.satrec || null;
   const space = createSpaceOverlay({ viewer, satrecFor });
+  // The street stop's city square: four live cameras on screen at once.
+  const wall = createCameraWall({
+    cameras: () => dataManager.layers?.get?.('cctv')?.module || null,
+  });
   let descent = null;
   let regionStaged = { aircraft: [], at: 0 };
   // Street cameras the descent switched on are switched off again when it
@@ -133,6 +138,8 @@ export function createTourController({
   let cctvByDescent = false;
   let descentWrapped = true;
   let run = null; // { controller: AbortController }
+  // Next: end the current stop's dwell and narration and move on.
+  let skipRequested = false;
   let removeOrbit = null;
   let marker = null;
   // The Director's own icon for a subject the live layer is not drawing.
@@ -712,6 +719,10 @@ export function createTourController({
   ) {
     const until = Date.now() + seconds * 1000;
     while (Date.now() < until) {
+      if (skipRequested) {
+        skipRequested = false;
+        return;
+      }
       const step = Math.min(
         TOUR_TIMING.interruptCheckS * 1000,
         until - Date.now(),
@@ -1017,6 +1028,7 @@ export function createTourController({
       // and aircraft have moved since (the ISS by ~100 km). Re-aim at the
       // live position just before the flight so it arrives centred.
       refreshTarget(next);
+      wall.hide();
       onFocus?.(null);
       onTravel?.('depart', next.view, focusOf(next));
       // A real flight preloads its own destination from here on.
@@ -1059,6 +1071,7 @@ export function createTourController({
       arrivalHeld = null;
       warmer.arrived(stopLabel(next), upcomingView);
       onFocus?.(focusOf(next));
+      if (next.square) wall.show(next.square, { place: next.camera?.city });
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);
         airport.update(profile, airportFlights());
@@ -1066,6 +1079,7 @@ export function createTourController({
       }
       ui.setCaption(next.line);
       const started = Date.now();
+      skipRequested = false;
       await narrator.speak(next.line, { signal });
       signal.throwIfAborted();
       const spokenS = (Date.now() - started) / 1000;
@@ -1092,7 +1106,12 @@ export function createTourController({
     }
   }
 
-  async function start() {
+  /**
+   * @param {{intro?: boolean}} [options] - intro: true starts the From orbit
+   *   to street introduction, false the live Director; omitted, the
+   *   introduction runs on the first start only.
+   */
+  async function start({ intro } = {}) {
     if (run) return;
     const controller = new AbortController();
     run = { controller };
@@ -1100,8 +1119,9 @@ export function createTourController({
     viewer.trackedEntity = undefined;
     ui.setState('running');
     descent = null;
-    if (descentPending) {
-      descentPending = false;
+    const wantIntro = intro ?? descentPending;
+    descentPending = false;
+    if (wantIntro) {
       const startedAt = Date.now();
       const region = pickDescentRegion(startedAt);
       descent = createDescentPlanner({
@@ -1155,6 +1175,7 @@ export function createTourController({
     space.clear();
     descentAhead = null;
     descentAheadStop = null;
+    wall.hide();
     narrator.stop();
     stopOrbit();
     clearMarker();
@@ -1188,8 +1209,17 @@ export function createTourController({
     window.removeEventListener('keydown', onKey);
   }
 
+  /** Move on from the current stop now (the Next button, N key). */
+  function skip() {
+    if (!run) return false;
+    skipRequested = true;
+    narrator.stop();
+    return true;
+  }
+
   return {
     start,
+    skip,
     exit,
     destroy,
     isRunning: () => Boolean(run),

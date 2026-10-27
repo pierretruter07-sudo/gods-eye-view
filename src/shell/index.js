@@ -195,6 +195,30 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     },
     `${ICONS.play}<span>Director</span>`,
   );
+  // Two ways in (Pierre, 28 Oct): the introduction (From orbit to street)
+  // and the live Director. While either runs, Next moves on to the next
+  // stop (also the N key) and the Director button becomes Stop.
+  const introBtn = el(
+    'button',
+    {
+      type: 'button',
+      class: 'gev-btn',
+      'aria-label': 'Start the introduction tour, from orbit to street',
+      title: 'Introduction: from orbit to street',
+    },
+    `${ICONS.play}<span>Intro</span>`,
+  );
+  const nextBtn = el(
+    'button',
+    {
+      type: 'button',
+      class: 'gev-btn',
+      'aria-label': 'Next stop',
+      title: 'Next stop (N)',
+      hidden: '',
+    },
+    '<span>Next</span><span aria-hidden="true">›</span>',
+  );
   bar.append(
     brand,
     el('span', { class: 'gev-bar__divider', 'aria-hidden': 'true' }),
@@ -202,6 +226,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     form,
     layersBtn,
     triageBtn,
+    introBtn,
+    nextBtn,
     directorBtn,
   );
 
@@ -372,6 +398,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
       document.body.classList.toggle('gev-touring', live);
       intelRef?.refresh?.();
       directorBtn.classList.toggle('gev-btn--live', live);
+      introBtn.hidden = live;
+      nextBtn.hidden = !live;
       const _btnHtml = live
         ? `${ICONS.stop}<span>Stop</span>`
         : `${ICONS.play}<span>Director</span>`;
@@ -422,8 +450,21 @@ export function installShell({ viewer, dataManager, placeSearch }) {
 
   directorBtn.addEventListener('click', () => {
     if (tour.controller.isRunning()) tour.controller.exit('button');
-    else tour.controller.start();
+    else tour.controller.start({ intro: false });
   });
+  introBtn.addEventListener('click', () => {
+    if (!tour.controller.isRunning()) tour.controller.start({ intro: true });
+  });
+  nextBtn.addEventListener('click', () => tour.controller.skip());
+  const onNextKey = (event) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (String(event.key).toLowerCase() !== 'n') return;
+    const t = event.target;
+    if (t?.closest?.('input, textarea, select, [contenteditable="true"]'))
+      return;
+    if (tour.controller.skip()) event.preventDefault();
+  };
+  window.addEventListener('keydown', onNextKey);
 
   // Free navigation (navigation.js): drag pans, right drag turns and tilts
   // about the point under the cursor, the wheel zooms towards it, and the
@@ -536,6 +577,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   });
 
   return () => {
+    window.removeEventListener('keydown', onNextKey);
     searchAbort?.abort();
     closeWelcome?.();
     clearInterval(badgeTimer);
