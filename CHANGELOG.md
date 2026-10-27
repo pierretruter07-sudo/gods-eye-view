@@ -6,6 +6,10 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **DDG intro** (Pierre, 27 Oct). On the first load of a browser session the
+  5 s DDG brand animation plays on a dark-grey ground above the loading
+  screen while the globe loads, the same intro as DDG Greenlight. Skip ends
+  it; `?nointro`, reduced motion and repeat loads skip it (GEV-DIR-034).
 - **The real Sun, a true night side and the Milky Way** (Pierre, 21 Oct).
   - The scene is lit from the Sun's real direction, and the 3D city casts
     soft real-time shadows for the time of day (close views in daylight; the

@@ -103,6 +103,7 @@ trace in [VERIFICATION.md](VERIFICATION.md).
 | GEV-DIR-032 | Stopping the Director (Stop, Esc, any camera input) or a Director error shall always hand the camera back: no flight, orbit or narration shall continue afterwards, and a restart shall plan its next stop afresh. Stops closer than 300 km shall be flown to directly, without the zoom out to the whole planet. Staged (simulated) aircraft shall never be counted as live traffic in a stop's narration. | T |
 | GEV-DIR-033 | The Director shall end each hop above its subject (three times the framing range) and hold there, creeping in, until the view's 3D tiles have loaded or six seconds pass, then glide to the framing; it shall not begin narrating a stop until the arrival view has loaded (at most 4 s, 2.5 s for an alert). Google 3D tiles shall be allowed up to 48 parallel requests. | T |
 | GEV-DIR-031 | An alert shall be marked on the globe by one frosted glass sphere that grows from the event, starting fully opaque and fading to nothing as it reaches full size, then repeats. No other rings, labels or markers shall be drawn for it by default. | T |
+| GEV-DIR-034 | On the first load of a browser session the page shall play the 5 s DDG brand animation on a dark-grey ground, above the start-up loading screen, while the globe loads; it shall end after at most 6 s, at once on Skip, and shall not play with `?nointro`, with reduced motion, or again in the same session. | T |
 
 ## 6. Intel HUD (INT)
 
