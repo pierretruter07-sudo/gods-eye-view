@@ -266,6 +266,20 @@ export function createControls({ state: layerState, services, parts, source }) {
     },
 
     /**
+     * Where one camera's icon is DRAWN right now (its billboard, on the
+     * ground this layer resolved for it), so overlays such as the intel HUD's
+     * leader lines meet the icon. Null when the camera is not drawn.
+     * @param {string} cameraId
+     * @returns {object|null} Cesium.Cartesian3
+     */
+    getDisplayPosition(cameraId) {
+      const record = layerState._recordById.get(cameraId);
+      const bb = record?.billboard;
+      if (!bb || bb.show === false) return null;
+      return bb.position ?? null;
+    },
+
+    /**
      * Current still-frame URL for one camera (cache-busted per refresh tick).
      * @param {string} cameraId
      * @returns {string|null}

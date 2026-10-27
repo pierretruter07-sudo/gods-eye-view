@@ -366,6 +366,23 @@ export function createRendering({
     return _modelIsRendering(flightState._models.get(icao24));
   }
 
+  /** Where the 3D model that owns this contact's visual is drawn (its
+   *  modelMatrix origin), or null while a billboard is the visual. Mirror of
+   *  flights.js. */
+
+  function _modelDrawnPosition(icao24) {
+    if (!_modelOwnsVisual(icao24)) return null;
+    const model =
+      icao24 === flightState._trackedIcao
+        ? flightState._trackedModel
+        : flightState._models.get(icao24);
+    if (!model?.modelMatrix) return null;
+    return Cesium.Matrix4.getTranslation(
+      model.modelMatrix,
+      new Cesium.Cartesian3(),
+    );
+  }
+
   /** `show` is sufficient evidence of a safe placement because only the handoff and
    *  the tracked driver ever set it true, and both do so after committing a matrix;
    *  everything else — admission, unresolved ground, an unready glTF, the limb cull,
@@ -1152,6 +1169,7 @@ export function createRendering({
     _modelDisplayPosition,
     _driveFleetModelHandoff,
     _modelOwnsVisual,
+    _modelDrawnPosition,
     _modelIsRendering,
     _specKeyFor,
     _syncModelToClass,

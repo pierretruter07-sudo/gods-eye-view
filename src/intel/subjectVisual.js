@@ -99,7 +99,12 @@ export function createSubjectVisual(viewer, { position, dataManager = null }) {
       // Graphics pass: drawn larger, like a focused aircraft.
       minimumPixelSize: 96,
       maximumScale: 400,
-      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      // No clamping: the position already carries the sea-level height the
+      // vessels layer draws at (geoid + lift, intel/subjectSurface.js). A
+      // clamp pulled the hull onto whatever the tiles had under it (a quay,
+      // a bridge) or left it at 0 m ellipsoid, under the sea, wherever the
+      // geoid sits above the ellipsoid — away from its leader lines.
+      heightReference: Cesium.HeightReference.NONE,
     },
   });
 
@@ -115,6 +120,8 @@ export function createSubjectVisual(viewer, { position, dataManager = null }) {
   });
 
   return {
+    /** The entities this visual draws (kept out of surface sampling). */
+    entities: [ship, sat],
     show(o) {
       headingDeg = Number.isFinite(o.courseDeg)
         ? o.courseDeg

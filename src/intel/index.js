@@ -43,6 +43,14 @@ import {
   releaseContinuousRender,
 } from '../renderGovernor.js';
 import { assignLanes, orthogonalPath } from './leaderRoute.js';
+import {
+  createSurfaceSampler,
+  onCanvas,
+  subjectHeightM,
+  subjectRule,
+  toOverlayPoint,
+} from './subjectSurface.js';
+import { ensureGeoidReady, geoidHeight } from '../data/geoid.js';
 import { attachCctvVideo } from '../layers/cctv/videoPlayback.js';
 
 /**
@@ -261,7 +269,8 @@ export function installIntel({
     if (stacked === (panels[0].parentElement === stack)) return;
     if (stacked) stack.append(...panels);
     else for (const p of panels) view.insertBefore(p, stack);
-    measureCards?.();
+    // Moved sheets replay their slide-in: follow them until it settles.
+    measureSoon(700);
   }
   const placeObserver = new MutationObserver(placeCards);
   placeObserver.observe(document.body, {
@@ -563,7 +572,7 @@ export function installIntel({
     changed = assignParts() || changed;
     mountVideos(view);
     renderActions();
-    if (changed) measureCards();
+    if (changed) measureSoon();
     requestAnimationFrame(updateLeaders);
   }
   const refs = createReferenceImages();
@@ -572,34 +581,78 @@ export function installIntel({
   });
 
   // Leader lines: from the asset's screen position to each card's inner corner.
+  // The asset end is re-projected every rendered frame from where the asset
+  // is DRAWN (the layer's own display position, else the smooth track at its
+  // rendered height — see subjectSurface.js), and hidden when the asset is
+  // off the canvas, behind the camera or behind the globe.
   const scratchWin = new Cesium.Cartesian2();
   const scratchPos = new Cesium.Cartesian3();
-  function assetScreen() {
-    const p =
-      (NATIVE_FOLLOW.has(selected?.kind) &&
-        viewer.trackedEntity?.position?.getValue(
-          viewer.clock.currentTime,
-          scratchPos,
-        )) ||
-      trackedPosition(scratchPos);
-    if (!p) return null;
+  const scratchProbe = new Cesium.Cartesian3();
+  const canvasClient = { width: 0, height: 0 };
+  function assetWorld(result) {
+    const drawn = track.drawn?.();
+    if (drawn) return Cesium.Cartesian3.clone(drawn, result);
+    // A satellite (or an aircraft its layer is not drawing) the layer's own
+    // follow camera tracks: its tracked entity is what is on screen.
+    if (NATIVE_FOLLOW.has(selected?.kind) && state.following) {
+      const p = viewer.trackedEntity?.position?.getValue(
+        viewer.clock.currentTime,
+        result,
+      );
+      if (p) return p;
+    }
+    return trackedPosition(result);
+  }
+  function behindGlobe(p) {
     occluder.cameraPosition = viewer.camera.positionWC;
-    if (!occluder.isPointVisible(p)) return null;
-    return Cesium.SceneTransforms.worldToWindowCoordinates(
+    if (occluder.isPointVisible(p)) return false;
+    // A point just under the ellipsoid (sea level where the geoid is below
+    // it) is tested at the ellipsoid surface above it instead.
+    const surface = Cesium.Ellipsoid.WGS84.scaleToGeodeticSurface(
+      p,
+      scratchProbe,
+    );
+    return !(
+      surface &&
+      Cesium.Cartesian3.magnitudeSquared(p) <=
+        Cesium.Cartesian3.magnitudeSquared(surface) &&
+      occluder.isPointVisible(surface)
+    );
+  }
+  function assetScreen() {
+    const p = assetWorld(scratchPos);
+    if (!p || behindGlobe(p)) return null;
+    // Cesium reports window coordinates in the canvas's CSS pixels (it has
+    // already divided out resolutionScale and devicePixelRatio).
+    const win = Cesium.SceneTransforms.worldToWindowCoordinates(
       scene,
       p,
       scratchWin,
     );
+    canvasClient.width = scene.canvas.clientWidth;
+    canvasClient.height = scene.canvas.clientHeight;
+    if (!onCanvas(win, canvasClient)) return null;
+    return toOverlayPoint(win, layout.canvas, canvasClient, layout.overlay);
   }
   const occluder = new Cesium.EllipsoidalOccluder(
     Cesium.Ellipsoid.WGS84,
     Cesium.Cartesian3.ZERO,
   );
-  // Sheet anchor points (inner top corner), measured only when a sheet
-  // changes size or the window resizes — never per frame (a layout read
-  // every frame stalls rendering).
+  // Sheet anchor points (inner top corner) and the canvas / overlay origins,
+  // measured when something changes size or moves, during the cards'
+  // slide-in (their rects carry the animation's transform, so a single
+  // measurement at the start left the lines ending short of the cards), and
+  // at most once a second otherwise — never a layout read every frame for
+  // long (that stalls rendering).
   const anchors = panels.map(() => null);
+  const layout = { canvas: null, overlay: null, at: 0 };
+  const MEASURE_EVERY_MS = 1000;
+  let measureUntil = 0;
+  let measureLoop = 0;
   function measureCards() {
+    layout.at = performance.now();
+    layout.canvas = scene.canvas.getBoundingClientRect();
+    layout.overlay = leaders.getBoundingClientRect();
     const stacked = panels[0].parentElement === stack;
     panels.forEach((node, i) => {
       if (node.hidden || !node.getClientRects().length) {
@@ -607,26 +660,48 @@ export function installIntel({
         return;
       }
       const r = node.getBoundingClientRect();
+      const ox = layout.overlay.left;
+      const oy = layout.overlay.top;
       const onRight = document.body.dataset.gevLeft === 'layers';
       anchors[i] = stacked
         ? {
-            x: (onRight ? r.left : r.right).toFixed(1),
-            y: (r.top + Math.min(28, r.height / 2)).toFixed(1),
+            x: ((onRight ? r.left : r.right) - ox).toFixed(1),
+            y: (r.top + Math.min(28, r.height / 2) - oy).toFixed(1),
           }
         : {
-            x: (SIDES[i] === 'l' ? r.right : r.left).toFixed(1),
-            y: (r.top + 22).toFixed(1),
+            x: ((SIDES[i] === 'l' ? r.right : r.left) - ox).toFixed(1),
+            y: (r.top + 22 - oy).toFixed(1),
           };
     });
   }
+  /** Re-measure every frame for `ms` (cards sliding or re-flowing), then stop. */
+  function measureSoon(ms = 120) {
+    measureUntil = Math.max(measureUntil, performance.now() + ms);
+    if (measureLoop) return;
+    const step = () => {
+      measureLoop = 0;
+      if (view.hidden) return;
+      measureCards();
+      updateLeaders();
+      if (performance.now() < measureUntil)
+        measureLoop = requestAnimationFrame(step);
+    };
+    measureLoop = requestAnimationFrame(step);
+  }
   const cardObserver =
     typeof ResizeObserver === 'function'
-      ? new ResizeObserver(() => measureCards())
+      ? new ResizeObserver(() => measureSoon())
       : null;
-  for (const node of panels) cardObserver?.observe(node);
+  // The sheets move when the grid around them re-flows (header, caption,
+  // button bar, drawer) without changing size themselves, so watch those too.
+  for (const node of [...panels, view, header, bottom, stack, drawer])
+    cardObserver?.observe(node);
+  view.addEventListener('animationend', () => measureSoon());
+  view.addEventListener('transitionend', () => measureSoon());
   const lastD = panels.map(() => '');
   function updateLeaders() {
     if (view.hidden || !selected) return;
+    if (performance.now() - layout.at > MEASURE_EVERY_MS) measureCards();
     const at = assetScreen();
     // Orthogonal routes (horizontal and vertical runs only), one lane each.
     const live = anchors.map((a, i) =>
@@ -709,7 +784,8 @@ export function installIntel({
     syncSheets(o);
     setTriage(false);
     enterHud();
-    measureCards();
+    // The sheets slide in (460 ms + 90 ms stagger): track them until they land.
+    measureSoon(700);
     document.body.classList.add('gev-intel-open');
     onOpen?.();
     clearInterval(followTimer);
@@ -1056,7 +1132,12 @@ export function installIntel({
     at: 0,
     err: new Cesium.Cartesian3(),
     errAt: 0,
+    rule: 'ground',
+    rawM: 0,
+    drawn: null,
   };
+  /** Rendered-surface heights (3D tiles or terrain), set up below. */
+  let surface = null;
   const scratch = new Cesium.Cartesian3();
   function velocityOf(o, at) {
     const mps =
@@ -1079,9 +1160,10 @@ export function installIntel({
   }
   function trackedPosition(result = new Cesium.Cartesian3()) {
     if (!track.fix) return undefined;
-    // An aircraft the layer is drawing: use exactly where its icon is, so the
-    // leader lines, reticle and camera meet it (the HUD's own extrapolation
-    // can drift from the layer's by kilometres between fixes).
+    // An aircraft or camera the layer is drawing: use exactly where its icon
+    // or model is, so the leader lines, reticle and camera meet it (the HUD's
+    // own extrapolation can drift from the layer's by kilometres between
+    // fixes, and the layer knows the height it rendered at).
     const drawn = track.drawn?.();
     if (drawn) return Cesium.Cartesian3.clone(drawn, result);
     const now = performance.now();
@@ -1095,7 +1177,64 @@ export function installIntel({
         Cesium.Cartesian3.multiplyByScalar(track.err, blend, scratch),
         result,
       );
-    return result;
+    return renderedHeight(result);
+  }
+  // ── Rendered height: the track moved onto the surface it is drawn on ──
+  // (ships at sea level, ground assets on the 3D tiles or terrain, aircraft
+  // never under the surface) — see subjectSurface.js for the rules.
+  let geoidReady = false;
+  ensureGeoidReady()
+    .then(() => {
+      geoidReady = true;
+      scene.requestRender();
+    })
+    .catch(() => {});
+  const geoidAt = (lat, lon) => {
+    if (!geoidReady) return null;
+    try {
+      return geoidHeight(lat, lon);
+    } catch {
+      return null;
+    }
+  };
+  const scratchCarto = new Cesium.Cartographic();
+  function renderedHeight(p) {
+    if (track.rule === 'orbit') return p;
+    const carto = Cesium.Cartographic.fromCartesian(
+      p,
+      Cesium.Ellipsoid.WGS84,
+      scratchCarto,
+    );
+    if (!carto) return p;
+    const lat = Cesium.Math.toDegrees(carto.latitude);
+    const lon = Cesium.Math.toDegrees(carto.longitude);
+    const heightM = subjectHeightM(track.rule, {
+      rawM: track.rawM,
+      geoidN: geoidAt(lat, lon),
+      // A ship rides the sea, not whatever the tiles have under it; an
+      // aircraft crosses a new cell every frame, so it only reads what is
+      // already known rather than starting a sample per frame.
+      surfaceM:
+        track.rule === 'sea'
+          ? null
+          : surface?.heightAt(lat, lon, { sample: track.rule === 'ground' }),
+    });
+    return Cesium.Cartesian3.fromRadians(
+      carto.longitude,
+      carto.latitude,
+      heightM,
+      Cesium.Ellipsoid.WGS84,
+      p,
+    );
+  }
+  /** Where the asset's own layer draws it right now, when the layer says. */
+  function drawnPositionOf(o) {
+    if (o.kind === 'aircraft' && o.icao24)
+      return () =>
+        layerModule(o.layerId)?.getDisplayPosition?.(o.icao24) ?? null;
+    if (o.kind === 'camera' && o.id != null)
+      return () => layerModule('cctv')?.getDisplayPosition?.(o.id) ?? null;
+    return null;
   }
   function setFix(o) {
     const before = track.fix ? trackedPosition() : null;
@@ -1103,13 +1242,12 @@ export function installIntel({
     const prevAt = track.at;
     track.fix = cartesianOf(o);
     track.at = performance.now();
-    track.drawn =
-      o.kind === 'aircraft' && o.icao24
-        ? () =>
-            dataManager
-              .getLayerModule?.(o.layerId)
-              ?.getDisplayPosition?.(o.icao24) ?? null
-        : null;
+    track.rule = subjectRule(o);
+    // The feed's own height: ellipsoidal for satellites, mean-sea-level for
+    // aircraft (barometric) and a camera's catalogue ground elevation.
+    track.rawM =
+      o.kind === 'camera' ? Number(o.groundElevationM) || 0 : o.heightM || 0;
+    track.drawn = drawnPositionOf(o);
     // Satellites have no heading/speed fields: derive velocity from fixes.
     if (
       o.kind === 'satellite' &&
@@ -1139,6 +1277,13 @@ export function installIntel({
   const visual = createSubjectVisual(viewer, {
     position: (result) => trackedPosition(result),
     dataManager,
+  });
+  surface = createSurfaceSampler({
+    Cesium,
+    scene,
+    // Never measure the surface off our own reticle or close-up model.
+    exclude: () => [marker, ...visual.entities],
+    onSample: () => scene.requestRender(),
   });
 
   const ORBIT = {
@@ -1611,6 +1756,8 @@ export function installIntel({
       handler.destroy();
       disposeCameraClicks();
       removeLeaderHook();
+      cancelAnimationFrame(measureLoop);
+      surface.destroy();
       window.removeEventListener('resize', onResize);
       cardObserver?.disconnect();
       toast.remove();

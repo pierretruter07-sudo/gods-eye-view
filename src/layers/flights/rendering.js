@@ -380,6 +380,24 @@ export function createRendering({
     return _modelIsRendering(flightState._models.get(icao24));
   }
 
+  /** Where the 3D model that owns this contact's visual is drawn (its
+   *  modelMatrix origin), or null while a billboard is the visual. A grounded
+   *  model rides groundSnap's sample of the tile skin, not the billboard's
+   *  height, so overlays that meet the contact must use this point. */
+
+  function _modelDrawnPosition(icao24) {
+    if (!_modelOwnsVisual(icao24)) return null;
+    const model =
+      icao24 === flightState._trackedIcao
+        ? flightState._trackedModel
+        : flightState._models.get(icao24);
+    if (!model?.modelMatrix) return null;
+    return Cesium.Matrix4.getTranslation(
+      model.modelMatrix,
+      new Cesium.Cartesian3(),
+    );
+  }
+
   /** A model is the visual only once it actually draws — loaded AND shown.
    *
    * `show` is sufficient evidence of a safe placement because only ONE site ever
@@ -1214,6 +1232,7 @@ export function createRendering({
     _modelDisplayPosition,
     _driveFleetModelHandoff,
     _modelOwnsVisual,
+    _modelDrawnPosition,
     _modelIsRendering,
     _specKeyFor,
     _syncModelToClass,

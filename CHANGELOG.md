@@ -56,6 +56,22 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   video) whenever it is dark there.
 
 ### Fixed
+- **Leader lines meet the asset; assets sit on the surface** (Pierre, 28 Oct).
+  - The asset end of each leader line is re-projected every frame from where
+    the asset is drawn: an aircraft's 3D model when one is showing (a parked
+    plane's model sits on the tile skin, its icon position did not), a
+    camera's icon, and otherwise the smooth track at its rendered height.
+    Places, cameras and quakes were joined at 0 m on the ellipsoid, so at an
+    airport 600 m up the line ended in empty space on an oblique view.
+  - Lines hide when the asset is off the canvas, behind the camera or behind
+    the globe, and follow the cards while they slide in or the layout
+    re-flows (one measurement at the start of the slide-in left them short).
+  - Ground assets sit on the 3D tiles or terrain (sampled once per ~11 m cell,
+    cached, retried with backoff, at most four samples a second); ships ride
+    mean sea level (geoid + 3 m) instead of 0 m on the ellipsoid, and the
+    close-up 3D ship is no longer clamped onto quays or under the sea; an
+    aircraft the HUD extrapolates itself is never below the surface + 30 m
+    (GEV-INT-030, GEV-INT-031).
 - **Worldwide flights on the live site.** The worldwide OpenSky snapshot
   (several megabytes) timed out after 6 s on a cold server and then cooled
   down for 5 minutes; it now gets 20 s, and a timeout retries after 30 s

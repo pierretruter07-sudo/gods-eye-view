@@ -52,14 +52,16 @@ export function createMilitaryFlightLayer({
     parts.ingestion.methods,
   );
   /**
-   * Where this aircraft is DRAWN right now (the fleet icon's per-frame
-   * position, or the tracked entity's display position), so overlays such as
+   * Where this aircraft is DRAWN right now (its 3D model when one owns the
+   * visual, else the fleet icon's per-frame position or the tracked entity's
+   * display position), so overlays such as
    * the intel HUD's leader lines meet the icon exactly. Null when not drawn.
    */
   layer.getDisplayPosition = (icao24) =>
-    icao24 === flightState._trackedIcao
+    parts.rendering._modelDrawnPosition(icao24) ??
+    (icao24 === flightState._trackedIcao
       ? parts.motion._trackedDisplayPosition(icao24)
-      : (flightState._billboards.get(icao24)?.position ?? null);
+      : (flightState._billboards.get(icao24)?.position ?? null));
   /** The aircraft the Director or analyst is focused on (3D model look). */
   layer.setFocusModel = (icao24) => parts.rendering.setFocusModel(icao24);
   Object.defineProperty(layer, 'testing', { value: parts.testing });
