@@ -64,8 +64,22 @@ const camera = (id, lat, lon) => ({
   lon,
 });
 
-const ferry = { mmsi: '503000001', name: 'HARBOUR FERRY', shipType: 'Passenger', lat: -33.86, lon: 151.23, speedKts: 11 };
-const moored = { mmsi: '503000002', name: 'MOORED', shipType: 'Cargo', lat: -33.87, lon: 151.21, speedKts: 0 };
+const ferry = {
+  mmsi: '503000001',
+  name: 'HARBOUR FERRY',
+  shipType: 'Passenger',
+  lat: -33.86,
+  lon: 151.23,
+  speedKts: 11,
+};
+const moored = {
+  mmsi: '503000002',
+  name: 'MOORED',
+  shipType: 'Cargo',
+  lat: -33.87,
+  lon: 151.21,
+  speedKts: 0,
+};
 const fullData = () => ({
   satellites: [geoSat(1), geoSat(2), geoSat(3), iss],
   vessels: [moored, ferry, { ...ferry, mmsi: 'far', lat: 1, lon: 104 }],
@@ -109,20 +123,39 @@ test('the descent steps down from GEO to street level, then ends', () => {
   for (let i = 1; i < heights.length; i += 1)
     assert.ok(heights[i] < heights[i - 1], `step ${i} should be lower`);
   const [geo, sat, cruise, low, ship, ground, street] = stops;
-  assert.equal(ship.vessel.mmsi, '503000001', 'nearest ship under way, not the moored one');
+  assert.equal(
+    ship.vessel.mmsi,
+    '503000001',
+    'nearest ship under way, not the moored one',
+  );
   assert.equal(ship.kind, 'vessel');
-  assert.match(ship.line, /^Down to sea level\. Passenger Harbour Ferry, making 11 knots\. Ships report/);
+  assert.match(
+    ship.line,
+    /^Down to sea level\. Passenger Harbour Ferry, making 11 knots\. Ships report/,
+  );
   assert.equal(geo.count, 3);
-  assert.match(geo.line, /^Welcome to God's Eye View\..* where 3 satellites hold their place/);
+  assert.match(
+    geo.line,
+    /^Welcome to God's Eye View\..* where 3 satellites hold their place/,
+  );
   assert.equal(sat.satellite.isIss, true);
   assert.equal(cruise.aircraft.icao24, 'qfa1', 'nearest in-band airliner');
-  assert.match(cruise.line, /^Another level down, into the airspace: flight QFA1 at 38,100 feet.*marked feed.*marked simulated\.$/);
+  assert.match(
+    cruise.line,
+    /^Another level down, into the airspace: flight QFA1 at 38,100 feet.*marked feed.*marked simulated\.$/,
+  );
   assert.equal(low.aircraft.icao24, 'heli1');
   assert.match(low.line, /^Lower still\. A helicopter at 1,500 feet/);
   assert.equal(ground.aircraft.icao24, 'veh1');
-  assert.match(ground.line, /^Now on the ground\. An airport emergency vehicle/);
+  assert.match(
+    ground.line,
+    /^Now on the ground\. An airport emergency vehicle/,
+  );
   assert.equal(street.camera.id, 'c1');
-  assert.match(street.line, /^And finally, street level: Camera c1, a live Transport for NSW camera, refreshed every ten seconds\./);
+  assert.match(
+    street.line,
+    /^And finally, street level: Camera c1, a live Transport for NSW camera, refreshed every ten seconds\./,
+  );
   assert.ok(street.view.orbitDegPerS > 0, 'street level turns faster');
   // One street camera ends the descent: one asset per level.
   assert.equal(planner.next(data), null);
@@ -167,7 +200,10 @@ test('a step waits while its source is still loading, and can be skipped', () =>
   assert.equal(planner.peekStep(), 'iss');
   assert.equal(planner.next({ satellites: [iss] }).descent, 'iss');
   // The region's staged aircraft count as loaded data.
-  const stop = planner.next({ flights: [], staged: [jet('s1', -34, 151, 12_000)] });
+  const stop = planner.next({
+    flights: [],
+    staged: [jet('s1', -34, 151, 12_000)],
+  });
   assert.equal(stop.descent, 'cruise');
   assert.equal(stop.aircraft.icao24, 's1');
 });
@@ -177,7 +213,8 @@ test('the checklist levels cover every step, and outcomes track shown and skippe
   const data = fullData();
   data.flights = data.flights.filter((f) => f.icao24 !== 'veh1');
   const stops = [];
-  for (let stop = planner.next(data); stop; stop = planner.next(data)) stops.push(stop);
+  for (let stop = planner.next(data); stop; stop = planner.next(data))
+    stops.push(stop);
   const outcomes = planner.outcomes();
   assert.equal(outcomes.get('geo'), 'shown');
   assert.equal(outcomes.get('ground'), 'skipped');
@@ -185,21 +222,40 @@ test('the checklist levels cover every step, and outcomes track shown and skippe
   const covered = DESCENT_LEVELS.flatMap((l) => l.steps).sort();
   assert.deepEqual(covered, [...outcomes.keys()].sort());
   assert.equal(DESCENT_LEVELS.length, 8);
-  assert.equal(descentDetail(stops.find((s) => s.descent === 'cruise')), 'QFA1 · 38,100 ft');
-  assert.equal(descentDetail(stops.find((s) => s.descent === 'geo')), '3 satellites');
+  assert.equal(
+    descentDetail(stops.find((s) => s.descent === 'cruise')),
+    'QFA1 · 38,100 ft',
+  );
+  assert.equal(
+    descentDetail(stops.find((s) => s.descent === 'geo')),
+    '3 satellites',
+  );
   // The ground vehicle stop asks the controller to aim at sampled terrain.
   const p2 = createDescentPlanner({ region: sydney });
   const all = [];
-  for (let stop = p2.next(fullData()); stop; stop = p2.next(fullData())) all.push(stop);
+  for (let stop = p2.next(fullData()); stop; stop = p2.next(fullData()))
+    all.push(stop);
   assert.equal(all.find((s) => s.descent === 'ground').view.sampleGround, true);
 });
 
 test('the street step prefers a camera with live video near the centre over a nearer still', () => {
   const desMoines = DESCENT_REGIONS.find((r) => r.id === 'desmoines');
   assert.ok(desMoines, 'Des Moines (Iowa DOT live video) is a descent region');
-  const still = { ...camera('ia-still', 41.587, -93.625), provider: 'Iowa Department of Transportation', feedType: 'image' };
-  const live = { ...camera('ia-live', 41.5953, -93.6245), provider: 'Iowa Department of Transportation', feedType: 'hls' };
-  const farLive = { ...camera('ia-far', 42.03, -93.62), provider: 'Iowa Department of Transportation', feedType: 'hls' };
+  const still = {
+    ...camera('ia-still', 41.587, -93.625),
+    provider: 'Iowa Department of Transportation',
+    feedType: 'image',
+  };
+  const live = {
+    ...camera('ia-live', 41.5953, -93.6245),
+    provider: 'Iowa Department of Transportation',
+    feedType: 'hls',
+  };
+  const farLive = {
+    ...camera('ia-far', 42.03, -93.62),
+    provider: 'Iowa Department of Transportation',
+    feedType: 'hls',
+  };
   const pick = (cameras) => {
     const planner = createDescentPlanner({ region: desMoines });
     const data = { ...fullData(), cameras };
@@ -209,7 +265,10 @@ test('the street step prefers a camera with live video near the centre over a ne
   };
   const street = pick([still, live, farLive]);
   assert.equal(street.camera.id, 'ia-live');
-  assert.match(street.line, /^And finally, street level: Camera ia-live, streaming live video from Iowa Department of Transportation\./);
+  assert.match(
+    street.line,
+    /^And finally, street level: Camera ia-live, streaming live video from Iowa Department of Transportation\./,
+  );
   // Live video too far out (over 25 km): the nearest camera wins.
   assert.equal(pick([still, farLive]).camera.id, 'ia-still');
 });
@@ -225,20 +284,44 @@ test('the descent ends on the night side: a city at night, then one of its stree
     regions: DESCENT_REGIONS.filter((r) => !r.liveVideo),
   });
   assert.equal(night.id, 'toronto');
-  assert.ok(solarHour(night.lon, now) >= 19 || solarHour(night.lon, now) <= 4.5, 'dark there');
-  const torontoCam = { ...camera('on-1', 43.65, -79.38), provider: 'City of Toronto', feedType: 'image' };
-  const planner = createDescentPlanner({ region: day, nightRegion: night, now });
+  assert.ok(
+    solarHour(night.lon, now) >= 19 || solarHour(night.lon, now) <= 4.5,
+    'dark there',
+  );
+  const torontoCam = {
+    ...camera('on-1', 43.65, -79.38),
+    provider: 'City of Toronto',
+    feedType: 'image',
+  };
+  const planner = createDescentPlanner({
+    region: day,
+    nightRegion: night,
+    now,
+  });
   const data = { ...fullData(), cameras: [...fullData().cameras, torontoCam] };
   const stops = [];
   for (let s = planner.next(data); s; s = planner.next(data)) stops.push(s);
-  assert.deepEqual(stops.map((s) => s.descent).slice(-3), ['street', 'nightCity', 'nightStreet']);
+  assert.deepEqual(stops.map((s) => s.descent).slice(-3), [
+    'street',
+    'nightCity',
+    'nightStreet',
+  ]);
   const [city, street] = stops.slice(-2);
   assert.equal(city.kind, 'region');
   assert.ok(city.view.rangeM >= 2_000_000, 'high enough for the city lights');
-  assert.match(city.line, /^Now the other half of the planet: the night side, where it's around \d+:\d\d pm in Toronto\./);
+  assert.match(
+    city.line,
+    /^Now the other half of the planet: the night side, where it's around \d+:\d\d pm in Toronto\./,
+  );
   assert.equal(street.camera.id, 'on-1');
-  assert.match(street.line, /^And down into Toronto at night: Camera on-1, a live City of Toronto camera/);
-  assert.ok(city.view.rangeM >= 15_000_000 && city.view.pitchDeg === -90, 'the whole planet in view');
+  assert.match(
+    street.line,
+    /^And down into Toronto at night: Camera on-1, a live City of Toronto camera/,
+  );
+  assert.ok(
+    city.view.rangeM >= 15_000_000 && city.view.pitchDeg === -90,
+    'the whole planet in view',
+  );
   assert.equal(DIRECTOR_SENSORS.descentModes.nightCity, 'lights');
   assert.equal(DIRECTOR_SENSORS.descentModes.nightStreet, 'nvg');
   // Daytime everywhere it could be night: no night steps, and none faked.
@@ -246,14 +329,28 @@ test('the descent ends on the night side: a city at night, then one of its stree
 });
 
 test('the introduction script covers every descent level and speaks only live values', async () => {
-  const { SCRIPTED_STEPS, introLine, clockWords } = await import('./introScript.js');
-  assert.deepEqual(SCRIPTED_STEPS, ['geo', 'iss', 'cruise', 'low', 'ship', 'ground', 'street', 'nightCity', 'nightStreet']);
-  for (const step of DESCENT_STEPS) assert.ok(SCRIPTED_STEPS.includes(step), step);
+  const { SCRIPTED_STEPS, introLine, clockWords } =
+    await import('./introScript.js');
+  assert.deepEqual(SCRIPTED_STEPS, [
+    'geo',
+    'iss',
+    'cruise',
+    'low',
+    'ship',
+    'ground',
+    'street',
+    'nightCity',
+    'nightStreet',
+  ]);
+  for (const step of DESCENT_STEPS)
+    assert.ok(SCRIPTED_STEPS.includes(step), step);
   // No numbered steps in the narration.
   const planner = createDescentPlanner({ region: sydney });
   const lines = [];
-  for (let s = planner.next(fullData()); s; s = planner.next(fullData())) lines.push(s.line);
-  for (const line of lines) assert.doesNotMatch(line, /\bstep \d|\bstep one\b/i);
+  for (let s = planner.next(fullData()); s; s = planner.next(fullData()))
+    lines.push(s.line);
+  for (const line of lines)
+    assert.doesNotMatch(line, /\bstep \d|\bstep one\b/i);
   assert.equal(clockWords(19.4), '7:24 pm');
   assert.equal(clockWords(0.5), '12:30 am');
   assert.equal(introLine({ descent: 'unknown' }), null);
@@ -275,7 +372,36 @@ test('the opening GEO view looks at the belt from off the equator, so it is a ti
   const stop = createDescentPlanner({ region: sydney }).next(fullData());
   assert.equal(stop.descent, 'geo');
   const tilt = Math.abs(stop.view.lat);
-  assert.ok(tilt >= 15 && tilt <= 30, `viewed ${tilt} deg off the equatorial plane`);
+  assert.ok(
+    tilt >= 15 && tilt <= 30,
+    `viewed ${tilt} deg off the equatorial plane`,
+  );
   assert.ok(stop.view.lat < 0, 'on the day region (Sydney) side');
   assert.equal(stop.view.pitchDeg, -90);
+});
+
+test('the street stop picks a city square with four cameras close together', async () => {
+  const { pickCameraSquare } = await import('./descent.js');
+  const centre = { lat: 51.0447, lon: -114.0719 };
+  const at = (dLat, dLon, extra = {}) => ({
+    id: `c${dLat}_${dLon}`,
+    lat: centre.lat + dLat,
+    lon: centre.lon + dLon,
+    ...extra,
+  });
+  const lone = at(-0.05, 0.05);
+  const square = [
+    at(0.001, 0),
+    at(0, 0.002),
+    at(-0.002, 0.001),
+    at(0.002, -0.002),
+  ];
+  const picked = pickCameraSquare([lone, ...square], centre);
+  assert.ok(picked, 'a square is found');
+  assert.ok(picked.length >= 4);
+  assert.ok(
+    !picked.includes(lone),
+    'the lone camera is not part of the square',
+  );
+  assert.equal(pickCameraSquare([lone, at(0.3, 0.3)], centre), null);
 });

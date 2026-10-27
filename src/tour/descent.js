@@ -250,6 +250,46 @@ function pickStreetCamera(cameras, center) {
   return nearest(pool, center.lat, center.lon);
 }
 
+const hasVideo = (c) => ['hls', 'mp4', 'webm'].includes(c.feedType);
+
+/**
+ * The busiest city square near `center`: the camera with the most other
+ * cameras within rules.squareRadiusKm (live video counts double), then the
+ * nearest of those. Returns that camera first and its neighbours nearest
+ * first, or null when no square has rules.squareCameras cameras.
+ */
+export function pickCameraSquare(cameras, center, rules = DESCENT_RULES) {
+  const pool = cameras.filter(
+    (c) =>
+      distanceKm(center.lat, center.lon, c.lat, c.lon) <=
+      rules.streetVideoRadiusKm,
+  );
+  let best = null;
+  for (const c of pool) {
+    const near = pool.filter(
+      (o) =>
+        o !== c &&
+        distanceKm(c.lat, c.lon, o.lat, o.lon) <= rules.squareRadiusKm,
+    );
+    if (near.length + 1 < rules.squareCameras) continue;
+    const score =
+      near.length + near.filter(hasVideo).length + (hasVideo(c) ? 1 : 0);
+    const fromCentre = distanceKm(center.lat, center.lon, c.lat, c.lon);
+    if (
+      !best ||
+      score > best.score ||
+      (score === best.score && fromCentre < best.fromCentre)
+    )
+      best = { c, near, score, fromCentre };
+  }
+  if (!best) return null;
+  const others = best.near
+    .map((o) => ({ o, km: distanceKm(best.c.lat, best.c.lon, o.lat, o.lon) }))
+    .sort((a, b) => a.km - b.km)
+    .map((x) => x.o);
+  return [best.c, ...others];
+}
+
 /**
  * @param {{region?: object, nightRegion?: object|null, now?: number,
  *   rules?: object}} [options]
@@ -458,9 +498,16 @@ export function createDescentPlanner({
     street(data) {
       const cameras = (data.cameras || []).filter(placed);
       if (!cameras.length) return DESCENT_WAIT;
-      const camera = pickStreetCamera(cameras, region);
+      const square = pickCameraSquare(cameras, region, rules);
+      const camera = square ? square[0] : pickStreetCamera(cameras, region);
       streetCamera = camera;
-      return cameraStop('street', camera, true);
+      const stopped = cameraStop('street', camera, true);
+      if (square && square.length >= rules.squareCameras) {
+        for (const c of square) visitedCameras.add(c.id);
+        stopped.square = square.slice(0, rules.squareCameras);
+        stopped.dwellS += rules.squareExtraDwellS;
+      }
+      return stopped;
     },
 
     nightCity() {

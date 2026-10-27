@@ -44,6 +44,7 @@ import {
   pulseFrame,
 } from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
+import { createCameraWall } from './cameraWall.js';
 import { AIRPORT_PROFILES } from '../airports/profiles.js';
 
 const RENDER_HOLD = 'tour-orbit';
@@ -126,6 +127,10 @@ export function createTourController({
       ?.module?.getCatalogSatrecs?.()
       ?.find((s) => s.noradId === noradId)?.satrec || null;
   const space = createSpaceOverlay({ viewer, satrecFor });
+  // The street stop's city square: four live cameras on screen at once.
+  const wall = createCameraWall({
+    cameras: () => dataManager.layers?.get?.('cctv')?.module || null,
+  });
   let descent = null;
   let regionStaged = { aircraft: [], at: 0 };
   // Street cameras the descent switched on are switched off again when it
@@ -1017,6 +1022,7 @@ export function createTourController({
       // and aircraft have moved since (the ISS by ~100 km). Re-aim at the
       // live position just before the flight so it arrives centred.
       refreshTarget(next);
+      wall.hide();
       onFocus?.(null);
       onTravel?.('depart', next.view, focusOf(next));
       // A real flight preloads its own destination from here on.
@@ -1059,6 +1065,7 @@ export function createTourController({
       arrivalHeld = null;
       warmer.arrived(stopLabel(next), upcomingView);
       onFocus?.(focusOf(next));
+      if (next.square) wall.show(next.square, { place: next.camera?.city });
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);
         airport.update(profile, airportFlights());
@@ -1155,6 +1162,7 @@ export function createTourController({
     space.clear();
     descentAhead = null;
     descentAheadStop = null;
+    wall.hide();
     narrator.stop();
     stopOrbit();
     clearMarker();

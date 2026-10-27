@@ -2969,3 +2969,115 @@ body[data-gev-drawer='wide'] {
   margin: 0;
   align-self: stretch;
 }
+
+/* ── Camera wall: four live cameras of one city square (Director street stop) */
+.gev-wall {
+  position: fixed;
+  top: 190px;
+  right: 20px;
+  z-index: 40;
+  width: min(640px, 44vw);
+  padding: 10px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: gev-wall-in 0.5s ease both;
+}
+.gev-wall__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font:
+    600 11px/1 'JetBrains Mono',
+    ui-monospace,
+    monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e6eef2;
+  padding: 2px 4px;
+}
+.gev-wall__feed {
+  color: #4fd99a;
+  border: 1px solid rgba(79, 217, 154, 0.5);
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+.gev-wall__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.gev-wall__tile {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0b0d10;
+}
+.gev-wall__tile img,
+.gev-wall__tile video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gev-wall__badge {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  z-index: 2;
+  font:
+    700 9px/1 'JetBrains Mono',
+    ui-monospace,
+    monospace;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  padding: 3px 5px;
+}
+.gev-wall__tile figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 14px 8px 6px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.75), transparent);
+  font-size: 11px;
+  color: #f2f4f5;
+}
+.gev-wall__tile figcaption b {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gev-wall__tile figcaption span {
+  color: #b8c4cc;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@keyframes gev-wall-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@media (max-width: 900px) {
+  .gev-wall {
+    top: auto;
+    bottom: 180px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+  }
+}

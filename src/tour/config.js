@@ -234,6 +234,14 @@ export const DESCENT_RULES = Object.freeze({
   videoBonusH: 3,
   /** The street step prefers a camera with live video within this radius. */
   streetVideoRadiusKm: 25,
+  /** The street stop is a city square: at least this many live public
+   * cameras within squareRadiusKm of one another, shown together on screen
+   * (Pierre, 28 Oct: "a town square ... at least 4 live public cameras ...
+   * show 4 live cameras on screen"). */
+  squareCameras: 4,
+  squareRadiusKm: 0.9,
+  /** Extra seconds at a square so the viewer can watch the four feeds. */
+  squareExtraDwellS: 10,
   /** The night street is a camera within this distance of the night city. */
   nightCameraMaxKm: 60,
   /** Cruise band for the "airliner near 40,000 ft" step (metres, barometric). */
