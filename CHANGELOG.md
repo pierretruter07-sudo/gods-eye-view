@@ -6,6 +6,11 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 ## [Unreleased] – audit readiness (2026-10-14)
 
 ### Added
+- **DDG loading screen** (Pierre, 27 Oct). The intro now hands over after
+  3.4 s to a loading screen in the same style: the DDG mark with a progress
+  bar and percentage that follow the boot's stages (viewer, tiles, systems,
+  planet) and complete only when the world is ready. The intro's stylesheet,
+  missing from the first merge, is included (GEV-DIR-034).
 - **DDG intro** (Pierre, 27 Oct). On the first load of a browser session the
   5 s DDG brand animation plays on a dark-grey ground above the loading
   screen while the globe loads, the same intro as DDG Greenlight. Skip ends

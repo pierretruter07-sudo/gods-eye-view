@@ -21,10 +21,14 @@
   <!-- Start-up loading screen (faded by src/app/startupChrome.js). -->
   <div id="loading-screen">
     <div class="loader-content">
-      <span class="loader-logo brand-logo" data-logo-gaze data-logo-src="/logo.svg" aria-hidden="true"><img src="/logo.svg" alt="" /></span>
-      <h2>GOD'S EYE <span class="title-accent">VIEW</span></h2>
+      <img class="loader-mark" src="/brand/ddg-mark-512.png" alt="" width="240" height="240" />
+      <div class="loader-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Loading God's Eye View"><i></i></div>
+      <div class="loader-pct" aria-hidden="true">0%</div>
       <p class="loader-status">Initializing world…</p>
+      <h2>GOD'S EYE <span class="title-accent">VIEW</span></h2>
     </div>
+  </div>
+
   </div>
 
   <!-- The globe (Cesium) and the world-overlay label host above it. -->

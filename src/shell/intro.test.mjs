@@ -15,9 +15,10 @@ test('the DDG intro plays once per session and ?nointro or reduced motion skip i
   assert.equal(shouldPlayIntro({ reducedMotion: true }), false);
 });
 
-test('the DDG intro is the 5 s brand animation, transparent first, never longer than 6 s', () => {
-  assert.equal(INTRO_SECONDS, 5);
-  assert.equal(INTRO_LIMIT_MS, 6000);
+test('the DDG intro hands over to the progress bar after 3.4 s, transparent first, never holds past 4.2 s', () => {
+  assert.equal(INTRO_SECONDS, 3.4);
+  assert.equal(INTRO_LIMIT_MS, 4200);
+  assert.ok(INTRO_LIMIT_MS > INTRO_SECONDS * 1000);
   assert.deepEqual(
     INTRO_SOURCES.map((s) => s.src),
     ['/brand/intro.webm', '/brand/intro.mp4'],
