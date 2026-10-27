@@ -155,12 +155,23 @@ export function solarHour(lon, now) {
   return (((utcH + lon / 15) % 24) + 24) % 24;
 }
 
-/** The region whose local solar time is closest to early afternoon. */
-export function pickDescentRegion(now, regions = DESCENT_REGIONS) {
+/**
+ * The region whose local solar time is closest to early afternoon. Scenic
+ * regions (mountains, coast, water: region.scenicBonusH) count as that many
+ * hours closer while it is daytime there (Pierre, 28 Oct: "whenever we can
+ * show the viewer views that are beautiful ... prioritize that").
+ */
+export function pickDescentRegion(
+  now,
+  regions = DESCENT_REGIONS,
+  rules = DESCENT_RULES,
+) {
   let best = null;
   let bestScore = Infinity;
   for (const region of regions) {
-    const score = Math.abs(solarHour(region.lon, now) - 12.5);
+    const h = solarHour(region.lon, now);
+    const day = h >= rules.scenicFromH && h <= rules.scenicToH;
+    const score = Math.abs(h - 12.5) - (day ? region.scenicBonusH || 0 : 0);
     if (score < bestScore) {
       best = region;
       bestScore = score;
@@ -216,6 +227,26 @@ function nearest(list, lat, lon) {
   let bestKm = Infinity;
   for (const item of list) {
     const km = distanceKm(lat, lon, item.lat, item.lon);
+    if (km < bestKm) {
+      best = item;
+      bestKm = km;
+    }
+  }
+  return best;
+}
+
+/**
+ * The item nearest the region's scenery (its scenic points, else its
+ * centre): an airliner over the mountains, a ship in the sound.
+ */
+function nearestScenic(list, region) {
+  const points = region.scenic?.length ? region.scenic : [region];
+  let best = null;
+  let bestKm = Infinity;
+  for (const p of points) {
+    const item = nearest(list, p.lat, p.lon);
+    if (!item) continue;
+    const km = distanceKm(p.lat, p.lon, item.lat, item.lon);
     if (km < bestKm) {
       best = item;
       bestKm = km;
@@ -437,7 +468,7 @@ export function createDescentPlanner({
           !NOT_CRUISERS.has(a.aircraftClass) &&
           !isHelicopter(a),
       );
-      const a = nearest(cruising, region.lat, region.lon);
+      const a = nearestScenic(cruising, region);
       if (!a) return null;
       return aircraftStop(
         'cruise',
@@ -463,7 +494,7 @@ export function createDescentPlanner({
       const candidates = helicopter
         ? helis
         : pool.filter(isLight).filter(airborneBelow(rules.lightMaxM));
-      const a = nearest(candidates, region.lat, region.lon);
+      const a = nearestScenic(candidates, region);
       if (!a) return null;
       const low = aircraftStop(
         'low',
@@ -482,10 +513,9 @@ export function createDescentPlanner({
       const underWay = vessels.filter(
         (v) => finite(v.speedKts) && v.speedKts >= rules.shipMinKts,
       );
-      const vessel = nearest(
+      const vessel = nearestScenic(
         underWay.length ? underWay : vessels,
-        region.lat,
-        region.lon,
+        region,
       );
       if (!vessel) return null;
       return stop(
@@ -526,7 +556,23 @@ export function createDescentPlanner({
     street(data) {
       const cameras = (data.cameras || []).filter(placed);
       if (!cameras.length) return DESCENT_WAIT;
-      const square = pickCameraSquare(cameras, region, rules);
+      // Four live VIDEO cameras when any city has a square of them (Pierre,
+      // 28 Oct: "four live video cameras, not four live stills"): the day
+      // region first, then the live-video cities; stills only otherwise.
+      const video = cameras.filter((c) => c.feedType === 'hls');
+      const videoRules = {
+        ...rules,
+        squareRadiusKm: rules.videoSquareRadiusKm,
+      };
+      let square = null;
+      for (const at of [
+        region,
+        ...DESCENT_REGIONS.filter((r) => r.liveVideo && r.id !== region.id),
+      ]) {
+        square = video.length ? pickCameraSquare(video, at, videoRules) : null;
+        if (square) break;
+      }
+      square ??= pickCameraSquare(cameras, region, rules);
       const camera = square ? square[0] : pickStreetCamera(cameras, region);
       streetCamera = camera;
       const stopped = cameraStop('street', camera, true);
@@ -588,6 +634,29 @@ export function createDescentPlanner({
   return {
     region,
     nightRegion,
+    /**
+     * The next `count` stops as they would be chosen from `data` now,
+     * without moving on (Pierre, 28 Oct: the Director should know where it
+     * is going and load those places' map tiles before it gets there). A
+     * copy of this planner is run forward; this one is untouched.
+     */
+    preview(data, count = 2) {
+      const shadow = createDescentPlanner({ region, nightRegion, now, rules });
+      shadow._seed({ index, streetCamera, visited: visitedCameras });
+      const out = [];
+      while (out.length < count && !shadow.isDone()) {
+        const s = shadow.next(data);
+        if (!s || s === DESCENT_WAIT) break;
+        out.push(s);
+      }
+      return out;
+    },
+    /** @private Copy another planner's position (for preview()). */
+    _seed(from) {
+      index = from.index;
+      streetCamera = from.streetCamera;
+      for (const id of from.visited) visitedCameras.add(id);
+    },
     /** The step the next call to next() will try, or null when finished. */
     peekStep: () => DESCENT_STEPS[index] ?? null,
     isDone: () => index >= DESCENT_STEPS.length,

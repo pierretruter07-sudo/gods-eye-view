@@ -181,6 +181,12 @@ export const DESCENT_REGIONS = Object.freeze(
       lat: -33.8688,
       lon: 151.2093,
       groundM: 20,
+      scenicBonusH: 1.5,
+      // The harbour heads, the Blue Mountains escarpment.
+      scenic: [
+        { lat: -33.83, lon: 151.28 },
+        { lat: -33.72, lon: 150.31 },
+      ],
     },
     { id: 'london', label: 'London', lat: 51.5074, lon: -0.1278, groundM: 20 },
     {
@@ -189,6 +195,8 @@ export const DESCENT_REGIONS = Object.freeze(
       lat: 60.1699,
       lon: 24.9384,
       groundM: 20,
+      // The archipelago off the city.
+      scenic: [{ lat: 60.1, lon: 25.0 }],
     },
     {
       id: 'vancouver',
@@ -196,6 +204,13 @@ export const DESCENT_REGIONS = Object.freeze(
       lat: 49.2827,
       lon: -123.1207,
       groundM: 10,
+      scenicBonusH: 2,
+      // North Shore mountains, Howe Sound, Indian Arm.
+      scenic: [
+        { lat: 49.38, lon: -123.08 },
+        { lat: 49.55, lon: -123.25 },
+        { lat: 49.36, lon: -122.9 },
+      ],
     },
     {
       id: 'calgary',
@@ -203,6 +218,12 @@ export const DESCENT_REGIONS = Object.freeze(
       lat: 51.0447,
       lon: -114.0719,
       groundM: 1080,
+      scenicBonusH: 2,
+      // The Rockies: Banff and Kananaskis.
+      scenic: [
+        { lat: 51.18, lon: -115.57 },
+        { lat: 50.9, lon: -115.1 },
+      ],
     },
     {
       // Iowa DOT: live HLS video (CC BY 4.0).
@@ -219,6 +240,11 @@ export const DESCENT_REGIONS = Object.freeze(
       lat: 43.6532,
       lon: -79.3832,
       groundM: 90,
+      // The lake shore and Niagara.
+      scenic: [
+        { lat: 43.63, lon: -79.4 },
+        { lat: 43.08, lon: -79.07 },
+      ],
     },
   ].map((r) => Object.freeze(r)),
 );
@@ -245,6 +271,14 @@ export const DESCENT_RULES = Object.freeze({
   squareCentreKm: 3,
   /** Extra seconds at a square so the viewer can watch the four feeds. */
   squareExtraDwellS: 10,
+  /** Live-video squares (Pierre, 28 Oct: "four live video cameras, not four
+   * live stills"): video cameras are spread wider than city stills, so the
+   * four may be this far apart. */
+  videoSquareRadiusKm: 1.6,
+  /** Scenic regions (mountains, coast, water) win the day pick by up to
+   * this many hours, while it is daytime there (8 am to 5 pm). */
+  scenicFromH: 8,
+  scenicToH: 17,
   /** The night street is a camera within this distance of the night city. */
   nightCameraMaxKm: 60,
   /** Cruise band for the "airliner near 40,000 ft" step (metres, barometric). */

@@ -2,7 +2,9 @@
 import { randomUUID } from 'node:crypto';
 
 export const HLS_LIMITS = Object.freeze({
-  sessions: 2,
+  // Four live feeds on the street stop's camera wall, plus a camera the
+  // viewer opens themselves (Pierre, 28 Oct: four live video cameras).
+  sessions: 6,
   leasesPerSession: 8,
   playlistBytes: 256 * 1024,
   segmentBytes: 4 * 1024 * 1024,

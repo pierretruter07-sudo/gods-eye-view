@@ -70,8 +70,18 @@ const SCRIPT = {
   ground: (stop) =>
     `Now on the ground. ${clause(groundLine(stop.aircraft, { vehicle: stop.vehicle ?? 'service' }))}. Ground vehicles, ships, aircraft and satellites all sit together in one live picture.`,
 
-  street: (stop) =>
-    `And finally, street level: ${stop.camera.name || 'a street camera'}, ${cameraPhrase(stop.camera)}. From orbit to the street, all from public data.`,
+  street: (stop) => {
+    const sq = stop.square;
+    if (sq?.length >= 4) {
+      const live = sq.every((c) => c.feedType === 'hls');
+      const place = stop.camera.city ? ` in ${stop.camera.city}` : '';
+      const who = stop.camera.provider ? `, from ${stop.camera.provider}` : '';
+      return live
+        ? `And finally, street level${place}: four live video cameras at once${who}, playing as it happens. From orbit to the street, all from public data.`
+        : `And finally, street level${place}: four live public cameras at once${who}. From orbit to the street, all from public data.`;
+    }
+    return `And finally, street level: ${stop.camera.name || 'a street camera'}, ${cameraPhrase(stop.camera)}. From orbit to the street, all from public data.`;
+  },
 
   nightCity: (stop, { hour }) =>
     `Now the other half of the planet: the night side, where it's around ${clockWords(hour)} in ${stop.region.label}. The city lights come from NASA's night-time satellite imagery, and the line between day and night follows the real sun.`,

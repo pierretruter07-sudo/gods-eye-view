@@ -7,6 +7,27 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 
 ### Added
 
+- **Four live video cameras, down the screen edges** (Pierre, 28 Oct). The
+  street stop now picks a square of four live video cameras (HLS, Iowa DOT
+  in Des Moines today) whenever one exists, before falling back to stills,
+  and plays them two down each side of the screen in place of the asset
+  cards, so the street in the centre stays clear. The server relay carries
+  up to six live streams at once (was two).
+- **Map tiles loaded two stops ahead** (Pierre, 28 Oct). The introduction
+  works out its route from the live data as it starts and keeps it current;
+  while at one stop, the Google tiles of the next two are loaded from every
+  side (the Director circles each subject), each view held until its tiles
+  are in.
+- **Scenic first** (Pierre, 28 Oct). Mountain and coast regions (Vancouver,
+  Calgary for the Rockies, Sydney) win the day pick while it is daytime
+  there, and the airliner, the low flyer and the ship are chosen over the
+  scenery rather than the city centre.
+- **Focus and orbit, and a controls panel** (Pierre, 28 Oct). Clicking an
+  asset frames it and lets the viewer orbit it with a left drag, damped and
+  without any automatic spin; Esc, H or a pan lets go. New keys: F frame
+  the selected asset, N north, U straight down, H whole planet, Z/X or
+  Shift + arrows tilt; double-click flies in. A slim panel down the left
+  edge lists the controls and carries a compass (press it to face north).
 - **Four live cameras at street level** (Pierre, 28 Oct). The Director's
   street stop flies to the busiest city square near the descent region (at
   least four public cameras within 0.9 km, live video preferred) and shows
@@ -67,6 +88,17 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
 
 ### Fixed
 
+- **The tracked subject stays on screen** (Pierre, 28 Oct). An aircraft the
+  live layer is not drawing was shown by a stand-in icon that flew on while
+  the camera circled the old position; the camera now follows the stand-in,
+  which is drawn like any aircraft icon (its cyan glass halo read as a stray
+  shape stuck on screen) and checked once a second, so it never flickers in
+  beside the real icon. Starting the Director also ends any follow the
+  viewer had on an aircraft or satellite.
+- **No voice in the background** (Pierre, 28 Oct). The Director and the
+  briefings never speak while the page is hidden, and hiding, leaving or
+  closing the page cancels speech at once (the voice belongs to the
+  operating system and could keep talking after the tab was gone).
 - **Leader lines meet the asset; assets sit on the surface** (Pierre, 28 Oct).
   - The asset end of each leader line is re-projected every frame from where
     the asset is drawn: an aircraft's 3D model when one is showing (a parked

@@ -50,6 +50,36 @@ export const REAIM_MS = 1000;
 export const SETTLE_MAX_MS = 8000;
 /** No tile requests in flight for this long counts as loaded. */
 const SETTLE_QUIET_MS = 500;
+/** Look-ahead sweep: each aim is held until its tile requests are done
+ * (quiet this long) or this long at most, then the next aim is taken. A
+ * shorter hold cancels its own requests: Cesium drops requests for tiles
+ * no pass asked for in the last frame. */
+export const SWEEP_QUIET_MS = 400;
+export const SWEEP_HOLD_MAX_MS = 4000;
+/** Headings each upcoming stop is warmed from: the Director circles every
+ * subject, so all four sides of it are seen during the dwell. */
+export const SWEEP_TURNS_DEG = Object.freeze([0, 90, 180, 270]);
+
+/**
+ * The order the look-ahead sweep aims in, for up to two upcoming stops:
+ * the next stop's arrival view first, then the one after's, then the rest
+ * of the next stop's sides before the rest of the second's. Returns
+ * [{target, turnDeg}] (target = index into the list).
+ */
+export function sweepPlan(count, turns = SWEEP_TURNS_DEG) {
+  if (count <= 0) return [];
+  if (count === 1) return turns.map((turnDeg) => ({ target: 0, turnDeg }));
+  const [first, ...rest] = turns;
+  const out = [
+    { target: 0, turnDeg: first },
+    { target: 1, turnDeg: first },
+  ];
+  for (const t of rest) out.push({ target: 0, turnDeg: t });
+  for (const t of rest) out.push({ target: 1, turnDeg: t });
+  for (let i = 2; i < count; i += 1)
+    for (const turnDeg of turns) out.push({ target: i, turnDeg });
+  return out;
+}
 
 /** Every loaded 3D tileset in the scene (Google's, in practice). */
 export function sceneTilesets(viewer) {
@@ -177,10 +207,93 @@ export function createTileWarmer({
     return true;
   }
 
+  // ── Look-ahead: the next two stops, all sides ─────────────────────────
+  let ahead = null; // { key, targets, plan, step, since, quietSince }
+  let sweepTimer = 0;
+
+  function aimSweep() {
+    if (!ahead) return;
+    const { target: index, turnDeg } =
+      ahead.plan[ahead.step % ahead.plan.length];
+    const t = ahead.targets[index];
+    const base = Number.isFinite(t.headingDeg)
+      ? t.headingDeg
+      : (camera.heading * 180) / Math.PI;
+    try {
+      aim(target(t), base + turnDeg);
+    } catch {
+      /* viewer torn down */
+    }
+    ahead.since = now();
+    ahead.quietSince = null;
+  }
+
+  /**
+   * Keep loading the tiles of the next stops (Pierre, 28 Oct: "preload the
+   * Google Tiles for the next two steps before we get there"). `list` is
+   * [{view, label, headingDeg, locate}], nearest first; the warmer works
+   * through each stop's arrival view and then its other sides, holding each
+   * aim until its tiles are in, and keeps cycling (cached tiles come back
+   * quiet at once) until the list changes or a flight starts.
+   */
+  function warmAhead(list) {
+    if (!on) return false;
+    const targets = (list || []).filter((t) => t && warmable(t.view));
+    if (!targets.length) return false;
+    const key = targets.map((t) => t.label).join('|');
+    if (ahead?.key === key && warming) {
+      ahead.targets = targets; // fresh views and locate functions
+      return true;
+    }
+    if (!scene.preloadFlightCamera) return false;
+    clearInterval(reaimTimer);
+    reaimTimer = 0;
+    clearInterval(sweepTimer);
+    const first = targets[0];
+    warming = {
+      label: first.label,
+      view: first.view,
+      since: now(),
+      headingDeg: first.headingDeg ?? null,
+      locate: first.locate ?? null,
+    };
+    camera.canPreloadFlight = () => true;
+    ahead = { key, targets, plan: sweepPlan(targets.length), step: 0 };
+    aimSweep();
+    sweepTimer = every(() => {
+      if (!ahead) return;
+      const t = now();
+      if (pendingTiles() === 0) {
+        ahead.quietSince ??= t;
+        if (t - ahead.quietSince < SWEEP_QUIET_MS) return;
+      } else {
+        ahead.quietSince = null;
+        if (t - ahead.since < SWEEP_HOLD_MAX_MS) return;
+      }
+      ahead.step += 1;
+      aimSweep();
+    }, POLL_MS);
+    return true;
+  }
+
+  /** Stop the sweep and hold the preload camera on one stop's arrival. */
+  function focusArrival(label) {
+    const t = ahead?.targets?.find((x) => x.label === label);
+    clearInterval(sweepTimer);
+    sweepTimer = 0;
+    ahead = null;
+    if (!t) return false;
+    warm(t.view, t.label, { headingDeg: t.headingDeg, locate: t.locate });
+    return true;
+  }
+
   /** Hand back to Cesium (a real flight, or the tour ending). */
   function stop() {
     clearTimeout(timer);
     clearInterval(reaimTimer);
+    clearInterval(sweepTimer);
+    sweepTimer = 0;
+    ahead = null;
     timer = 0;
     reaimTimer = 0;
     lastWarmed = warming ? warming.label : null;
@@ -218,10 +331,16 @@ export function createTileWarmer({
         entry.loadedAfterMs = waited;
       const settled = entry.loadedAfterMs != null;
       if (settled || waited >= WARM_AFTER_ARRIVAL_MS) {
-        // Re-aimed if the queued stop changes (an empty airport replaced).
+        // Re-aimed if the upcoming stops change (an empty airport replaced,
+        // a fresh alert queued). `next` gives one stop or a list of them.
         const n = typeof next === 'function' ? next() : null;
-        if (n && warming?.label !== n.label)
-          warm(n.view, n.label, { headingDeg: n.headingDeg, locate: n.locate });
+        const list = Array.isArray(n) ? n : n ? [n] : [];
+        if (list.length > 1) warmAhead(list);
+        else if (list.length && warming?.label !== list[0].label)
+          warm(list[0].view, list[0].label, {
+            headingDeg: list[0].headingDeg,
+            locate: list[0].locate,
+          });
       }
       // Fast at first, then once a second until departure, so a fresh
       // alert queued late in a long dwell is warmed too.
@@ -262,6 +381,8 @@ export function createTileWarmer({
       lastHold = { label, heldMs: 0 };
       return { waitedMs: 0, settled: false };
     }
+    // Leaving now: the preload camera holds on this stop's arrival view.
+    if (ahead) focusArrival(label);
     let quietSince = null;
     for (;;) {
       const t = now();
@@ -346,6 +467,7 @@ export function createTileWarmer({
 
   return {
     warm,
+    warmAhead,
     stop,
     arrived,
     settle,
@@ -361,6 +483,12 @@ export function createTileWarmer({
             label: warming.label,
             headingDeg: warming.headingDeg,
             at: target(warming),
+            ahead: ahead
+              ? {
+                  stops: ahead.targets.map((t) => t.label),
+                  step: ahead.step,
+                }
+              : null,
           }
         : null,
     setEnabled(value) {

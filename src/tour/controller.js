@@ -20,7 +20,7 @@ import {
 import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
-import { createTileWarmer } from './tileWarmer.js';
+import { createTileWarmer, warmable } from './tileWarmer.js';
 import {
   arrivalHeadingDeg,
   flightSeconds,
@@ -38,16 +38,17 @@ import {
   isGeoSatellite,
   satrecPosition,
 } from './spaceOverlay.js';
-import {
-  frostedSphereSprite,
-  glassSphereSprite,
-  pulseFrame,
-} from './pulseGraphics.js';
+import { frostedSphereSprite, pulseFrame } from './pulseGraphics.js';
 import { createAirportOverlay } from '../airports/overlay.js';
 import { createCameraWall } from './cameraWall.js';
 import { AIRPORT_PROFILES } from '../airports/profiles.js';
 
 const RENDER_HOLD = 'tour-orbit';
+/** How many stops ahead have their Google tiles loaded (Pierre, 28 Oct:
+ * "preload the Google Tiles for the next two steps before we get there"). */
+export const TILE_LOOKAHEAD = 2;
+/** How often the introduction's route ahead is worked out again (ms). */
+const PREVIEW_EVERY_MS = 3000;
 
 /** A short, stable name for a stop (tile log and warm-up matching). */
 export function stopLabel(stop) {
@@ -144,7 +145,6 @@ export function createTourController({
   let marker = null;
   // The Director's own icon for a subject the live layer is not drawing.
   let standIn = null;
-  let standInHalo = null;
   // Where the camera is aimed now (it follows a moving subject), so the
   // next hop starts from the subject's real position.
   let lastAim = null;
@@ -179,9 +179,7 @@ export function createTourController({
     for (const e of marker || []) viewer.entities.remove(e);
     marker = null;
     if (standIn) viewer.entities.remove(standIn);
-    if (standInHalo) viewer.entities.remove(standInHalo);
     standIn = null;
-    standInHalo = null;
   }
 
   /**
@@ -289,20 +287,14 @@ export function createTourController({
   }
 
   /**
-   * An aircraft or ground vehicle the live layer is not drawing (Pierre, 20
-   * Oct: the ground vehicle stop showed nothing) gets the Director's own
-   * icon at its reported position, carried forward on its reported course
-   * and speed. Hidden whenever the layer draws the real icon.
+   * Where an aircraft the live layer is not drawing is now: its reported
+   * position at departure, carried forward on its reported course and speed.
+   * Null for a stop without an aircraft.
+   * @returns {((result?: object) => object)|null}
    */
-  function showStandIn(stop, follow) {
+  function deadReckoner(stop) {
     const a = stop.aircraft;
-    if (!a || !Number.isFinite(stop.view?.lat)) return;
-    const kind =
-      stop.vehicle || surfaceVehicle(a)
-        ? 'vehicle'
-        : isHelicopter(a)
-          ? 'helicopter'
-          : 'airliner';
+    if (!a || !Number.isFinite(stop.view?.lat)) return null;
     const start = Cesium.Cartesian3.fromDegrees(
       stop.view.lon,
       stop.view.lat,
@@ -315,12 +307,7 @@ export function createTourController({
     const frame = Cesium.Transforms.eastNorthUpToFixedFrame(start);
     const startedAt = performance.now();
     const step = new Cesium.Cartesian3();
-    const probe = new Cesium.Cartesian3();
-    const shown = new Cesium.CallbackProperty(
-      () => !(follow && follow(probe)),
-      false,
-    );
-    const where = new Cesium.CallbackProperty((time, result) => {
+    const at = (result) => {
       const d = (mps * (performance.now() - startedAt)) / 1000;
       step.x = Math.sin(headingRad) * d;
       step.y = Math.cos(headingRad) * d;
@@ -331,34 +318,69 @@ export function createTourController({
         step,
         result ?? new Cesium.Cartesian3(),
       );
+    };
+    at.headingRad = headingRad;
+    return at;
+  }
+
+  /**
+   * The subject the camera follows: where the live layer draws it, else
+   * where it is reckoned to be (Pierre, 28 Oct: the helicopter "flew off
+   * screen to the left" — the camera circled its old position while its
+   * stand-in icon flew on).
+   */
+  function followOf(live, reckon) {
+    if (!reckon) return live;
+    return (result) => (live && live(result)) || reckon(result);
+  }
+
+  /**
+   * An aircraft or ground vehicle the live layer is not drawing (Pierre, 20
+   * Oct: the ground vehicle stop showed nothing) gets the Director's own
+   * icon at its reckoned position, drawn like every other aircraft icon (a
+   * cyan glass halo read as a stray shape on screen, 28 Oct). Whether the
+   * layer draws it is checked once a second, not every frame, and once the
+   * layer has it the stand-in goes for good, so it never flickers in beside
+   * the real icon.
+   */
+  function showStandIn(stop, live, reckon) {
+    const a = stop.aircraft;
+    if (!a || !reckon) return;
+    const kind =
+      stop.vehicle || surfaceVehicle(a)
+        ? 'vehicle'
+        : isHelicopter(a)
+          ? 'helicopter'
+          : 'airliner';
+    const probe = new Cesium.Cartesian3();
+    let drawnByLayer = Boolean(live && live(probe));
+    let checkedAt = performance.now();
+    const shown = new Cesium.CallbackProperty(() => {
+      const t = performance.now();
+      if (!drawnByLayer && t - checkedAt > 1000) {
+        checkedAt = t;
+        drawnByLayer = Boolean(live && live(probe));
+      }
+      return !drawnByLayer;
     }, false);
-    // A soft glass halo under the icon, so it reads at a glance (Replit's
-    // check, 20 Oct: a small white icon alone was hard to make out).
-    standInHalo = viewer.entities.add({
-      position: where,
-      billboard: {
-        image: glassSphereSprite('#64d2ff'),
-        width: 84,
-        height: 84,
-        color: Cesium.Color.WHITE.withAlpha(0.7),
-        show: shown,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      },
-    });
+    const where = new Cesium.CallbackProperty(
+      (time, result) => reckon(result),
+      false,
+    );
     standIn = viewer.entities.add({
       position: where,
       billboard: {
-        // Raster tier for 56 CSS px on this screen (crisp on 1× to 3×).
+        // Raster tier for 44 CSS px on this screen (crisp on 1× to 3×).
         image: aircraftIcon(
           kind,
-          iconTierPx(56 * Math.min(3, globalThis.devicePixelRatio || 1), 128),
+          iconTierPx(44 * Math.min(3, globalThis.devicePixelRatio || 1), 128),
         ),
-        width: 56,
-        height: 56,
-        color: Cesium.Color.fromCssColorString('#8fe3ff'),
+        width: 44,
+        height: 44,
+        color: Cesium.Color.WHITE,
         // Icons are drawn nose up: turn to the course, relative to the view.
         rotation: new Cesium.CallbackProperty(
-          () => viewer.camera.heading - headingRad,
+          () => viewer.camera.heading - reckon.headingRad,
           false,
         ),
         show: shown,
@@ -938,7 +960,7 @@ export function createTourController({
    * instead of the camera arriving to a blur.
    */
   let freshCheckedAt = 0;
-  function upcomingView() {
+  function upcomingViews() {
     // Ranking incidents walks every flight: at most once a second.
     if (
       !descentAhead &&
@@ -948,15 +970,43 @@ export function createTourController({
       freshCheckedAt = Date.now();
       queue.preferFresh();
     }
-    const stop = descentAhead ? descentAheadStop : queue.peek();
-    if (!stop?.view) return null;
-    return {
+    const toWarm = (stop) => ({
       view: stop.view,
       label: stopLabel(stop),
       headingDeg: arrivalHeading(stop),
       locate: arrivalLocate(stop, () => HOP_S + 1),
-    };
+    });
+    const inDescent =
+      Boolean(descentAhead) || Boolean(descent && !descent.isDone());
+    if (!inDescent) {
+      const stop = queue.peek();
+      return stop?.view ? [toWarm(stop)] : [];
+    }
+    // The introduction knows its whole route: the step being prepared, then
+    // the ones after it, as they would be chosen from the live data now.
+    const list = [];
+    if (descentAheadStop?.view) list.push(descentAheadStop);
+    if (descent && !descent.isDone()) {
+      if (Date.now() - preview.at > PREVIEW_EVERY_MS) {
+        try {
+          preview = {
+            at: Date.now(),
+            stops: descent.preview(descentData(), 3),
+          };
+        } catch {
+          preview = { at: Date.now(), stops: [] };
+        }
+      }
+      for (const s of preview.stops)
+        if (!list.some((x) => stopLabel(x) === stopLabel(s))) list.push(s);
+    }
+    return list
+      .filter((s) => warmable(s.view))
+      .slice(0, TILE_LOOKAHEAD)
+      .map(toWarm);
   }
+  /** Introduction steps worked out ahead, refreshed every few seconds. */
+  let preview = { at: 0, stops: [] };
 
   /**
    * The opening descent runs start to finish first, ahead of incidents;
@@ -1036,13 +1086,15 @@ export function createTourController({
       // Flights are always shown in the normal look.
       sensorLook.set(null);
       space.clear();
-      const follow = subjectTracker(next);
+      const live = subjectTracker(next);
+      const reckon = deadReckoner(next);
+      const follow = followOf(live, reckon);
       let arrived = null;
       if (next.descent) await flyTo(next.view, signal);
       else arrived = await hopTo(next, signal, follow);
       signal.throwIfAborted();
       startOrbit({ ...next.view, ...(arrived || {}) }, follow);
-      if (next.aircraft) showStandIn(next, follow);
+      if (next.aircraft) showStandIn(next, live, reckon);
       lastView = next.view;
       onTravel?.('arrive', next.view);
       sensorLook.set(sensorFor(next, Date.now()));
@@ -1069,9 +1121,12 @@ export function createTourController({
       });
       if (arrivals.length > 30) arrivals.shift();
       arrivalHeld = null;
-      warmer.arrived(stopLabel(next), upcomingView);
-      onFocus?.(focusOf(next));
+      warmer.arrived(stopLabel(next), upcomingViews);
+      // A city square shows its four live feeds down the screen edges in
+      // place of the asset cards (Pierre, 28 Oct: "have them replace the
+      // other one that's already there").
       if (next.square) wall.show(next.square, { place: next.camera?.city });
+      else onFocus?.(focusOf(next));
       if (profile) {
         if (!airport) airport = createAirportOverlay(viewer);
         airport.update(profile, airportFlights());
@@ -1117,6 +1172,16 @@ export function createTourController({
     run = { controller };
     interruptCameraMotion('tour-start');
     viewer.trackedEntity = undefined;
+    // An aircraft or satellite the viewer was following keeps its own follow
+    // camera and highlight; the Director owns the camera now.
+    for (const id of ['flights', 'military', 'satellites']) {
+      try {
+        layerModule(id)?.stopTracking?.({ origin: 'director' });
+      } catch {
+        /* layer not registered */
+      }
+    }
+    preview = { at: 0, stops: [] };
     ui.setState('running');
     descent = null;
     const wantIntro = intro ?? descentPending;

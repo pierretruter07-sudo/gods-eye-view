@@ -8,6 +8,8 @@ import * as Cesium from 'cesium';
 import { installAdaptiveQuality } from './quality.js';
 import { graphicsFlags, installGraphics } from './graphics.js';
 import { installNavigation } from './navigation.js';
+import { createFocusCamera } from './focusCamera.js';
+import { installNavHelp } from './navHelp.js';
 import { installFlightPrefetch } from './flightPrefetch.js';
 import { installLayout } from './layout.js';
 import { installWorldVisuals } from '../visuals/index.js';
@@ -318,6 +320,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   });
   collapse.addEventListener('click', () => setPanel(false));
 
+  // Set once installed below (the tour's callbacks may run first).
+  let focusCam = null;
   let intelRef = null; // set once the intel view exists (the tour can start first)
   const prefetch = installFlightPrefetch({ viewer, dataManager });
   // Day/night with city lights, comet trails, quake shockwave rings.
@@ -395,6 +399,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     },
     onState(state) {
       const live = state === 'running';
+      // The Director takes the camera: a focused asset is let go.
+      if (live) focusCam?.release('director');
       document.body.classList.toggle('gev-touring', live);
       intelRef?.refresh?.();
       directorBtn.classList.toggle('gev-btn--live', live);
@@ -470,11 +476,29 @@ export function installShell({ viewer, dataManager, placeSearch }) {
   // about the point under the cursor, the wheel zooms towards it, and the
   // keyboard pans, turns, tilts and zooms. Keys stop the Director as the
   // mouse does.
+  // Focusing on an asset frames it and orbits it on the viewer's hand, with
+  // no spin; Esc, H or a pan lets go (focusCamera.js).
+  let navHelp = null;
+  focusCam = createFocusCamera({
+    viewer,
+    Cesium,
+    onChange: (state) => {
+      navHelp?.setFocus(state);
+      if (!state.active) intelRef?.focusReleased?.();
+    },
+  });
   const stopNavigation = installNavigation(viewer, Cesium, {
     releaseFrame: () => tour.controller.isRunning(),
     onManualInput: (reason) => {
       if (tour.controller.isRunning()) tour.controller.exit(reason);
     },
+    focus: focusCam,
+    commands: { focusSelected: () => intelRef?.focusSelected?.() || false },
+  });
+  // The controls panel down the left edge, with its compass.
+  navHelp = installNavHelp({
+    viewer,
+    command: (name) => stopNavigation.command(name),
   });
 
   // ── Intelligence layer ───────────────────────────────────────────────
@@ -485,6 +509,7 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     onManualFocus: (reason) => {
       if (tour.controller.isRunning()) tour.controller.exit(reason);
     },
+    focusCamera: focusCam,
   });
   intelRef = intel;
   // Diagnostics and the UI layout check (as window.__gevTour for the Director).
@@ -592,6 +617,8 @@ export function installShell({ viewer, dataManager, placeSearch }) {
     layout.destroy();
     if (window.__gevIntel === intel) delete window.__gevIntel;
     intel.destroy();
+    navHelp?.destroy();
+    focusCam?.destroy();
     window.removeEventListener('keydown', onEscape);
     tour.dispose();
     world.destroy();

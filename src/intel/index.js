@@ -88,6 +88,7 @@ export function installIntel({
   dataManager,
   isLive = () => true,
   onManualFocus = () => {},
+  focusCamera = null,
 }) {
   const scene = viewer.scene;
   const narrator = createNarrator();
@@ -837,8 +838,10 @@ export function installIntel({
       return;
     }
     placeMarker(o);
-    // Focus the camera on it, Director-style.
-    if (NATIVE_FOLLOW.has(o.kind)) {
+    // Frame it and orbit it on the viewer's own hand: no automatic spin
+    // (focusCamera.js). Without a focus camera, the old follow and orbit.
+    if (focusOn(o)) state.following = true;
+    else if (NATIVE_FOLLOW.has(o.kind)) {
       state.following = follow(o);
       if (state.following) spinTracked();
     } else {
@@ -1308,6 +1311,22 @@ export function installIntel({
     if (!native) viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
   }
   const NATIVE_FOLLOW = new Set(['aircraft', 'satellite']);
+  /** How close and how steep a focused asset is framed. */
+  const FOCUS_FRAME = {
+    aircraft: { rangeM: 4_000, pitchDeg: -18 },
+    vessel: { rangeM: 1_800, pitchDeg: -22 },
+    satellite: { rangeM: 1_500_000, pitchDeg: -35 },
+    earthquake: { rangeM: 320_000, pitchDeg: -50 },
+  };
+  /** Frame the asset with the focus camera (true when it took the camera). */
+  function focusOn(o) {
+    const frame = FOCUS_FRAME[o?.kind];
+    if (!focusCamera || !frame) return false;
+    return focusCamera.focus((r) => assetWorld(r) || cartesianOf(o), {
+      ...frame,
+      label: o.title || o.name || o.callsign || '',
+    });
+  }
   /** While a layer's follow camera tracks the contact, circle it slowly. */
   function spinTracked() {
     stopOrbit();
@@ -1406,6 +1425,11 @@ export function installIntel({
     return ok;
   }
   function stopFollow() {
+    if (focusCamera?.isActive()) {
+      focusCamera.release('close');
+      state.following = false;
+      return;
+    }
     if (!state.following || !selected || !NATIVE_FOLLOW.has(selected.kind))
       return;
     try {
@@ -1512,7 +1536,11 @@ export function installIntel({
       return;
     }
     if (act === 'fly') flyTo(o);
-    if (act === 'follow') {
+    if (act === 'follow' && focusCamera && FOCUS_FRAME[o.kind]) {
+      if (focusCamera.isActive()) stopFollow();
+      else state.following = focusOn(o);
+      renderActions();
+    } else if (act === 'follow') {
       if (NATIVE_FOLLOW.has(o.kind)) {
         if (state.following) {
           stopOrbit();
@@ -1737,6 +1765,14 @@ export function installIntel({
       onOpen = fn;
     },
     isOpen: () => !!selected,
+    /** The selected asset, re-framed (the F key). */
+    focusSelected: () => (selected ? focusOn(selected) : false),
+    /** The focus camera let go (Esc, Home, a pan): the Follow button resets. */
+    focusReleased() {
+      if (!selected || !state.following) return;
+      state.following = false;
+      renderActions();
+    },
     setTriage,
     isTriageOpen: () => !triage.hidden,
     flaggedCount,

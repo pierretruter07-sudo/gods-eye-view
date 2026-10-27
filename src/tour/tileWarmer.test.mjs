@@ -4,6 +4,7 @@ import {
   WARM_AFTER_ARRIVAL_MS,
   createTileWarmer,
   sceneTilesets,
+  sweepPlan,
   warmable,
 } from './tileWarmer.js';
 
@@ -151,19 +152,35 @@ test("before leaving, the Director waits for the warmed stop's tiles, at most a 
     t += ms;
     if (t >= 1500) stats.numberOfPendingRequests = 0;
   };
-  const w = createTileWarmer({ viewer, Cesium, now: () => t, tilesets: () => [tiles] });
+  const w = createTileWarmer({
+    viewer,
+    Cesium,
+    now: () => t,
+    tilesets: () => [tiles],
+  });
   w.warm(city, 'camera:b');
   const done = await w.settle('camera:b', { sleep });
   assert.equal(done.settled, true);
-  assert.ok(done.waitedMs >= 1500 && done.waitedMs <= 2500, String(done.waitedMs));
+  assert.ok(
+    done.waitedMs >= 1500 && done.waitedMs <= 2500,
+    String(done.waitedMs),
+  );
   // Never longer than the cap.
   stats.numberOfPendingRequests = 9;
   t = 0;
-  const capped = await w.settle('camera:b', { sleep: async (ms) => { t += ms; }, maxMs: 3000 });
+  const capped = await w.settle('camera:b', {
+    sleep: async (ms) => {
+      t += ms;
+    },
+    maxMs: 3000,
+  });
   assert.equal(capped.settled, false);
   assert.ok(capped.waitedMs >= 3000 && capped.waitedMs < 3500);
   // A fresh alert replaced the warmed stop: no wait at all.
-  assert.deepEqual(await w.settle('event:quake', { sleep }), { waitedMs: 0, settled: false });
+  assert.deepEqual(await w.settle('event:quake', { sleep }), {
+    waitedMs: 0,
+    settled: false,
+  });
   w.stop();
   w.arrived('camera:b', () => null);
   w.stop();
@@ -185,12 +202,20 @@ test('the warm aims with the arrival heading, and follows a moving subject every
   let pos = { lat: 10, lon: 20, heightM: 9000 };
   const w = createTileWarmer({ viewer, Cesium, tilesets: () => [] });
   w.warm(city, 'aircraft:x', { headingDeg: 0, locate: () => pos });
-  assert.equal(pc.aimed.hpr.heading, 0, 'north-up, as the hop arrives (not the orbit heading 0.5)');
+  assert.equal(
+    pc.aimed.hpr.heading,
+    0,
+    'north-up, as the hop arrives (not the orbit heading 0.5)',
+  );
   assert.deepEqual(pc.aimed.target, { lon: 20, lat: 10, h: 9000 });
   assert.equal(pc.aimed.hpr.range, 900, 'framing from the stop view');
   pos = { lat: 10.05, lon: 20.1, heightM: 9100 };
   await new Promise((r) => setTimeout(r, 1100));
-  assert.deepEqual(pc.aimed.target, { lon: 20.1, lat: 10.05, h: 9100 }, 're-aimed at the new position');
+  assert.deepEqual(
+    pc.aimed.target,
+    { lon: 20.1, lat: 10.05, h: 9100 },
+    're-aimed at the new position',
+  );
   assert.equal(w.warming().headingDeg, 0);
   w.stop();
   assert.equal(w.warming(), null);
@@ -198,8 +223,17 @@ test('the warm aims with the arrival heading, and follows a moving subject every
 
 test('the queued stop’s arrival heading and position reach the warm', async () => {
   const { viewer, pc } = fakeViewer();
-  const w = createTileWarmer({ viewer, Cesium, tilesets: () => [{ tilesLoaded: true }] });
-  w.arrived('a', () => ({ view: city, label: 'b', headingDeg: 0, locate: () => ({ lat: 1, lon: 2 }) }));
+  const w = createTileWarmer({
+    viewer,
+    Cesium,
+    tilesets: () => [{ tilesLoaded: true }],
+  });
+  w.arrived('a', () => ({
+    view: city,
+    label: 'b',
+    headingDeg: 0,
+    locate: () => ({ lat: 1, lon: 2 }),
+  }));
   await new Promise((r) => setTimeout(r, 50));
   assert.equal(pc.aimed.hpr.heading, 0);
   assert.deepEqual(pc.aimed.target, { lon: 2, lat: 1, h: 20 });
@@ -208,7 +242,11 @@ test('the queued stop’s arrival heading and position reach the warm', async ()
 
 test('while the Director runs, the edges of the view are not kept coarse (foveated detail off); restored on exit', () => {
   const { viewer } = fakeViewer();
-  const tiles = { tilesLoaded: true, cullRequestsWhileMoving: true, foveatedScreenSpaceError: true };
+  const tiles = {
+    tilesLoaded: true,
+    cullRequestsWhileMoving: true,
+    foveatedScreenSpaceError: true,
+  };
   const w = createTileWarmer({ viewer, Cesium, tilesets: () => [tiles] });
   w.holdDetail(true);
   assert.equal(tiles.foveatedScreenSpaceError, false);
@@ -222,7 +260,12 @@ test('the Director waits for the arrival view to load before talking, at most a 
   let t = 0;
   const stats = { numberOfPendingRequests: 4, numberOfTilesProcessing: 0 };
   const tiles = { tilesLoaded: false, statistics: stats };
-  const w = createTileWarmer({ viewer, Cesium, now: () => t, tilesets: () => [tiles] });
+  const w = createTileWarmer({
+    viewer,
+    Cesium,
+    now: () => t,
+    tilesets: () => [tiles],
+  });
   const sleep = async (ms) => {
     t += ms;
     if (t >= 1200) {
@@ -232,14 +275,83 @@ test('the Director waits for the arrival view to load before talking, at most a 
   };
   const done = await w.waitLoaded({ sleep });
   assert.equal(done.settled, true);
-  assert.ok(done.waitedMs >= 1200 && done.waitedMs <= 1700, String(done.waitedMs));
+  assert.ok(
+    done.waitedMs >= 1200 && done.waitedMs <= 1700,
+    String(done.waitedMs),
+  );
   stats.numberOfPendingRequests = 3;
   tiles.tilesLoaded = false;
   t = 0;
-  const capped = await w.waitLoaded({ maxMs: 2000, sleep: async (ms) => { t += ms; } });
+  const capped = await w.waitLoaded({
+    maxMs: 2000,
+    sleep: async (ms) => {
+      t += ms;
+    },
+  });
   assert.equal(capped.settled, false);
   // No Google tiles at all: nothing to wait for.
   const none = createTileWarmer({ viewer, Cesium, tilesets: () => [] });
   assert.equal((await none.waitLoaded()).settled, true);
   assert.equal(none.loadWatch().ready(), true);
+});
+
+test('the look-ahead sweep takes both stops’ arrival views first, then every side', () => {
+  assert.deepEqual(sweepPlan(2), [
+    { target: 0, turnDeg: 0 },
+    { target: 1, turnDeg: 0 },
+    { target: 0, turnDeg: 90 },
+    { target: 0, turnDeg: 180 },
+    { target: 0, turnDeg: 270 },
+    { target: 1, turnDeg: 90 },
+    { target: 1, turnDeg: 180 },
+    { target: 1, turnDeg: 270 },
+  ]);
+  assert.equal(sweepPlan(1).length, 4);
+  assert.deepEqual(sweepPlan(0), []);
+});
+
+test('the next two stops are warmed in turn, each held until its tiles are in', async () => {
+  const { viewer, pc } = fakeViewer();
+  let pending = 3;
+  const tiles = {
+    tilesLoaded: false,
+    statistics: {
+      get numberOfPendingRequests() {
+        return pending;
+      },
+      numberOfTilesProcessing: 0,
+    },
+  };
+  let t = 0;
+  const w = createTileWarmer({
+    viewer,
+    Cesium,
+    now: () => t,
+    tilesets: () => [tiles],
+  });
+  const second = { ...city, lat: 49.3, lon: -123.1 };
+  assert.equal(
+    w.warmAhead([
+      { view: city, label: 'a', headingDeg: 0 },
+      { view: second, label: 'b', headingDeg: 0 },
+    ]),
+    true,
+  );
+  assert.equal(pc.aimed.target.lat, 51.5, 'the next stop first');
+  // Requests still in flight: the aim holds.
+  t = 1000;
+  await new Promise((r) => setTimeout(r, 300));
+  assert.equal(pc.aimed.target.lat, 51.5);
+  // Its tiles are in: on to the stop after.
+  pending = 0;
+  await new Promise((r) => setTimeout(r, 300));
+  t = 2000;
+  await new Promise((r) => setTimeout(r, 300));
+  assert.equal(pc.aimed.target.lat, 49.3, 'then the stop after');
+  assert.deepEqual(w.warming().ahead.stops, ['a', 'b']);
+  // Leaving for the next stop: the sweep ends on its arrival view.
+  await w.settle('a', { maxMs: 0, sleep: async () => {} });
+  assert.equal(pc.aimed.target.lat, 51.5);
+  assert.equal(w.warming().ahead, null);
+  w.stop();
 });

@@ -7,6 +7,8 @@ import {
   isTypingTarget,
   keyFrame,
   navKeyAction,
+  navKeyActions,
+  navKeyCommand,
   panFrame,
   pitchOf,
   raySphere,
@@ -112,7 +114,7 @@ test('standard mouse navigation: left drag rotates, right/middle drag pans, whee
   assert.equal(controller.minimumZoomDistance, 1);
 });
 
-test('keys: arrows and WASD pan, Q/E turn, R/F tilt, +/- zoom; never in a text field or with Ctrl', () => {
+test('keys: arrows and WASD pan, Q/E turn, Z/X or Shift+arrows tilt, +/- zoom; never in a text field or with Ctrl', () => {
   const cases = [
     [{ code: 'ArrowUp' }, 'forward'],
     [{ code: 'KeyW', key: 'w' }, 'forward'],
@@ -121,19 +123,33 @@ test('keys: arrows and WASD pan, Q/E turn, R/F tilt, +/- zoom; never in a text f
     [{ code: 'KeyD' }, 'right'],
     [{ code: 'KeyQ' }, 'turnLeft'],
     [{ code: 'KeyE' }, 'turnRight'],
-    [{ code: 'KeyR' }, 'tiltUp'],
-    [{ code: 'KeyF' }, 'tiltDown'],
+    [{ code: 'KeyZ' }, 'tiltUp'],
+    [{ code: 'KeyX' }, 'tiltDown'],
+    [{ code: 'PageUp' }, 'tiltUp'],
+    [{ code: 'ArrowUp', shiftKey: true }, 'tiltUp'],
+    [{ code: 'ArrowDown', shiftKey: true }, 'tiltDown'],
+    [{ code: 'ArrowLeft', shiftKey: true }, 'turnLeft'],
+    [{ code: 'KeyF', key: 'f' }, null],
     [{ code: 'Equal', key: '+' }, 'zoomIn'],
     [{ code: 'NumpadAdd' }, 'zoomIn'],
     [{ code: 'Minus' }, 'zoomOut'],
     [{ key: 'w' }, 'forward'],
     [{ key: '-' }, 'zoomOut'],
-    [{ code: 'KeyX', key: 'x' }, null],
-    [{ code: 'KeyR', ctrlKey: true }, null],
+    [{ code: 'KeyP', key: 'p' }, null],
+    [{ code: 'KeyZ', ctrlKey: true }, null],
     [{ code: 'KeyW', metaKey: true }, null],
   ];
   for (const [event, action] of cases)
     assert.equal(navKeyAction(event), action, JSON.stringify(event));
+  // Single-press commands, as in Google Earth and game editors.
+  assert.equal(navKeyCommand({ code: 'KeyF' }), 'focus');
+  assert.equal(navKeyCommand({ code: 'KeyN' }), 'north');
+  assert.equal(navKeyCommand({ code: 'KeyU' }), 'topDown');
+  assert.equal(navKeyCommand({ code: 'KeyH' }), 'home');
+  assert.equal(navKeyCommand({ key: 'Home' }), 'home');
+  assert.equal(navKeyCommand({ key: 'Escape' }), 'release');
+  assert.equal(navKeyCommand({ code: 'KeyF', ctrlKey: true }), null);
+  assert.deepEqual(navKeyActions('ArrowUp'), ['forward', 'tiltUp']);
 
   assert.equal(isTypingTarget({ tagName: 'INPUT' }), true);
   assert.equal(isTypingTarget({ tagName: 'textarea' }), true);

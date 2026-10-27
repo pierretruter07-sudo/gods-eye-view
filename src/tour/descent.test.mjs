@@ -102,7 +102,106 @@ test('the descent region is the one nearest early afternoon, solar time', () => 
   assert.equal(Math.round(solarHour(0, at('2026-10-19T12:00:00Z'))), 12);
   assert.equal(pickDescentRegion(at('2026-10-19T02:00:00Z')).id, 'sydney');
   assert.equal(pickDescentRegion(at('2026-10-19T12:30:00Z')).id, 'london');
-  assert.equal(pickDescentRegion(at('2026-10-19T18:00:00Z')).id, 'toronto');
+  // 18:00 UTC: Toronto is nearest noon, but the Rockies are in daylight
+  // and scenic regions win by up to their bonus (Pierre, 28 Oct).
+  assert.equal(pickDescentRegion(at('2026-10-19T18:00:00Z')).id, 'calgary');
+  assert.equal(
+    pickDescentRegion(
+      at('2026-10-19T18:00:00Z'),
+      DESCENT_REGIONS.filter((r) => !r.scenicBonusH),
+    ).id,
+    'toronto',
+  );
+});
+
+test('the airliner, the low flyer and the ship are picked over the scenery, not the city centre', () => {
+  const region = DESCENT_REGIONS.find((r) => r.id === 'vancouver');
+  const planner = createDescentPlanner({ region });
+  const sats = [
+    { noradId: '25544', lat: 0, lon: 0, altitudeM: 420_000 },
+    { noradId: '1', lat: 0, lon: 0, altitudeM: 35_786_000, group: 'geo' },
+  ];
+  const city = {
+    icao24: 'city',
+    lat: 49.2,
+    lon: -123.18,
+    altitudeM: 11_000,
+    speedMps: 230,
+  };
+  const mountains = {
+    icao24: 'mtns',
+    lat: 49.5,
+    lon: -123.2,
+    altitudeM: 11_200,
+    speedMps: 230,
+  };
+  const data = {
+    satellites: sats,
+    flights: [city, mountains],
+    vessels: [],
+    cameras: [],
+  };
+  planner.next(data); // geo
+  planner.next(data); // iss
+  const cruise = planner.next(data);
+  assert.equal(cruise.aircraft.icao24, 'mtns');
+});
+
+test('the street square is four live video cameras when a city has them', () => {
+  const region = DESCENT_REGIONS.find((r) => r.id === 'vancouver');
+  const dm = DESCENT_REGIONS.find((r) => r.liveVideo);
+  const still = (id, lat, lon) => ({
+    id,
+    name: id,
+    lat,
+    lon,
+    feedType: 'image',
+  });
+  const live = (id, dLat, dLon) => ({
+    id,
+    name: `I-235 ${id}`,
+    lat: dm.lat + dLat,
+    lon: dm.lon + dLon,
+    feedType: 'hls',
+    city: dm.label,
+  });
+  const cameras = [
+    still('v1', 49.2827, -123.1207),
+    still('v2', 49.284, -123.118),
+    still('v3', 49.281, -123.123),
+    still('v4', 49.2835, -123.124),
+    live('a', 0.008, 0),
+    live('b', 0.008, 0.006),
+    live('c', 0.009, -0.006),
+    live('d', 0.006, 0.012),
+  ];
+  const planner = createDescentPlanner({ region });
+  const stops = [];
+  for (let i = 0; i < 40 && !planner.isDone(); i += 1) {
+    const s = planner.next({ cameras });
+    if (s?.wait) planner.skip();
+    else if (s) stops.push(s);
+  }
+  const street = stops.find((s) => s.descent === 'street');
+  assert.equal(street.square.length, 4);
+  assert.ok(street.square.every((c) => c.feedType === 'hls'));
+  assert.match(street.line, /four live video cameras/);
+});
+
+test('preview shows the next stops without moving on', () => {
+  const planner = createDescentPlanner({ region: sydney });
+  const data = fullData();
+  const ahead = planner.preview(data, 2);
+  assert.deepEqual(
+    ahead.map((s) => s.descent),
+    ['geo', 'iss'],
+  );
+  assert.equal(planner.peekStep(), 'geo', 'the planner itself has not moved');
+  assert.equal(planner.next(data).descent, 'geo');
+  assert.deepEqual(
+    planner.preview(data, 2).map((s) => s.descent),
+    ['iss', 'cruise'],
+  );
 });
 
 test('the descent steps down from GEO to street level, then ends', () => {

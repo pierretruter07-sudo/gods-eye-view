@@ -140,6 +140,9 @@ export function configureCesiumNavigation(controller, Cesium, rules = NAV) {
 
 // ── Keyboard ──────────────────────────────────────────────────────────────
 
+// Held keys move the camera; the layout follows common game and globe
+// conventions (WASD or arrows move, Q/E turn, Shift + arrows tilt and turn
+// as in Google Earth). F, N, U, H and Esc are single-press commands.
 const KEY_ACTIONS = Object.freeze({
   ArrowUp: 'forward',
   KeyW: 'forward',
@@ -151,12 +154,20 @@ const KEY_ACTIONS = Object.freeze({
   KeyD: 'right',
   KeyQ: 'turnLeft',
   KeyE: 'turnRight',
-  KeyR: 'tiltUp',
-  KeyF: 'tiltDown',
+  KeyZ: 'tiltUp',
+  KeyX: 'tiltDown',
+  PageUp: 'tiltUp',
+  PageDown: 'tiltDown',
   Equal: 'zoomIn',
   NumpadAdd: 'zoomIn',
   Minus: 'zoomOut',
   NumpadSubtract: 'zoomOut',
+});
+const SHIFT_ACTIONS = Object.freeze({
+  ArrowUp: 'tiltUp',
+  ArrowDown: 'tiltDown',
+  ArrowLeft: 'turnLeft',
+  ArrowRight: 'turnRight',
 });
 const KEY_FALLBACK = Object.freeze({
   w: 'forward',
@@ -165,12 +176,21 @@ const KEY_FALLBACK = Object.freeze({
   d: 'right',
   q: 'turnLeft',
   e: 'turnRight',
-  r: 'tiltUp',
-  f: 'tiltDown',
+  z: 'tiltUp',
+  x: 'tiltDown',
   '+': 'zoomIn',
   '=': 'zoomIn',
   '-': 'zoomOut',
   _: 'zoomOut',
+});
+/** Single-press camera commands. */
+const KEY_COMMANDS = Object.freeze({
+  KeyF: 'focus',
+  KeyN: 'north',
+  KeyU: 'topDown',
+  KeyH: 'home',
+  Home: 'home',
+  Escape: 'release',
 });
 
 /**
@@ -179,6 +199,8 @@ const KEY_FALLBACK = Object.freeze({
  */
 export function navKeyAction(event) {
   if (!event || event.ctrlKey || event.metaKey || event.altKey) return null;
+  if (event.shiftKey && SHIFT_ACTIONS[event.code])
+    return SHIFT_ACTIONS[event.code];
   return (
     KEY_ACTIONS[event.code] ||
     KEY_ACTIONS[event.key] ||
@@ -186,6 +208,27 @@ export function navKeyAction(event) {
     null
   );
 }
+
+/** Every held action a key can stand for (released together on key up). */
+export function navKeyActions(code) {
+  return [KEY_ACTIONS[code], SHIFT_ACTIONS[code]].filter(Boolean);
+}
+
+/** The single-press command for a key event (F, N, U, H, Home, Esc), or null. */
+export function navKeyCommand(event) {
+  if (!event || event.ctrlKey || event.metaKey || event.altKey) return null;
+  return (
+    KEY_COMMANDS[event.code] ||
+    KEY_COMMANDS[event.key] ||
+    { f: 'focus', n: 'north', u: 'topDown', h: 'home' }[
+      String(event.key || '').toLowerCase()
+    ] ||
+    null
+  );
+}
+
+/** Held actions that move the camera off the asset (pans). */
+const PAN_ACTIONS = new Set(['forward', 'back', 'left', 'right']);
 
 /** True when keys typed there belong to a text field or an open dialog. */
 export function isTypingTarget(target) {
@@ -422,7 +465,13 @@ export function keyFrame(
 export function installNavigation(
   viewer,
   Cesium,
-  { releaseFrame = () => false, onManualInput = () => {}, rules = NAV } = {},
+  {
+    releaseFrame = () => false,
+    onManualInput = () => {},
+    rules = NAV,
+    focus = null,
+    commands = {},
+  } = {},
 ) {
   const scene = viewer.scene;
   const camera = viewer.camera;
@@ -524,6 +573,29 @@ export function installNavigation(
   function step(now) {
     raf = 0;
     if (!held.size) return;
+    // Focused on an asset: turn, tilt and zoom about it.
+    if (focus?.isActive()) {
+      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+      last = now;
+      const k = rules.keys;
+      const has = (a) => held.has(a);
+      focus.nudge({
+        turnDeg:
+          ((has('turnRight') ? 1 : 0) - (has('turnLeft') ? 1 : 0)) *
+          k.turnDegPerS *
+          dt,
+        tiltDeg:
+          ((has('tiltUp') ? 1 : 0) - (has('tiltDown') ? 1 : 0)) *
+          k.tiltDegPerS *
+          dt,
+        zoom:
+          ((has('zoomIn') ? 1 : 0) - (has('zoomOut') ? 1 : 0)) *
+          k.zoomRatePerS *
+          dt,
+      });
+      raf = requestAnimationFrame(step);
+      return;
+    }
     if (!free()) {
       held.clear();
       return;
@@ -561,13 +633,136 @@ export function installNavigation(
     }
     raf = requestAnimationFrame(step);
   }
+  // ── Camera commands: frame, face north, look down, whole planet ──────
+  /** The point at the screen centre and how far it is. */
+  function centreTarget() {
+    const p = findPivot();
+    if (!p) return null;
+    const point = toCart(p);
+    return {
+      point,
+      rangeM: Cesium.Cartesian3.distance(camera.positionWC, point),
+    };
+  }
+  /** Ease to a new heading and pitch about the screen centre. */
+  function reframe({ headingDeg = null, pitchDeg = null }, durationS = 0.8) {
+    const c = centreTarget();
+    const heading =
+      headingDeg == null ? camera.heading : Cesium.Math.toRadians(headingDeg);
+    const pitch =
+      pitchDeg == null
+        ? Math.min(camera.pitch, Cesium.Math.toRadians(rules.keys.maxPitchDeg))
+        : Cesium.Math.toRadians(pitchDeg);
+    if (!c) {
+      camera.setView({ orientation: { heading, pitch, roll: 0 } });
+      return;
+    }
+    camera.flyToBoundingSphere(new Cesium.BoundingSphere(c.point, 0), {
+      offset: new Cesium.HeadingPitchRange(heading, pitch, c.rangeM),
+      duration: durationS,
+    });
+  }
+  function home() {
+    const c = camera.positionCartographic;
+    camera.flyTo({
+      destination: Cesium.Cartesian3.fromRadians(
+        c.longitude,
+        Cesium.Math.clamp(c.latitude, -1, 1) * 0.5,
+        20_000_000,
+      ),
+      orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+      duration: 1.6,
+    });
+  }
+  /** Run a single-press command. Returns true when it was handled. */
+  function runCommand(name) {
+    if (name === 'release') return focus?.release('escape') || false;
+    if (name === 'focus') return commands.focusSelected?.() || false;
+    onManualInput('keyboard');
+    if (name === 'north') {
+      if (focus?.faceNorth()) return true;
+      takeCamera();
+      reframe({ headingDeg: 0 });
+      return true;
+    }
+    if (name === 'topDown') {
+      if (focus?.isActive()) return focus.nudge({ tiltDeg: -180 });
+      takeCamera();
+      reframe({ pitchDeg: -90 });
+      return true;
+    }
+    if (name === 'home') {
+      focus?.release('home');
+      takeCamera();
+      home();
+      return true;
+    }
+    return false;
+  }
+
+  // Double-click flies in to that spot (Google Earth), keeping the bearing.
+  function onDoubleClick(event) {
+    if (focus?.isActive() || controller.enableInputs === false) return;
+    const rect = canvas.getBoundingClientRect();
+    const at = new Cesium.Cartesian2(
+      event.clientX - rect.left,
+      event.clientY - rect.top,
+    );
+    let point = null;
+    try {
+      if (scene.pickPositionSupported) point = scene.pickPosition(at);
+    } catch {
+      point = null;
+    }
+    if (!point) {
+      const ray = camera.getPickRay(at);
+      point = ray ? scene.globe.pick(ray, scene) : null;
+    }
+    if (!point) return;
+    takeCamera();
+    const range = Cesium.Cartesian3.distance(camera.positionWC, point) * 0.45;
+    camera.flyToBoundingSphere(new Cesium.BoundingSphere(point, 0), {
+      offset: new Cesium.HeadingPitchRange(
+        camera.heading,
+        Math.min(camera.pitch, Cesium.Math.toRadians(-20)),
+        Math.max(rules.minimumZoomDistanceM * 4, range),
+      ),
+      duration: 1.0,
+    });
+  }
+  try {
+    viewer.cesiumWidget?.screenSpaceEventHandler?.removeInputAction(
+      Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
+    );
+  } catch {
+    /* no default handler */
+  }
+
   function onKeyDown(event) {
     if (event.defaultPrevented || isTypingTarget(event.target)) return;
+    const command = navKeyCommand(event);
+    if (command) {
+      if (runCommand(command)) event.preventDefault();
+      return;
+    }
     const action = navKeyAction(event);
     if (!action) return;
     event.preventDefault();
     if (held.has(action)) return;
     onManualInput('keyboard');
+    // Moving off sideways leaves the asset; turning, tilting and zooming
+    // stay on it.
+    if (focus?.isActive()) {
+      if (PAN_ACTIONS.has(action)) focus.release('pan');
+      else {
+        held.add(action);
+        if (!raf) {
+          last = performance.now();
+          raf = requestAnimationFrame(step);
+        }
+        return;
+      }
+    }
     takeCamera();
     if (!free()) return;
     held.add(action);
@@ -578,6 +773,7 @@ export function installNavigation(
     }
   }
   function onKeyUp(event) {
+    for (const a of navKeyActions(event.code)) held.delete(a);
     const action = navKeyAction({ code: event.code, key: event.key });
     if (action) held.delete(action);
   }
@@ -606,6 +802,7 @@ export function installNavigation(
   });
   canvas.addEventListener('wheel', onPointer, { capture: true, passive: true });
   canvas.addEventListener('contextmenu', noMenu);
+  canvas.addEventListener('dblclick', onDoubleClick);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   window.addEventListener('blur', releaseAll);
@@ -617,6 +814,7 @@ export function installNavigation(
     canvas.removeEventListener('pointerdown', onPointer, { capture: true });
     canvas.removeEventListener('wheel', onPointer, { capture: true });
     canvas.removeEventListener('contextmenu', noMenu);
+    canvas.removeEventListener('dblclick', onDoubleClick);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
     window.removeEventListener('blur', releaseAll);
@@ -625,5 +823,7 @@ export function installNavigation(
   };
   /** True once the user has moved the camera themselves (no idle spin after). */
   dispose.navigated = () => navigated;
+  /** Run a camera command from a button (the controls panel). */
+  dispose.command = (name) => runCommand(name);
   return dispose;
 }
