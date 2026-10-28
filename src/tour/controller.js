@@ -4,7 +4,13 @@ import {
   holdContinuousRender,
   releaseContinuousRender,
 } from '../renderGovernor.js';
-import { DESCENT_RULES, TOUR_HOP, TOUR_LAYERS, TOUR_TIMING } from './config.js';
+import {
+  DESCENT_CAMERA,
+  DESCENT_RULES,
+  TOUR_HOP,
+  TOUR_LAYERS,
+  TOUR_TIMING,
+} from './config.js';
 import { aircraftIcon, iconTierPx } from '../data/aircraftIcons.js';
 import {
   DESCENT_LEVELS,
@@ -21,6 +27,7 @@ import { createNarrator } from './narrator.js';
 import { createPlanner } from './planner.js';
 import { createStopQueue } from './queue.js';
 import { createTileWarmer, warmable } from './tileWarmer.js';
+import { createGlobePrefetcher } from './globePrefetch.js';
 import {
   arrivalHeadingDeg,
   flightSeconds,
@@ -119,6 +126,45 @@ export function createTourController({
     Cesium,
     enabled: tileWarmFromUrl(),
   });
+  // The globe's own imagery and terrain for the stops ahead, downloaded
+  // before the camera gets there (globePrefetch.js).
+  const globeTiles = createGlobePrefetcher({ viewer, Cesium });
+  let prefetchTimer = 0;
+  /** Where the next stops are, as views to fetch tiles for. */
+  function prefetchAhead() {
+    let list = [];
+    try {
+      list = upcomingViews();
+    } catch {
+      list = [];
+    }
+    const views = list.map((t) => {
+      let at = null;
+      try {
+        at = t.locate?.() || null;
+      } catch {
+        at = null;
+      }
+      return at && Number.isFinite(at.lat)
+        ? { ...t.view, lat: at.lat, lon: at.lon }
+        : t.view;
+    });
+    if (views.length) globeTiles.prefetch(views);
+  }
+  // Before the first start (the welcome card's countdown), the opening
+  // descent's region is already known: fetch its scenery and its city.
+  if (openingDescent) {
+    try {
+      const region = pickDescentRegion(Date.now());
+      const views = [region, ...(region.scenic || [])].flatMap((p) => [
+        { lat: p.lat, lon: p.lon, rangeM: DESCENT_CAMERA.low.rangeM },
+        { lat: p.lat, lon: p.lon, rangeM: DESCENT_CAMERA.cruise.rangeM },
+      ]);
+      globeTiles.prefetch(views);
+    } catch {
+      /* no region yet */
+    }
+  }
   // Thermal / night-vision looks at stops that suit them (sensors.js).
   const sensorLook = createSensorLook({ viewer, Cesium });
   // Space stops: orbit ring, GEO belt and coverage footprint.
@@ -1204,6 +1250,8 @@ export function createTourController({
       checklist?.start(DESCENT_LEVELS);
     }
     enableLayers(descent ? ['cctv'] : []);
+    clearInterval(prefetchTimer);
+    prefetchTimer = setInterval(prefetchAhead, 2000);
     try {
       await loop(controller.signal);
     } catch (error) {
@@ -1231,6 +1279,9 @@ export function createTourController({
 
   /** Everything a stopped tour leaves behind, cleared (one place). */
   function teardown() {
+    clearInterval(prefetchTimer);
+    prefetchTimer = 0;
+    globeTiles.stop();
     queue.reset();
     warmer.stop();
     warmer.holdDetail(false);
@@ -1308,6 +1359,8 @@ export function createTourController({
       if (on !== undefined) warmer.setEnabled(on);
       return warmer.enabled();
     },
+    /** Diagnostics: globe tiles fetched ahead of the camera. */
+    globeTiles: () => globeTiles.stats(),
     /** Diagnostics: the sensor look in use ('flir', 'nvg' or null). */
     sensor: () => sensorLook.mode(),
   };

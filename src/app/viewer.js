@@ -137,6 +137,7 @@ export function createApplicationViewer({ container, creditContainer }) {
     // Director stops repeat (airports, cities): keep their tiles resident so
     // a revisit draws instantly instead of re-downloading (default 100).
     viewer.scene.globe.tileCacheSize = 300;
+    keepRenderingAfterErrors(viewer);
     sharePicks(viewer.scene);
     return viewer;
   } catch (error) {
@@ -164,4 +165,36 @@ export function applyHorizonHaze(scene, haze = HORIZON_HAZE) {
   fog.enabled = true;
   for (const [key, value] of Object.entries(haze))
     if (key in fog) fog[key] = value;
+}
+
+/** Most frame failures recovered from in a minute before giving up. */
+export const RENDER_RECOVERIES_PER_MIN = 20;
+
+/**
+ * One bad frame must not freeze the globe (Pierre, 28 Oct: "An error
+ * occurred while rendering. Rendering has stopped", 2 loads in 4). Cesium
+ * stops its render loop on the first frame that throws and shows a modal;
+ * instead the error is logged (kept in window.__gevRenderErrors for
+ * diagnosis) and the loop restarts on the next tick. A fault on every frame
+ * still stops after RENDER_RECOVERIES_PER_MIN restarts in a minute.
+ */
+export function keepRenderingAfterErrors(viewer, doc = globalThis.document) {
+  const widget = viewer.cesiumWidget;
+  if (!widget || !viewer.scene?.renderError) return () => {};
+  widget.showRenderLoopErrors = false;
+  const times = [];
+  return viewer.scene.renderError.addEventListener((scene, error) => {
+    const now = Date.now();
+    while (times.length && now - times[0] > 60_000) times.shift();
+    times.push(now);
+    const log = (globalThis.__gevRenderErrors ||= []);
+    log.push(String(error?.stack || error).slice(0, 2000));
+    if (log.length > 10) log.shift();
+    console.error('[render] a frame failed; rendering continues', error);
+    if (times.length > RENDER_RECOVERIES_PER_MIN) return;
+    setTimeout(() => {
+      if (viewer.isDestroyed?.()) return;
+      if (!doc?.hidden) viewer.useDefaultRenderLoop = true;
+    }, 0);
+  });
 }

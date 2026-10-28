@@ -13,11 +13,16 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   and plays them two down each side of the screen in place of the asset
   cards, so the street in the centre stays clear. The server relay carries
   up to six live streams at once (was two).
-- **Map tiles loaded two stops ahead** (Pierre, 28 Oct). The introduction
-  works out its route from the live data as it starts and keeps it current;
-  while at one stop, the Google tiles of the next two are loaded from every
-  side (the Director circles each subject), each view held until its tiles
-  are in.
+- **Map tiles downloaded before the camera gets there** (Pierre, 28 Oct).
+  The deployment has no Google 3D Tiles key, so the planet is the globe's
+  own Esri imagery and Re:Earth terrain, which Cesium only loads for what
+  its one camera sees (the earlier preload worked on Google tiles only and
+  so did nothing here). The Director now works out the next two stops and
+  downloads their imagery and terrain tiles itself, in rings round each
+  subject, from the moment the page opens (the opening region during the
+  welcome card); both services allow the browser to keep them, so on
+  arrival the globe draws from the cache. Arrivals also wait for the
+  globe's tiles before the narration starts.
 - **Scenic first** (Pierre, 28 Oct). Mountain and coast regions (Vancouver,
   Calgary for the Rockies, Sydney) win the day pick while it is daytime
   there, and the airliner, the low flyer and the ship are chosen over the
@@ -27,7 +32,8 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   without any automatic spin; Esc, H or a pan lets go. New keys: F frame
   the selected asset, N north, U straight down, H whole planet, Z/X or
   Shift + arrows tilt; double-click flies in. A slim panel down the left
-  edge lists the controls and carries a compass (press it to face north).
+  edge lists the controls and carries a compass (press it to face north);
+  it stays readable above the welcome card and through the Director.
 - **Four live cameras at street level** (Pierre, 28 Oct). The Director's
   street stop flies to the busiest city square near the descent region (at
   least four public cameras within 0.9 km, live video preferred) and shows
@@ -95,6 +101,12 @@ before the fork (base `ce671ce`, 2026-09-24) is preserved in git.
   shape stuck on screen) and checked once a second, so it never flickers in
   beside the real icon. Starting the Director also ends any follow the
   viewer had on an aircraft or satellite.
+- **One bad frame no longer stops the globe** (Pierre, 28 Oct: "An error
+  occurred while rendering", 2 loads in 4). A frame that throws is logged
+  (window.__gevRenderErrors) and rendering carries on.
+- **Terrain heights without 429s.** The heights proxy allowed 20 requests a
+  minute per viewer; one page load needs more (154 refusals seen), and each
+  refusal put ground heights at sea level. Now 120.
 - **No voice in the background** (Pierre, 28 Oct). The Director and the
   briefings never speak while the page is hidden, and hiding, leaving or
   closing the page cancels speech at once (the voice belongs to the

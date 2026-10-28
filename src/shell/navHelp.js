@@ -5,9 +5,10 @@
  * user how to reset the camera, how to navigate"). A compass at its top
  * shows which way is north and turns the view north when pressed.
  *
- * It folds to a small tab (the ? key or its own button; remembered per
- * browser), steps aside while another panel holds the left column, and is
- * hidden while the Director runs. All text is set with textContent.
+ * It stays on screen the whole time, above the welcome card and through
+ * the Director; it folds to a small tab (the ? key or its own button;
+ * remembered per browser) and steps aside while the Layers or Triage panel
+ * holds the left column. All text is set with textContent.
  * @module shell/navHelp
  */
 
@@ -114,6 +115,20 @@ export function installNavHelp({ viewer, command, doc = document }) {
   root.append(head, focusRow, body);
   doc.body.append(root);
 
+  // Its width, for panels that sit beside it (the street stop's camera wall).
+  const publishWidth = () => {
+    const w = root.offsetWidth;
+    doc.documentElement.style.setProperty(
+      '--gev-navhelp-w',
+      `${w ? w + 12 : 0}px`,
+    );
+  };
+  const sizeWatch =
+    typeof ResizeObserver === 'function'
+      ? new ResizeObserver(publishWidth)
+      : null;
+  sizeWatch?.observe(root);
+
   let folded = readFolded();
   function setFolded(value) {
     folded = Boolean(value);
@@ -126,6 +141,7 @@ export function installNavHelp({ viewer, command, doc = document }) {
     );
     fold.setAttribute('aria-expanded', String(!folded));
     writeFolded(folded);
+    publishWidth();
   }
   setFolded(folded);
 
@@ -165,6 +181,8 @@ export function installNavHelp({ viewer, command, doc = document }) {
     },
     setFolded,
     destroy() {
+      sizeWatch?.disconnect();
+      doc.documentElement.style.removeProperty('--gev-navhelp-w');
       removeTurn();
       doc.removeEventListener('keydown', onKey);
       root.remove();

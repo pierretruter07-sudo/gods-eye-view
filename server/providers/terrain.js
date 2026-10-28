@@ -44,7 +44,11 @@ export function terrainHeightsProxy() {
   const mem = new Map();
   /** Points kept in memory; the oldest go first. */
   const MEM_MAX = 20000;
-  const allow = makeFanOutRateLimiter(20);
+  // Answers come from this proxy's own cache; one page load batches the
+  // whole camera catalogue (1,500 cameras, 24 requests) and the live
+  // layers' ground heights, which a 20-a-minute cap turned into a stream of
+  // 429s and sea-level fallbacks (28 Oct: 154 refusals in one load).
+  const allow = makeFanOutRateLimiter(120);
   /** @type {Map<string, Promise<Array<object>>>} single-flight per missing-point subset. */
   const inflight = new Map();
   let diskLoaded = false;

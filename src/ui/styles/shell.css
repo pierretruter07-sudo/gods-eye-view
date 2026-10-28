@@ -2986,7 +2986,8 @@ body[data-gev-drawer='wide'] {
   animation: gev-wall-in 0.5s ease both;
 }
 .gev-wall--left {
-  left: 20px;
+  /* Beside the controls panel, never under it. */
+  left: calc(20px + var(--gev-navhelp-w, 0px));
 }
 .gev-wall--right {
   right: 20px;
@@ -3092,14 +3093,15 @@ body[data-gev-drawer='wide'] {
   }
 }
 
-/* Camera controls panel: a slim strip down the left edge (navHelp.js). */
+/* Camera controls panel down the left edge (navHelp.js). Always on screen,
+   above the welcome card's dimmed backdrop and through the Director, so
+   the controls can be read at any time (Pierre, 28 Oct). */
 .gev-navhelp {
   position: fixed;
   left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: var(--z-panel, 200);
-  width: 232px;
+  top: calc(var(--gev-top, 90px) + 4px);
+  z-index: calc(var(--z-modal, 400) + 1);
+  width: 214px;
   max-height: calc(100vh - var(--gev-top, 90px) - var(--gev-bottom, 60px));
   overflow-y: auto;
   padding: 10px 12px;
@@ -3201,20 +3203,9 @@ body[data-gev-drawer='wide'] {
   font-size: 12px;
   padding: 6px 8px;
 }
-/* Out of the way: while the Director runs, and folded to its tab while a
-   panel or the asset cards hold the left column. */
-body.gev-touring .gev-navhelp {
-  display: none;
-}
+/* A panel the viewer opened in the left column (Layers, Triage) takes the
+   space; the controls come back when it closes. */
 body[data-gev-left='layers'] .gev-navhelp,
 body[data-gev-left='triage'] .gev-navhelp {
   display: none;
-}
-body[data-gev-left='cards'] .gev-navhelp .gev-navhelp__body {
-  display: none;
-}
-body[data-gev-left='cards'] .gev-navhelp {
-  width: min(232px, 22vw);
-  top: calc(var(--gev-top, 90px) + 8px);
-  transform: none;
 }

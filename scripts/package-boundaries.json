@@ -657,6 +657,7 @@
       "src/tour/descent.js",
       "src/tour/descentChecklist.js",
       "src/tour/events.js",
+      "src/tour/globePrefetch.js",
       "src/tour/index.js",
       "src/tour/lines.js",
       "src/tour/narrator.js",

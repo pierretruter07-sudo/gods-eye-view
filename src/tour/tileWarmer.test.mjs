@@ -289,10 +289,34 @@ test('the Director waits for the arrival view to load before talking, at most a 
     },
   });
   assert.equal(capped.settled, false);
-  // No Google tiles at all: nothing to wait for.
-  const none = createTileWarmer({ viewer, Cesium, tilesets: () => [] });
-  assert.equal((await none.waitLoaded()).settled, true);
-  assert.equal(none.loadWatch().ready(), true);
+  // No Google tiles at all: the globe's own imagery and terrain decide.
+  const globe = { tilesLoaded: true };
+  const flat = {
+    ...viewer,
+    scene: { ...viewer.scene, globe },
+  };
+  let ft = 0;
+  const none = createTileWarmer({
+    viewer: flat,
+    Cesium,
+    now: () => ft,
+    tilesets: () => [],
+  });
+  const quiet = await none.waitLoaded({
+    sleep: async (ms) => {
+      ft += ms;
+    },
+  });
+  assert.equal(quiet.settled, true);
+  globe.tilesLoaded = false;
+  ft = 0;
+  const loading = await none.waitLoaded({
+    maxMs: 1000,
+    sleep: async (ms) => {
+      ft += ms;
+    },
+  });
+  assert.equal(loading.settled, false, 'the globe is still loading');
 });
 
 test('the look-ahead sweep takes both stops’ arrival views first, then every side', () => {

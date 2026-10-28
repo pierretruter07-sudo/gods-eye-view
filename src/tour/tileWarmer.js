@@ -411,7 +411,16 @@ export function createTileWarmer({
     let quietSince = null;
     return {
       ready(t = now()) {
-        if (!on || !tilesets().length) return true;
+        if (!on) return true;
+        // No 3D tiles (no Google key): the globe's own imagery and terrain.
+        if (!tilesets().length) {
+          if (scene?.globe?.tilesLoaded === false) {
+            quietSince = null;
+            return false;
+          }
+          quietSince ??= t;
+          return t - quietSince >= quietMs;
+        }
         if (pendingTiles() > 0) {
           quietSince = null;
           return false;
